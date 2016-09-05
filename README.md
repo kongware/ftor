@@ -1,5 +1,6 @@
-# <img src="http://kongware.net/ftor.png" width="174" height="50" align="right" alt="ftor">
+# ftor
 
+<img src="http://kongware.net/i/ftor.png" width="174" height="50" align="right" alt="ftor">
 An idiomatic, non-dogmatic library facilitating functional programming in Javascript.
 
 ## Status
@@ -33,7 +34,7 @@ ftor introduces some new types that implement the monoidal, functorial, applicat
 
 As a rule of thumb applies: One little, resuable function per module. I am going to switch to ES2015 modules as soon as native support is reached.
 
-## Scope
+## API
 
 The API gets as large as necessary and as small as possible.
 
