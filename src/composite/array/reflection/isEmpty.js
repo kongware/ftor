@@ -1,3 +1,3 @@
-var len = require("./len");
+const len = require("./len");
 
 module.exports = isEmpty = xs => len(xs) === 0;

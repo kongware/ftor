@@ -1,4 +1,4 @@
-var afrom = require("./afrom");
+const afrom = require("../construction/afrom");
 
 module.exports = uniqueBy = f => foldl(
    acc => x => some(f(x)) (acc)

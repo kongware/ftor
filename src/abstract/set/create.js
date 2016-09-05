@@ -1,0 +1,1 @@
+module.exports = create = xs => new Set(xs);
