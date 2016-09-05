@@ -1,0 +1,1 @@
+module.exports = and = y => x => x && y;

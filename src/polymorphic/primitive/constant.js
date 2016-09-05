@@ -1,0 +1,1 @@
+module.exports = constant = x => y => x;

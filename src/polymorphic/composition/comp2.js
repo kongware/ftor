@@ -1,0 +1,1 @@
+module.exports = comp2 = f => g => a => b => f(g(a) (b));

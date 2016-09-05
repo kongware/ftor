@@ -1,0 +1,1 @@
+module.exports = tail = xs => xs.slice(1);

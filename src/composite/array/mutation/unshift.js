@@ -1,0 +1,1 @@
+module.exports = unshift = x => xs => (xs.unshift(x), xs);

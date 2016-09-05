@@ -1,0 +1,1 @@
+module.exports = has = key => o => key in o;

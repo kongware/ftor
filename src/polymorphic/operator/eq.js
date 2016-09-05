@@ -1,0 +1,1 @@
+module.exports = eq = y => x => Object.is(x, y);

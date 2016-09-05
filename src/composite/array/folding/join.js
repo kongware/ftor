@@ -1,0 +1,1 @@
+module.exports = join = x => xs => xs.join(x);

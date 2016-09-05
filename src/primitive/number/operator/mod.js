@@ -1,0 +1,1 @@
+module.exports = mod = y => x => x % y;

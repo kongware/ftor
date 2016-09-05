@@ -1,0 +1,1 @@
+module.exports = lt = y => x => x < y;

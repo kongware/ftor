@@ -1,0 +1,1 @@
+module.exports = freeze = o => Object.freeze(o);

@@ -1,0 +1,1 @@
+module.exports = on = f => g => x => y => f(g(x)) (g(y));

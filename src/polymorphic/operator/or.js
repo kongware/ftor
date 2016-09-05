@@ -1,0 +1,1 @@
+module.exports = or = y => x => x || y;

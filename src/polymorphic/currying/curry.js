@@ -1,0 +1,1 @@
+module.exports = curry = f => a => b => f(a, b);

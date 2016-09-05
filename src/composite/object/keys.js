@@ -1,0 +1,1 @@
+module.exports = keys = o => Reflect.ownKeys(o);

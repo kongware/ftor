@@ -1,0 +1,1 @@
+module.exports = mul = y => x => x * y;

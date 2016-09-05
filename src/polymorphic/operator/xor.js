@@ -1,0 +1,1 @@
+module.exports = xor = alt => y => x => !x === !y ? alt : x || y;

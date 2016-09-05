@@ -1,0 +1,1 @@
+module.exports = tap = f => x => (f(x), x);

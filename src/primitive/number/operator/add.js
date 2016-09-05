@@ -1,0 +1,1 @@
+module.exports = add = y => x => +x + +y;

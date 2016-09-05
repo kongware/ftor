@@ -1,0 +1,1 @@
+module.exports = min = y => x => x < y ? x : y;

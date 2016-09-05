@@ -1,0 +1,1 @@
+module.exports = push = x => xs => (xs.push(x), xs);

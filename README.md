@@ -1,64 +1,56 @@
-# ftør
+# <img src="http://ramda.jcphillipps.com/logo/ramdaFilled_200x235.png" width="174" height="50" align="right" alt="ftor">
 
-A pragmatic library facilitating functional programming in Javascript.
+An idiomatic, non-dogmatic library facilitating functional programming in Javascript.
 
 ## Status
 
-At least at this early stage ftør is rather a proof of concept than a library for production use.
+This library is experimental and still a work in progress. Note the unstable API.
 
 ## Criteria
 
-* Pragmatic functional approach (readability vs. purity vs. performance)
-* As much vanilla Javascript and as little magic as possible
-* Promoting the composition of pure functions
-* Favor of immutability and persistent data structures
-* Encapsulating side effects and language features in contexts
-* Favor of factory functions over constructors
-* As little external dependencies as possible
-* Don't Repeat Yourself (DRY)
-* Single Responsibility Principle (SRP)
+* pragmatic functional approach (readability vs. purity vs. performance)
+* as much vanilla Javascript and as little magic as possible
+* compose little, reusabe functions
+* facilitate asynchronous control flows
+* avoid meta programming like the plague
+* encapsulate side effects
+* strive for immutability
+* favor factory functions
+* avoid dependencies
+* worship mathematics
+* don't repeat yourself
+* single responsibility principle
 
 ## Currying
 
-ftør heavily relies on manually curried functions in the strictly mathematical sense. Native methods are wrapped in pre-curried functions as well. A programmatic curry solution is only needed for third party code.
+ftor heavily relies on manually curried functions in the strictly mathematical sense. Native methods are wrapped in pre-curried functions as well. A programmatic curry solution is only needed for third party code.
+
+## New Types
+
+ftor introduces some new types that implement the monoidal, functorial, applicative and monadic interfaces and are fantasy land compliant.
 
 ## Modularization
 
-ftør is uncompromisingly modular. Each function or class has its own ES2015 module. For packaging I recommend the rollup.js module bundler with it's "tree-shaking" capability.
+As a rule of thumb applies: One little, resuable function per module. I am going to switch to ES2015 modules as soon as native support is reached.
 
 ## Scope
 
-* Common combinators
-* Continuation passing style
-* Currying
-* First class operators
-* First class conditions
-* Factory functions
-* Function composition
-* Functional lenses
-* Functors, applicatives, monads
-* Kleisi composition
-* Lazy evaluation
-* Memoization
-* Monad transformer
-* Monadic promises
-* Persistent data structures
-* Point-free style
-* Pure functions
-* Recursion
-* Streams and Pipes
-* Transducers
+The API gets as large as necessary and as small as possible.
 
 ## Dependencies
 
-Probably immutable.js or maybe my own prototype based persistent data structure hack.
+nay.
 
 ## Platform support
 
-ftør assumes an ES2015 environment. Use transpilers.
+ftor assumes an ES2015 environment. Use transpilers.
 
 ## Todo
 	
 - [x] just start
-- [ ] documentation
-- [ ] unit tests
+- [ ] add basic types
+- [ ] add basic functions
+- [ ] add type signatures
+- [ ] add inline examples
+- [ ] write documentation
+- [ ] define unit tests
