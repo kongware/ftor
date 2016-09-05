@@ -1,6 +1,6 @@
 # ftor
 
-<img src="http://kongware.net/i/ftor.png" width="174" height="50" align="right" alt="ftor">
+<img src="http://kongware.net/i/ftor.png" width="174" height="57" vspace="16" alt="ftor"><br>
 An idiomatic, non-dogmatic library facilitating functional programming in Javascript.
 
 ## Status
