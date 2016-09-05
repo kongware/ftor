@@ -1,0 +1,11 @@
+{
+  "name": "ftor",
+  "version": "0.0.1",
+  "description": "An idiomatic, non-dogmatic library facilitating functional programming in Javascript.",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kongware/ftor.git"
+  },
+  "author": "Iven Marquardt <info@kongware.net>",
+  "license": "MIT"
+}
