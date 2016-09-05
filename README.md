@@ -1,4 +1,4 @@
-# <img src="http://ramda.jcphillipps.com/logo/ramdaFilled_200x235.png" width="174" height="50" align="right" alt="ftor">
+# <img src="http://kongware.net/ftor.png" width="174" height="50" align="right" alt="ftor">
 
 An idiomatic, non-dogmatic library facilitating functional programming in Javascript.
 
