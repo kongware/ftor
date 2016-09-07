@@ -1,0 +1,1 @@
+module.exports = reassign = x => y => (x = y, x);

@@ -1,0 +1,1 @@
+module.exports = mutate = key => x => o => (o[key] = x, o);

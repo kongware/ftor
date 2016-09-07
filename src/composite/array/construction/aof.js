@@ -1,2 +1,2 @@
-// ATTENTION: uncurried function
+// NOTE: uncurried function
 module.exports = aof = Array.of;

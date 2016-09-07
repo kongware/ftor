@@ -1,0 +1,1 @@
+module.exports = clone = o => Object.assign({}, o);
