@@ -1,1 +1,3 @@
-module.exports = clone = o => Object.assign({}, o);
+const assign = require("../assign");
+
+module.exports = clone = assign({});

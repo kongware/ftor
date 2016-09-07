@@ -1,0 +1,1 @@
+module.exports = assign = o => (...xs) => Object.assign(o, ...xs);
