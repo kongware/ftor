@@ -1,9 +1,9 @@
 const afrom = require("../construction/afrom");
-const create = require("../../../abstract/set/create");
+const createSet = require("../../../abstract/set/createSet");
 const filter = require("../searching/filter");
 const has = require("../../../abstract/set/has");
 
 module.exports = intersect = ys => xs => {
-  ys = create(ys);
-  return filter(x => has(x) (ys)) (afrom(create(xs)));
+  ys = createSet(ys);
+  return filter(x => has(x) (ys)) (afrom(createSet(xs)));
 }

@@ -1,4 +1,4 @@
 const comp = require("../composition/comp");
-const not = require("../../primitive/operator/not");
+const not = require("../../polymorphic/operator/not");
 
-module.exports = notf = comp(not) (f);
+module.exports = notf = comp(not);

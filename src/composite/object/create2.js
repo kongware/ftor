@@ -1,3 +1,3 @@
-const apply2 = require("../../../polymorphic/application/apply2");
+const curry = require("../../../polymorphic/currying/curry");
 
-module.exports = create2 = apply2(Object.create);
+module.exports = create2 = curry(Object.create);

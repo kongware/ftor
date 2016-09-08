@@ -1,0 +1,1 @@
+module.exports = createMap = xs => new Map(xs);

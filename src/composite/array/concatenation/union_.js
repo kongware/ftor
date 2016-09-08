@@ -1,5 +1,4 @@
-const comp2 = require("../../../polymorphic/composition/comp2");
-const concat_ = require("./concat_");
-const unique = require("../normalization/unique");
+const union = require("./union");
+const flip = require("../../../polymorphic/argument/flip");
 
-module.exports = union_ = comp2(unique) (concat_);
+module.exports = union_ = flip(union);

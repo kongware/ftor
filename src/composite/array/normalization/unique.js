@@ -1,5 +1,5 @@
 const afrom = require("../construction/afrom");
 const comp = require("../../../polymorphic/composition/comp");
-const create = require("../../../abstract/set/create");
+const createSet = require("../../../abstract/set/createSet");
 
-module.exports = unique = comp(afrom) (create);
+module.exports = unique = comp(afrom) (createSet);
