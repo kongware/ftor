@@ -22,19 +22,29 @@ This library is experimental and still a work in progress. Note the unstable API
 * don't repeat yourself
 * single responsibility principle
 
-## Genericity vs. Performance ##
+## `Object`s as `Array`s are Dead
+
+ftor will depend on the `Iterable` abstraction exclusively. The only meaningful `Array` function is `const values = xs => xs.values()`.
+
+## `Object`s as Dictionaries are Dead
+
+Plain old Javascript `Object`s arrange your program by providing a tree-like data structure and mimicking namespaces. They contain mainly behavior but also a few metadata (e.g. `Array.prototype.length`). They were absued as dictionaries until ES2015 introduced abstract data types (`Map`/`Set`). ftor facilitates the seamless work with abstract data types.
+
+## Gettin' Lazy
+
+In fact, Javascript is lazy evaluated:
+
+* functions are lazy
+* expressions are lazy (thunks)
+* iterations are lazy (iterators)
+
+We can stop iterations early, avoid intermediate collections, handle infinite data - welcome to lazy land!
+
+## Genericity vs. Performance
 
 Whenever I implement a function more generic in Javascript it also suffers a performance loss, because additional functions are passed around. In Haskell this relation isn't that obvious. In fact Haskell's performance behavior is hard to predict, because its compiler pursues some complex optimization strategies. However, Javascript is an interpreted language and thus cannot afford this kind of expensive optimizations.
 
 Consequently almost every generalization in Javascript comes at the expense of speed and needs to be weighed up in each individual case.
-
-## Arrays are dead ##
-
-ftor will depend on the `Iterable` abstraction exclusively. The only meaningful `Array` function is `const values = xs => xs.values()`.
-
-## Objects as dictionaries are dead #
-
-Plain old Javascript objects arrange your program by providing a tree-like data structure and mimicking namespaces. They contain mainly behavior but also a few metadata (e.g. `Array.prototype.length`). They were absued as dictionaries until ES2015 introduces abstract data types (`Map`/`Set`). ftor facilitates the seamless work with abstract data types.
 
 ## Currying
 
@@ -46,7 +56,7 @@ ftor introduces some new types that implement the monoidal, functorial, applicat
 
 ## Modularization
 
-As a rule of thumb applies: One little, resuable function per module. I am going to switch to ES2015 modules as soon as native support is reached.
+As a rule of thumb applies: One little, resuable function per module. I'll to switch to ES2015 modules as soon as native support is reached.
 
 ## API
 

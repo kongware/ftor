@@ -1,0 +1,1 @@
+module.exports = values = xs => xs.values();
