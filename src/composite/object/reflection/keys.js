@@ -1,0 +1,1 @@
+module.exports = keys = o => Object.keys(o);

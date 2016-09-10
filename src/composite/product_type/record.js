@@ -1,5 +1,5 @@
-const create = require("../object/create");
-const comp = require("../../../ploymorphic/compostion/comp");
-const seal = require("../seal");
+const create2 = require("../object/create2");
+const comp2 = require("../../../ploymorphic/compostion/comp2");
+const freeze = require("../freeze");
 
-module.exports = record = comp(seal) (create);
+module.exports = record = comp2(freeze) (create2);

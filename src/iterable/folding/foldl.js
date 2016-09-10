@@ -1,5 +1,4 @@
-const uncurry = require("../../../polymorphic/currying/uncurry");
-
+// HINT: as long as there is no broad support of TCO we fall back on imperative loops
 module.exports = foldl = f => acc => iter => {
   let i;
 
@@ -10,7 +9,12 @@ module.exports = foldl = f => acc => iter => {
   }
 }
 
+/*
 foldl = f => acc => iter => {
-  let {value, done} = next(iter);
-  return done ? acc : foldl(f) (f(acc) (value)) (iter)
-}
+  const loop = (acc, {value:x, done}) => done
+   ? acc
+   : loop(f(acc) (x), next(iter));
+
+  return loop(acc, next(iter));
+};
+*/

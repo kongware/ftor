@@ -1,2 +1,3 @@
-// NOTE: uncurried function
-module.exports = afrom = Array.from;
+const apply = require("../../../polymorphic/application/apply");
+
+module.exports = afrom = apply(Array.from);

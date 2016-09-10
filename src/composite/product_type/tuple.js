@@ -1,5 +1,4 @@
 const aof = require("../array/construction/aof");
-const comp = require("../../../ploymorphic/compostion/comp");
-const seal = require("../seal");
+const freeze = require("../freeze");
 
-module.exports = tuple = comp(seal) (aof);
+module.exports = tuple = (...args) => freeze(aof(...args));
