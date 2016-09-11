@@ -1,3 +1,3 @@
-const get = require("../../object/get");
+const get = require("../../polymorphic/reflection/get");
 
 module.exports = len = get("length");

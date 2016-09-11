@@ -1,7 +1,7 @@
 # ftor
 
 <img src="http://kongware.net/i/ftor.png" width="174" height="57" vspace="16" alt="ftor"><br>
-An idiomatic, non-dogmatic lazy lib facilitating the functional paradigm in Javascript.
+An idiomatic, non-dogmatic lazy lib that facilitates the functional paradigm in Javascript.
 
 ## Status
 
