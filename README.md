@@ -1,7 +1,7 @@
 # ftor
 
 <img src="http://kongware.net/i/ftor.png" width="174" height="57" vspace="16" alt="ftor"><br>
-An idiomatic, non-dogmatic library facilitating functional programming in Javascript.
+An idiomatic, non-dogmatic lazy lib facilitating the functional paradigm in Javascript.
 
 ## Status
 
@@ -38,7 +38,7 @@ In fact, Javascript is lazy evaluated:
 * expressions are lazy (thunks)
 * iterations are lazy (iterators)
 
-We can stop iterations early, avoid intermediate collections, handle infinite data - welcome to lazy land!
+We can stop iterations early, avoid intermediate collections, handle infinite data...
 
 ## Genericity vs. Performance
 
@@ -60,7 +60,7 @@ As a rule of thumb applies: One little, resuable function per module. I'll to sw
 
 ## API
 
-The API gets as large as necessary and as small as possible.
+A good API is a little API.
 
 ## Dependencies
 

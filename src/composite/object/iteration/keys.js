@@ -1,4 +1,5 @@
-const keys = require("./keys");
-const next = require("../../iterable/next");
+const akeys = require("../reflection/keys");
+const comp = require("../../../polymorphic/composition/comp");
+const values = require("../../array/iteration/values");
 
-module.exports = keys = o => keys(o).values();
+module.exports = keys = o => comp(values) (akeys) (o);
