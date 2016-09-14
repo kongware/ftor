@@ -1,1 +1,1 @@
-module.exports = next = iter => iter.next();
+module.exports = next = itor => x => itor.next(x);

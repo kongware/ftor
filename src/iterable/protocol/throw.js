@@ -1,0 +1,1 @@
+module.exports = throw = itor => x => itor.throw(x);

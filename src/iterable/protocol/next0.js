@@ -1,0 +1,1 @@
+module.exports = next0 = itor => itor.next();
