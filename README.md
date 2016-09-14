@@ -24,11 +24,11 @@ This library is experimental and still a work in progress. Note the unstable API
 
 ## `Object`s as `Array`s are Dead
 
-ftor will depend on the `Iterable` abstraction exclusively. The only meaningful `Array` function is `const values = xs => xs.values()`.
+ftor will focus on the iteration protocols that means, `Array.prototype.values` remains as the most relevant `Array` method.
 
 ## `Object`s as Dictionaries are Dead
 
-Plain old Javascript `Object`s arrange your program by providing a tree-like data structure and mimicking namespaces. They contain mainly behavior but also a few metadata (e.g. `Array.prototype.length`). They were absued as dictionaries until ES2015 introduced abstract data types (`Map`/`Set`). ftor facilitates the seamless work with abstract data types.
+Plain old Javascript `Object`s arrange your program by providing a tree-like data structure and namespaces. They contain mainly behavior but also a couple of metadata (e.g. `Array.prototype.length`). Due to the lack of alternatives they were abused as data dictionaries until ES2015 introduced abstract data types (`Map`/`Set`). ftor favours abstract data types over dictionary-like `Object`s and supplies a rich toolset for working with them.
 
 ## Gettin' Lazy
 
@@ -38,7 +38,7 @@ In fact, Javascript is lazy evaluated:
 * expressions are lazy (thunks)
 * iterations are lazy (iterators)
 
-We can stop iterations early, avoid intermediate collections, handle infinite data...
+We can stop iterations early, avoid intermediate collections, handle infinite data, handle asynchronous chunks of data, etc.
 
 ## Genericity vs. Performance
 
