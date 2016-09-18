@@ -24,7 +24,7 @@ This library is experimental and still a work in progress. Note the unstable API
 
 ## Reactive Paragidm
 
-The reactive programming is great to handle user events. ftor embraces the paradigm by implementing the observable protocol.
+Reactive programming is great to handle user events. ftor embraces the paradigm by implementing the observable protocol.
 
 ## Iteration Protocols and Generator Functions
 
