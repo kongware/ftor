@@ -28,11 +28,11 @@ Reactive programming is great to handle user events. ftor embraces the paradigm 
 
 ## Iteration Protocols and Generator Functions
 
-ftor will focus on the iteration protocols and generator functions and thus benefit from data source abstraction, programmatic data sources and lazy evaluation. Generic functions to fold, trannsform or filter are capable to work with any "mappable" iterator.
+ftor will focus on the iteration protocols and generator functions and thus benefit from data source abstraction, programmatic data sources and lazy evaluation. Generic functions to fold, transform or filter are capable to work with any "mappable" iterator.
 
 ## Mimicking Aynchronous Iterators
 
-Iterators that return `Promise`s for `{value, done}` pairs. I don't know if this is actually possible though.
+Asynchronous iterators return `Promise`s for `{value, done}` pairs and implement a queue. I don't know if this is actually possible though.
 
 ## `Object`s as Dictionaries are Dead
 
