@@ -22,23 +22,37 @@ This library is experimental and still a work in progress. Note the unstable API
 * don't repeat yourself
 * single responsibility principle
 
-## `Object`s as `Array`s are Dead
+## Reactive Paragidm
 
-ftor will focus on the iteration protocols that means, `Array.prototype.values` remains as the most relevant `Array` method.
+The reactive programming is great to handle user events. ftor embraces the paradigm by implementing the observable protocol.
+
+## Iteration Protocols and Generator Functions
+
+ftor will focus on the iteration protocols and generator functions and thus benefit from data source abstraction, programmatic data sources and lazy evaluation. Generic functions to fold, trannsform or filter are capable to work with any "mappable" iterator.
+
+## Mimicking Aynchronous Iterators
+
+Iterators that return `Promise`s for `{value, done}` pairs. I don't know if this is actually possible though.
 
 ## `Object`s as Dictionaries are Dead
 
-Plain old Javascript `Object`s arrange your program by providing a tree-like data structure and namespaces. They contain mainly behavior but also a couple of metadata (e.g. `Array.prototype.length`). Due to the lack of alternatives they were abused as data dictionaries until ES2015 introduced abstract data types (`Map`/`Set`). ftor favours abstract data types over dictionary-like `Object`s and supplies a rich toolset for working with them.
+ftor favours `Map`s as abstract data type over dictionary-like `Object`s.
+
+Plain old Javascript `Object`s arrange your program by providing a tree-like data structure and namespaces. They contain mainly behavior but also a couple of metadata (e.g. `Array.prototype.length`). Due to the lack of alternatives they were abused as data dictionaries until ES2015 introduced abstract data types (`Map`/`Set`).
 
 ## Gettin' Lazy
 
-In fact, Javascript is lazy evaluated:
+Javascript has a couple of lazy qualities:
 
 * functions are lazy
-* expressions are lazy (thunks)
-* iterations are lazy (iterators)
+* lazy expressions by thunks
+* lazy iteration by iterators
 
-We can stop iterations early, avoid intermediate collections, handle infinite data, handle asynchronous chunks of data, etc.
+ftor encourages the programmer to leverage this lazy properties for greater efficiency in certain scenarios.
+
+## Value vs. Reference Equality
+
+ftor acknowledges that Javascript doesn't have any value objects yet and performs equality checking of object types by reference.
 
 ## Genericity vs. Performance
 
