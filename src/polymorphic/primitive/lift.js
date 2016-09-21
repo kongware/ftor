@@ -1,0 +1,1 @@
+module.exports = lift = f => g => h => x => f(g(x)) (h(x));

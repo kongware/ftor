@@ -1,0 +1,1 @@
+module.exports = strict = f => a => f(a());

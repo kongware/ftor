@@ -1,0 +1,1 @@
+module.exports = strict4 = f => a => b => c => d => f(a) (b) (c) (d());
