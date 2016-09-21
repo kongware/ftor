@@ -1,4 +1,4 @@
-const init = require("../slicing/init");
+const init = require("../subarray/init");
 const last = require("../destructuring/last");
 
 // TODO: don't pass f with every iteration

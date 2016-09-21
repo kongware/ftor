@@ -1,0 +1,1 @@
+module.exports = drop = x => xs => xs.slice(x);
