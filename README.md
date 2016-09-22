@@ -52,6 +52,10 @@ const array = {
 
 Please note that the `List` class is for debugging purposes only.
 
+## `Promise`s
+
+Instead of the eager evaluated native `Promise` type with its broadcast behavior ftor implements its on type for handling future values with lazy and unicast behavior.
+
 ## Reactive Paragidm
 
 ftor combines functional programming with the reactive paradigm. Implementing the `Observable` prototcol is the first step in this direction - more will follow.
