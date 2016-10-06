@@ -1,1 +1,0 @@
-module.exports = const mapper = tf => rf => acc => x => rf(acc) (tf(x));
