@@ -1,11 +1,11 @@
-const flatten = require("../array/narmalization/flatten");
+const flatten = require("..object/array/narmalization/flatten");
 
 class Maybe extends Array {}
 
 module.exports = const maybe = {
   of: x => Maybe.of(x),
 
-  empty: () => new Maybe.of(),
+  empty: () => Maybe.of(),
 
   map: f => ftor => 0 in ftor ? maybe.of(f(ftor[0])) : maybe.empty(),
 

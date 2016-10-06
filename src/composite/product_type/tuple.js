@@ -1,4 +1,4 @@
-const aof = require("../array/construction/aof");
-const freeze = require("../polymorphic/construction/freeze");
+const aof = require("object/array/construction/aof");
+const seal = require("object/construction/seal");
 
-module.exports = tuple = (...args) => freeze(aof(...args));
+module.exports = tuple = (...args) => seal(aof(...args));

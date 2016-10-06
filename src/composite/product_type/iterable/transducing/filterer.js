@@ -1,0 +1,1 @@
+module.exports = const filterer = pred => rf => acc => x => pred(x) ? rf(acc) (x) : acc;

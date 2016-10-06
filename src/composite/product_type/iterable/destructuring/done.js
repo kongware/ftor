@@ -1,0 +1,1 @@
+module.exports = done = o => o.done

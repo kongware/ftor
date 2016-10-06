@@ -1,5 +1,5 @@
-const flatten = require("../array/narmalization/flatten");
-const map = require("../array/transformation/map");
+const flatten = require("..object/array/narmalization/flatten");
+const map = require("..object/array/transformation/map");
 
 class List extends Array {}
 
