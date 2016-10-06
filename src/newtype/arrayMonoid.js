@@ -2,8 +2,7 @@ const append = require("../composite/product_type/object/array/accumulation/appe
 const aof = require("../composite/product_type/object/array/construction/aof");
 const equals = require("../composite/product_type/object/array/reflection/equals");
 
-module.exports = {
+module.exports = arrayMonoid = {
   concat: append,
-  empty: aof,
-  equals: equals
+  empty: aof
 };
