@@ -1,0 +1,1 @@
+module.exports = type = dicts => x => dict.get(x.constructor ? x.constructor.prototype : Object.getPrototypeOf(x));
