@@ -1,1 +1,0 @@
-module.exports = subst = f => g => x => f(g(x)) (x);

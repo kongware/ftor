@@ -1,1 +1,0 @@
-module.exports = fix = f => f(f);
