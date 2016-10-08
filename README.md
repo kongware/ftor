@@ -6,101 +6,69 @@ An idiomatic, non-dogmatic lazy lib that facilitates the functional paradigm in 
 
 ## Status
 
-This library is experimental and still a work in progress. Note the unstable API.
+This library is experimental, still a work in progress and thus has an unstable API.
 
 ## Criteria
 
-* pragmatic functional approach (genericity vs. performance)
-* as much vanilla Javascript and as little magic as possible
-* compose little, reusabe functions
-* facilitate asynchronous control flows
-* avoid meta programming like the plague
-* encapsulate side effects
-* strive for immutability
-* favor factory functions
-* avoid dependencies
-* worship mathematics
-* don't repeat yourself
-* single responsibility principle
+* weighs genericity up against readability and performance
+* prefers idiomatic code over magic
+* embraces pure, curried functions and combinator logic
+* builds on parametric polymorphism an generic programming
+* enables lazy evaluation and return type polymorphism
+* encapsulates effects and makes them explicit
+* strives for immutability and persistent data structures
+* makes asynchronous control flows easer
+* facilitates responsive programming
+* favors factory functions over constructors/classes
+* gives preference to abstract data types over POJOs
+* explores the chances of the iteration protocols
+* avoids external dependencies
+* worships mathematics
+* respects DRY and SRP
 
-## New Types
+## Currying and Pure Functions
 
-ftor introduces a couple of new types. Since Javascript is a dynamically typed language with a prototype system, types are formed by methods attached to prototypes.
+Almost all functions in ftor are curried and pure. <a href="http://kongware.net">Read more about currying in my background article</a>.
 
-In order to avoid name conflicts new types in ftor are merely static methods encapsulated in namespaces. Here is a new `List` type, which is compliant with the monad interface:
+## Algebraic Data Types
 
-
-```js
-class List extends Array {}
-
-const array = {
-  of: x => List.of(x),
-
-  empty: () => List.of();
-
-  map: map,
-
-  ap: ftor => gtor => array.flatten(
-    array.map(f => array.map(f) (gtor)) (ftor)
-  ),
-
-  flatten: flatten,
-
-  chain: mf => ftor => array.flatten(array.map(mf) (ftor))
-};
-```
-
-Please note that the `List` class is for debugging purposes only.
+ftor will introduce a couple of algebraic data types along with a type system, which requires types to be passed around explicitly.
 
 ## `Promise`s
 
-Instead of the eager evaluated native `Promise` type with its broadcast behavior ftor implements its on type for handling future values with lazy and unicast behavior.
+ftor will give a lazy, non-overloaded and unicast alternative to native `Promise`s.
 
 ## Reactive Paragidm
 
-ftor combines functional programming with the reactive paradigm. Implementing the `Observable` prototcol is the first step in this direction - more will follow.
+ftor will implement the `Observable` prototcol along with a couple of convenience functions.
 
-## Iteration Protocols and Generator Functions
+## Iteration Protocols and Asynchronous Iterators
 
-ftor will focus on the iteration protocols and generator functions and thus benefit from data source abstraction, programmatic data sources and lazy evaluation. Generic functions for folding/transforming/filtering that are based on iterators are capable to work with any "mappable" iterable.
+ftor will explore the benefits of the iteration protocols and attempt to enable asynchronous iterators.
 
-To be able to handle lazy computations more comfortable, ftor provides suitable auxiliary functions.
+## Shared Scope and Cooperative Multi Tasking
 
-## Mimicking Asynchronous Iterators
+ftor will explore the benefits of generator functions.
 
-Asynchronous iterators return `Promise`s for `{value, done}` pairs and implement an asynchrnonous queue. This is experimental and tentatively an attempt to proof the concept.
+## Abstract Data Types
 
-## `Object`s as Dictionaries are Dead
-
-Plain old Javascript `Object`s can contain both user data and programm behavior/meta-data. There is always the latent risk that both levels are mixed togehter. Abstract data types (e.g. `Map`/`Set`) are abstracted behind their APIs and thus can be resricted to represent pure data stores.
-
-ftor favours `Map`s as abstract data type over dictionary-like `Object`s and propagate its use.
+ftor will use `Map`/`Set` and their weak counterparts as often as possible in order to separate the programm (metadata) and the data level.
 
 ## Value vs. Reference Equality
 
-ftor acknowledges that Javascript doesn't have value objects yet and strictly performs equality checking of object types by reference.
+ftor acknowledges that Javascript doesn't have value objects yet and strictly performs equality checking of composite types by reference.
 
-## Genericity vs. Performance
+## Genericity vs. Readability vs. Performance
 
-Whenever I implement a function more generic in Javascript it also suffers a performance loss, because additional functions are passed around. In Haskell this relation isn't that obvious. In fact Haskell's performance behavior is hard to predict, because its compiler pursues some complex optimization strategies. However, Javascript is an interpreted language and thus cannot afford this kind of expensive optimizations.
-
-Consequently almost every generalization in Javascript comes at the expense of speed and needs to be weighed up in each individual case.
-
-## Currying
-
-ftor heavily relies on manually curried functions in the strictly mathematical sense. Native methods are wrapped in pre-curried functions as well. A programmatic curry solution is only needed for third party code.
-
-## New Types
-
-ftor introduces some new types that implement the monoidal, functorial, applicative and monadic interfaces and are fantasy land compliant.
+ftor weighs these factors up - it's the holy grale of functional programming in a multi-paradigm language like Javascript.
 
 ## Modularization
 
-As a rule of thumb applies: One little, resuable function per module. I'll to switch to ES2015 modules as soon as native support is reached.
+ftor is going to switch to ES2015 modules as soon as possible.
 
 ## API
 
-A good API is a little API.
+A good API is an API with the smallest possible surface.
 
 ## Dependencies
 
@@ -109,10 +77,3 @@ nay.
 ## Platform support
 
 ftor assumes an ES2015 environment. Use transpilers.
-
-## Todo
-	
-- [x] just start
-- [ ] add type signatures
-- [ ] add inline examples
-- [ ] define unit tests
