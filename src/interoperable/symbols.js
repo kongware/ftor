@@ -8,7 +8,9 @@ const generics = {
   flatten: Symbol.for("ftor/flatten"),
   map: Symbol.for("ftor/map"),
   of: Symbol.for("ftor/of"),
+  sequence: Symbol.for("ftor/sequence"),
   tag: Symbol.for("ftor/tag"),
+  traverse: Symbol.for("ftor/traverse"),
   x: Symbol.for("ftor/x")
 };
 
