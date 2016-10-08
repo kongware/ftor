@@ -1,0 +1,1 @@
+module.exports = sort = xs => xs.sort();

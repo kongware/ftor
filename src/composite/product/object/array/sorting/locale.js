@@ -1,1 +1,0 @@
-module.exports = locale = x => y => x.localeCompare(y);

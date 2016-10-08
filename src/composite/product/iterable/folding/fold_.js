@@ -1,4 +1,4 @@
-module.exports = lazyFold = f => init => function* (iter) {
+module.exports = fold_ = f => init => function* (iter) {
   let acc = init;
   for (x of iter) {
     acc = f(acc) (x);
