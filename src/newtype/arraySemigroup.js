@@ -1,4 +1,4 @@
-const append = require("../composite/product_type/object/array/accumulation/append");
+const append = require("../composite/product/object/array/accumulation/append");
 
 module.exports = arraySemigroup = {
   concat: append
