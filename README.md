@@ -28,7 +28,7 @@ This library is experimental, still a work in progress and thus has an unstable 
 
 ## Currying and Pure Functions
 
-Almost all functions in ftor are curried and pure. <a href="http://kongware.net">Read more about currying in my background article</a>.
+Almost all functions in ftor are curried and pure. <a href="http://kongware.net/currying-partial-application-javascript">Read more about currying in my background article</a>.
 
 ## Algebraic Data Types
 
