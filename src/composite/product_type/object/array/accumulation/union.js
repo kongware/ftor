@@ -1,5 +1,5 @@
 const concat_ = require("./concat_");
-const createSet = require("../../../abstract/set/createSet");
+const createSet = require("../../../../abstract/set/createSet");
 const filter = require("../folding/filter");
 
 module.exports = union = ys => xs => {
