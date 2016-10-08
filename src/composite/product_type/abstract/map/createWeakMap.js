@@ -1,1 +1,1 @@
-module.exports = createWeakMap = pairs => new WeakMap(pairs);
+module.exports = createWeakMap = xs => new WeakMap(xs);

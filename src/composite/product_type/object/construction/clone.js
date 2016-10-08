@@ -1,3 +1,3 @@
-const assign = require("../../../../polymorphic/construction/assign");
+const assign = require("./assign");
 
-module.exports = clone = o =>  assign({})(o);
+module.exports = clone = o => assign([o]);
