@@ -1,1 +1,1 @@
-module.exports = apply3 = f => a => b => c => f(a) (b) (c);
+module.exports = apply3 = f => x => y => z => f(x) (y) (z);

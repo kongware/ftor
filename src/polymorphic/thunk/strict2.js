@@ -1,1 +1,1 @@
-module.exports = strict2 = f => a => b => f(a) (b());
+module.exports = strict2 = f => x => y => f(x) (y());

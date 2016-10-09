@@ -1,1 +1,1 @@
-module.exports = keys = kv => Object.keys(kv);
+module.exports = keys = o => Object.keys(o);

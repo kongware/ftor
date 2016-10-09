@@ -4,4 +4,4 @@ const foldl = require("../..object/array/folding/foldl");
 const keys = require("../reflection/keys");
 const values = require("../..object/array/iteration/values");
 
-module.exports = entries = kv => comp(values) (foldl(acc => a => _append(acc) ([a, kv[a]])) ([])) (keys(kv));
+module.exports = entries = o => comp(values) (foldl(acc => x => _append(acc) ([x, o[x]])) ([])) (keys(o));

@@ -4,10 +4,10 @@ const {LT, EQ, GT} = require("../../const/ord");
 
 module.exports = Ord = {
   [$compare]: localeCompare,
-  [$lt]: b => a => localeCompare(b) (a) === LT,
-  [$lte]: b => a => localeCompare(b) (a) !== GT,
-  [$gt]: b => a => localeCompare(b) (a) === GT,
-  [$gte]: b => a => localeCompare(b) (a) !== LT,
-  [$min]: b => a => localeCompare(b) (a) === LT ? a : b,
-  [$max]: b => a => localeCompare(b) (a) === GT ? a : b
+  [$lt]: y => x => localeCompare(y) (x) === LT,
+  [$lte]: y => x => localeCompare(y) (x) !== GT,
+  [$gt]: y => x => localeCompare(y) (x) === GT,
+  [$gte]: y => x => localeCompare(y) (x) !== LT,
+  [$min]: y => x => localeCompare(y) (x) === LT ? x : y,
+  [$max]: y => x => localeCompare(y) (x) === GT ? x : y
 };

@@ -1,1 +1,1 @@
-module.exports = drop = a => as => as.slice(a);
+module.exports = drop = x => xs => xs.slice(x);

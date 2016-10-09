@@ -1,1 +1,1 @@
-module.exports = mul = b => a => a * b;
+module.exports = mul = y => x => x * y;

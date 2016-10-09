@@ -1,1 +1,1 @@
-module.exports = values = a => a[Symbol.iterator]();
+module.exports = values = x => x[Symbol.iterator]();

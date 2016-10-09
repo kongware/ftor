@@ -1,1 +1,1 @@
-module.exports = comp = f => g => a => f(g(a));
+module.exports = comp = f => g => x => f(g(x));

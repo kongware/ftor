@@ -1,1 +1,1 @@
-module.exports = lt = b => a => a < b;
+module.exports = lt = y => x => x < y;

@@ -1,1 +1,1 @@
-module.exports = or = b => a => a || b;
+module.exports = or = y => x => x || y;

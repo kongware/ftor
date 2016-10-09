@@ -20,7 +20,7 @@ const generics = {
   $sequence: Symbol.for("ftor/sequence"),
   $tag: Symbol.for("ftor/tag"),
   $traverse: Symbol.for("ftor/traverse"),
-  $a: Symbol.for("ftor/a")
+  $x: Symbol.for("ftor/x")
 };
 
 const tags = {

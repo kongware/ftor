@@ -1,2 +1,2 @@
 // TODO: return an Option type
-module.exports = destructiveShift = as => [as, as.shift()];
+module.exports = destructiveShift = xs => [xs, xs.shift()];

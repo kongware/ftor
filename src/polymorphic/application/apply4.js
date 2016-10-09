@@ -1,1 +1,1 @@
-module.exports = apply4 = f => a => b => c => d => f(a) (b) (c) (d);
+module.exports = apply4 = f => x => y => z => w => f(x) (y) (z) (w);

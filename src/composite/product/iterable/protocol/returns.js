@@ -1,1 +1,1 @@
-module.exports = returns = itor => a => itor.return(a);
+module.exports = returns = itor => x => itor.return(x);

@@ -1,3 +1,3 @@
 const concat = require("./concat");
 
-module.exports = append = a => concat([a]);
+module.exports = append = x => concat([x]);

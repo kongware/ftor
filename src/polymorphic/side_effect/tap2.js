@@ -1,1 +1,1 @@
-module.exports = tap2 = f => a => b => (f(a) (b), b);
+module.exports = tap2 = f => x => y => (f(x) (y), y);

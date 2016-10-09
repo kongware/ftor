@@ -1,2 +1,2 @@
 // TODO: return an Option type
-module.exports = destructivePop = as => [as, as.pop()];
+module.exports = destructivePop = xs => [xs, xs.pop()];

@@ -1,1 +1,1 @@
-module.exports = _concat = a => b => "" + a + b;
+module.exports = _concat = x => y => "" + x + y;

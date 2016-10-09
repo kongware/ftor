@@ -1,1 +1,1 @@
-module.exports = uncurry = f => (a, b) => f(a) (b);
+module.exports = uncurry = f => (x, y) => f(x) (y);

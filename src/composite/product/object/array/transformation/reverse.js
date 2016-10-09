@@ -1,1 +1,1 @@
-module.exports = reverse = as => as.reverse();
+module.exports = reverse = xs => xs.reverse();

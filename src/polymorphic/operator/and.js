@@ -1,1 +1,1 @@
-module.exports = and = b => a => a && b;
+module.exports = and = y => x => x && y;

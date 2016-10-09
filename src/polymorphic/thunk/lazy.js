@@ -1,1 +1,1 @@
-module.exports = lazy = f => a => () => f(a);
+module.exports = lazy = f => x => () => f(x);

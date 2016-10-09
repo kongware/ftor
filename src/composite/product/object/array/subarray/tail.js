@@ -1,1 +1,1 @@
-module.exports = tail = as => as.slice(1);
+module.exports = tail = xs => xs.slice(1);

@@ -1,1 +1,1 @@
-module.exports = destructiveUnshift = a => as => (as.unshift(a), as);
+module.exports = destructiveUnshift = x => xs => (xs.unshift(x), xs);

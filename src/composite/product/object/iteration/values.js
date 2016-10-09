@@ -4,4 +4,4 @@ const avalues = require("../..object/array/iteration/values");
 const comp = require("../../../../polymorphic/composition/comp");
 const foldl = require("../..object/array/folding/foldl");
 
-module.exports = values = kv => comp(avalues) (foldl(acc => a => _append(acc) (kv[a])) ([])) (akeys(kv));
+module.exports = values = o => comp(avalues) (foldl(acc => x => _append(acc) (o[x])) ([])) (akeys(o));

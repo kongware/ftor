@@ -1,2 +1,2 @@
 // STATUS: deprecate?
-module.exports = flipFirst4 = f => d => a => b => c => f(a) (b) (c) (d);
+module.exports = flipFirst4 = f => w => x => y => z => f(x) (y) (z) (w);

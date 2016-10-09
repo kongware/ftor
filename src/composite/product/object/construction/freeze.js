@@ -1,1 +1,1 @@
-module.exports = freeze = kv => Object.freeze(kv);
+module.exports = freeze = o => Object.freeze(o);

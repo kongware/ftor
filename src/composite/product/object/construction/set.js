@@ -1,3 +1,3 @@
 const clone = require("./clone");
 
-module.exports = set = (k, v) => kv => (kv = clone(kv), kv[k] = v, kv);
+module.exports = set = (k, v) => o => (o = clone(o), o[k] = v, o);

@@ -1,1 +1,1 @@
-module.exports = value = kv => kv.value;
+module.exports = value = o => o.value;

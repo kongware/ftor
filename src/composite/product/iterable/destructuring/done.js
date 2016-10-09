@@ -1,1 +1,1 @@
-module.exports = done = kv => kv.done
+module.exports = done = o => o.done

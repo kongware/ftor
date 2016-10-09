@@ -4,7 +4,7 @@ const destructivePush = require("../mutation/destructivePush");
 const some = require("../folding/some");
 
 module.exports = uniqueBy = f => foldl(
-   acc => a => some(f(a)) (acc)
+   acc => x => some(f(x)) (acc)
     ? acc
-    : destructivePush(a) (acc)
+    : destructivePush(x) (acc)
  ) ([]);

@@ -1,1 +1,1 @@
-module.exports = concat = b => as => as.concat(b);
+module.exports = concat = y => xs => xs.concat(y);

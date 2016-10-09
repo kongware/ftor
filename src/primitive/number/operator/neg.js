@@ -1,1 +1,1 @@
-module.exports = neg = a => -a;
+module.exports = neg = x => -x;

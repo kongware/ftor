@@ -30,9 +30,9 @@ This library is experimental, still a work in progress and thus has an unstable 
 
 ### Identifiers
 
-* a, b, c, etc.: type variables (of any type)
-* as, bs, cs, etc.: native `Array`s
-* kv, lv, mv, etc.: native `Object`s
+* x, y, z, w, v: type variables (of any type)
+* xs, ys, zs, ws, vs: native `Array`s
+* o, p, q, r, s: native `Object`s
 * ident_: lazy version of a function
 * _ident: flipped argument version of a binary function
 * $ident: native `Symbol`

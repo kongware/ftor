@@ -1,1 +1,1 @@
-module.exports = get = as => a => as.get(a);
+module.exports = get = xs => x => xs.get(x);

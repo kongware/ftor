@@ -1,1 +1,1 @@
-module.exports = curry = f => a => b => f(a, b);
+module.exports = curry = f => x => y => f(x, y);

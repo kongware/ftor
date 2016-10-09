@@ -1,2 +1,2 @@
 // todo: return an Option type
-module.exports = last = as => as[as.length - 1];
+module.exports = last = xs => xs[xs.length - 1];

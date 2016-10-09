@@ -1,2 +1,2 @@
-// HINT: to create a thrush just flip apply
-module.exports = apply = f => a => f(a);
+// HINT: to create x thrush just flip apply
+module.exports = apply = f => x => f(x);

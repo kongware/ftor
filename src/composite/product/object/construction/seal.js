@@ -1,1 +1,1 @@
-module.exports = seal = kv => Object.seal(kv);
+module.exports = seal = o => Object.seal(o);

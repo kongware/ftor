@@ -1,1 +1,1 @@
-module.exports = join = a => as => as.join(a);
+module.exports = join = x => xs => xs.join(x);

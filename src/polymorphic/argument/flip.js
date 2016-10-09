@@ -1,1 +1,1 @@
-module.exports = flip = f => b => a => f(a) (b);
+module.exports = flip = f => y => x => f(x) (y);

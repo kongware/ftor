@@ -1,1 +1,1 @@
-module.exports = destructivePush = a => as => (as.push(a), as);
+module.exports = destructivePush = x => xs => (xs.push(x), xs);

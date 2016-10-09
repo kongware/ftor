@@ -1,1 +1,1 @@
-module.exports = P = f => g => a => b => f(g(a)) (g(b));
+module.exports = P = f => g => x => y => f(g(x)) (g(y));

@@ -1,6 +1,6 @@
 const {$maxBound, $minBound} = require("../../interop/symbols");
 
-module.exports = BoundedNum = {
+module.exports = Bounded = {
   [$minBound]: -Infinity,
   [$maxBound]: Infinity
 };

@@ -1,6 +1,6 @@
 const {$maxBound, $minBound} = require("../../interop/symbols");
 
-module.exports = BoundedStr = {
+module.exports = Bounded = {
   [$minBound]: "\u{0}",
   [$maxBound]: "\u{10FFFF}"
 };
