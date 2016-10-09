@@ -1,1 +1,1 @@
-module.exports = push = x => xs => (xs.push(x), xs);
+module.exports = push = a => as => (as.push(a), as);

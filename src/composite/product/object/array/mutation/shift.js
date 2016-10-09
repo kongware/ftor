@@ -1,2 +1,2 @@
 // TODO: return an Option type
-module.exports = shift = xs => [xs, xs.shift()];
+module.exports = shift = as => [as, as.shift()];

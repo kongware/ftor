@@ -1,1 +1,1 @@
-module.exports = compare = y => x => x < y ? -1 : y < x ? 1 : 0;
+module.exports = compare = b => a => a < b ? -1 : b < a ? 1 : 0;

@@ -1,1 +1,1 @@
-module.exports = values = xs => xs.values();
+module.exports = values = as => as.values();

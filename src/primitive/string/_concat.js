@@ -1,0 +1,1 @@
+module.exports = _concat = a => b => "" + a + b;

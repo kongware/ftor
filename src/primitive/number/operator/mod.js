@@ -1,1 +1,1 @@
-module.exports = mod = y => x => x % y;
+module.exports = mod = b => a => a % b;

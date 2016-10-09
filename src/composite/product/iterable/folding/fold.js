@@ -2,8 +2,8 @@ const next = require("../protocol/next");
 
 // HINT: as long as there is no broad support of TCO we fall back on imperative loops
 module.exports = foldl = f => acc => itor => {
-  for (let x of itor) {
-    acc = f(acc) (x);
+  for (let a of itor) {
+    acc = f(acc) (a);
   }
 
   return acc;
@@ -11,9 +11,9 @@ module.exports = foldl = f => acc => itor => {
 
 /*
 foldl = f => acc => itor => {
-  const loop = (acc, {value:x, done}) => done
+  const loop = (acc, {value:a, done}) => done
    ? acc
-   : loop(f(acc) (x), next(itor));
+   : loop(f(acc) (a), next(itor));
 
   return loop(acc, next(itor));
 };

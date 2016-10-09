@@ -1,4 +1,4 @@
 const flip = require("../../../../../polymorphic/argument/flip");
 const union = require("./union");
 
-module.exports = union_ = flip(union);
+module.exports = _union = flip(union);

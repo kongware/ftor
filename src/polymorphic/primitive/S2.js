@@ -1,0 +1,1 @@
+module.exports = S2 = f => g => h => a => f(g(a)) (h(a));

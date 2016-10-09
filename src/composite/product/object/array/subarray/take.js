@@ -1,1 +1,1 @@
-module.exports = take = x => y => xs => xs.slice(x, y);
+module.exports = take = a => b => as => as.slice(a, b);

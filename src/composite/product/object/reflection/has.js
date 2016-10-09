@@ -1,1 +1,1 @@
-module.exports = has = k => o => k in o;
+module.exports = has = k => kv => k in kv;

@@ -1,1 +1,1 @@
-module.exports = createWeakSet = xs => new WeakSet(xs);
+module.exports = createWeakSet = as => new WeakSet(as);

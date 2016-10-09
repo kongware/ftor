@@ -18,7 +18,7 @@ const generics = {
   $sequence: Symbol.for("ftor/sequence"),
   $tag: Symbol.for("ftor/tag"),
   $traverse: Symbol.for("ftor/traverse"),
-  $x: Symbol.for("ftor/x")
+  $a: Symbol.for("ftor/a")
 };
 
 const tags = {

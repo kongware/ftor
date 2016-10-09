@@ -1,10 +1,10 @@
-const concat_ = require("./concat_");
+const _concat = require("./_concat");
 const createSet = require("../../../../abstract/set/createSet");
 const filter = require("../folding/filter");
 
-module.exports = union = ys => xs => {
-  const xs_ = createSet(xs);
-  return concat(xs) (filter(x => xs_.has(x)
+module.exports = union = bs => as => {
+  const cs = createSet(as);
+  return concat(as) (filter(a => cs.has(a)
    ? false
-   : xs_.add(x)) (ys));
+   : cs.add(a)) (bs));
 };

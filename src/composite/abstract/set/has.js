@@ -1,1 +1,1 @@
-module.exports = has = xs => x => xs.has(x);
+module.exports = has = as => a => as.has(a);

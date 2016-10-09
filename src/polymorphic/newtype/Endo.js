@@ -1,8 +1,8 @@
 const comp = require("../composition/comp");
 const I = require("../primitive/I");
-const {concat, empty, equals} = require("../../interop/symbols");
+const {concat, empty} = require("../../interop/symbols");
 
-module.exports = endo = {
+module.exports = Endo = {
   [concat]: comp,
   [empty]: I
 };

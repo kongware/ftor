@@ -1,1 +1,1 @@
-module.exports = K = x => y => x;
+module.exports = K = a => b => a;

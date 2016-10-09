@@ -1,1 +1,1 @@
-module.exports = destructiveSet = (k, v) => o => (o[k] = v, o);
+module.exports = destructiveSet = (k, v) => kv => (kv[k] = v, kv);

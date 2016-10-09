@@ -1,3 +1,3 @@
 const uncurry = require("../../../../../polymorphic/currying/uncurry");
 
-module.exports = foldl = f => acc => xs => xs.reduce(uncurry(f), acc);
+module.exports = foldl = f => acc => as => as.reduce(uncurry(f), acc);

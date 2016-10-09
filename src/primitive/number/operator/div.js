@@ -1,1 +1,1 @@
-module.exports = div = y => x => x / y;
+module.exports = div = b => a => a / b;

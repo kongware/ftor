@@ -1,2 +1,2 @@
 // todo: return an Option type
-module.exports = head = xs => xs[0];
+module.exports = head = as => as[0];

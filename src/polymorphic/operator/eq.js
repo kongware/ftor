@@ -1,1 +1,1 @@
-module.exports = eq = y => x => Object.is(x, y);
+module.exports = eq = b => a => Object.is(a, b);

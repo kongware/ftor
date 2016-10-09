@@ -1,1 +1,1 @@
-module.exports = isAssigned = x => x !== undefined && x !== null;
+module.exports = isAssigned = a => a !== undefined && a !== null;

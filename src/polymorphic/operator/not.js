@@ -1,1 +1,1 @@
-module.exports = not = x => !x;
+module.exports = not = a => !a;

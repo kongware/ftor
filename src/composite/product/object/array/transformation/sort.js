@@ -1,1 +1,1 @@
-module.exports = sort = xs => xs.sort();
+module.exports = sort = as => as.sort();

@@ -1,1 +1,1 @@
-module.exports = init = xs => xs.slice(0, -1);
+module.exports = init = as => as.slice(0, -1);

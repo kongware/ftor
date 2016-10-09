@@ -1,1 +1,1 @@
-module.exports = includes = x => xs => xs.includes(x);
+module.exports = includes = a => as => as.includes(a);

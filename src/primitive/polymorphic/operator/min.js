@@ -1,1 +1,1 @@
-module.exports = min = y => x => x < y ? x : y;
+module.exports = min = b => a => a < b ? a : b;

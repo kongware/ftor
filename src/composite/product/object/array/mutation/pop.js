@@ -1,2 +1,2 @@
 // TODO: return an Option type
-module.exports = pop = xs => [xs, xs.pop()];
+module.exports = pop = as => [as, as.pop()];

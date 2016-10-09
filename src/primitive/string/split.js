@@ -1,1 +1,1 @@
-module.exports = split = x => y => x.split(y);
+module.exports = split = a => b => a.split(b);

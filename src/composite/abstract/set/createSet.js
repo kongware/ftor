@@ -1,1 +1,1 @@
-module.exports = createSet = xs => new Set(xs);
+module.exports = createSet = as => new Set(as);

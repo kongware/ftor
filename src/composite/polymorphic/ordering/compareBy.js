@@ -1,1 +1,1 @@
-module.exports = compareBy = f => y => x => f(x) (y) ? -1 : f(y) (x) ? 1 : 0;
+module.exports = compareBy = f => b => a => f(a) (b) ? -1 : f(b) (a) ? 1 : 0;

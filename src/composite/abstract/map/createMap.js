@@ -1,1 +1,1 @@
-module.exports = createMap = xs => new Map(xs);
+module.exports = createMap = as => new Map(as);
