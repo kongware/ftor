@@ -26,6 +26,17 @@ This library is experimental, still a work in progress and thus has an unstable 
 * worships mathematics
 * respects DRY and SRP
 
+## Code Legend
+
+### Identifiers
+
+* a, b, c, etc.: type variables (of any type)
+* as, bs, cs, etc.: native `Array`s
+* kv, lv, mv, etc.: native `Object`s
+* ident_: lazy version of a function
+* _ident: flipped argument version of a binary function
+* $ident: native `Symbol`
+
 ## Currying and Pure Functions
 
 Almost all functions in ftor are curried and pure. <a href="http://kongware.net/currying-partial-application-javascript">Read more about currying in my background article</a>.
