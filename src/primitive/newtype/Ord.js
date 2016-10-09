@@ -5,14 +5,14 @@ const lt = require("../polymorphic/operator/lt");
 const lte = require("../polymorphic/operator/lte");
 const max = require("../polymorphic/operator/max");
 const min = require("../polymorphic/operator/min");
-const {$compare, $gt, $gte, $lt, $lte, $min, $max} = require("../../interop/symbols");
+const {$compare, $gt, $gte, $lt, $lte, $max, $min} = require("../../interop/symbols");
 
 module.exports = Ord = {
   [$compare]: compare,
-  [$gt]: gt,
-  [$gte]: gte,
   [$lt]: lt,
   [$lte]: lte,
-  [$max]: max,
-  [$min]: min
+  [$gt]: gt,
+  [$gte]: gte,
+  [$min]: min,
+  [$max]: max
 };
