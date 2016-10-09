@@ -1,1 +1,0 @@
-module.exports = push = a => as => (as.push(a), as);
