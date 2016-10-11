@@ -1,4 +1,4 @@
-const concat = require("../accumulation/concat");
-const foldl = require("../foling/foldl");
+const _concat = require("../accumulation/_concat");
+const foldl = require("../folding/foldl");
 
-module.exports = flatten = xs => foldl(concat) ([]) (xs);
+module.exports = flatten = xs => foldl(_concat) ([]) (xs);
