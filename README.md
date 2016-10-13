@@ -91,10 +91,11 @@ ftor assumes an ES2015 environment. Use transpilers.
 
 ## TODO
 
- - [] zippers
- - [] foldMap
- - [] take/drop
- - [] paramorphism?
- - [] unfold
- - [] linked list
- - [] trees
+ - [ ] zippers
+ - [ ] foldMap
+ - [ ] take/drop
+ - [ ] paramorphism?
+ - [ ] unfold
+ - [ ] linked list
+ - [ ] trees
+ - [ ] enumerations
