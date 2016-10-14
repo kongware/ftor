@@ -12,7 +12,7 @@ const max = require("../polymorphic/operator/max");
 const min = require("../polymorphic/operator/min");
 const {$compare, $_compare, $gt, $_gt, $gte, $_gte, $lt, $_lte, $lte, $max, $min} = require("../../interop/symbols");
 
-module.exports = Ord = {
+module.exports = Orderable = {
   [$compare]: compare,
   [$_compare]: _compare,
   [$lt]: lt,

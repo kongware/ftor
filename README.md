@@ -99,3 +99,6 @@ ftor assumes an ES2015 environment. Use transpilers.
  - [ ] linked list
  - [ ] trees
  - [ ] enumerations
+ - [ ] functions always return frozen object types
+ - [ ] functions that may fail return an option type
+ - [ ] use pairs/records in functions preferably

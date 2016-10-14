@@ -24,6 +24,8 @@ const generics = {
   $of: Symbol.for("ftor/of"),
   $sequence: Symbol.for("ftor/sequence"),
   $tag: Symbol.for("ftor/tag"),
+  $toJSON: Symbol.for("ftor/toJSON"),
+  $toString: Symbol.for("ftor/toString"),
   $traverse: Symbol.for("ftor/traverse"),
   $x: Symbol.for("ftor/x")
 };
