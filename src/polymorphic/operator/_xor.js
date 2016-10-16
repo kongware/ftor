@@ -1,0 +1,1 @@
+module.exports = _xor = default => (x, y) => !x === !y ? default : x || y;

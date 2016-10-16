@@ -1,0 +1,1 @@
+module.exports = uncurry5 = f => (x, y, z, w, v) => f(x) (y) (z) (w) (v);

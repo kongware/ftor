@@ -1,5 +1,5 @@
 const compare = require("../../../polymorphic/comparator/compare");
-const flip = require("../../../polymorphic/argument/flip");
+const flip = require("../../../polymorphic/primitive/flip");
 const {$concat, $_concat} = require("../../../interop/symbols");
 const {LT} = require("../../../const/ORDERING");
 

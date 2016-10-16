@@ -1,0 +1,1 @@
+module.exports = _strict4 = f => (x, y, z, w) => f(x, y, z, w());

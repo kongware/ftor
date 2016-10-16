@@ -1,1 +1,1 @@
-module.exports = xor = z => y => x => !x === !y ? z : x || y;
+module.exports = xor = default => y => x => !x === !y ? default : x || y;

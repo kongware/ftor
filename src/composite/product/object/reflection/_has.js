@@ -1,0 +1,1 @@
+module.exports = _has = (k, o) => k in o;

@@ -1,9 +1,12 @@
-const noop = require("../polymorphic/side_effect/noop");
-const {$foldl, $foldr, $foldl_, $foldr_} = require("../../interop/symbols");
+const unimplemented = require("../polymorphic/side_effect/unimplemented");
+const {$fold, $foldl, $foldr, $foldl_, $foldr_, $foldMap, $foldMap_} = require("../../interop/symbols");
 
 module.exports = Foldable = {
-  [$foldl]: noop,
-  [$foldr]: noop,
-  [$foldl_]: noop,
-  [$foldr_]: noop
+  [$fold]: unimplemented,
+  [$foldl]: unimplemented,
+  [$foldr]: unimplemented,
+  [$foldl_]: unimplemented,
+  [$foldr_]: unimplemented,
+  [$foldMap]: unimplemented,
+  [$foldMap_]: unimplemented
 };

@@ -1,7 +1,7 @@
-const noop = require("../polymorphic/side_effect/noop");
+const unimplemented = require("../polymorphic/side_effect/unimplemented");
 const {$concat, $_concat} = require("../interop/symbols");
 
 module.exports = Semigroup = {
-  [$concat]: noop,
-  [$_concat]: noop
+  [$concat]: unimplemented,
+  [$_concat]: unimplemented
 };

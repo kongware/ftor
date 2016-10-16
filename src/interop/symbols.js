@@ -12,6 +12,8 @@ const generics = {
   $foldr: Symbol.for("ftor/foldr"),
   $foldl_: Symbol.for("ftor/foldl_"),
   $foldr_: Symbol.for("ftor/foldr_"),
+  $foldMap: Symbol.for("ftor/foldMap"),
+  $foldMap_: Symbol.for("ftor/foldMap_"),
   $gt: Symbol.for("ftor/gt"),
   $_gt: Symbol.for("ftor/_gt"),
   $gte: Symbol.for("ftor/gte"),

@@ -1,0 +1,1 @@
+module.exports = A = f => x => f(x);

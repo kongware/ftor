@@ -1,0 +1,1 @@
+module.exports = split = (x, y) => x.split(y);

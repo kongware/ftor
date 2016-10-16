@@ -1,1 +1,1 @@
-module.exports = raise = x => { throw new Error(x) };
+module.exports = raise = ctor => x => { throw new ctor(x) };

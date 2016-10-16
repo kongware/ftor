@@ -1,0 +1,1 @@
+module.exports = _strict3 = f => (x, y, z) => f(x, y, z());

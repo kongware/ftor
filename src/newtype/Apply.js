@@ -1,8 +1,8 @@
 const Functor = require("./Functor");
-const noop = require("../polymorphic/side_effect/noop");
+const unimplemented = require("../polymorphic/side_effect/unimplemented");
 const {$map, $ap} = require("../../interop/symbols");
 
 module.exports = Apply = {
   [$map]: Functor[$map],
-  [$ap]: noop
+  [$ap]: unimplemented
 };

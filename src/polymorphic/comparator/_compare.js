@@ -1,4 +1,3 @@
-const compare = require("./compare");
-const flip = require("../argument/flip");
+const {LT, EQ, GT} = require("../../const/ORDERING");
 
-module.exports = _compare = flip(compare);
+module.exports = _compare = (x, y) => x < y ? LT : y < x ? GT : EQ;

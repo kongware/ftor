@@ -1,4 +1,4 @@
-const split = require("../split");
-const entries = require("../../../compositeobject/array/iteration/entries");
+const _split = require("../_split");
+const keys = require("../../../composite/product/object/array/iteration/keys");
 
-module.exports = entries = x => entries(split(x) (""));
+module.exports = entries = x => entries(_split(x, ""));
