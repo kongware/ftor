@@ -13,7 +13,7 @@ This library is experimental, still a work in progress and thus has an unstable 
 * weighs genericity up against readability and performance
 * prefers idiomatic code over magic
 * embraces pure, curried functions and combinator logic
-* builds on parametric polymorphism and return type polymorphism
+* builds on parametric and return type polymorphism
 * passes type dictionaries explicitly around to imitate type inference
 * promotes generic programming
 * benefits from lazy evaluation and lazy composition
