@@ -1,4 +1,4 @@
-module.exports = foldrNTC = f => acc => xs => {
+module.exports = foldrRec = f => acc => xs => {
   const next = (key, acc) => xs[key] === undefined
    ? acc
    : f(xs[key]) (next(key - 1, acc));
