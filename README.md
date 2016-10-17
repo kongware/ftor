@@ -37,7 +37,7 @@ This library is experimental, still a work in progress and thus has an unstable 
 * ident: fully curried version of a function - f => g => x => y => f(g(x) (y))
 * _ident: uncurried input, curried output - (f, g) => (x, y) => f(g(x) (y))
 * ident_: curried input, uncurried output - f => g => x => y => f(g(x, y))
-* ident_: fully uncurried version of a function - (f, g) => (x, y) => f(g(x, y))
+* _ident_: fully uncurried version of a function - (f, g) => (x, y) => f(g(x, y))
 * $ident: native `Symbol`
 
 ## Currying and Pure Functions
