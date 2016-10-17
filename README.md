@@ -13,15 +13,16 @@ This library is experimental, still a work in progress and thus has an unstable 
 * weighs genericity up against readability and performance
 * prefers idiomatic code over magic
 * embraces pure, curried functions and combinator logic
-* builds on parametric polymorphism an generic programming
-* enables lazy evaluation and return type polymorphism
+* builds on parametric polymorphism and return type polymorphism
+* promotes generic programming
+* benefits from lazy evaluation and lazy composition
 * encapsulates effects and makes them explicit
 * strives for immutability and persistent data structures
-* makes asynchronous control flows easer
-* facilitates responsive programming
+* facilitates handling of asynchronous control flows
+* enables responsive programming
 * favors factory functions over constructors/classes
-* gives preference to abstract data types over POJOs
-* explores the chances of the iteration protocols
+* promotes abstract data types
+* introduces an alternative iteration protocol
 * avoids external dependencies
 * worships mathematics
 * respects DRY and SRP
@@ -33,13 +34,15 @@ This library is experimental, still a work in progress and thus has an unstable 
 * x, y, z, w, v: type variables (of any type)
 * xs, ys, zs, ws, vs: native `Array`s
 * o, p, q, r, s: native `Object`s
-* ident_: lazy version of a function
-* _ident: flipped argument version of a binary function
+* ident: fully curried version of a function - f => g => x => y => f(g(x) (y))
+* _ident: uncurried input, curried output - (f, g) => (x, y) => f(g(x) (y))
+* ident_: curried input, uncurried output - f => g => x => y => f(g(x, y))
+* ident_: fully uncurried version of a function - (f, g) => (x, y) => f(g(x, y))
 * $ident: native `Symbol`
 
 ## Currying and Pure Functions
 
-Almost all functions in ftor are curried and pure. <a href="http://kongware.net/currying-partial-application-javascript">Read more about currying in my background article</a>.
+All functions are available in manually curried form. However, for performance reasons there are also functions with either uncurried input (arguments), output (returned functions) or both. I reccommend to use normal curried functions and only resort to "optimized" versions if when absolutely necessary. The "optimized" functions have hideous identifiers (e.g. "_ident" or "_ident_") so that their use has an aesthetic price.
 
 ## Algebraic Data Types
 
@@ -55,7 +58,7 @@ ftor will implement the `Observable` prototcol along with a couple of convenienc
 
 ## Iteration Protocols and Asynchronous Iterators
 
-ftor will explore the benefits of the iteration protocols and attempt to enable asynchronous iterators.
+The iteration protocols in Javascript are a pile of crap. They introduce lazy side effects and a lot of shared state in your code. ftor propagates an alternative iteration protocol that avoid these drawbacks.
 
 ## Shared Scope and Cooperative Multi Tasking
 
@@ -92,13 +95,16 @@ ftor assumes an ES2015 environment. Use transpilers.
 ## TODO
 
  - [ ] zippers
- - [ ] foldMap
  - [ ] take/drop
- - [ ] paramorphism?
- - [ ] unfold
- - [ ] linked list
- - [ ] trees
+ - [ ] foldMap
+ - [ ] f-algebra catamorphism
+ - [ ] co-recursion
+ - [ ] anamorphism/unfold
+ - [ ] hylomorphism
+ - [ ] linked list/trees
  - [ ] enumerations
+ - [ ] functional iteration protocols
+ - [ ] monoidal transducer
  - [ ] functions always return frozen object types
  - [ ] functions that may fail return an option type
  - [ ] use pairs/records in functions preferably
