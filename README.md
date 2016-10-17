@@ -96,16 +96,12 @@ ftor assumes an ES2015 environment. Use transpilers.
 ## TODO
 
  - [ ] zippers
- - [ ] take/drop
- - [ ] foldMap
- - [ ] f-algebra catamorphism
- - [ ] co-recursion
- - [ ] anamorphism/unfold
+ - [ ] derived iterative functions take/drop/etc.
+ - [ ] Monoids/foldMap
+ - [ ] Monoids/cata/F-Algebras
+ - [ ] corecursion/ana-/apomorphism/unfold
  - [ ] hylomorphism
  - [ ] linked list/trees
- - [ ] enumerations
  - [ ] functional iteration protocols
  - [ ] monoidal transducer
- - [ ] functions always return frozen object types
- - [ ] functions that may fail return an option type
- - [ ] use pairs/records in functions preferably
+ - [ ] functions that may fail need to return an option type
