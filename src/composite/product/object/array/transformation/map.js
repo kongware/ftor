@@ -1,3 +1,1 @@
-const apply = require("../../../../../polymorphic/primitive/A");
-
-module.exports = map = f => xs => xs.map(apply(f));
+module.exports = map = f => xs => xs.map((v, k) => f(v, k));

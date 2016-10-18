@@ -1,1 +1,0 @@
-module.exports = entries = xs => xs.entries();

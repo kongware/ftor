@@ -1,5 +1,5 @@
-const _concat = require("../accumulation/_concat");
-const _differencel = require("./_differencel");
-const flip = require("../../../../../polymorphic/primitive/flip");
+const _concat = require("../accumulation/_/_concat");
+const differencel = require("./differencel");
+const differencer = require("./differencer");
 
-module.exports = difference = ys => xs => _concat(_differencel(xs) (ys)) (flip(_differencel) (xs) (ys));
+module.exports = difference = ys => xs => _concat(differencel(xs) (ys)) (differencer(xs) (ys));

@@ -1,5 +1,5 @@
 const createSet = require("../../../../abstract/set/createSet");
-const filter = require("../folding/filter");
+const filter = require("../folding/left/derived/filter");
 
 module.exports = differencel = ys => xs => {
   const zs = createSet(ys);
