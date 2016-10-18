@@ -1,3 +1,5 @@
+const keys = require("../reflection/keys");
+
 module.exports = fold1 = f => o => {
   const next = (acc, k) => ks.length === k
    ? acc
