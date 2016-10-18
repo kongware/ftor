@@ -1,0 +1,1 @@
+module.exports = destructiveDelete = k => o => (delete o[k], o);
