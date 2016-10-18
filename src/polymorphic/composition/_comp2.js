@@ -1,1 +1,0 @@
-module.exports = _comp2 = (f, g) => (x, y) => f(g(x) (y));

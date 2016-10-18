@@ -1,1 +1,0 @@
-module.exports = A2_ = f => x => y => f(x, y);

@@ -1,0 +1,1 @@
+module.exports = _concat = (xs, x) => xs.concat(x);

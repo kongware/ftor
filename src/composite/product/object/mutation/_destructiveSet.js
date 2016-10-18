@@ -1,1 +1,0 @@
-module.exports = _destructiveSet = (k, v, o) => (o[k] = v, o);

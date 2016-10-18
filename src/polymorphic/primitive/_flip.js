@@ -1,1 +1,0 @@
-module.exports = _flip = f => (y, x) => f(x) (y);

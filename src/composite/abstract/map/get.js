@@ -1,0 +1,1 @@
+module.exports = get = k => map => map.get(k);

@@ -1,0 +1,1 @@
+module.exports = T3 = x => y => z => f => f(x) (y) (z);
