@@ -1,1 +1,0 @@
-module.exports = curry23 = f => x => y => z => f(x) (y, z);

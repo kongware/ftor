@@ -1,10 +1,10 @@
 const init = require("../../subarray/init");
 const last = require("../../destructuring/last");
 
-module.exports = parar = f => acc => xs => {
+module.exports = paralk = f => acc => xs => {
   const next = (head, acc, tail) => head === undefined
    ? acc
-   : next(last(tail), f(head) (acc, tail), init(tail));
+   : f(head) (acc, tail, acc => next(last(tail), acc, init(tail)));
 
   return next(last(xs), acc, init(xs));
 };

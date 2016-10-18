@@ -1,7 +1,7 @@
 module.exports = foldrk = f => acc => xs => {
-  const next = (key, acc) => key < 0
+  const next = (k, acc) => k < 0
    ? acc
-   : f(xs[key], key) (acc) (acc => next(key - 1, acc));
+   : f(xs[k], k) (acc) (acc => next(k - 1, acc));
 
   return next(xs.length - 1, acc);
 };
