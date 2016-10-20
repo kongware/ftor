@@ -1,0 +1,1 @@
+module.exports = _gt = (x, y) => x > y;

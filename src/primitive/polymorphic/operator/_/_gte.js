@@ -1,0 +1,1 @@
+module.exports = gte = (x, y) => !(x < y);

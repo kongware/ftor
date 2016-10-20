@@ -1,0 +1,1 @@
+module.exports = map = (f, xs) => xs.map((v, k) => f(v, k));

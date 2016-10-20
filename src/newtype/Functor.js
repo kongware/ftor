@@ -1,6 +1,7 @@
 const unimplemented = require("../polymorphic/side_effect/unimplemented");
-const {$map} = require("../../interop/symbols");
+const {$map, $_map} = require("../../interop/symbols");
 
 module.exports = Functor = {
-  [$map]: unimplemented
+  [$map]: unimplemented,
+  [$_map]: unimplemented
 };
