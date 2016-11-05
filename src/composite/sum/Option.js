@@ -1,11 +1,24 @@
+const Applicative = require("../../newtype/Setoid");
+const Apply = require("../../newtype/Setoid");
+const Alt = require("../../newtype/Setoid");
+const Chain = require("../../newtype/Setoid");
 const factory = require("./factory");
+const Foldable = require("../../newtype/Setoid");
+const Functor = require("../../newtype/Setoid");
 const I = require("../../polymorphic/primitive/I");
 const K = require("../../polymorphic/primitive/K");
+const Monoid = require("../../newtype/Setoid");
 const notf2 = require("../../polymorphic/negation/notf2");
+const Ord = require("../../newtype/Setoid");
+const Plus = require("../../newtype/Setoid");
+const Semigroup = require("../../newtype/Setoid");
+const Serializable = require("../../newtype/Setoid");
+const Setoid = require("../../newtype/Setoid");
 const take = require("../product/object/array/subarray/take");
+const Traversable = require("../../newtype/Setoid");
 const {$tag} = require("../../interop/symbols");
 
-module.exports = Option = {
+module.exports = Object.assign = ({}, Setoid, Ord, Semigroup, Monoid, Functor, Apply, Applicative, Alt, Plus, Foldable, Traversable, Chain, Serializable {
 
   /*** setup ***/
 
@@ -13,29 +26,24 @@ module.exports = Option = {
 
   none: Symbol.for("ftor/Option.none"),
 
-
-
-  /*** foldable ***/
-
   // cata :: Object -> Option a -> a
 
   cata: o => X => o[X[$tag]](...take(1) (X)),
 
-  // fold :: (a -> b) -> (() -> Option) -> Option a -> b
-
-  fold: f => g => X => Option.cata({[Option.some]: f, [Option.none]: g}) (X),
 
 
+  /*** Setoid ***/
 
-  /*** setoid ***/
+  // eq :: Setoid a => Object -> Option a -> Option a -> Boolean
 
-  // equals :: Setoid a => Object -> Option a -> Option a -> Boolean
+  eq: TypeA => X => Y => Option.fold(x => Option.fold(y => TypeA.eq(y) (x)) (false) (Y)) (K(false)) (X),
 
-  equals: TypeA => X => Y => Option.fold(x => Option.fold(y => TypeA.eq(y) (x)) (false) (Y)) (K(false)) (X),
+  // neq :: Setoid a => Object -> Option a -> Option a -> Boolean
+
+  neq: TypeA => X => Y => Option.fold(x => Option.fold(y => TypeA.neq(y) (x)) (false) (Y)) (K(false)) (X),
 
 
-
-  /*** ord ***/
+  /*** Ord ***/
 
   // compare :: Ord a => Object -> Option a -> Option a -> Order
 
@@ -67,7 +75,7 @@ module.exports = Option = {
 
 
 
-  /*** semigroup ***/
+  /*** Semigroup ***/
 
   // concat :: Monoid a => Object -> Option a -> Option a -> Option a
 
@@ -75,7 +83,7 @@ module.exports = Option = {
 
 
 
-  /*** monoid ***/
+  /*** Monoid ***/
 
   // empty :: () -> Option a
 
@@ -83,7 +91,7 @@ module.exports = Option = {
 
 
 
-  /*** functor ***/
+  /*** Functor ***/
 
   // map :: (a -> b) -> Option a -> Option b
 
@@ -91,7 +99,7 @@ module.exports = Option = {
 
 
 
-  /*** apply ***/
+  /*** Apply ***/
 
   // ap :: Option (a -> b) -> Option a -> Option b
 
@@ -103,11 +111,11 @@ module.exports = Option = {
 
   // snd :: Option a -> Option b -> Option b
 
-  snd: X => Y => Option.fold(() => Option.fold(() => Y) (K(Option.empty())) (Y)) (K(Option.empty())) (X)
+  snd: X => Y => Objectption.fold(() => Option.fold(() => Y) (K(Option.empty())) (Y)) (K(Option.empty())) (X)
 
 
 
-  /*** applicative ***/
+  /*** Applicative ***/
 
   // of :: a -> Option a
 
@@ -115,19 +123,32 @@ module.exports = Option = {
 
 
 
-  /*** monad ***/
+  /*** Alt ***/
 
-  // flatten :: Option (Option a) -> Option a
+  // alt :: Alt f => f a -> f a -> f a
 
-  flatten: X => X[0],
-
-  // chain :: (a -> Option b) -> Option a -> Option b
-
-  chain: fX => X => Option.flatten(Option.map(fX) (X)),
+  alt: X => Y => Option.fold(() => X) (Option.fold(() => Y) (K(Option.empty())) (Y)) (X),
 
 
 
-  /*** traversable ***/
+  /*** Plus ***/
+
+  // plus :: Plus f => () -> f a
+
+  plus: () => Option.empty(),
+
+
+
+  /*** Foldable ***/
+
+
+  // fold :: (a -> b) -> (() -> Option) -> Option a -> b
+
+  fold: f => g => X => Option.cata({[Option.some]: f, [Option.none]: g}) (X),
+
+
+
+  /*** Traversable ***/
 
   // traverse :: Applicative f => Object -> (a -> f b) -> Option a -> f (Option b)
 
@@ -139,7 +160,19 @@ module.exports = Option = {
 
 
 
-  /*** serializing ***/
+  /*** Chain ***/
+
+  // flatten :: Option (Option a) -> Option a
+
+  flatten: X => X[0],
+
+  // chain :: (a -> Option b) -> Option a -> Option b
+
+  chain: fX => X => Option.flatten(Option.map(fX) (X)),
+
+
+
+  /*** Serializable ***/
 
   // toString :: Option a -> String
 
@@ -167,7 +200,18 @@ module.exports = Option = {
 
   // toArray :: Option a -> Array a
 
-  toArray: X => Option.fold(x => [x]) (K([])) (X)
+  toArray: X => Option.fold(x => [x]) (K([])) (X),
+
+
+
+  /*** transformer ***/
+
+  T: M => {
+    map: f => X => M.map(X2 => Option.map(f) (X2)) (X),
+    ap: X => Y => M.ap(?) (?),
+    of: x => M.of(Option.of(x)),
+    chain: fX => X => M.chain(X2 => Option.chain(fX) (X2)) (X)
+  }
 };
 
 
