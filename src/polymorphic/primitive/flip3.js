@@ -1,0 +1,1 @@
+module.exports = flip3 = f => z => x => y => f(x) (y) (z);

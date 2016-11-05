@@ -30,6 +30,9 @@ module.exports = Object.assign = ({}, Setoid, Ord, Semigroup, Monoid, Functor, A
 
   cata: o => X => o[X[$tag]](...take(1) (X)),
 
+  // flatten :: Option (Option a) -> Option a
+
+  flatten: X => X[0],
 
 
   /*** Setoid ***/
@@ -77,7 +80,7 @@ module.exports = Object.assign = ({}, Setoid, Ord, Semigroup, Monoid, Functor, A
 
   /*** Semigroup ***/
 
-  // concat :: Monoid a => Object -> Option a -> Option a -> Option a
+  // concat :: Semigroup a => Object -> Option a -> Option a -> Option a
 
   concat: TypeA => X => Y => Option.fold(x => Option.fold(y => TypeA.concat(y) (x)) (K(Option.empty())) (Y)) (K(Option.empty())) (X),
 
@@ -125,7 +128,7 @@ module.exports = Object.assign = ({}, Setoid, Ord, Semigroup, Monoid, Functor, A
 
   /*** Alt ***/
 
-  // alt :: Alt f => f a -> f a -> f a
+  // alt :: Option a -> Option a -> Option a
 
   alt: X => Y => Option.fold(() => X) (Option.fold(() => Y) (K(Option.empty())) (Y)) (X),
 
@@ -133,7 +136,7 @@ module.exports = Object.assign = ({}, Setoid, Ord, Semigroup, Monoid, Functor, A
 
   /*** Plus ***/
 
-  // plus :: Plus f => () -> f a
+  // plus :: () -> Option a
 
   plus: () => Option.empty(),
 
@@ -161,10 +164,6 @@ module.exports = Object.assign = ({}, Setoid, Ord, Semigroup, Monoid, Functor, A
 
 
   /*** Chain ***/
-
-  // flatten :: Option (Option a) -> Option a
-
-  flatten: X => X[0],
 
   // chain :: (a -> Option b) -> Option a -> Option b
 
@@ -207,9 +206,21 @@ module.exports = Object.assign = ({}, Setoid, Ord, Semigroup, Monoid, Functor, A
   /*** transformer ***/
 
   T: M => {
+
+    // map :: Functor f => (a -> b) -> OptionT f a -> OptionT f b
+
     map: f => X => M.map(X2 => Option.map(f) (X2)) (X),
-    ap: X => Y => M.ap(?) (?),
+
+    // ap :: Apply f => OptionT f (a -> OptionT f b) -> OptionT f a -> OptionT f b
+
+    ap: X => Y => M.flatten(M.map(X2 => M.map(Y2 => Option.ap(X2) (Y2)) (Y)) (X)),
+
+    // of :: Applicative f => a -> OptionT f a
+
     of: x => M.of(Option.of(x)),
+
+    // chain :: Chain m => (a -> OptionT m b) -> OptionT m a -> OptionT m b
+
     chain: fX => X => M.chain(X2 => Option.chain(fX) (X2)) (X)
   }
 };
