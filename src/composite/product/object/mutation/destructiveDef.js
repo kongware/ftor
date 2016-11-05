@@ -1,0 +1,1 @@
+module.exports = destructiveDef = (prop, desc) => o => Object.defineProperty(o, prop, desc);

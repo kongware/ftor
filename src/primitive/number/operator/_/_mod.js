@@ -1,1 +1,0 @@
-module.exports = _mod = (x, y) => x % y;

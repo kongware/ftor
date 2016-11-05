@@ -1,5 +1,6 @@
-const _concat = require("../accumulation/_/_concat");
-const curry = require("../../../../../currying/curry");
+const concat = require("../accumulation/concat");
+const curry = require("../../../../../polymorphic/currying/curry");
+const flip = require("../../../../../polymorphic/primitve/flip");
 const foldl = require("../folding/left/foldl");
 
-module.exports = flatten = xs => foldl(curry(_concat)) ([]) (xs);
+module.exports = flatten = xs => foldl(curry(flip(concat))) ([]) (xs);

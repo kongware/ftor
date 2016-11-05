@@ -1,6 +1,7 @@
-const {$toJSON, $toString} = require("../../interop/symbols");
+const Serializable = require("../../../newtype/Serializable");
+const toString = require("../../../polymorphic/typecast/toString");
 
-module.exports = Serializable = {
-  [$toJSON]: x => x.toString(),
-  [$toString]: x => x.toString()
+module.exports = Object.assign({}, Serializable, {
+  toString: toString,
+  toJSON: toString
 };

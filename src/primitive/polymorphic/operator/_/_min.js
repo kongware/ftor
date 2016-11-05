@@ -1,1 +1,0 @@
-module.exports = _min = (x, y) => x < y ? x : y;

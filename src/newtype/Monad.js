@@ -1,10 +1,10 @@
 const Applicative = require("./Applicative");
 const Chain = require("./Chain");
-const unimplemented = require("../polymorphic/side_effect/unimplemented");
-const {$ap, $of, $chain} = require("../../interop/symbols");
+const unimplemented = require("../polymorphic/debugging/unimplemented");
 
 module.exports = Monad = {
-  [$ap]: Applicative[$ap],
-  [$of]: Applicative[$of],
-  [$chain]: Applicative[$chain]
+  map: Applicative.map,
+  ap: Applicative.ap,
+  of: Applicative.of,
+  chain: Chain.chain
 };

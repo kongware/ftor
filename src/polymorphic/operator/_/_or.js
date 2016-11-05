@@ -1,1 +1,0 @@
-module.exports = or = (x, y) => x || y;

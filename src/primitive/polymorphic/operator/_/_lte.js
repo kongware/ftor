@@ -1,1 +1,0 @@
-module.exports = _lte = (x, y) => !(x > y);

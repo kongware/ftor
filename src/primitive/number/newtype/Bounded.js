@@ -1,6 +1,6 @@
-const {$minBound, $maxBound} = require("../../interop/symbols");
+const Bounded = require("../../../newtype/Bounded");
 
-module.exports = Bounded = {
-  [$minBound]: -Infinity,
-  [$maxBound]: Infinity
+module.exports = Object.assign({}, Bounded, {
+  minBound: Number.MIN_SAFE_INTEGER,
+  maxBound: Number.MAX_SAFE_INTEGER
 };

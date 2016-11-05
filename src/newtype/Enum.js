@@ -1,7 +1,6 @@
-const unimplemented = require("../polymorphic/side_effect/unimplemented");
-const {$pred, $succ} = require("../../interop/symbols");
+const unimplemented = require("../polymorphic/debugging/unimplemented");
 
 module.exports = Enum = {
-  [$pred]: unimplemented,
-  [$succ]: unimplemented
+  pred: unimplemented,
+  succ: unimplemented
 };

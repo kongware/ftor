@@ -1,1 +1,0 @@
-module.exports = _max = (x, y) => x > y ? x : y;

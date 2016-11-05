@@ -1,7 +1,6 @@
-const unimplemented = require("../polymorphic/side_effect/unimplemented");
-const {$equals, $_equals} = require("../interop/symbols");
+const unimplemented = require("../polymorphic/debugging/unimplemented");
 
 module.exports = Setoid = {
-  [$equals]: unimplemented,
-  [$_equals]: unimplemented
+  eq: unimplemented,
+  neq: unimplemented
 };

@@ -1,8 +1,8 @@
 const Apply = require("./Apply");
-const unimplemented = require("../polymorphic/side_effect/unimplemented");
-const {$ap, $chain} = require("../../interop/symbols");
+const unimplemented = require("../polymorphic/debugging/unimplemented");
 
 module.exports = Chain = {
-  [$ap]: Apply[$ap],
-  [$chain]: unimplemented
+  map: Apply.map,
+  ap: Apply.ap,
+  chain: unimplemented
 };

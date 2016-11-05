@@ -1,1 +1,0 @@
-module.exports = _append = (xs, x) => xs.concat([x]);

@@ -1,0 +1,1 @@
+module.exports = neq = y => x => !Object.is(x, y);

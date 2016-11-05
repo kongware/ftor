@@ -1,1 +1,0 @@
-module.exports = _add = (x, y) => +x + +y;

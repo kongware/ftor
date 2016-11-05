@@ -1,1 +1,0 @@
-module.exports = _lt = (x, y) => x < y;

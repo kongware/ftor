@@ -1,13 +1,9 @@
 const Foldable = require("./Foldable");
 const Functor = require("./Functor");
-const unimplemented = require("../polymorphic/side_effect/unimplemented");
-const {$map, $foldl, $foldr, $foldl_, $foldr_} = require("../../interop/symbols");
+const unimplemented = require("../polymorphic/debugging/unimplemented");
 
 module.exports = Traversable = {
-  [$map]: Functor[$map],
-  [$foldl]: Foldable[$foldl],
-  [$foldr]: Foldable[$foldr],
-  [$foldl_]: Foldable[$foldl_],
-  [$foldr_]: Foldable[$foldr_],
-  [$traverse]: unimplemented
+  map: Functor.map,
+  fold: Foldable.fold,
+  traverse: unimplemented
 };

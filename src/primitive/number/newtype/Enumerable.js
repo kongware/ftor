@@ -1,6 +1,8 @@
-const {$pred, $succ} = require("../../interop/symbols");
+const dec = require("../../operator/dec");
+const Enumerable = require("../../../newtype/Enumerable");
+const inc = require("../../operator/inc");
 
-module.exports = Enumerable = {
-  [$pred]: dec,
-  [$succ]: inc
+module.exports = Object.assign({}, Enumerable, {
+  pred: dec,
+  succ: inc
 };

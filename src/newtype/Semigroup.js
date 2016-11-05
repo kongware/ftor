@@ -1,7 +1,5 @@
-const unimplemented = require("../polymorphic/side_effect/unimplemented");
-const {$concat, $_concat} = require("../interop/symbols");
+const unimplemented = require("../polymorphic/debugging/unimplemented");
 
 module.exports = Semigroup = {
-  [$concat]: unimplemented,
-  [$_concat]: unimplemented
+  concat: unimplemented
 };
