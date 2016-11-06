@@ -1,10 +1,16 @@
 {
   "name": "ftor",
   "version": "0.0.1",
-  "description": "An idiomatic, non-dogmatic library facilitating functional programming in Javascript.",
+  "description": "An idiomatic, non-dogmatic functional library that fixes Javascript.",
   "repository": {
     "type": "git",
     "url": "git://github.com/kongware/ftor.git"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec"
+  },
+  "devDependencies": {
+    "mocha": "3.x.x"
   },
   "author": "Iven Marquardt <info@kongware.net>",
   "license": "MIT"

@@ -30,51 +30,49 @@ module.exports = Object.assign = ({}, Setoid, Ord, Semigroup, Monoid, Functor, A
 
   cata: o => X => o[X[$tag]](...take(1) (X)),
 
-  // flatten :: Option (Option a) -> Option a
-
-  flatten: X => X[0],
 
 
   /*** Setoid ***/
 
   // eq :: Setoid a => Object -> Option a -> Option a -> Boolean
 
-  eq: TypeA => X => Y => Option.fold(x => Option.fold(y => TypeA.eq(y) (x)) (false) (Y)) (K(false)) (X),
+  eq: TypeA => X => Y => Option.fold(x => Option.fold(y => TypeA.eq(y) (x)) (K(false)) (Y)) (Option.fold(K(false)) (K(true)) (Y)) (X),
 
   // neq :: Setoid a => Object -> Option a -> Option a -> Boolean
 
-  neq: TypeA => X => Y => Option.fold(x => Option.fold(y => TypeA.neq(y) (x)) (false) (Y)) (K(false)) (X),
+  neq: TypeA => X => Y => Option.fold(x => Option.fold(y => TypeA.neq(y) (x)) (K(false)) (Y)) (Option.fold(K(false)) (K(true)) (Y)) (X),
+
 
 
   /*** Ord ***/
 
   // compare :: Ord a => Object -> Option a -> Option a -> Order
 
-  compare: TypeA => X => Y => Option.fold(x => Option.fold(y => TypeA.compare(y) (x)) (K(EQ)) (Y)) (K(EQ)) (X),
+  compare: TypeA => Y => X => Option.fold(x => Option.fold(y => TypeA.compare(y) (x)) (K(GT)) (Y)) (Option.fold(K(LT)) (K(EQ)) (Y)) (X),
 
   // lt :: Ord a => Object -> Option a -> Option a -> Boolean
 
-  lt: TypeA => X => Y => Option.fold(x => Option.fold(y => TypeA.lt(y) (x)) (K(false)) (Y)) (K(false)) (X),
+  lt: TypeA => Y => X => Option.compare(TypeA) (Y) (X) === LT,
 
   // gt :: Ord a => Object -> Option a -> Option a -> Boolean
 
-  gt: TypeA => X => Y => Option.fold(x => Option.fold(y => TypeA.gt(y) (x)) (K(false)) (Y)) (K(false)) (X),
+  gt: TypeA => Y => X => Option.compare(TypeA) (Y) (X) === GT,
 
   // lte :: Ord a => Object -> Option a -> Option a -> Boolean
 
-  lte: TypeA => notf2(Option.gt),
+  lte: TypeA => Y => X => Option.compare(TypeA) (Y) (X) !== GT,
 
   // gte :: Ord a => Object -> Option a -> Option a -> Boolean
 
-  gte: TypeA => notf2(Option.lt),
+  lte: TypeA => Y => X => Option.compare(TypeA) (Y) (X) !== LT,
 
   // min :: Ord a => Object -> Option a -> Option a -> Option a
 
-  min: TypeA => X => Y => Option.fold(x => Option.fold(y => factory(Option.some) (TypeA.min(y) (x))) (K(false)) (Y)) (K(false)) (X),
+  min: TypeA => Y => X => Option.fold(x => Option.fold(y => TypeA.min(y) (x) === x ? X : Y) (K(Y)) (Y)) (K(X)) (X),
 
   // max :: Ord a => Object -> Option a -> Option a -> Option a
 
-  max: TypeA => X => Y => Option.fold(x => Option.fold(y => factory(Option.some) (TypeA.max(y) (x))) (K(false)) (Y)) (K(false)) (X),
+  max: TypeA => Y => X => Option.fold(x => Option.fold(y => TypeA.max(y) (x) === x ? X : Y) (K(X)) (Y)) (K(Y)) (X),
 
 
 
@@ -165,6 +163,10 @@ module.exports = Object.assign = ({}, Setoid, Ord, Semigroup, Monoid, Functor, A
 
   /*** Chain ***/
 
+  // flatten :: Option (Option a) -> Option a
+
+  flatten: X => X[0],
+
   // chain :: (a -> Option b) -> Option a -> Option b
 
   chain: fX => X => Option.flatten(Option.map(fX) (X)),
@@ -213,7 +215,7 @@ module.exports = Object.assign = ({}, Setoid, Ord, Semigroup, Monoid, Functor, A
 
     // ap :: Apply f => OptionT f (a -> OptionT f b) -> OptionT f a -> OptionT f b
 
-    ap: X => Y => M.flatten(M.map(X2 => M.map(Y2 => Option.ap(X2) (Y2)) (Y)) (X)),
+    ap: X => Y => M.flatten(M.map(X2 => M.map(Y2 => Option.ap(X2) (Y2)) (Y)) (X)), // fix
 
     // of :: Applicative f => a -> OptionT f a
 
