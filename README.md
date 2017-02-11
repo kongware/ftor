@@ -1,107 +1,50 @@
 ftor
 ====
 
-<img src="http://kongware.net/i/ftor.png" width="174" height="57" vspace="16" alt="ftor"><br>
+<img src="https://i.stack.imgur.com/UqCPm.png?s=328&g=1" width="164" height="164" alt="ftor">
 An idiomatic, non-dogmatic lazy lib that facilitates the functional paradigm in Javascript.
 
 ## Status
 
-This library is experimental, still a work in progress and thus has an unstable API.
+This library is experimental and still work in progress.
 
-## Criteria
+## Criteria / Mission
 
-* weighs genericity up against readability and performance
-* prefers idiomatic code over magic
-* embraces pure, curried functions and combinator logic
-* builds on parametric and return type polymorphism
-* passes type dictionaries explicitly around to imitate type inference
-* promotes generic programming
-* benefits from lazy evaluation and lazy composition
-* encapsulates effects and makes them explicit
-* strives for immutability and persistent data structures
-* facilitates handling of asynchronous control flows
-* enables responsive programming
-* favors factory functions over constructors/classes
-* promotes abstract data types
-* introduces an alternative iteration protocol
-* avoids external dependencies
+* balance genericity, readability and performance
+* prefer idiomatic behavior over magic and hacks
+* embrace pure, functions, higher order functions and combinators
+* provide both curried and multi-argument functions
+* try to explore parametric and return type polymorphism
+* try to imitate type inference through explicit type dictionaries
+* promote generic and declarative programming
+* utilize lazy evaluation through thunks
+* reify effects to first class values
+* strive for immutability and persistent data structures
+* facilitates asynchronous control flows
+* abstract state changes by observables and streams
+* favor factory functions over constructors/pseudo class crap
+* enable algebraic data types, especially sum types
+* faciliate recursion and corecursion
+* introduce an alternative iteration protocol
 * worships mathematics
-* respects DRY and SRP
+* respect DRY, SRP and the Principle of Least Astonishment
 
-## Code Legend
+## Naming Convention
 
-### Identifiers
+* use [v, w, x, y, z] for generic variables of any type
+* use [vs, ws, xs, ys, zs] for generic collections
+* use [o, p, q, r, s] for generic object types
+* use [f, g, h, i, j] for generic functions
+* [name] represents a curried function (e.g. const name = x => y => z => {})
+* [name_] represents an uncurried function (e.g. const name = (x, y, z) => {})
+* [name__] represents a composable function (e.g. const name = (x, y) => z => {})
+* [$name]: represents a native Symbol
+* Functional programming doesn't mean to always use obfuscated names like x or f. Use speaking names for specific functions/variables and generic names for generic ones.
 
-* x, y, z, w, v: type variables (of any type)
-* xs, ys, zs, ws, vs: native `Array`s
-* o, p, q, r, s: native `Object`s
-* ident: fully curried version of a function - f => g => x => y => f(g(x) (y))
-* _ident: uncurried input, curried output - (f, g) => (x, y) => f(g(x) (y))
-* ident_: curried input, uncurried output - f => g => x => y => f(g(x, y))
-* &lowbar;ident&lowbar;: fully uncurried version of a function - (f, g) => (x, y) => f(g(x, y))
-* $ident: native `Symbol`
+## Currying
 
-## Currying and Pure Functions
+All functions are manually curried in ftor. However, some uncurried versions are available, especially for non-commutative operations. The are marked with an trailing underscore in their name.
 
-All functions are available in manually curried form. However, for performance reasons there are also functions with either uncurried input (arguments), output (returned functions) or both. I reccommend to use normal curried functions and only resort to "optimized" versions if when absolutely necessary. The "optimized" functions have hideous identifiers (e.g. "_ident" or "_ident_") so that their use has an aesthetic price.
+## Next
 
-## Algebraic Data Types
-
-ftor will introduce a couple of algebraic data types along with a type system, which requires types to be passed around explicitly.
-
-## `Promise`s
-
-ftor will give a lazy, non-overloaded and unicast alternative to native `Promise`s.
-
-## Reactive Paragidm
-
-ftor will implement the `Observable` prototcol along with a couple of convenience functions.
-
-## Iteration Protocols and Asynchronous Iterators
-
-The iteration protocols in Javascript are a pile of crap. They introduce lazy side effects and a lot of shared state in your code. ftor propagates an alternative iteration protocol that avoid these drawbacks.
-
-## Shared Scope and Cooperative Multi Tasking
-
-ftor will explore the benefits of generator functions.
-
-## Abstract Data Types
-
-ftor will use `Map`/`Set` and their weak counterparts as often as possible in order to separate the programm (metadata) and the data level.
-
-## Value vs. Reference Equality
-
-ftor acknowledges that Javascript doesn't have value objects yet and strictly performs equality checking of composite types by reference.
-
-## Genericity vs. Readability vs. Performance
-
-ftor weighs these factors up - it's the holy grale of functional programming in a multi-paradigm language like Javascript.
-
-## Modularization
-
-ftor is going to switch to ES2015 modules as soon as possible.
-
-## API
-
-A good API is an API with the smallest possible surface.
-
-## Dependencies
-
-nay.
-
-## Platform support
-
-ftor assumes an ES2015 environment. Use transpilers.
-
-## TODO
-
- - [ ] zippers
- - [ ] derived iterative functions take/drop/etc.
- - [ ] Monoids/foldMap
- - [ ] Monoids/cata/F-Algebras
- - [ ] corecursion/ana-/apomorphism/unfold
- - [ ] hylomorphism
- - [ ] linked list/trees
- - [ ] functional iteration protocols
- - [ ] monoidal transducer
- - [ ] functions that may fail need to return an option type
+Well, this manpage is also work in progress...
