@@ -2,6 +2,7 @@ ftor
 ====
 
 <img src="https://i.stack.imgur.com/UqCPm.png?s=328&g=1" width="164" height="164" alt="ftor">
+
 An idiomatic, non-dogmatic lazy lib that facilitates the functional paradigm in Javascript.
 
 ## Status
@@ -35,11 +36,10 @@ This library is experimental and still work in progress.
 * use [vs, ws, xs, ys, zs] for generic collections
 * use [o, p, q, r, s] for generic object types
 * use [f, g, h, i, j] for generic functions
-* [name] represents a curried function (e.g. const name = x => y => z => {})
 * [name_] represents an uncurried function (e.g. const name = (x, y, z) => {})
-* [name__] represents a composable function (e.g. const name = (x, y) => z => {})
 * [$name]: represents a native Symbol
-* Functional programming doesn't mean to always use obfuscated names like x or f. Use speaking names for specific functions/variables and generic names for generic ones.
+
+Functional programming doesn't mean to always use obfuscated names like x or f. Use speaking names for specific functions/variables and generic names for generic ones.
 
 ## Currying
 
