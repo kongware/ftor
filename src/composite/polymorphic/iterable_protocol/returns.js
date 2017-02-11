@@ -1,1 +1,0 @@
-module.exports = returns = itor => x => itor.return(x);

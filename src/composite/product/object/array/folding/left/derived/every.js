@@ -1,1 +1,0 @@
-module.exports = every = f => xs => xs.every((v, k) => f(v, k));

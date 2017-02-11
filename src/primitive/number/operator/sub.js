@@ -1,1 +1,0 @@
-module.exports = sub = y => x => x - y;

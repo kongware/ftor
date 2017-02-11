@@ -1,1 +1,0 @@
-module.exports = filter = f => xs => xs.filter((v, k) => f(v, k));

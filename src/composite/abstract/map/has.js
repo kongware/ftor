@@ -1,1 +1,0 @@
-module.exports = has = k => map => map.has(k);

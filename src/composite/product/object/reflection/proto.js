@@ -1,1 +1,0 @@
-module.exports = proto = o => o.constructor ? o.constructor.prototype : Object.getPrototypeOf(o);

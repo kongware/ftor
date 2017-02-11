@@ -1,1 +1,0 @@
-module.exports = has = k => set => set.has(k);

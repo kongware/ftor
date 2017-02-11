@@ -1,1 +1,0 @@
-module.exports = get = k => set => set.get(k);

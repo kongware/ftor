@@ -1,1 +1,0 @@
-module.exports = div = y => x => x / y;

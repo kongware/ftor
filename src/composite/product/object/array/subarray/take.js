@@ -1,1 +1,0 @@
-module.exports = take = n => xs => xs.slice(0, n);

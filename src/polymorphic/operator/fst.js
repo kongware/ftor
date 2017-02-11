@@ -1,1 +1,0 @@
-module.exports = fst = (x, y) => x;

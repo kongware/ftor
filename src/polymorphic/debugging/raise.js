@@ -1,1 +1,0 @@
-module.exports = raise = ctor => x => { throw new ctor(x) };

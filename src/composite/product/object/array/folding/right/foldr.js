@@ -1,1 +1,0 @@
-module.exports = foldr = f => acc => xs => xs.reduceRight((acc, v, k) => f(v) (acc, k), acc);

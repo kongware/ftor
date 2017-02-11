@@ -1,1 +1,0 @@
-module.exports = gt = y => x => x > y;

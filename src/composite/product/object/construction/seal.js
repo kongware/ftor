@@ -1,1 +1,0 @@
-module.exports = seal = o => Object.seal(o);

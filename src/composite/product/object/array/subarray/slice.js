@@ -1,1 +1,0 @@
-module.exports = slice = (x, y) => xs => xs.slice(x, y);

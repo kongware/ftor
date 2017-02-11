@@ -1,1 +1,0 @@
-module.exports = toggle = x => !Boolean(x);

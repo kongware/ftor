@@ -1,3 +1,5 @@
+"use strict";
+
 const properties = {
   $tag: Symbol.for("ftor/tag")
 };

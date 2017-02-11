@@ -1,1 +1,0 @@
-module.exports = some = f => xs => xs.some((v, k) => f(v, k));
