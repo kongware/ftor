@@ -1,10 +1,11 @@
 const keys = require("../reflection/keys");
 
-module.exports = fold = f => acc => o => {
-  const next = (acc, k) => ks.length === k
+// rev1
+module.exports = fold = order => f => acc => o => {
+  const next = (acc, i) => props[i] === undefined
    ? acc
-   : next(f(acc) (o[ks[k]], ks[k]), k + 1);
-  const ks = keys(o);
+   : next(f(acc) (o[props[i]], props[i]), i + 1),
+   props = order(keys(o));
 
   return next(acc, 0);
 };
