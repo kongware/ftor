@@ -1,3 +1,3 @@
 "use strict";
 
-module.exports = f => (y, x) => f(x) (y);
+module.exports = f => (x, y) => f(x) (y);

@@ -1,3 +1,3 @@
 "use strict";
 
-module.exports = f => x => y => z => w => f(w, x, y, z);
+module.exports = f => w => x => y => z => f(w, x, y, z);
