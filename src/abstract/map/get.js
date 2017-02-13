@@ -1,3 +1,3 @@
 "use strict";
 
-module.exports = x => map => map.get(x);
+module.exports = k => map => map.get(k);

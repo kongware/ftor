@@ -1,3 +1,3 @@
 "use strict";
 
-module.exports = x => set => set.get(x);
+module.exports = k => set => set.get(k);

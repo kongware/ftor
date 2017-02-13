@@ -1,3 +1,3 @@
 "use strict";
 
-module.exports = x => map => map.has(x);
+module.exports = k => map => map.has(k);

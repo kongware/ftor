@@ -37,9 +37,13 @@ This library is experimental and still work in progress.
 * use [o, p, q, r, s] for generic object types
 * use [f, g, h, i, j] for generic functions
 * [name_] represents a slightly different variant of the function [name]
-* [$name]: represents either a native Symbol or helps to avoid conflicts with reserved identifiers
+* [$name]: may represent a native Symbol
+* [$name]: may be used to avoid conflicts with reserved identifiers
+* [$name]: may be used to allow numbers as leading character (e.g. $3rd)
 
 Functional programming doesn't mean to always use generalized names like `x` or `f`. Use speaking names for specific functions/variables and generic names for generic ones. The specificity of names is a good indicator of how generalized your functions are.
+
+Please note that ftor doesn't take care of naming conflicts within the library. You have to handle that yourself.
 
 ## Currying
 

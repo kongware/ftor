@@ -2,4 +2,4 @@
 
 const seal = require("../object/seal");
 
-module.exports = (...xs) => seal(xs);
+module.exports = (x, y) => f => f(x, y);
