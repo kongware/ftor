@@ -2,4 +2,4 @@
 
 const clone = require("../../product/object/construct/clone");
 
-module.exports = clone(Map);
+module.exports = clone(Set);
