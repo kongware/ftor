@@ -1,5 +1,3 @@
 "use strict";
 
-const tuple = require("./tuple");
-
-module.exports = (x, y) => tuple(x, y);
+module.exports = (x, y) => f => f(x, y);
