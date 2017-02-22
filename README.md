@@ -11,6 +11,17 @@ This library is experimental and still work in progress.
 
 ## Criteria / Mission
 
+Functions.
+
+More precisely pure, first class functions in curried form.
+
+Such function are used to build higher order functions, combinators and compositions.
+
+Ultimately, this is all you need to create domain specific languages of any expressive power.
+
+
+
+Thats all you need to 
 * balance genericity, readability and performance
 * prefer idiomatic behavior over magic and hacks
 * embrace pure, functions, higher order functions and combinators
