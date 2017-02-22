@@ -13,7 +13,7 @@ This library is experimental and still work in progress.
 
 Functions.
 
-More precisely pure, first class functions in curried form that close over their environemnt.
+More precisely pure, first class functions in curried form that close over their environments.
 
 Such function are used to define higher order functions and primitive combinators.
 
@@ -21,7 +21,7 @@ Which are derived to combined combinators and funtion compositions of any comple
 
 Ultimately, this is all you need to create domain specific languages of any expressive power.
 
-Many people claim that this were not idiomatic Javascript. Don't believe them, because Javascript
+Many people claim that this were not idiomatic Javascript. Don't believe them, because Javascript has...
 
 * closurse
 * first class functions
