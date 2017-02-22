@@ -23,7 +23,7 @@ Ultimately, this is all you need to create domain specific languages of any expr
 
 Many people claim that this were not idiomatic Javascript. Don't believe them, because Javascript has...
 
-* closurse
+* closurses
 * first class functions
 * higher order functions
 * generator functions
