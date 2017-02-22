@@ -9,17 +9,31 @@ An idiomatic, non-dogmatic lazy lib that facilitates the functional paradigm in 
 
 This library is experimental and still work in progress.
 
-## Criteria / Mission
+## Mission
 
 Functions.
 
-More precisely pure, first class functions in curried form.
+More precisely pure, first class functions in curried form that close over their environemnt.
 
-Such function are used to build higher order functions, combinators and compositions.
+Such function are used to define higher order functions and primitive combinators.
+
+Which are derived to combined combinators and funtion compositions of any complexity.
 
 Ultimately, this is all you need to create domain specific languages of any expressive power.
 
+Many people claim that this were not idiomatic Javascript. Don't believe them, because Javascript
 
+* closurse
+* first class functions
+* higher order functions
+* generator functions
+* arrow functions to facillitate currying
+
+That is all we have and it is sufficient. We just have to get used to a new style of programming: Functional programming.
+
+Regain hope all ye who enter here.
+
+## Criteria
 
 Thats all you need to 
 * balance genericity, readability and performance
