@@ -35,7 +35,6 @@ Regain hope all ye who enter here.
 
 ## Criteria
 
-Thats all you need to 
 * balance genericity, readability and performance
 * prefer idiomatic behavior over magic and hacks
 * embrace pure, functions, higher order functions and combinators
