@@ -76,3 +76,25 @@ All functions are manually curried in ftor. However, some uncurried versions are
 ## Next
 
 Well, this manpage is also work in progress...
+
+## Todos
+
+- [ ] derive compn from foldr and merge it with comp
+- [ ] delete observable type (javascript frp nonsense)
+- [ ] introduce continuation functor as compk
+- [ ] check out CPS aux functions
+- [ ] introduce on as wrapper of addEventListener
+- [ ] check out event stream aux functions
+- [ ] examine functional sum types!!!
+- [ ] examine monadic traverse
+- [ ] examine kleisli composition
+- [ ] introduce Haskell's scan
+- [ ] examine co-recursion/unfold
+- [ ] introduce common transducers
+- [ ] introduce group/groupBy
+- [ ] review functional comparators/comparator modifier
+- [ ] look into functional lenses
+- [ ] introduce ap/chain for arrays
+- [ ] look into both/eitherOr/guarded functions
+- [ ] are clojure's multimethods terrible?
+- [x] stop annoying about ES7 async/await
