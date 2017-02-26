@@ -97,4 +97,11 @@ Well, this manpage is also work in progress...
 - [ ] introduce ap/chain for arrays
 - [ ] look into both/eitherOr/guarded functions
 - [ ] are clojure's multimethods terrible?
+- [ ] examine monotonic array
+- [ ] add object comparison
+- [ ] traverse unknown object (tree)
+- [ ] object left/right difference + intersection
+- [ ] examine bimap
+- [ ] examine functional value object
+- [ ] introduce unzip
 - [x] stop annoying about ES7 async/await
