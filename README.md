@@ -73,9 +73,9 @@ Please note that ftor doesn't take care of naming conflicts within the library. 
 
 All functions are manually curried in ftor. However, some uncurried versions are available, especially for non-commutative operations. The are marked with an trailing underscore in their name.
 
-## Next
+## Documentation
 
-Well, this manpage is also work in progress...
+The typical ftor function is so atomic that its purpose is easly comprehensible. However, often its application isn't intuitive for programmer, who are accustomed to the imperative style. Hence I will provide inline application examples for each function asap.
 
 ## Todos
 
