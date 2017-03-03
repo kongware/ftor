@@ -73,6 +73,10 @@ Please note that ftor doesn't take care of naming conflicts within the library. 
 
 All functions are manually curried in ftor. However, some uncurried versions are available, especially for non-commutative operations. The are marked with an trailing underscore in their name.
 
+## `Iterators` without observable mutations
+
+ftor uses an own `Iterator` implementation that avoids observable mutations and offers some nice extras like look ahead/behind. It is compatible with the ES2015 `Iterable` protocol.
+
 ## Documentation
 
 The typical ftor function is so atomic that its purpose is easly comprehensible. However, often its application isn't intuitive for programmer, who are accustomed to the imperative style. Hence I will provide inline application examples for each function asap.
