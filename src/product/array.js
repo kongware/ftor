@@ -22,7 +22,7 @@ array.compareBy = compareBy = f => xs => ys => xs.length === ys.length
  : false;
 
 
-array.concat_  = (xs, x) => xs.concat(x);
+array.concat_  = (xs, ...args) => xs.concat(...args);
 
 
 array.concat = x => xs => xs.concat(x);
@@ -39,7 +39,7 @@ array.dedupeBy = f => xs => xs.reduce((acc, x) => acc.some(f(x))
 array.destructivePop = xs => [xs, xs.pop()];
 
 
-array.destructivePush_ = (xs, x) => (xs.push(x), xs);
+array.destructivePush_ = (xs, ...args) => (xs.push(...args), xs);
 
 
 array.destructivePush = x => xs => (xs.push(x), xs);
@@ -48,7 +48,7 @@ array.destructivePush = x => xs => (xs.push(x), xs);
 array.destructiveShift = xs => [xs, xs.shift()];
 
 
-array.destructiveUnshift_ = (xs, x) => (xs.unshift(x), xs);
+array.destructiveUnshift_ = (xs, ...args) => (xs.unshift(...args), xs);
 
 
 array.destructiveUnshift = x => xs => (xs.unshift(x), xs);
@@ -176,35 +176,6 @@ array.isArray = Array.isArray;
 array.isEmpty = xs => xs.length === 0;
 
 
-array.iterator = xs => f => {
-  const next = (f, k) => xs.length === k
-   ? f(k, xs[k]) (null)
-   : f(k, xs[k]) (f => next(f, k + 1));
-
-  return xs.length === 0 
-   ? f(null) (null)
-   : next(f, 0);
-};
-
-
-array.itorDict = (k, v) => f => ({key: k, value: v, next: f});
-
-
-array.itorEntry = (k, v) => f => [k, v];
-
-
-array.itorKey = (k, v) => f => k;
-
-
-array.itorPair = (k, v) => f => [v, f];
-
-
-array.itorTriplet = (k, v) => f => [k, v, f];
-
-
-array.itorValue = (k, v) => f => v;
-
-
 array.join = x => xs => xs.join(x);
 
 
@@ -265,7 +236,7 @@ array.parark = f => acc => xs => {
 array.pop = xs => [array.init(xs), array.last(xs)];
 
 
-array.push_ = (xs, x) => xs.concat([x]);
+array.push_ = (xs, ...args) => xs.concat(args);
 
 
 array.push = x => xs => xs.concat([x]);
@@ -344,7 +315,7 @@ array.union = ys => xs => {
 };
 
 
-array.unshift_ = (xs, x) => [x].concat(xs);
+array.unshift_ = (xs, ...args) => [...args].concat(xs);
 
 
 array.unshift = x => xs => [x].concat(xs);

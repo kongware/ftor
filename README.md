@@ -80,16 +80,19 @@ The typical ftor function is so atomic that its purpose is easly comprehensible.
 ## Todos
 
 - [ ] fold Objects without intermediate (generator i/o Object.keys(Object.values)
-- [ ] delete observable type (javascript frp nonsense)
+- [ ] replace uncurried versions with (...args)
 - [ ] introduce continuation functor as compk
 - [ ] check out CPS aux functions
 - [ ] introduce on as wrapper of addEventListener
 - [ ] check out event stream aux functions
-- [ ] examine functional sum types!!!
+- [ ] introduce new typeclasses
+- [ ] introduce enum type
+- [ ] introduce sum types
 - [ ] examine monadic traverse
 - [ ] examine kleisli composition
 - [ ] introduce Haskell's scan
 - [ ] examine co-recursion/unfold
+- [ ] examine tree un-/serilization
 - [ ] introduce common transducers
 - [ ] introduce group/groupBy
 - [ ] review functional comparators/comparator modifier
@@ -104,4 +107,6 @@ The typical ftor function is so atomic that its purpose is easly comprehensible.
 - [ ] examine bimap
 - [ ] examine functional value object
 - [ ] introduce unzip
+- [x] examine functional sum types - rejected
+- [x] delete observable type (javascript frp nonsense)
 - [x] derive compn from foldr and merge it with comp

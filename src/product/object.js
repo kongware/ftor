@@ -137,6 +137,9 @@ object.proto = A(Object.create);
 object.proto2 = curry(Object.create);
 
 
+object.record = o => Object.freeze(o);
+
+
 object.seal = Object.seal;
 
 
