@@ -79,7 +79,7 @@ The typical ftor function is so atomic that its purpose is easly comprehensible.
 
 ## Todos
 
-- [ ] derive compn from foldr and merge it with comp
+- [ ] fold Objects without intermediate (generator i/o Object.keys(Object.values)
 - [ ] delete observable type (javascript frp nonsense)
 - [ ] introduce continuation functor as compk
 - [ ] check out CPS aux functions
@@ -104,4 +104,4 @@ The typical ftor function is so atomic that its purpose is easly comprehensible.
 - [ ] examine bimap
 - [ ] examine functional value object
 - [ ] introduce unzip
-- [x] stop annoying about ES7 async/await
+- [x] derive compn from foldr and merge it with comp
