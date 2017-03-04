@@ -1,6 +1,8 @@
 "use strict";
 
-const {A, curry} = require("../generic");
+const {A} = require("../generic");
+
+const {curry} = require("./tuple");
 
 const object = {};
 

@@ -20,7 +20,7 @@ tuple._4th = (w, x, y, z) => z;
 tuple._5th = (v, w, x, y, z) => z;
 
 
-tuple.cons0 = () => f => tuple.tuple0;
+tuple.cons0 = () => f => f();
 
 
 tuple.cons1 = T;
@@ -36,6 +36,30 @@ tuple.cons4 = (w, x, y, z) => f => f(w, x, y, z);
 
 
 tuple.cons5 = (v, w, x, y, z) => f => f(v, w, x, y, z);
+
+
+tuple.curry = f => x => y => f(x, y);
+
+
+tuple.curry3 = f => x => y => z => f(x, y, z);
+
+
+tuple.curry4 = f => w => x => y => z => f(w, x, y, z);
+
+
+tuple.curry5 = f => v => w => x => y => z => f(v, w, x, y, z);
+
+
+tuple.curryOp = f => y => x => f(x, y);
+
+
+tuple.curryOp3 = f => y => z => x => f(x, y, z);
+
+
+tuple.curryOp4 = f => x => y => z => w => f(w, x, y, z);
+
+
+tuple.curryOp5 = f => w => x => y => z => v => f(v, w, x, y, z);
 
 
 tuple.foldl = (...args) => acc => f => args.reduce(f, acc);
@@ -75,6 +99,30 @@ tuple.rotate5 = (z, v, w, x, y) => f => f(v, w, x, y, z);
 
 
 tuple.swap = (y, x) => f => f(x, y);
+
+
+tuple.uncurry = f => (x, y) => f(x) (y);
+
+
+tuple.uncurry3 = f => (x, y, z) => f(x) (y) (z);
+
+
+tuple.uncurry4 = f => (w, x, y, z) => f(w) (x) (y) (z);
+
+
+tuple.uncurry5 = f => (v, w, x, y, z) => f(v) (w) (x) (y) (z);
+
+
+tuple.uncurryOp = f => (y, x) => f(x) (y);
+
+
+tuple.uncurryOp3 = f => (y, z, x) => f(x) (y) (z);
+
+
+tuple.uncurryOp4 = f => (x, y, z, w) => f(w) (x) (y) (z);
+
+
+tuple.uncurryOp5 = f => (w, x, y, z, v) => f(v) (w) (x) (y) (z);
 
 
 module.exports = tuple;

@@ -60,10 +60,10 @@ Regain hope all ye who enter here.
 * use [vs, ws, xs, ys, zs] for generic collections
 * use [o, p, q, r, s] for generic object types
 * use [f, g, h, i, j] for generic functions
-* [name_] represents a slightly different variant of the function [name]
-* [$name]: may represent a native Symbol
-* [$name]: may be used to avoid conflicts with reserved identifiers
-* [$name]: may be used to allow numbers as leading character (e.g. $3rd)
+* [name_] indicates uncurried first order functions (operator functions)
+* [_name] distinguishes either a slightly different variant of an existing function or allows names with leading numbers (e.g. $3rd)
+* [$name] may represent a native Symbol
+* [$name] may be used to avoid conflicts with reserved identifiers
 
 Functional programming doesn't mean to always use generalized names like `x` or `f`. Use speaking names for specific functions/variables and generic names for generic ones. The specificity of names is a good indicator of how generalized your functions are.
 
@@ -71,11 +71,33 @@ Please note that ftor doesn't take care of naming conflicts within the library. 
 
 ## Currying
 
-All functions are manually curried in ftor. However, some uncurried versions are available, especially for non-commutative operations. The are marked with an trailing underscore in their name.
+All functions are manually curried in ftor. However, operator functions, i.e. all first order functions are also provided in uncurried form. Such functions have a trailing underscore in their name.
+
+Usually higher order functions expect curried functions as arguments. To improve performance, iterative higher order functions exceptionally expect uncurried operator functions.
+
+## Augmented Built-ins
+
+ftor augments built-ins by utilizing `WeakMap`s. To use these augmented builtins on the calling side, each function must perform an additional lookup to retrieve the desired method.
+
+The following type classes (interfaces) are provided:
+
+* Bounded
+* Enum
+* Traversable
+* Iterable
+* 
+
+## New types
+
+ftor introduces the following types:
+
+* Char
+
+Please note that in Javascript in place of the 0-tuple `null` (and `undefined`) is used as the unit type. `null` is a propper unit type, since it can be both, an argument and a property key.
 
 ## `Iterators` without observable mutations
 
-ftor uses an own `Iterator` implementation that avoids observable mutations and offers some nice extras like look ahead/behind. It is compatible with the ES2015 `Iterable` protocol.
+ftor contains its own `Iterator` implementation that avoids observable mutations and offers some nice extras like look ahead/behind. It is compatible with the ES2015 `Iterable` protocol though.
 
 ## Documentation
 
@@ -111,6 +133,8 @@ The typical ftor function is so atomic that its purpose is easly comprehensible.
 - [ ] examine bimap
 - [ ] examine functional value object
 - [ ] introduce unzip
+- [ ] introduce Enum type
+- [ ] introduce Char type
 - [x] examine functional sum types - rejected
 - [x] delete observable type (javascript frp nonsense)
 - [x] derive compn from foldr and merge it with comp

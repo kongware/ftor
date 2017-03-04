@@ -76,30 +76,6 @@ generic.composable_ = (f, ...args) => x => f(...args, x);
 generic.composable = f => (...args) => x => f(...args, x);
 
 
-generic.curry = f => x => y => f(x, y);
-
-
-generic.curry3 = f => x => y => z => f(x, y, z);
-
-
-generic.curry4 = f => w => x => y => z => f(w, x, y, z);
-
-
-generic.curry5 = f => v => w => x => y => z => f(v, w, x, y, z);
-
-
-generic.curryOp = f => y => x => f(x, y);
-
-
-generic.curryOp3 = f => y => z => x => f(x, y, z);
-
-
-generic.curryOp4 = f => x => y => z => w => f(w, x, y, z);
-
-
-generic.curryOp5 = f => w => x => y => z => v => f(v, w, x, y, z);
-
-
 generic.evaluate = x => typeof x === "function" ? x() : x;
 
 
@@ -155,6 +131,9 @@ generic.log_ = (...args) => console.log(...args);
 
 
 generic.log = (...args) => x => console.log(x, ...args);
+
+
+generic.lookup = map => o => map.get(constructor in o ? o.constructor.prototype : Reflect.getPrototypeOf(o));
 
 
 generic.notf = generic.comp(not);
@@ -275,30 +254,6 @@ generic.trace5 = tag => generic.tap5(generic.partial(log) (tag));
 
 
 generic.U = f => f(f);
-
-
-generic.uncurry = f => (x, y) => f(x) (y);
-
-
-generic.uncurry3 = f => (x, y, z) => f(x) (y) (z);
-
-
-generic.uncurry4 = f => (w, x, y, z) => f(w) (x) (y) (z);
-
-
-generic.uncurry5 = f => (v, w, x, y, z) => f(v) (w) (x) (y) (z);
-
-
-generic.uncurryOp = f => (y, x) => f(x) (y);
-
-
-generic.uncurryOp3 = f => (y, z, x) => f(x) (y) (z);
-
-
-generic.uncurryOp4 = f => (x, y, z, w) => f(w) (x) (y) (z);
-
-
-generic.uncurryOp5 = f => (w, x, y, z, v) => f(v) (w) (x) (y) (z);
 
 
 generic.xor_ = (x, y, default) => !x === !y ? default : x || y;
