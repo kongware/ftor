@@ -81,17 +81,23 @@ ftor augments built-ins by utilizing `WeakMap`s. To use these augmented builtins
 
 The following type classes (interfaces) are provided:
 
+* Applicative
 * Bounded
 * Enum
-* Traversable
+* Eq (Semigroup)
+* Functor
 * Iterable
-* 
+* Monad
+* Monoid
+* Ord
+* Traversable
 
 ## New types
 
 ftor introduces the following types:
 
 * Char
+* Tuple
 
 Please note that in Javascript in place of the 0-tuple `null` (and `undefined`) is used as the unit type. `null` is a propper unit type, since it can be both, an argument and a property key.
 
