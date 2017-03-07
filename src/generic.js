@@ -184,6 +184,19 @@ generic.repeatWhile = n => pred => f => x => {
 };
 
 
+generic.sequence = f => (x, y) => {
+  function* aux() {
+    while (true) {
+      yield x;
+      x = f(x);
+      if (x > y) break;
+    }
+  }
+
+  return aux();
+};
+
+
 generic.strict = f => g => f(g());
 
 

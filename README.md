@@ -13,7 +13,11 @@ This library is experimental and still work in progress.
 
 Functions.
 
-More precisely pure, first class functions in curried form that close over their environments.
+More precisely pure,
+
+first class functions in curried form
+
+that close over their environments.
 
 Such function are used to define higher order functions and primitive combinators.
 
@@ -29,30 +33,65 @@ Many people claim that this were not idiomatic Javascript. Don't believe them, b
 * generator functions
 * arrow functions to facillitate currying
 
-That is all we have and it is sufficient. We just have to get used to a new style of programming: Functional programming.
-
 Regain hope all ye who enter here.
 
 ## Criteria
 
-* balance genericity, readability and performance
-* prefer idiomatic behavior over magic and hacks
-* embrace pure, functions, higher order functions and combinators
-* provide both curried and multi-argument functions
-* try to explore parametric and return type polymorphism
-* try to imitate type inference through explicit type dictionaries
-* promote generic and declarative programming
-* utilize lazy evaluation through thunks
+* purity
+* idiomatic patterns instead of magic hacks and false simplicity
+* think algebraic, use sum types
+* parametric and ad-hoc polymorphism
+* love higher order functions and combinators and hence hate asyn functions
+* declarative programming and point-free
+* lazy evaluation when possible
 * reify effects to first class values
-* strive for immutability and persistent data structures
-* facilitates asynchronous control flows
-* abstract state changes by observables and streams
-* favor factory functions over constructors/pseudo class crap
-* enable algebraic data types, especially sum types
-* faciliate recursion and corecursion
-* introduce an alternative iteration protocol
-* worships mathematics
-* respect DRY, SRP and the Principle of Least Astonishment
+* immutability and persistent data structures
+* do it recursive
+* respect DRY, SRP and the principle of Least astonishment
+
+## Currying
+
+All functions are manually curried in ftor. However, operator functions, i.e. all first order functions are also provided in uncurried form. Such functions have a trailing underscore in their name.
+
+Usually higher order functions expect curried functions as arguments. To improve performance, iterative higher order functions exceptionally expect uncurried operator functions.
+
+ftor has broad support of the tuple type and thus can handle multi-argument functions pretty well.
+
+## Augmented Built-ins
+
+ftor augments built-ins by utilizing `WeakMap`s. To use these augmented builtins on the calling side, each function must perform an additional lookup to retrieve the desired method.
+
+The following type classes (interfaces) are provided:
+
+* Applicative
+* Bounded
+* Enum
+* Eq (Semigroup)
+* Functor
+* Monad
+* Monoid
+* Ord
+* Traversable
+
+## New types
+
+ftor introduces the following types:
+
+* Char
+* Iterator
+* Misc. sum types
+* Ordering
+* Tuple
+
+Please note that in Javascript in place of the 0-tuple `null` (and `undefined`) is used as the unit type. `null` is a propper unit type, since it can be both, an argument and a property key.
+
+## `Iterators` without observable mutations
+
+ftor contains its own `Iterator` implementation that avoids observable mutations and offers some nice extras like look ahead/behind. It is compatible with the ES2015 `Iterable` protocol though.
+
+## Debugging
+
+Besides common helpers like `tap` or `trace` ftor offers a functional type checker that checks both, expected types of arguments and return values as well as the arity of procedurally applied curried functions. In order to use the type checker, just apply it to functions of imported modules. As long as your code doesn't depend on the `name` or ` length` property  of the function prototype, the type checker doesn't alter the behavior of your program. Hence you can easily remove it as soon as you finish the development stage.
 
 ## Naming Convention
 
@@ -68,42 +107,6 @@ Regain hope all ye who enter here.
 Functional programming doesn't mean to always use generalized names like `x` or `f`. Use speaking names for specific functions/variables and generic names for generic ones. The specificity of names is a good indicator of how generalized your functions are.
 
 Please note that ftor doesn't take care of naming conflicts within the library. You have to handle that yourself.
-
-## Currying
-
-All functions are manually curried in ftor. However, operator functions, i.e. all first order functions are also provided in uncurried form. Such functions have a trailing underscore in their name.
-
-Usually higher order functions expect curried functions as arguments. To improve performance, iterative higher order functions exceptionally expect uncurried operator functions.
-
-## Augmented Built-ins
-
-ftor augments built-ins by utilizing `WeakMap`s. To use these augmented builtins on the calling side, each function must perform an additional lookup to retrieve the desired method.
-
-The following type classes (interfaces) are provided:
-
-* Applicative
-* Bounded
-* Enum
-* Eq (Semigroup)
-* Functor
-* Iterable
-* Monad
-* Monoid
-* Ord
-* Traversable
-
-## New types
-
-ftor introduces the following types:
-
-* Char
-* Tuple
-
-Please note that in Javascript in place of the 0-tuple `null` (and `undefined`) is used as the unit type. `null` is a propper unit type, since it can be both, an argument and a property key.
-
-## `Iterators` without observable mutations
-
-ftor contains its own `Iterator` implementation that avoids observable mutations and offers some nice extras like look ahead/behind. It is compatible with the ES2015 `Iterable` protocol though.
 
 ## Documentation
 
@@ -141,6 +144,7 @@ The typical ftor function is so atomic that its purpose is easly comprehensible.
 - [ ] introduce unzip
 - [ ] introduce Enum type
 - [ ] introduce Char type
+- [ ] explore finger trees/sequences
 - [x] examine functional sum types - rejected
 - [x] delete observable type (javascript frp nonsense)
 - [x] derive compn from foldr and merge it with comp
