@@ -46,7 +46,7 @@ Regain hope all ye who enter here.
 * lazy evaluation when possible
 * reify effects to first class values
 * immutability and persistent data structures
-* do it recursive
+* do it recursively
 * respect DRY, SRP and the principle of Least astonishment
 
 ## Currying
