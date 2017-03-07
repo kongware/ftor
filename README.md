@@ -39,7 +39,7 @@ Regain hope all ye who enter here.
 
 * purity
 * idiomatic patterns instead of magic hacks and false simplicity
-* think algebraic, use sum types
+* think algebraic, model data with sum types
 * parametric and ad-hoc polymorphism
 * love higher order functions and combinators and hence hate asyn functions
 * declarative programming and point-free
