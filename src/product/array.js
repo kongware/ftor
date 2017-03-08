@@ -1,6 +1,6 @@
 "use strict";
 
-const {A, comp, flip, notf, swap} = require("../generic");
+const {A, comp, flip, negf2, swap} = require("../generic");
 
 const {consSet} = require("../abstract/set");
 
@@ -191,7 +191,7 @@ array.map = f => xs => xs.map((x, i) => f(x, i));
 array.mapcat = f => array.foldr(comp(concat) (f)) ([]);
 
 
-array.notEqBy = notf2(array.eqBy);
+array.notEqBy = negf2(array.eqBy);
 
 
 array.of = Array.of;

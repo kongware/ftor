@@ -136,21 +136,6 @@ generic.log = (...args) => x => console.log(x, ...args);
 generic.lookup = map => o => map.get(constructor in o ? o.constructor.prototype : Reflect.getPrototypeOf(o));
 
 
-generic.notf = generic.comp(not);
-
-
-generic.notf2 = generic.comp2(not);
-
-
-generic.notf3 = generic.comp3(not);
-
-
-generic.notf4 = generic.comp4(not);
-
-
-generic.notf5 = generic.comp5(not);
-
-
 generic.on = f => g => x => y => f(g(x)) (g(y));
 
 
@@ -164,6 +149,9 @@ generic.partial_ = (f, ...args) => (...args2) => f(...args, ...args2);
 
 
 generic.partial = f => (...args) => (...args2) => f(...args, ...args2);
+
+
+generic.print = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
 
 
 generic.raise_ = (x, ctor) => { throw new ctor(x) };
@@ -276,3 +264,21 @@ generic.xor = default => y => x => !x === !y ? default : x || y;
 
 
 module.exports = generic;
+
+
+/*** derived functions ***/
+
+
+generic.negf = generic.comp(not);
+
+
+generic.negf2 = generic.comp2(not);
+
+
+generic.negf3 = generic.comp3(not);
+
+
+generic.negf4 = generic.comp4(not);
+
+
+generic.negf5 = generic.comp5(not);

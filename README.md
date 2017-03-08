@@ -47,7 +47,7 @@ Regain hope all ye who enter here.
 * reify effects to first class values
 * immutability and persistent data structures
 * do it recursively
-* respect DRY, SRP and the principle of Least astonishment
+* respect DRY, SRP and the principle of least astonishment
 
 ## Currying
 
