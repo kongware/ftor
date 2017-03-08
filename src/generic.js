@@ -2,8 +2,6 @@
 
 const {init, last} = require("./produce/array");
 
-const {not} = require("./primitive/bool");
-
 const generic = {};
 
 
@@ -136,7 +134,19 @@ generic.log = (...args) => x => console.log(x, ...args);
 generic.lookup = map => o => map.get(constructor in o ? o.constructor.prototype : Reflect.getPrototypeOf(o));
 
 
-generic.on = f => g => x => y => f(g(x)) (g(y));
+generic.negf = f => x => !f(x);
+
+
+generic.negf2 = f => x => y => !f(x) (y);
+
+
+generic.negf3 = f => x => y => z => !f(x) (y) (z);
+
+
+generic.negf4 = f => w => x => y => z => !f(w) (x) (y) (z);
+
+
+generic.negf5 = f => v => w => x => y => z => !f(v) (w) (x) (y) (z);
 
 
 generic.or_ = (x, y) => x || y;
@@ -264,21 +274,3 @@ generic.xor = default => y => x => !x === !y ? default : x || y;
 
 
 module.exports = generic;
-
-
-/*** derived functions ***/
-
-
-generic.negf = generic.comp(not);
-
-
-generic.negf2 = generic.comp2(not);
-
-
-generic.negf3 = generic.comp3(not);
-
-
-generic.negf4 = generic.comp4(not);
-
-
-generic.negf5 = generic.comp5(not);

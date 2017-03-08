@@ -1,6 +1,6 @@
 "use strict";
 
-const {guard, log, negf, raise} = require("./generic");
+const {guard, log, negf, print, raise} = require("./generic");
 
 typecheck = {};
 
@@ -23,26 +23,31 @@ typecheck.reflectf = (...preds) => (...arities) => (f, tag = f.name) => (...args
 }
 
 
-typecheck.checkAndLog = type => template => guard(
-  x => log(print(template) (type, typeof x))
-) (isNotNum);
-
-
-typecheck.checkAndRaise = type => template => guard(
-  x => raise(TypeError) (print (template) (type, typeof x))
-) (isNotNum);
-
-
 typecheck.instanceOf = ctor => x => x instanceof ctor;
+
+
+typecheck.invalidArgOf = tag => tag + " expects ${0} as argument (${1} given)";
+
+
+typecheck.invalidRVOf = tag => tag + " must return ${0} (${1} given)";
+
+
+typecheck.isNotTypeOf = type => x => typeof x !== type;
 
 
 typecheck.isTypeOf = type => x => typeof x === type;
 
 
-typecheck.wrongArgOf = tag => tag + " expects ${0} as argument (${1} given)";
+typecheck.orLog = type => template => x => log(print(template) (type, typeof x));
 
 
-typecheck.wrongRVOf = tag => tag + " must return ${0} (${1} given)";
+typecheck.orRaise = type => template => x => raise(TypeError) (print(template) (type, typeof x));
+
+
+typecheck.validate = type => f => template => guard(f(type) (template)) (typecheck.isNotTypeOf(type));
+
+
+typecheck.typeOf = x => typeof x;
 
 
 /*** derived functions ***/
@@ -66,28 +71,28 @@ typecheck.isNum = typecheck.isTypeOf("number");
 typecheck.isObj = x => x !== null && typecheck.isTypeOf("object");
 
 
-typecheck.isNotArr = negf(isArr);
+typecheck.isNotArr = negf(typecheck.isArr);
 
 
-typecheck.isNotBool = negf(isBool);
+typecheck.isNotBool = negf(typecheck.isBool);
 
 
-typecheck.isNotFunc = negf(isFunc);
+typecheck.isNotFunc = negf(typecheck.isFunc);
 
 
 typecheck.isNotNull = x => x !== null;
 
 
-typecheck.isNotNum = negf(isNum);
+typecheck.isNotNum = negf(typecheck.isNum);
 
 
-typecheck.isNotObj = negf(isObj);
+typecheck.isNotObj = negf(typecheck.isObj);
 
 
-typecheck.isNotStr = negf(isStr);
+typecheck.isNotStr = negf(typecheck.isStr);
 
 
-typecheck.isNotSym = negf(isSym);
+typecheck.isNotSym = negf(typecheck.isSym);
 
 
 typecheck.isStr = typecheck.isTypeOf("string");
