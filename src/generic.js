@@ -164,10 +164,10 @@ generic.partial = f => (...args) => (...args2) => f(...args, ...args2);
 generic.print = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
 
 
-generic.raise_ = (x, ctor) => { throw new ctor(x) };
+generic.raise_ = (cons, template) => (...args) => { throw new cons(template(...args)) };
 
 
-generic.raise = ctor => x => { throw new ctor(x) };
+generic.raise = cons => template => (...args) => { throw new cons(template(...args)) };
 
 
 generic.repeat = n => f => x => {

@@ -2,7 +2,7 @@
 
 const {guard, log, negf, print, raise} = require("./generic");
 
-typecheck = {};
+const typecheck = {};
 
 
 typecheck.reflectf = (...preds) => (...arities) => (f, tag = f.name) => (...args) => {

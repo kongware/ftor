@@ -51,7 +51,9 @@ Regain hope all ye who enter here.
 
 ## Currying
 
-All functions are manually curried in ftor. However, operator functions, i.e. all first order functions are also provided in uncurried form. Such functions have a trailing underscore in their name.
+All functions are manually curried in ftor. However, operator functions, i.e. all first order functions are also provided in uncurried or composable form. Such functions are marked with a trailing underscore in their name.
+
+Composable functions are curried only in their last argument to make them partially applicable (e.g. for function composition).
 
 Usually higher order functions expect curried functions as arguments. To improve performance, iterative higher order functions exceptionally expect uncurried operator functions.
 
@@ -99,7 +101,7 @@ Besides common helpers like `tap` or `trace` ftor offers a functional type check
 * use [vs, ws, xs, ys, zs] for generic collections
 * use [o, p, q, r, s] for generic object types
 * use [f, g, h, i, j] for generic functions
-* [name_] indicates uncurried first order functions (operator functions)
+* [name_] indicates first order functions (operator functions) in either uncurried or composable form
 * [_name] distinguishes either a slightly different variant of an existing function or allows names with leading numbers (e.g. $3rd)
 * [$name] may represent a native Symbol
 * [$name] may be used to avoid conflicts with reserved identifiers
