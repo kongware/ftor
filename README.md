@@ -81,11 +81,64 @@ ftor introduces the following types:
 
 * Char
 * Iterator
-* Misc. sum types
+* Tagged unions
 * Ordering
 * Tuple
 
 Please note that in Javascript in place of the 0-tuple `null` (and `undefined`) is used as the unit type. `null` is a propper unit type, since it can be both, an argument and a property key.
+
+## Tagged unions
+
+ftor doesn't use the prototype system, but expresses tagged unions (aka sum types) by functions. By avoiding prototypes ftor loses the ability to share methods on common instances, but also gets rid of all this prototype boilerplate and the additional layer of indirections prototypes entail. ftor's constructors are kept simple. However, the application of such instances requires CPS. Here is a simplified version of the `Option` tagged union:
+
+```javascript
+// "prototype"
+
+const $Option = Symbol("kongware/ftor/Option");
+
+// constructors
+
+const Some = x => k => {
+  const api = {};
+  api.proto = $Option;
+  api.tag = "some";
+  api.cata = pattern => pattern[api.tag](x);
+  api.fold = f => g => api.cata({some: f, none: g});
+  return k(api);
+};
+
+const None = () => k => {
+  const api = {};
+  api.proto = $Option;
+  api.tag = "none";
+  api.cata = pattern => pattern[api.tag]();
+  api.fold = f => g => api.cata({some: f, none: g});
+  return k(api);
+};
+
+// API
+
+const get = prop => api => api[prop];
+const fold = api => api.fold;
+
+// application
+
+const sqr = x => x * x;
+const K = x => _ => x;
+
+const optx = Some(5),
+ opty = None();
+
+optx(get("proto")); // Symbol("kongware/ftor/Option")
+optx(get("tag")); // some
+
+opty(get("proto")); // Symbol("kongware/ftor/Option")
+opty(get("tag")); // none
+
+optx(fold) (sqr) (K(0)); // 25
+opty(fold) (sqr) (K(0)); // 0
+
+```
 
 ## `Iterators` without observable mutations
 
@@ -147,6 +200,6 @@ The typical ftor function is so atomic that its purpose is easly comprehensible.
 - [ ] introduce Enum type
 - [ ] introduce Char type
 - [ ] explore finger trees/sequences
-- [x] examine functional sum types - rejected
+- [x] examine functional sum types
 - [x] delete observable type (javascript frp nonsense)
 - [x] derive compn from foldr and merge it with comp
