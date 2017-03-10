@@ -8,16 +8,24 @@ const ordering = {};
 // "prototype"
 
 
-ordering.$Ordering = Symbol("kongware/ftor/Ordering");
+ordering.Ordering = {
+  toEnum: n => n === 0
+   ? ordering.LT
+   : n === 1
+    ? ordering.EQ
+    : n === 2
+     ? ordering.GT
+     : raise_(RangeError, "argument for toEnum out of range")
+};
 
 
 // constructors
 
 
 ordering.LT = () => {
-  const api = {};
+  const api = Object.create(Ordering);
 
-  api.proto = ordering.$Ordering;
+  api.proto = ordering.Ordering;
 
   api.tag = "LT";
 
@@ -29,18 +37,40 @@ ordering.LT = () => {
 
   // Enum
 
-  api.pred = raise_(TypeError, "invalid pred application on LT");
+  api.fromEnum = () => 0;
+
+  api.pred = raise_(TypeError, "invalid pred invocation with LT");
 
   api.succ = () => ordering.EQ;
+
+  // Eq
+
+  api.eq = fx => fx(ordering.tag) === "LT";
+
+  api.neq = fx => fx(ordering.tag) !== "LT";
+
+  // Ord
+
+  api.compare = fx => fx(ordering.fromEnum) () === 0
+   ? ordering.EQ
+   : ordering.GT;
+
+  api.gt = fx => fx(ordering.fromEnum) () > 0;
+
+  api.gte = fx => fx(ordering.fromEnum) () >= 0;
+
+  api.lt = () => false;
+
+  api.lte = fx => fx(ordering.fromEnum) () === 0;
 
   return k => k(api);
 };
 
 
 ordering.EQ = () => {
-  const api = {};
+  const api = Object.create(Ordering);
 
-  api.proto = ordering.$Ordering;
+  api.proto = ordering.Ordering;
 
   api.tag = "EQ";
 
@@ -52,18 +82,37 @@ ordering.EQ = () => {
 
   // Enum
 
+  api.fromEnum = () => 1;
+
   api.pred = () => ordering.LT;
 
   api.succ = () => ordering.GT;
+
+  // Eq
+
+  api.eq = fx => fx(ordering.tag) === "EQ";
+
+  api.neq = fx => fx(ordering.tag) !== "EQ";
+
+  // Ord
+
+  api.compare = fx => {
+    const n = fx(ordering.fromEnum) ();
+    return n < 1
+     ? ordering.LT
+     : n > 1
+      ? ordering.GT
+      : ordering.EQ;
+  }
 
   return k => k(api);
 };
 
 
 ordering.GT = () => {
-  const api = {};
+  const api = Object.create(Ordering);
 
-  api.proto = ordering.$Ordering;
+  api.proto = ordering.Ordering;
 
   api.tag = "GT";
 
@@ -75,9 +124,31 @@ ordering.GT = () => {
   
   // Enum
 
+  api.fromEnum = () => 2;
+
   api.pred = () => ordering.EQ;
 
   api.succ = raise_(TypeError, "invalid pred application on GT");
+
+  // Eq
+
+  api.eq = fx => fx(ordering.tag) === "GT";
+
+  api.neq = fx => fx(ordering.tag) !== "GT";
+
+  // Ord
+
+  api.compare = fx => fx(ordering.fromEnum) () === 2
+   ? ordering.EQ
+   : ordering.LT;
+
+  api.gt = () => false;
+
+  api.gte = fx => fx(ordering.fromEnum) () === 2;
+
+  api.lt = fx => fx(ordering.fromEnum) () < 2;
+
+  api.lte = fx => fx(ordering.fromEnum) () <= 2;
 
   return k => k(api);
 };
@@ -89,10 +160,49 @@ ordering.GT = () => {
 ordering.get = prop => api => api[prop];
 
 
+ordering.tag = api => api.tag;
+
+
+// Enum
+
+
+ordering.fromEnum = api => api.fromEnum;
+
+
 ordering.pred = api => api.pred;
 
 
 ordering.succ = api => api.succ;
+
+
+ordering.toEnum = api => api.toEnum;
+
+
+// Eq
+
+
+ordering.eq = api => api.eq;
+
+
+ordering.neq = api => api.neq;
+
+
+// Ord
+
+
+ordering.compare = api => api.compare;
+
+
+ordering.gt = api => api.gt;
+
+
+ordering.gte = api => api.gte;
+
+
+ordering.lt = api => api.lt;
+
+
+ordering.lte = api => api.lte;
 
 
 module.exports = ordering;

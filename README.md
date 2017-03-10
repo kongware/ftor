@@ -96,18 +96,18 @@ New types in ftor are usually Church encoded, i.e. they are expressed as a funct
 
 ## Tagged unions
 
-ftor doesn't use the prototype system, but expresses tagged unions (aka sum types) by functions. By avoiding prototypes ftor loses the ability to share methods on common instances, but also gets rid of all this prototype boilerplate and the additional layer of indirection prototypes entail. ftor's constructors are kept simple. However, the application of such instances requires CPS. Here is a simplified version of the `Option` tagged union:
+ftor (almost) doesn't use the prototype system, but expresses tagged unions (aka sum types) by functions. By avoiding prototypes ftor loses the ability to share methods on common instances, but also gets rid of all this prototype boilerplate and the additional layer of indirection prototypes entail. ftor's constructors are kept simple. However, the application of such instances requires CPS. Here is a simplified version of the `Option` tagged union:
 
 ```javascript
 // "prototype"
 
-const $Option = Symbol("kongware/ftor/Option");
+const Option = {};
 
 // constructors
 
 const Some = x => {
   const api = {};
-  api.proto = $Option;
+  api.proto = Option;
   api.tag = "some";
   api.cata = pattern => pattern[api.tag](x);
   api.fold = f => g => api.cata({some: f, none: g});
@@ -116,7 +116,7 @@ const Some = x => {
 
 const None = () => {
   const api = {};
-  api.proto = $Option;
+  api.proto = Option;
   api.tag = "none";
   api.cata = pattern => pattern[api.tag]();
   api.fold = f => g => api.cata({some: f, none: g});
@@ -136,10 +136,10 @@ const K = x => _ => x;
 const optx = Some(5),
  opty = None();
 
-optx(get("proto")); // Symbol("kongware/ftor/Option")
+optx(get("proto")); // Option
 optx(get("tag")); // some
 
-opty(get("proto")); // Symbol("kongware/ftor/Option")
+opty(get("proto")); // Option
 opty(get("tag")); // none
 
 optx(fold) (sqr) (K(0)); // 25
@@ -225,10 +225,10 @@ Besides common helpers like `tap` or `trace` ftor offers a functional type check
 * use [vs, ws, xs, ys, zs] for generic collections
 * use [o, p, q, r, s] for generic object types
 * use [f, g, h, i, j] for generic functions
+* use [fx, fy, fz] values wrapped in a context
 * [name_] indicates first order functions (operator functions) in either uncurried or composable form
-* [_name] distinguishes either a slightly different variant of an existing function or allows names with leading numbers (e.g. $3rd)
+* [_name] distinguishes either a slightly different variant of an existing function or avoids naming conflicts with reserved keywords or allows names with leading numbers
 * [$name] may represent a native Symbol
-* [$name] may be used to avoid conflicts with reserved identifiers
 
 Functional programming doesn't mean to always use generalized names like `x` or `f`. Use speaking names for specific functions/variables and generic names for generic ones. The specificity of names is a good indicator of how generalized your functions are.
 

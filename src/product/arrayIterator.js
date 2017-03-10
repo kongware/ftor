@@ -65,4 +65,4 @@ arrayIterator.prevKey = api => api.prevKey();
 arrayIterator.prevPair = api => api.prevPair();
 
 
-module.exports = {ArrayIterator, curr, currKey, currPair, iterable, look, next, prev, prevKey, prevPair};
+module.exports = arrayIterator;
