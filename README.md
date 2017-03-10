@@ -98,22 +98,22 @@ const $Option = Symbol("kongware/ftor/Option");
 
 // constructors
 
-const Some = x => k => {
+const Some = x => {
   const api = {};
   api.proto = $Option;
   api.tag = "some";
   api.cata = pattern => pattern[api.tag](x);
   api.fold = f => g => api.cata({some: f, none: g});
-  return k(api);
+  return k => k(api);
 };
 
-const None = () => k => {
+const None = () => {
   const api = {};
   api.proto = $Option;
   api.tag = "none";
   api.cata = pattern => pattern[api.tag]();
   api.fold = f => g => api.cata({some: f, none: g});
-  return k(api);
+  return k => k(api);
 };
 
 // API
@@ -145,14 +145,17 @@ opty(fold) (sqr) (K(0)); // 0
 ftor contains its own `Iterator` implementations that avoid observable mutations and offer some nice extras like look ahead/behind. Though it differs from the ES2015 Iterable Protocols, its API provides a function to transform ftor `Iterator`s into ES2015 `Iterable`s in place. Here is a simplified version of the `ArrayIterator`:
 
 ```Javascript
+// constructor
+
 const ArrayIterator = xs => {
   const aux = i => {
-    const curr = f => xs[i];
-    const look = n => xs[i + n];
-    const next = () => aux(i + 1);
-    const prev = f => xs[i - 1];
+    const api = {};
+    api.curr = f => xs[i];
+    api.look = n => xs[i + n];
+    api.next = () => aux(i + 1);
+    api.prev = f => xs[i - 1];
 
-    const iterable = { 
+    api.iterable = { 
       [Symbol.iterator]: (j = i) => ({
         next: () => j in xs 
          ? {value: ++j, done: false}
@@ -160,13 +163,13 @@ const ArrayIterator = xs => {
       })
     };
 
-    return k => k(
-      {curr, iterable, look, next, prev}
-    );
+    return k => k(api);
   };
 
   return aux(0);
 };
+
+// API
 
 const curr = api => api.curr();
 const iterable = api => api.iterable;
@@ -180,6 +183,8 @@ const xs = [1,2,3,4,5];
 let itor = ArrayIterator(xs);
 
 const foo = itor => itor(next) (curr);
+
+// application
 
 // current state
 itor(curr); // 1
