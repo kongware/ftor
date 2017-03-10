@@ -53,7 +53,12 @@ Regain hope all ye who enter here.
 
 All functions are manually curried in ftor. However, operator functions, i.e. all first order functions are also provided in uncurried or composable form. Such functions are marked with a trailing underscore in their name.
 
-Composable functions are curried only in their last argument to make them partially applicable (e.g. for function composition).
+Composable functions are curried only in their last argument to make them partially applicable (e.g. for function composition):
+
+```Javascript
+const comp = f => g => x => f(g(x)); // curried function
+const comp_ = (f, g) => x => f(g(x)); // composable function
+```
 
 Usually higher order functions expect curried functions as arguments. To improve performance, iterative higher order functions exceptionally expect uncurried operator functions.
 
