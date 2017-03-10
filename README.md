@@ -89,7 +89,7 @@ Please note that in Javascript in place of the 0-tuple `null` (and `undefined`) 
 
 ## Tagged unions
 
-ftor doesn't use the prototype system, but expresses tagged unions (aka sum types) by functions. By avoiding prototypes ftor loses the ability to share methods on common instances, but also gets rid of all this prototype boilerplate and the additional layer of indirections prototypes entail. ftor's constructors are kept simple. However, the application of such instances requires CPS. Here is a simplified version of the `Option` tagged union:
+ftor doesn't use the prototype system, but expresses tagged unions (aka sum types) by functions. By avoiding prototypes ftor loses the ability to share methods on common instances, but also gets rid of all this prototype boilerplate and the additional layer of indirection prototypes entail. ftor's constructors are kept simple. However, the application of such instances requires CPS. Here is a simplified version of the `Option` tagged union:
 
 ```javascript
 // "prototype"
