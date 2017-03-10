@@ -37,17 +37,19 @@ Regain hope all ye who enter here.
 
 ## Criteria
 
-* purity
-* idiomatic patterns instead of magic hacks and false simplicity
-* think algebraic, model data with sum types
-* parametric and ad-hoc polymorphism
-* love higher order functions and combinators and hence hate asyn functions
-* declarative programming and point-free
-* lazy evaluation when possible
-* reify effects to first class values
-* immutability and persistent data structures
+* love functions
+* enjoy purity
+* avoid magic and false simplicity
+* think algebraic
+* follow parametricity
+* hate async functions
+* encode declarative
+* evaluate lazy
+* reify effects
+* embrace immutability
 * do it recursively
-* respect DRY, SRP and the principle of least astonishment
+* respect DRY, SRP
+* and the principle of least astonishment
 
 ## Currying
 
