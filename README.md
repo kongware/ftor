@@ -19,9 +19,9 @@ first class functions in curried form
 
 that close over their environments.
 
-Such function are used to define higher order functions and primitive combinators.
+Such function are used to define higher order functions and primitive combinators,
 
-Which are derived to combined combinators and funtion compositions of any complexity.
+which are derived to combined combinators and funtion compositions of arbitrary complexity.
 
 Ultimately, this is all you need to create domain specific languages of any expressive power.
 
