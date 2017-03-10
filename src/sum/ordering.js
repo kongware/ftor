@@ -14,7 +14,7 @@ ordering.$Ordering = Symbol("kongware/ftor/Ordering");
 // constructors
 
 
-ordering.LT = () => k => {
+ordering.LT = k => {
   const api = {};
 
   api.proto = ordering.$Ordering;
@@ -37,7 +37,7 @@ ordering.LT = () => k => {
 };
 
 
-ordering.EQ = () => k => {
+ordering.EQ = k => {
   const api = {};
 
   api.proto = ordering.$Ordering;
@@ -60,7 +60,7 @@ ordering.EQ = () => k => {
 };
 
 
-ordering.GT = () => k => {
+ordering.GT = k => {
   const api = {};
 
   api.proto = ordering.$Ordering;
