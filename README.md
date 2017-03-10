@@ -85,7 +85,7 @@ ftor introduces the following types:
 * Ordering
 * Tuple
 
-Please note that in Javascript in place of the 0-tuple `null` (and `undefined`) is used as the unit type. `null` is a propper unit type, since it can be both, an argument and a property key.
+New types in ftor are usually Church encoded, i.e. they are expressed as a function and are applied in continuation passing style (CPS).
 
 ## Tagged unions
 
@@ -142,7 +142,66 @@ opty(fold) (sqr) (K(0)); // 0
 
 ## `Iterators` without observable mutations
 
-ftor contains its own `Iterator` implementation that avoids observable mutations and offers some nice extras like look ahead/behind. It is compatible with the ES2015 `Iterable` protocol though.
+ftor contains its own `Iterator` implementations that avoid observable mutations and offer some nice extras like look ahead/behind. Though it differs from the ES2015 Iterable Protocols, its API provides a function to transform ftor `Iterator`s into ES2015 `Iterable`s in place. Here is a simplified version of the `ArrayIterator`:
+
+```Javascript
+const ArrayIterator = xs => {
+  const aux = i => {
+    const curr = f => xs[i];
+    const look = n => xs[i + n];
+    const next = () => aux(i + 1);
+    const prev = f => xs[i - 1];
+
+    const iterable = { 
+      [Symbol.iterator]: (j = i) => ({
+        next: () => j in xs 
+         ? {value: ++j, done: false}
+         : {value: undefined, done: true}
+      })
+    };
+
+    return k => k(
+      {curr, iterable, look, next, prev}
+    );
+  };
+
+  return aux(0);
+};
+
+const curr = api => api.curr();
+const iterable = api => api.iterable;
+const look = n => api => api.look(n);
+const next = api => api.next();
+const prev = api => api.prev();
+
+// mock data/function
+
+const xs = [1,2,3,4,5];
+let itor = ArrayIterator(xs);
+
+const foo = itor => itor(next) (curr);
+
+// current state
+itor(curr); // 1
+
+// look ahead
+itor(look(1)); // 2
+
+// iterable without observable state mutation
+Array.from(itor(iterable)); // [1,2,3,4,5]
+itor(curr); // 1
+
+// sharing without observable mutations
+foo(itor); // 2
+itor(curr); // 1
+
+// state change only via re-/assignment
+itor = itor(next);
+itor(curr); // 2
+
+// look behind
+itor(prev); // 1
+```
 
 ## Debugging
 
