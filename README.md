@@ -43,7 +43,7 @@ Regain hope all ye who enter here.
 * think algebraic
 * follow parametricity
 * hate async functions
-* encode declarative
+* encode declaratively
 * evaluate lazy
 * reify effects
 * embrace immutability
