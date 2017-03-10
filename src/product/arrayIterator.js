@@ -37,31 +37,32 @@ arrayIterator.ArrayIterator = xs => {
   return aux(0);
 };
 
-api.curr = api => api.curr();
+
+arrayIterator.curr = api => api.curr();
 
 
-api.currKey = api => api.currKey();
+arrayIterator.currKey = api => api.currKey();
 
 
-api.currPair = api => api.currPair();
+arrayIterator.currPair = api => api.currPair();
 
 
-api.iterable = api => api.iterable;
+arrayIterator.iterable = api => api.iterable;
 
 
-api.look = n => api => api.look(n);
+arrayIterator.look = n => api => api.look(n);
 
 
-api.next = api => api.next();
+arrayIterator.next = api => api.next();
 
 
-api.prev = api => api.prev();
+arrayIterator.prev = api => api.prev();
 
 
-api.prevKey = api => api.prevKey();
+arrayIterator.prevKey = api => api.prevKey();
 
 
-api.prevPair = api => api.prevPair();
+arrayIterator.prevPair = api => api.prevPair();
 
 
 module.exports = {ArrayIterator, curr, currKey, currPair, iterable, look, next, prev, prevKey, prevPair};

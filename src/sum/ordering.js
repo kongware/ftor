@@ -14,7 +14,7 @@ ordering.$Ordering = Symbol("kongware/ftor/Ordering");
 // constructors
 
 
-ordering.LT = k => {
+ordering.LT = () => {
   const api = {};
 
   api.proto = ordering.$Ordering;
@@ -33,11 +33,11 @@ ordering.LT = k => {
 
   api.succ = () => ordering.EQ;
 
-  return k(api);
+  return k => k(api);
 };
 
 
-ordering.EQ = k => {
+ordering.EQ = () => {
   const api = {};
 
   api.proto = ordering.$Ordering;
@@ -56,11 +56,11 @@ ordering.EQ = k => {
 
   api.succ = () => ordering.GT;
 
-  return k(api);
+  return k => k(api);
 };
 
 
-ordering.GT = k => {
+ordering.GT = () => {
   const api = {};
 
   api.proto = ordering.$Ordering;
@@ -79,7 +79,7 @@ ordering.GT = k => {
 
   api.succ = raise_(TypeError, "invalid pred application on GT");
 
-  return k(api);
+  return k => k(api);
 };
 
 
