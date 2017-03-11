@@ -1,21 +1,27 @@
 "use strict";
 
-const {raise_} = require("../generic");
+const {I, raise_} = require("../generic");
 
 const ordering = {};
 
 
-// "prototype"
+// prototype
 
 
 ordering.Ordering = {
+  // Enum
+
   toEnum: n => n === 0
    ? ordering.LT
    : n === 1
     ? ordering.EQ
     : n === 2
      ? ordering.GT
-     : raise_(RangeError, "argument for toEnum out of range")
+     : raise_(RangeError, "argument for toEnum out of range"),
+
+  // Monoid
+
+  empty = () => ordering.EQ
 };
 
 
@@ -59,9 +65,17 @@ ordering.LT = () => {
 
   api.gte = fx => fx(ordering.fromEnum) () >= 0;
 
-  api.lt = () => false;
+  api.lt = _ => false;
 
   api.lte = fx => fx(ordering.fromEnum) () === 0;
+
+  // Semigroup
+
+  api.concat = _ => ordering.LT
+
+  // Monoid
+
+  api.append = api.concat;
 
   return k => k(api);
 };
@@ -105,6 +119,22 @@ ordering.EQ = () => {
       : ordering.EQ;
   }
 
+  api.gt = fx => fx(ordering.fromEnum) () === 2;
+
+  api.gte = fx => fx(ordering.fromEnum) () >= 1;
+
+  api.lt = fx => fx(ordering.fromEnum) () === 0;
+
+  api.lte = fx => fx(ordering.fromEnum) () <= 1;
+
+  // Semigroup
+
+  api.concat = I
+
+  // Monoid
+
+  api.append = api.concat;
+
   return k => k(api);
 };
 
@@ -142,13 +172,21 @@ ordering.GT = () => {
    ? ordering.EQ
    : ordering.LT;
 
-  api.gt = () => false;
+  api.gt = _ => false;
 
   api.gte = fx => fx(ordering.fromEnum) () === 2;
 
   api.lt = fx => fx(ordering.fromEnum) () < 2;
 
   api.lte = fx => fx(ordering.fromEnum) () <= 2;
+
+  // Semigroup
+
+  api.concat = _ => ordering.GT
+
+  // Monoid
+
+  api.append = api.concat;
 
   return k => k(api);
 };
@@ -203,6 +241,18 @@ ordering.lt = api => api.lt;
 
 
 ordering.lte = api => api.lte;
+
+
+// Semigroup
+
+
+ordering.concat = api => api.concat;
+
+
+// Monoid
+
+
+ordering.empty = api => api.empty;
 
 
 module.exports = ordering;
