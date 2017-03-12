@@ -66,11 +66,25 @@ Usually higher order functions expect curried functions as arguments. To improve
 
 ftor has broad support of the tuple type and thus can handle multi-argument functions pretty well.
 
-## Augmented Built-ins
+## Type classes and extended built-ins
 
-ftor augments built-ins by utilizing `WeakMap`s. To use these augmented builtins on the calling side, each function must perform an additional lookup to retrieve the desired method.
+[unstable]
 
-The following type classes (interfaces) are provided:
+ftor originally approach was to augment built-ins by utilizing `WeakMap`s. The problem is, that especially primitive built-ins can have several instances of specific type classes:
+
+```Javascript
+const All = {
+  concat: y => x => x && y
+}
+
+const Any = {
+  concat: y => x => x || y
+}
+```
+
+When constructors (e.g. `Boolean`) are used as keys of a `WeakMap`, there is no way to define multiple instances for a specific constructor. Hence ftor uses type dictionaries, which have to be passed around explicitly. While this is somewhat verbose, it also improves the readability of your code, since you always see the type in place. Beyond that, such type dicts allow ftor to extend built-in types without touching them at all.
+
+The following type classes are provided:
 
 * Applicative
 * Bounded
@@ -84,15 +98,32 @@ The following type classes (interfaces) are provided:
 
 ## New types
 
+[unstable]
+
 ftor introduces the following types:
 
 * Char
 * Iterator
-* Tagged unions
 * Ordering
 * Tuple
 
-New types in ftor are usually Church encoded, i.e. they are expressed as a function and are applied in continuation passing style (CPS).
+New types don't use Javascript's prototype system. They are either Church encoded (e.g. `Tuple`) or use explicit type dicts.
+
+## Custom sum types
+
+[unstable]
+
+ftor's sum types must use explicit type dicts instead of prototypes. Each choice of a sum must implement its own value constructor that enriches values with the following meta information:
+
+* type property holding a reference to the corresponding type dict
+* tag property to allow pattern matching
+
+Values of the `Option` type as an example:
+
+```Javascript
+{type: Option, tag: "Some", value: 5}
+{type: Option, tag: "None"}
+```
 
 ## Tagged unions
 

@@ -2,6 +2,8 @@
 
 const {init, last} = require("./produce/array");
 
+const {LT, EQ, GT} = require("./sum/ordering");
+
 const generic = {};
 
 
@@ -62,13 +64,13 @@ generic.compn4 = (...fs) => x => y => z => generic.compn(...init(fs), last(fs) (
 generic.compn5 = (...fs) => w => x => y => z => generic.compn(...init(fs), last(fs) (w) (x) (y) (z));
 
 
-generic.compare_ = (x, y) => x < y ? -1 : y < x ? 1 : 0;
+generic.compare_ = (x, y) => x < y ? LT : y < x ? GT : EQ;
 
 
-generic.compare = y => x => x < y ? -1 : y < x ? 1 : 0;
+generic.compare = y => x => x < y ? LT : y < x ? GT : EQ;
 
 
-generic.compareBy = f => x => y => f(x) (y) ? -1 : f(y) (x) ? 1 : 0;
+generic.compareBy = f => x => y => f(x) (y) ? LT : f(y) (x) ? GT : EQ;
 
 
 generic.composable_ = (f, ...args) => x => f(...args, x);

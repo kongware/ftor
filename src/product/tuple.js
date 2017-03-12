@@ -5,6 +5,24 @@ const {I, K, T} = require("../generic");
 const tuple = {};
 
 
+// Foldable
+
+
+tuple.foldl = (...args) => acc => f => args.reduce(f, acc);
+
+
+tuple.foldl1 = (...args) => f => args.reduce(f);
+
+
+tuple.foldr = (...args) => acc => f => args.reduceRight((acc, x) => f(x, acc), acc);
+
+
+tuple.foldr1 = (...args) => acc => f => args.reduceRight(f);
+
+
+// Misc
+
+
 tuple._1st = I;
 
 
@@ -60,18 +78,6 @@ tuple.curryOp4 = f => x => y => z => w => f(w, x, y, z);
 
 
 tuple.curryOp5 = f => w => x => y => z => v => f(v, w, x, y, z);
-
-
-tuple.foldl = (...args) => acc => f => args.reduce(f, acc);
-
-
-tuple.foldl1 = (...args) => f => args.reduce(f);
-
-
-tuple.foldr = (...args) => acc => f => args.reduceRight((acc, x) => f(x, acc), acc);
-
-
-tuple.foldr1 = (...args) => acc => f => args.reduceRight(f);
 
 
 tuple.last = (...args) => args[args.length - 1];
