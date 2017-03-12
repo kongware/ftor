@@ -109,7 +109,7 @@ ftor introduces the following types:
 
 New types don't use Javascript's prototype system. They are either Church encoded (e.g. `Tuple`) or use explicit type dicts.
 
-## Custom sum types
+## Custom tagged unions (sum types)
 
 [unstable]
 
@@ -123,59 +123,6 @@ Values of the `Option` type as an example:
 ```Javascript
 {type: Option, tag: "Some", value: 5}
 {type: Option, tag: "None"}
-```
-
-## Tagged unions
-
-ftor (almost) doesn't use the prototype system, but expresses tagged unions (aka sum types) by functions. By avoiding prototypes ftor loses the ability to share methods on common instances, but also gets rid of all this prototype boilerplate and the additional layer of indirection prototypes entail. ftor's constructors are kept simple. However, the application of such instances requires CPS. Here is a simplified version of the `Option` tagged union:
-
-```javascript
-// "prototype"
-
-const Option = {};
-
-// constructors
-
-const Some = x => {
-  const api = {};
-  api.proto = Option;
-  api.tag = "some";
-  api.cata = pattern => pattern[api.tag](x);
-  api.fold = f => g => api.cata({some: f, none: g});
-  return k => k(api);
-};
-
-const None = () => {
-  const api = {};
-  api.proto = Option;
-  api.tag = "none";
-  api.cata = pattern => pattern[api.tag]();
-  api.fold = f => g => api.cata({some: f, none: g});
-  return k => k(api);
-};
-
-// API
-
-const get = prop => api => api[prop];
-const fold = api => api.fold;
-
-// application
-
-const sqr = x => x * x;
-const K = x => _ => x;
-
-const optx = Some(5),
- opty = None();
-
-optx(get("proto")); // Option
-optx(get("tag")); // some
-
-opty(get("proto")); // Option
-opty(get("tag")); // none
-
-optx(fold) (sqr) (K(0)); // 25
-opty(fold) (sqr) (K(0)); // 0
-
 ```
 
 ## `Iterators` without observable mutations
