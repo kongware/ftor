@@ -68,21 +68,11 @@ ftor has broad support of the tuple type and thus can handle multi-argument func
 
 ## Type classes and extended built-ins
 
-[unstable]
+ftor avoids the prototype system and instead uses type dictionaries to a great extent, which have to be passed around explicitly though. While this is somewhat verbose, it also improves the readability of your code, since you always see the used types in place. Beyond that, such type dicts allow ftor
 
-ftor originally approach was to augment built-ins by utilizing `WeakMap`s. The problem is, that especially primitive built-ins can have several instances of specific type classes:
-
-```Javascript
-const All = {
-  concat: y => x => x && y
-}
-
-const Any = {
-  concat: y => x => x || y
-}
-```
-
-When constructors (e.g. `Boolean`) are used as keys of a `WeakMap`, there is no way to define multiple instances for a specific constructor. Hence ftor uses type dictionaries, which have to be passed around explicitly. While this is somewhat verbose, it also improves the readability of your code, since you always see the type in place. Beyond that, such type dicts allow ftor to extend built-in types without touching them at all.
+* to mitigate Javascript's lack of type inference
+* to extend built-in types without touching them
+* to define several type classes for each built-in type
 
 The following type classes are provided:
 
@@ -102,16 +92,12 @@ The following type classes are provided:
 
 ftor introduces the following types:
 
-* Char
-* Iterator
-* Ordering
-* Tuple
-
-New types don't use Javascript's prototype system. They are either Church encoded (e.g. `Tuple`) or use explicit type dicts.
+* Char (subclassed)
+* Iterator (Church encoded)
+* Ordering (tagged union)
+* Tuple (Church encoded)
 
 ## Custom tagged unions (sum types)
-
-[unstable]
 
 ftor's sum types must use explicit type dicts instead of prototypes. Each choice of a sum must implement its own value constructor that enriches values with the following meta information:
 
