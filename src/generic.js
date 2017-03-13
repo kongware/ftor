@@ -136,9 +136,6 @@ generic.log_ = (...args) => console.log(...args);
 generic.log = (...args) => x => console.log(x, ...args);
 
 
-generic.lookup = map => o => map.get(constructor in o ? o.constructor.prototype : Reflect.getPrototypeOf(o));
-
-
 generic.negf = f => x => !f(x);
 
 

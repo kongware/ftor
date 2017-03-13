@@ -118,11 +118,62 @@ ftor's sum types must use explicit type dicts instead of prototypes. Each choice
 * type property holding a reference to the corresponding type dict
 * tag property to allow pattern matching
 
-Values of the `Option` type as an example:
+Here is an simplyfied sketch of the `Option` type:
 
 ```Javascript
-{type: Option, tag: "Some", value: 5}
-{type: Option, tag: "None"}
+// type defintion
+
+const Option = {};
+
+Option.cata = pattern => ({tag, x}) => pattern[tag](x);
+Option.fold = f => g => Option.cata({some: f, none: g});
+
+Option.concat = type => ({tag: tagy, x: y}) => ({tag: tagx, x: x}) => tagx === "none"
+ ? tagy === "none"
+  ? None()
+  : Some(y)
+ : tagy === "none"
+  ? Some(x)
+  : Some(type.concat(y) (x));
+
+// constructors
+
+const Some = x => ({type: Option, tag: "some", x: x});
+const None = () => ({type: Option, tag: "none"});
+
+// auxiliary functions
+
+const cata = type => type.cata;
+const concat = type => type.concat;
+const fold = type => type.fold;
+const K = x => _ => x;
+
+// mock types/functions/data
+
+const All = {
+  concat: y => x => x && y
+}
+
+const Any = {
+  concat: y => x => x || y
+}
+
+const sqr = x => x * x;
+
+const v = Some(5);
+const w = None();
+
+const x = Some(true);
+const y = Some(false);
+
+
+// application
+
+fold(Option) (sqr) (K(0)) (v); // 25
+fold(Option) (sqr) (K(0)) (w); // 0
+
+concat(Option) (All) (x) (y); // {..., x: false}
+concat(Option) (Any) (x) (y); // {..., x: true}
 ```
 
 ## `Iterators` without observable mutations
