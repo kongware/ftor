@@ -7,21 +7,6 @@ const {curry} = require("./tuple");
 const object = {};
 
 
-object.applyWith = x => f => ({[x]:a}) => f(a);
-
-
-object.applyWith2 = (x, y) => f => ({[x]:a, [y]:b}) => f(a, b);
-
-
-object.applyWith3 = (x, y, z) => f => ({[x]:a, [y]:b, [z]:c}) => f(a) (b) (c);
-
-
-object.applyWith4 = (w, x, y, z) => f => ({[w]:a, [x]:b, [y]:c, [z]:d}) => f(a) (b) (c) (d);
-
-
-object.applyWith5 = (v, w, x, y, z) => f => ({[v]:a, [w]:b, [x]:c, [y]:d, [z]:e}) => f(a) (b) (c) (d) (e);
-
-
 object.assign = (...os) => Object.assign({}, ...os);
 
 
@@ -44,6 +29,21 @@ object.del_ = (o, k) => object.destructiveDel(k) (object.clone(o));
 
 
 object.del = k => o => object.destructiveDel(k) (object.clone(o));
+
+
+object.destruct = x => f => ({[x]:a}) => f(a);
+
+
+object.destruct2 = (x, y) => f => ({[x]:a}) => ({[y]:b}) => f(a) (b);
+
+
+object.destruct3 = (x, y, z) => f => ({[x]:a}) => ({[y]:b}) => ({[z]:c}) => f(a) (b) (c);
+
+
+object.destruct4 = (w, x, y, z) => f => ({[w]:a}) => ({[x]:b}) => ({[y]:c}) => ({[z]:d}) => f(a) (b) (c) (d);
+
+
+object.destruct5 = (v, w, x, y, z) => f => ({[v]:a}) => ({[w]:b}) => ({[x]:c}) => ({[y]:d}) => ({[z]:e}) => f(a) (b) (c) (d) (e);
 
 
 object.destructiveDef = (k, dtor) => o => Object.defineProperty(o, k, dtor);

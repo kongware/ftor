@@ -5,22 +5,7 @@ const {I, K, T} = require("../generic");
 const tuple = {};
 
 
-// Foldable
-
-
-tuple.foldl = (...args) => acc => f => args.reduce(f, acc);
-
-
-tuple.foldl1 = (...args) => f => args.reduce(f);
-
-
-tuple.foldr = (...args) => acc => f => args.reduceRight((acc, x) => f(x, acc), acc);
-
-
-tuple.foldr1 = (...args) => acc => f => args.reduceRight(f);
-
-
-// Misc
+// general
 
 
 tuple._1st = I;
@@ -36,24 +21,6 @@ tuple._4th = (w, x, y, z) => z;
 
 
 tuple._5th = (v, w, x, y, z) => z;
-
-
-tuple.cons0 = () => f => f();
-
-
-tuple.cons1 = T;
-
-
-tuple.cons2 = (x, y) => f => f(x, y);
-
-
-tuple.cons3 = (x, y, z) => f => f(x, y, z);
-
-
-tuple.cons4 = (w, x, y, z) => f => f(w, x, y, z);
-
-
-tuple.cons5 = (v, w, x, y, z) => f => f(v, w, x, y, z);
 
 
 tuple.curry = f => x => y => f(x, y);
@@ -129,6 +96,43 @@ tuple.uncurryOp4 = f => (x, y, z, w) => f(w) (x) (y) (z);
 
 
 tuple.uncurryOp5 = f => (w, x, y, z, v) => f(v) (w) (x) (y) (z);
+
+
+// constructors
+
+
+tuple.cons0 = () => f => f();
+
+
+tuple.cons1 = T;
+
+
+tuple.cons2 = (x, y) => f => f(x, y);
+
+
+tuple.cons3 = (x, y, z) => f => f(x, y, z);
+
+
+tuple.cons4 = (w, x, y, z) => f => f(w, x, y, z);
+
+
+tuple.cons5 = (v, w, x, y, z) => f => f(v, w, x, y, z);
+
+
+
+// Foldable
+
+
+tuple.foldl = (...args) => acc => f => args.reduce(f, acc);
+
+
+tuple.foldl1 = (...args) => f => args.reduce(f);
+
+
+tuple.foldr = (...args) => acc => f => args.reduceRight((acc, x) => f(x, acc), acc);
+
+
+tuple.foldr1 = (...args) => acc => f => args.reduceRight(f);
 
 
 module.exports = tuple;

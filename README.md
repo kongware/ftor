@@ -93,7 +93,6 @@ The following type classes are provided:
 ftor introduces the following types:
 
 * Char (subclassed)
-* Iterator (Church encoded)
 * Ordering (tagged union)
 * Tuple (Church encoded)
 
@@ -162,74 +161,6 @@ concat(Option) (All) (x) (y); // {..., x: false}
 concat(Option) (Any) (x) (y); // {..., x: true}
 ```
 
-## `Iterators` without observable mutations
-
-ftor contains its own `Iterator` implementations that avoid observable mutations and offer some nice extras like look ahead/behind. Though it differs from the ES2015 Iterable Protocols, its API provides a function to transform ftor `Iterator`s into ES2015 `Iterable`s in place. Here is a simplified version of the `ArrayIterator`:
-
-```Javascript
-// constructor
-
-const ArrayIterator = xs => {
-  const aux = i => {
-    const api = {};
-    api.curr = f => xs[i];
-    api.look = n => xs[i + n];
-    api.next = () => aux(i + 1);
-    api.prev = f => xs[i - 1];
-
-    api.iterable = { 
-      [Symbol.iterator]: (j = i) => ({
-        next: () => j in xs 
-         ? {value: ++j, done: false}
-         : {value: undefined, done: true}
-      })
-    };
-
-    return k => k(api);
-  };
-
-  return aux(0);
-};
-
-// API
-
-const curr = api => api.curr();
-const iterable = api => api.iterable;
-const look = n => api => api.look(n);
-const next = api => api.next();
-const prev = api => api.prev();
-
-// mock data/function
-
-const xs = [1,2,3,4,5];
-let itor = ArrayIterator(xs);
-
-const foo = itor => itor(next) (curr);
-
-// application
-
-// current state
-itor(curr); // 1
-
-// look ahead
-itor(look(1)); // 2
-
-// iterable without observable state mutation
-Array.from(itor(iterable)); // [1,2,3,4,5]
-itor(curr); // 1
-
-// sharing without observable mutations
-foo(itor); // 2
-itor(curr); // 1
-
-// state change only via re-/assignment
-itor = itor(next);
-itor(curr); // 2
-
-// look behind
-itor(prev); // 1
-```
-
 ## Debugging
 
 Besides common helpers like `tap` or `trace` ftor offers a functional type checker that checks both, expected types of arguments and return values as well as the arity of procedurally applied curried functions. In order to use the type checker, just apply it to functions of imported modules. As long as your code doesn't depend on the `name` or ` length` property  of the function prototype, the type checker doesn't alter the behavior of your program. Hence you can easily remove it as soon as you finish the development stage.
@@ -255,6 +186,7 @@ The typical ftor function is so atomic that its purpose is easly comprehensible.
 
 ## Todos
 
+- [ ] examine natural transformations, hom functor and f-algebra
 - [ ] fold Objects without intermediate (generator i/o Object.keys(Object.values)
 - [ ] replace uncurried versions with (...args)
 - [ ] introduce continuation functor as compk
@@ -273,9 +205,8 @@ The typical ftor function is so atomic that its purpose is easly comprehensible.
 - [ ] introduce group/groupBy
 - [ ] review functional comparators/comparator modifier
 - [ ] look into functional lenses
-- [ ] introduce ap/chain for arrays
 - [ ] look into both/eitherOr/guarded functions
-- [ ] are clojure's multimethods terrible?
+- [ ] are clojure's multimethods a good idea?
 - [ ] examine monotonic array
 - [ ] add object comparison
 - [ ] traverse unknown object (tree)
@@ -284,8 +215,4 @@ The typical ftor function is so atomic that its purpose is easly comprehensible.
 - [ ] examine functional value object
 - [ ] introduce unzip
 - [ ] introduce Enum type
-- [ ] introduce Char type
-- [ ] explore finger trees/sequences
-- [x] examine functional sum types
-- [x] delete observable type (javascript frp nonsense)
-- [x] derive compn from foldr and merge it with comp
+- [ ] explore finger trees/sequences and tries

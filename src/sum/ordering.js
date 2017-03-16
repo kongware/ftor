@@ -1,28 +1,117 @@
 "use strict";
 
-const {I, raise_} = require("../generic");
+const {A, I, raise_} = require("../generic");
 
-const ordering = {};
+const {eq, neq} = require("../primitive/generic");
 
+const {destruct2} = require("../product/object");
 
-// prototype
+const Ordering = {};
 
 
 ordering.Ordering = {
-  // Enum
-
-  toEnum: n => n === 0
-   ? ordering.LT
-   : n === 1
-    ? ordering.EQ
-    : n === 2
-     ? ordering.GT
-     : raise_(RangeError, "argument for toEnum out of range"),
-
   // Monoid
 
   empty = () => ordering.EQ
 };
+
+// general
+
+
+Ordering.cata = pattern => ({tag}) => pattern[tag]();
+
+
+// constructors
+
+
+LT = () => ({type: Ordering, tag: "LT"})
+
+
+EQ = () => ({type: Ordering, tag: "EQ"})
+
+
+GT = () => ({type: Ordering, tag: "GT"})
+
+
+// Bounded
+
+
+Ordering.minBound = Ordering.LT;
+
+
+Ordering.maxBound = Ordering.GT;
+
+
+// Enum
+
+
+Ordering.pred = A(({tag}) => ({
+  LT: raise_(TypeError, "invalid pred invocation with LT"),
+  EQ: ordering.LT,
+  GT: ordering.EQ
+})[tag]);
+
+
+Ordering.succ = A(({tag}) => ({
+  LT: ordering.EQ,
+  EQ: ordering.GT,
+  GT: raise_(TypeError, "invalid succ invocation with GT")
+})[tag]);
+
+
+Ordering.fromEnum = A(({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag]);
+
+
+Ordering.toEnum = A(n => {
+  switch (n) {
+    case 0: return ordering.LT;
+    case 1: return ordering.EQ;
+    case 2: return ordering.GT;
+    default: raise_(RangeError, "argument for toEnum out of range");
+  }
+});
+
+
+// Eq
+
+
+Ordering.eq = destruct2("tag", "tag") (eq);
+
+
+Ordering.neq = destruct2("tag", "tag") (neq);
+
+
+// Ord
+
+
+Ordering.compare = A(({tag}) => ({})[tag]);
+
+
+Ordering.gt = A(({tag}) => ({})[tag]);
+
+
+Ordering.gte = A(({tag}) => ({})[tag]);
+
+
+Ordering.lt = A(({tag}) => ({})[tag]);
+
+
+Ordering.lte = A(({tag}) => ({})[tag]);
+
+
+// Semigroup
+
+
+Ordering.concat = A(({tag}) => ({})[tag]);
+
+
+// Monoid
+
+
+Ordering.append = A(({tag}) => ({})[tag]);
+
+
+Ordering.empty = A(({tag}) => ({})[tag]);
 
 
 // constructors

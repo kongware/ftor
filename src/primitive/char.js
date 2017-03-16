@@ -1,12 +1,10 @@
 "use strict";
 
-const char = {};
-
 
 // constructor
 
 
-char.Char = class Char extends String {
+Char = class Char extends String {
   constructor(x) {super(x[0])}
 };
 
@@ -14,10 +12,10 @@ char.Char = class Char extends String {
 // Bounded
 
 
-char.Char.prorotype = minBound = "\u{0}";
+Char.prototype.minBound = "\u{0}";
 
 
-char.Char.prototype = maxBound = "\u{10FFFF}";
+Char.prototype.maxBound = "\u{10FFFF}";
 
 
-module.exports = char;
+module.exports = Char;
