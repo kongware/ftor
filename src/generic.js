@@ -185,6 +185,15 @@ generic.repeatWhile = n => pred => f => x => {
 
 
 generic.sequence = f => (x, y) => {
+  const aux = (acc, z) => z <= y
+   ? aux(acc.concat(z), f(z))
+   : acc;
+
+  return aux([], x);
+};
+
+
+generic._sequence = f => (x, y) => {
   function* aux() {
     while (true) {
       yield x;
