@@ -66,15 +66,36 @@ Usually higher order functions expect curried functions as arguments. To improve
 
 ftor has broad support of the tuple type and thus can handle multi-argument functions pretty well.
 
+## Type representatives
+
+ftor doesn't rely on the prototype system but on type represetatives, which have to be passed around explicitly. Type representative is just a fany word for a static type dictionary, i.e. a plain old Javascript `Object` with a couple of attached static methods (or rather funcions):
+
+```Javascript
+const _Function = {
+  map: f => g => x => f(g(x))
+};
+```
+
+While type representatives lead to somewhat verbose code on the calling side, they also improve its readability, since you always see the used types in place. With type representatives we are able to
+
+* mitigate Javascript's lack of type inference
+* extend built-ins (object and primitive types) without touching them at all
+* define several type classes for each data type
+
+## New data types
+
+ftor introduces the following data types:
+
+* Char (subclassed)
+* Cont (tagged union)
+* Either (tagged union)
+* Option (tagged union)
+* Ordering (tagged union)
+* Tuple (Church encoded)
+
 ## Type classes and extended built-ins
 
-ftor avoids the prototype system and instead uses type dictionaries to a great extent, which have to be passed around explicitly though. While this is somewhat verbose, it also improves the readability of your code, since you always see the used types in place. Beyond that, such type dicts allow ftor
-
-* to mitigate Javascript's lack of type inference
-* to extend built-in types without touching them
-* to define several type classes for each built-in type
-
-The following type classes are provided:
+The following type classes are offered:
 
 * Applicative
 * Bounded
@@ -86,17 +107,7 @@ The following type classes are provided:
 * Ord
 * Traversable
 
-## New types
-
-[unstable]
-
-ftor introduces the following types:
-
-* Char (subclassed)
-* Ordering (tagged union)
-* Tuple (Church encoded)
-
-## Custom tagged unions (sum types)
+## Tagged unions (sum types)
 
 ftor's sum types must use explicit type dicts instead of prototypes. Each choice of a sum must implement its own value constructor that enriches values with the following meta information:
 
