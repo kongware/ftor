@@ -39,12 +39,14 @@ Regain hope all ye who enter here.
 
 * love functions
 * enjoy purity
+* long for TCO
 * avoid magic and false simplicity
-* think algebraic
+* reject micro optimizations
+* model your data by disjunctions
+* follow laws, not your guts
 * follow parametricity
-* hate async functions
 * encode declaratively
-* evaluate lazy
+* point free is an effect, not a purpose
 * reify effects
 * embrace immutability
 * do it recursively

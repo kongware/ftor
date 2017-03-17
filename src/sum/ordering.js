@@ -50,7 +50,7 @@ EQ = () => ({type: Ordering, tag: "EQ"})
 GT = () => ({type: Ordering, tag: "GT"})
 
 
-// general
+// misc
 
 
 Ordering.cata = pattern => ({tag}) => pattern[tag]();
@@ -158,13 +158,13 @@ Ordering.gte_ = xt_(gte_);
 // Semigroup
 
 
-Ordering.concat = A(({tag}) => ({LT: Ordering.LT, EQ: I, GT: Ordering.GT})[tag]);
+Ordering.concat = gx => ({tag}) => ({LT: Ordering.LT, EQ: gx, GT: Ordering.GT})[tag]);
 
 
 // Monoid
 
 
-Ordering.append = AA(({tag}) => ({LT: Ordering.LT, EQ: I, GT: Ordering.GT})[tag]);
+Ordering.append = gx => ({tag}) => ({LT: Ordering.LT, EQ: gx, GT: Ordering.GT})[tag]);
 
 
 Ordering.empty = () => Ordering.EQ;
