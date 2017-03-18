@@ -180,15 +180,15 @@ Besides common helpers like `tap` or `trace` ftor offers a functional type check
 
 ## Naming Convention
 
-* use [v, w, x, y, z] for generic variables of any type
-* use [vs, ws, xs, ys, zs] for generic collections
-* use [o, p, q, r, s] for generic object types
-* use [f, g, h, i, j] for generic functions
-* use [fx, fy, fz] values wrapped in a context
-* use [rep] to define a type representative (type dictionary)
-* [name_] indicates first order functions (operator functions) in either uncurried or composable form
-* [_name] distinguishes either a slightly different variant of an existing function or avoids naming conflicts with reserved keywords or allows names with leading numbers
-* [$name] may represent a native Symbol
+* use `[v, w, x, y, z]` for generic variables of any type
+* use `[vs, ws, xs, ys, zs]` for generic collections
+* use `[o, p, q, r, s]` for generic object types
+* use `[f, g, h, i, j]` for generic functions
+* use `[fx, fy, fz]` values wrapped in a context
+* use `[rep]` to define a type representative (type dictionary)
+* `[name_]` indicates first order functions (operator functions) in either uncurried or composable form
+* `[_name]` distinguishes either a slightly different variant of an existing function or avoids naming conflicts with reserved keywords or allows names with leading numbers
+* `[$name]` may represent a native Symbol
 
 Functional programming doesn't mean to always use generalized names like `x` or `f`. Use speaking names for specific functions/variables and generic names for generic ones. The specificity of names is a good indicator of how generalized your functions are.
 
