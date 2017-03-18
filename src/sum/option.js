@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {A, I, raise_} = require("../generic");
+const {K} = require("../generic");
 
 
 // internal API
@@ -46,6 +46,9 @@ Option.eq = rep => fx => fy => fold(
 
 
 // Foldable
+
+
+Option.fold = f => g => Option.cata({some: f, none: g});
 
 
 // Semigroup
@@ -97,9 +100,6 @@ Option.eq = rep => fx => fy => fold(
 
 
 // ChainRec
-
-
-Option.fold = f => g => Option.cata({some: f, none: g});
 
 
 module.exports = {Option: Option, Some: Some, None: None};
