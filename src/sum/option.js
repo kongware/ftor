@@ -34,7 +34,12 @@ Option.cata = pattern => ({tag, x}) => pattern[tag](x);
 // Setoid
 
 
-Option.eq = rep => fx => fy => fold(
+Option.eq = rep => fy => fx => fold(
+  x => fold(y => rep.eq_(x, y)) (K(false))
+) (fold(K(false)) (K(true)));
+
+
+Option.eq_ = (fx, fy, rep) => fold(
   x => fold(y => rep.eq_(x, y)) (K(false))
 ) (fold(K(false)) (K(true)));
 
