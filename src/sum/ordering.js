@@ -16,17 +16,17 @@ const {destruct2} = require("../product/object");
 // internal API
 
 
-const xt = f => gx => fx => {
+const xt = f => fy => fx => {
   const x = Ordering.fromEnum(fx),
-   y  = Ordering.fromEnum(gx);
+   y  = Ordering.fromEnum(fy);
 
   return f(x, y);
 };
 
 
-const xt_ = f => (gx, fx) => {
+const xt_ = f => (fx, fy) => {
   const x = Ordering.fromEnum(fx),
-   y  = Ordering.fromEnum(gx);
+   y  = Ordering.fromEnum(fy);
 
   return f(x, y);
 };
@@ -65,36 +65,6 @@ Ordering.minBound = Ordering.LT;
 Ordering.maxBound = Ordering.GT;
 
 
-// Enum
-
-
-Ordering.pred = A(({tag}) => ({
-  LT: raise_(TypeError, "invalid pred invocation with LT"),
-  EQ: ordering.LT,
-  GT: ordering.EQ
-})[tag]);
-
-
-Ordering.succ = A(({tag}) => ({
-  LT: ordering.EQ,
-  EQ: ordering.GT,
-  GT: raise_(TypeError, "invalid succ invocation with GT")
-})[tag]);
-
-
-Ordering.fromEnum = A(({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag]);
-
-
-Ordering.toEnum = A(n => {
-  switch (n) {
-    case 0: return ordering.LT;
-    case 1: return ordering.EQ;
-    case 2: return ordering.GT;
-    default: raise_(RangeError, "argument for toEnum out of range");
-  }
-});
-
-
 // Setoid
 
 
@@ -107,9 +77,9 @@ Ordering.neq = destruct2("tag", "tag") (neq);
 // Ord
 
 
-Ordering.compare = gx => fx => {
+Ordering.compare = fy => fx => {
   const x = Ordering.fromEnum(fx),
-   y  = Ordering.fromEnum(gx);
+   y  = Ordering.fromEnum(fy);
 
   return x < y
    ? Ordering.LT
@@ -119,9 +89,9 @@ Ordering.compare = gx => fx => {
 };
 
 
-Ordering.compare_ = (fx, gx) => {
+Ordering.compare_ = (fx, fy) => {
   const x = Ordering.fromEnum(fx),
-   y  = Ordering.fromEnum(gx);
+   y  = Ordering.fromEnum(fy);
 
   return x < y
    ? Ordering.LT
@@ -155,16 +125,46 @@ Ordering.gte = xt(gte_);
 Ordering.gte_ = xt_(gte_);
 
 
+// Enum
+
+
+Ordering.pred = A(({tag}) => ({
+  LT: raise_(TypeError, "invalid pred invocation with LT"),
+  EQ: ordering.LT,
+  GT: ordering.EQ
+})[tag]);
+
+
+Ordering.succ = A(({tag}) => ({
+  LT: ordering.EQ,
+  EQ: ordering.GT,
+  GT: raise_(TypeError, "invalid succ invocation with GT")
+})[tag]);
+
+
+Ordering.fromEnum = A(({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag]);
+
+
+Ordering.toEnum = A(n => {
+  switch (n) {
+    case 0: return ordering.LT;
+    case 1: return ordering.EQ;
+    case 2: return ordering.GT;
+    default: raise_(RangeError, "argument for toEnum out of range");
+  }
+});
+
+
 // Semigroup
 
 
-Ordering.concat = gx => ({tag}) => ({LT: Ordering.LT, EQ: gx, GT: Ordering.GT})[tag]);
+Ordering.concat = fy => ({tag}) => ({LT: Ordering.LT, EQ: fy, GT: Ordering.GT})[tag]);
 
 
 // Monoid
 
 
-Ordering.append = gx => ({tag}) => ({LT: Ordering.LT, EQ: gx, GT: Ordering.GT})[tag]);
+Ordering.append = fy => ({tag}) => ({LT: Ordering.LT, EQ: fy, GT: Ordering.GT})[tag]);
 
 
 Ordering.empty = () => Ordering.EQ;

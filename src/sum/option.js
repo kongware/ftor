@@ -31,7 +31,72 @@ None = () => ({type: Option, tag: "none"});
 Option.cata = pattern => ({tag, x}) => pattern[tag](x);
 
 
-// foldable
+// Setoid
+
+
+Option.eq = rep => fx => fy => fold(
+  x => fold(y => rep.eq_(x, y)) (K(false))
+) (fold(K(false)) (K(true)));
+
+
+// Ord
+
+
+// Enum
+
+
+// Foldable
+
+
+// Semigroup
+
+
+// Monoid
+
+
+// Contravaraint
+
+
+// Functor
+
+
+// Alt
+
+
+// Apply
+
+
+// Bifunctor
+
+
+// Extend
+
+
+// Profunctor
+
+
+// Traversable
+
+
+// Plus
+
+
+// Applicative
+
+
+// Chain
+
+
+// Comonad
+
+
+// Alternative
+
+
+// Monad
+
+
+// ChainRec
 
 
 Option.fold = f => g => Option.cata({some: f, none: g});
