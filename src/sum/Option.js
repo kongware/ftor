@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {alwayFalse, alwaysTrue, K, negf3, negf3_} = require("../generic");
+const {alwaysFalse, alwaysTrue, K, negf3, negf3_} = require("../generic");
 
 
 const {EQ, GT, LT} = require("./ordering");
