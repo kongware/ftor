@@ -43,7 +43,7 @@ const ternarySum_ = (f, g, h) => (fx, fy) => {
 const Ordering = {}; // kind *
 
 
-// constructors
+// constructors (nullary)
 
 
 const LT = ({type: Ordering, tag: "LT"})

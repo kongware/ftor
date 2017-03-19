@@ -29,7 +29,7 @@ const binarySum_ = (k, g, h, i) => (fx, fy, {[k]: f}) => Option.fold(
 const Option = {}; // kind * -> *
 
 
-// constructors
+// constructors (unary)
 
 
 const Some = x => ({type: Option, tag: "some", x: x});
