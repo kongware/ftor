@@ -55,12 +55,6 @@ const EQ = ({type: Ordering, tag: "EQ"})
 const GT = ({type: Ordering, tag: "GT"})
 
 
-// general
-
-
-Ordering.cata = pattern => ({tag}) => pattern[tag]();
-
-
 // Bounded
 
 
