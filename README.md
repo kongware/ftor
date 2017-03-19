@@ -13,9 +13,9 @@ This library is experimental and still work in progress.
 
 Functions.
 
-Or more precisely pure,
+Or more precisely pure, first class functions
 
-first class functions in curried form that close over their environments.
+in curried form and closing over their environments.
 
 Such function are used to define higher order functions and primitive combinators,
 
