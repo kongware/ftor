@@ -134,9 +134,7 @@ Ordering.succ = ({tag}) => ({
 Ordering.fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag]);
 
 
-Ordering.toEnum = n => n < 3
- ? [LT, EQ, GT][n]
- : raise_(RangeError, "argument for toEnum out of range");
+Ordering.toEnum = n => [LT, EQ, GT][n];
 
 
 // Semigroup
