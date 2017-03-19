@@ -184,8 +184,8 @@ Besides common helpers like `tap` or `trace` ftor offers a functional type check
 * use `[vs, ws, xs, ys, zs]` for generic collections
 * use `[o, p, q, r, s]` for generic object types
 * use `[f, g, h, i, j]` for generic functions
-* use `[fx, fy, fz]` values wrapped in a context
-* use `[rep]` to define a type representative (type dictionary)
+* use `[?x, ?y, ?z]` for values wrapped in a context, where `?` is the first letter of the type class
+* use `[Rep]` to define a type representative (type dictionary)
 * `[name_]` indicates first order functions (operator functions) in either uncurried or composable form
 * `[_name]` distinguishes either a slightly different variant of an existing function or avoids naming conflicts with reserved keywords or allows names with leading numbers
 * `[$name]` may represent a native Symbol

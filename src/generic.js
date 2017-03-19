@@ -22,6 +22,12 @@ generic.A4 = f => w => x => y => z => f(w) (x) (y) (z);
 generic.A5 = f => v => w => x => y => z => f(v) (w) (x) (y) (z);
 
 
+generic.alwaysTrue = generic.K(true);
+
+
+generic.alwaysFalse = generic.K(false);
+
+
 generic.ap = f => g => x => f(x) (g(x));
 
 
@@ -142,13 +148,25 @@ generic.negf = f => x => !f(x);
 generic.negf2 = f => x => y => !f(x) (y);
 
 
+generic.negf2_ = f => (x, y) => !f(x, y);
+
+
 generic.negf3 = f => x => y => z => !f(x) (y) (z);
+
+
+generic.negf3_ = f => (x, y, z) => !f(x, y, z);
 
 
 generic.negf4 = f => w => x => y => z => !f(w) (x) (y) (z);
 
 
+generic.negf4_ = f => (w, x, y, z) => !f(w, x, y, z);
+
+
 generic.negf5 = f => v => w => x => y => z => !f(v) (w) (x) (y) (z);
+
+
+generic.negf5_ = f => (v, w, x, y, z) => !f(v, w, x, y, z);
 
 
 generic.or_ = (x, y) => x || y;

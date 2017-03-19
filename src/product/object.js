@@ -37,13 +37,25 @@ object.destruct = x => f => ({[x]:a}) => f(a);
 object.destruct2 = (x, y) => f => ({[x]:a}) => ({[y]:b}) => f(a) (b);
 
 
+object.destruct2_ = (x, y) => f => ({[x]:a}, {[y]:b}) => f(a, b);
+
+
 object.destruct3 = (x, y, z) => f => ({[x]:a}) => ({[y]:b}) => ({[z]:c}) => f(a) (b) (c);
+
+
+object.destruct3_ = (x, y, z) => f => ({[x]:a}, {[y]:b}, {[z]:c}) => f(a, b, c);
 
 
 object.destruct4 = (w, x, y, z) => f => ({[w]:a}) => ({[x]:b}) => ({[y]:c}) => ({[z]:d}) => f(a) (b) (c) (d);
 
 
+object.destruct4_ = (w, x, y, z) => f => ({[w]:a}, {[x]:b}, {[y]:c}, {[z]:d}) => f(a, b, c, d);
+
+
 object.destruct5 = (v, w, x, y, z) => f => ({[v]:a}) => ({[w]:b}) => ({[x]:c}) => ({[y]:d}) => ({[z]:e}) => f(a) (b) (c) (d) (e);
+
+
+object.destruct5_ = (v, w, x, y, z) => f => ({[v]:a}, {[w]:b}, {[x]:c}, {[y]:d}, {[z]:e}) => f(a, b, c, d, e);
 
 
 object.destructiveDef = (k, dtor) => o => Object.defineProperty(o, k, dtor);
