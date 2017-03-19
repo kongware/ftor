@@ -7,9 +7,6 @@
 const {A, alwaysFalse, alwaysTrue, K, negf, negf2, raise_} = require("../generic");
 
 
-const {eq, eq_, lt_, lte_, gt_, gte_, neq, neq_} = require("../primitive/generic");
-
-
 // private
 
 
@@ -114,32 +111,32 @@ Ordering.gte_ = ternarySum_(alwaysFalse, alwaysTrue, alwaysTrue)
 
 // Enum
 
+Ordering.pred = ({tag}) => ({
+  LT: Error,
+  EQ: LT,
+  GT: EQ
+})[tag];
 
-Ordering.pred = A(({tag}) => ({
+Ordering.pred = ({tag}) => ({
   LT: raise_(TypeError, "invalid pred invocation with LT"),
   EQ: LT,
   GT: EQ
-})[tag]);
+})[tag];
 
 
-Ordering.succ = A(({tag}) => ({
+Ordering.succ = ({tag}) => ({
   LT: EQ,
   EQ: GT,
   GT: raise_(TypeError, "invalid succ invocation with GT")
-})[tag]);
+})[tag];
 
 
-Ordering.fromEnum = A(({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag]);
+Ordering.fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag]);
 
 
-Ordering.toEnum = A(n => {
-  switch (n) {
-    case 0: return LT;
-    case 1: return EQ;
-    case 2: return GT;
-    default: raise_(RangeError, "argument for toEnum out of range");
-  }
-});
+Ordering.toEnum = n => n < 3
+ ? [LT, EQ, GT][n]
+ : raise_(RangeError, "argument for toEnum out of range");
 
 
 // Semigroup
