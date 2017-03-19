@@ -15,7 +15,7 @@ Functions.
 
 Or more precisely pure, first class functions
 
-in curried form and closing over their environments.
+in curried form, which close over their environments.
 
 Such function are used to define higher order functions and primitive combinators,
 
@@ -31,7 +31,7 @@ Many people claim that this were not idiomatic Javascript. Don't believe them, b
 * generator functions
 * arrow functions to facillitate currying
 
-** Regain hope all ye who enter here. **
+**Regain hope all ye who enter here.**
 
 ## Criteria
 
