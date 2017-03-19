@@ -4,38 +4,43 @@
 // dependencies
 
 
-const {A, raise_} = require("../generic");
+const {A, alwaysFalse, alwaysTrue, K, negf, negf2, raise_} = require("../generic");
 
 
 const {eq, eq_, lt_, lte_, gt_, gte_, neq, neq_} = require("../primitive/generic");
 
 
-const {destruct2, destruct2_} = require("../product/object");
-
-
 // private
 
 
-const xt = f => oy => ox => {
-  const x = Ordering.fromEnum(ox),
-   y  = Ordering.fromEnum(oy);
+const ternarySum = (f, g, h) => fy => fx => {
+  const x = Ordering.fromEnum(fx),
+   y  = Ordering.fromEnum(fy);
 
-  return f(x, y);
+  return x < y
+   ? f()
+   : x > y
+    ? g()
+    : h();
 };
 
 
-const xt_ = f => (ox, oy) => {
-  const x = Ordering.fromEnum(ox),
-   y  = Ordering.fromEnum(oy);
+const ternarySum_ = (f, g, h) => (fx, fy) => {
+  const x = Ordering.fromEnum(fx),
+   y  = Ordering.fromEnum(fy);
 
-  return f(x, y);
+  return x < y
+   ? f()
+   : x > y
+    ? g()
+    : h();
 };
 
 
 // type representative
 
 
-const Ordering = {};
+const Ordering = {}; // kind *
 
 
 // constructors
@@ -68,67 +73,49 @@ Ordering.maxBound = Ordering.GT;
 // Setoid
 
 
-Ordering.eq = destruct2("tag", "tag") (eq);
+Ordering.eq = ternarySum(alwaysFalse, alwaysFalse, alwaysTrue);
 
 
-Ordering.eq_ = destruct2_("tag", "tag") (eq_);
+Ordering.eq_ = ternarySum_(alwaysFalse, alwaysFalse, alwaysTrue);
 
 
-Ordering.neq = destruct2("tag", "tag") (neq);
+Ordering.neq = ternarySum(alwaysTrue, alwaysTrue, alwaysFalse);
 
 
-Ordering.neq_ = destruct2_("tag", "tag") (neq_);
+Ordering.neq_ = ternarySum_(alwaysTrue, alwaysTrue, alwaysFalse);
 
 
 // Ord
 
 
-Ordering.compare = oy => ox => {
-  const x = Ordering.fromEnum(ox),
-   y  = Ordering.fromEnum(oy);
-
-  return x < y
-   ? Ordering.LT
-   : x > y
-    ? Ordering.GT
-    : Ordering.EQ;
-};
+Ordering.compare = ternarySum(K(LT), K(GT), K(EQ));
 
 
-Ordering.compare_ = (ox, oy) => {
-  const x = Ordering.fromEnum(ox),
-   y  = Ordering.fromEnum(oy);
-
-  return x < y
-   ? Ordering.LT
-   : x > y
-    ? Ordering.GT
-    : Ordering.EQ;
-};
+Ordering.compare_ = ternarySum_(K(LT), K(GT), K(EQ));
 
 
-Ordering.lt = xt(lt_);
+Ordering.lt = ternarySum(alwaysTrue, alwaysFalse, alwaysFalse)
 
 
-Ordering.lt_ = xt_(lt_);
+Ordering.lt_ = ternarySum_(alwaysTrue, alwaysFalse, alwaysFalse)
 
 
-Ordering.lte = xt(lte_);
+Ordering.lte = ternarySum(alwaysTrue, alwaysFalse, alwaysTrue)
 
 
-Ordering.lte_ = xt_(lte_);
+Ordering.lte_ = ternarySum_(alwaysTrue, alwaysFalse, alwaysTrue)
 
 
-Ordering.gt = xt(gt_);
+Ordering.gt = ternarySum(alwaysFalse, alwaysTrue, alwaysFalse)
 
 
-Ordering.gt_ = xt_(gt_);
+Ordering.gt_ = ternarySum_(alwaysFalse, alwaysTrue, alwaysFalse)
 
 
-Ordering.gte = xt(gte_);
+Ordering.gte = ternarySum(alwaysFalse, alwaysTrue, alwaysTrue)
 
 
-Ordering.gte_ = xt_(gte_);
+Ordering.gte_ = ternarySum_(alwaysFalse, alwaysTrue, alwaysTrue)
 
 
 // Enum
@@ -136,14 +123,14 @@ Ordering.gte_ = xt_(gte_);
 
 Ordering.pred = A(({tag}) => ({
   LT: raise_(TypeError, "invalid pred invocation with LT"),
-  EQ: Ordering.LT,
-  GT: Ordering.EQ
+  EQ: LT,
+  GT: EQ
 })[tag]);
 
 
 Ordering.succ = A(({tag}) => ({
-  LT: Ordering.EQ,
-  EQ: Ordering.GT,
+  LT: EQ,
+  EQ: GT,
   GT: raise_(TypeError, "invalid succ invocation with GT")
 })[tag]);
 
@@ -153,9 +140,9 @@ Ordering.fromEnum = A(({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag]);
 
 Ordering.toEnum = A(n => {
   switch (n) {
-    case 0: return Ordering.LT;
-    case 1: return Ordering.EQ;
-    case 2: return Ordering.GT;
+    case 0: return LT;
+    case 1: return EQ;
+    case 2: return GT;
     default: raise_(RangeError, "argument for toEnum out of range");
   }
 });
@@ -164,22 +151,22 @@ Ordering.toEnum = A(n => {
 // Semigroup
 
 
-Ordering.concat = sy => ({tag}) => ({LT: Ordering.LT, EQ: sy, GT: Ordering.GT})[tag]);
+Ordering.concat = sy => ({tag}) => ({LT, EQ: sy, GT})[tag]);
 
 
-Ordering.concat_ = ({tag}, sy) => ({LT: Ordering.LT, EQ: sy, GT: Ordering.GT})[tag]);
+Ordering.concat_ = ({tag}, sy) => ({LT, EQ: sy, GT})[tag]);
 
 
 // Monoid
 
 
-Ordering.append = sy => ({tag}) => ({LT: Ordering.LT, EQ: sy, GT: Ordering.GT})[tag]);
+Ordering.append = Ordering.concat;
 
 
-Ordering.append_ = ({tag}, sy) => ({LT: Ordering.LT, EQ: sy, GT: Ordering.GT})[tag]);
+Ordering.append_ = Ordering.concat_;
 
 
-Ordering.empty = () => Ordering.EQ;
+Ordering.empty = () => EQ;
 
 
 // API

@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {alwaysFalse, alwaysTrue, K, negf3, negf3_} = require("../generic");
+const {alwaysFalse, alwaysTrue, K, negf, negf2} = require("../generic");
 
 
 const {EQ, GT, LT} = require("./ordering");
@@ -26,7 +26,7 @@ const binarySum_ = (k, g, h, i) => (fx, fy, {[k]: f}) => Option.fold(
 // type representative
 
 
-const Option = {};
+const Option = {}; // kind * -> *
 
 
 // constructors
@@ -56,10 +56,10 @@ Option.eq = binarySum("eq_", alwaysFalse, alwaysFalse, alwaysTrue);
 Option.eq_ = binarySum_("eq_", alwaysFalse, alwaysFalse, alwaysTrue);
 
 
-Option.neq = negf3(Option.eq);
+Option.neq = negf2(Option.eq);
 
 
-Option.neq_ = negf3_(Option.eq);
+Option.neq_ = negf(Option.eq);
 
 
 // Ord
