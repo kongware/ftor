@@ -22,12 +22,6 @@ generic.A4 = f => w => x => y => z => f(w) (x) (y) (z);
 generic.A5 = f => v => w => x => y => z => f(v) (w) (x) (y) (z);
 
 
-generic.alwaysTrue = generic.K(true);
-
-
-generic.alwaysFalse = generic.K(false);
-
-
 generic.ap = f => g => x => f(x) (g(x));
 
 
@@ -86,6 +80,9 @@ generic.composable = f => (...args) => x => f(...args, x);
 
 
 generic.evaluate = x => typeof x === "function" ? x() : x;
+
+
+generic.False = generic.K(false);
 
 
 geneirc.flip = f => y => x => f(x) (y);
@@ -291,6 +288,9 @@ generic.trace4 = tag => generic.tap4(generic.partial(log) (tag));
 
 
 generic.trace5 = tag => generic.tap5(generic.partial(log) (tag));
+
+
+generic.True = generic.K(true);
 
 
 generic.U = f => f(f);

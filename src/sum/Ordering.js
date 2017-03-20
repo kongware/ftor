@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {A, alwaysFalse, alwaysTrue, K, negf, negf2, raise_} = require("../generic");
+const {A, False, K, negf, negf2, raise_, True} = require("../generic");
 
 
 // private
@@ -64,16 +64,16 @@ Ordering.maxBound = Ordering.GT;
 // Setoid
 
 
-Ordering.eq = ternarySum(alwaysFalse, alwaysFalse, alwaysTrue);
+Ordering.eq = ternarySum(False, False, True);
 
 
-Ordering.eq_ = ternarySum_(alwaysFalse, alwaysFalse, alwaysTrue);
+Ordering.eq_ = ternarySum_(False, False, True);
 
 
-Ordering.neq = ternarySum(alwaysTrue, alwaysTrue, alwaysFalse);
+Ordering.neq = ternarySum(True, True, False);
 
 
-Ordering.neq_ = ternarySum_(alwaysTrue, alwaysTrue, alwaysFalse);
+Ordering.neq_ = ternarySum_(True, True, False);
 
 
 // Ord
@@ -85,28 +85,28 @@ Ordering.compare = ternarySum(K(LT), K(GT), K(EQ));
 Ordering.compare_ = ternarySum_(K(LT), K(GT), K(EQ));
 
 
-Ordering.lt = ternarySum(alwaysTrue, alwaysFalse, alwaysFalse)
+Ordering.lt = ternarySum(True, False, False)
 
 
-Ordering.lt_ = ternarySum_(alwaysTrue, alwaysFalse, alwaysFalse)
+Ordering.lt_ = ternarySum_(True, False, False)
 
 
-Ordering.lte = ternarySum(alwaysTrue, alwaysFalse, alwaysTrue)
+Ordering.lte = ternarySum(True, False, True)
 
 
-Ordering.lte_ = ternarySum_(alwaysTrue, alwaysFalse, alwaysTrue)
+Ordering.lte_ = ternarySum_(True, False, True)
 
 
-Ordering.gt = ternarySum(alwaysFalse, alwaysTrue, alwaysFalse)
+Ordering.gt = ternarySum(False, True, False)
 
 
-Ordering.gt_ = ternarySum_(alwaysFalse, alwaysTrue, alwaysFalse)
+Ordering.gt_ = ternarySum_(False, True, False)
 
 
-Ordering.gte = ternarySum(alwaysFalse, alwaysTrue, alwaysTrue)
+Ordering.gte = ternarySum(False, True, True)
 
 
-Ordering.gte_ = ternarySum_(alwaysFalse, alwaysTrue, alwaysTrue)
+Ordering.gte_ = ternarySum_(False, True, True)
 
 
 // Enum

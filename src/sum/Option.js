@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {alwaysFalse, alwaysTrue, K, negf, negf2} = require("../generic");
+const {False, K, negf, negf2, True} = require("../generic");
 
 
 const {EQ, GT, LT} = require("./ordering");
@@ -50,10 +50,10 @@ Option.cata = pattern => ({tag, x}) => pattern[tag](x);
 // Setoid
 
 
-Option.eq = binarySum("eq_", alwaysFalse, alwaysFalse, alwaysTrue);
+Option.eq = binarySum("eq_", False, False, True);
 
 
-Option.eq_ = binarySum_("eq_", alwaysFalse, alwaysFalse, alwaysTrue);
+Option.eq_ = binarySum_("eq_", False, False, True);
 
 
 Option.neq = negf2(Option.eq);
@@ -71,7 +71,7 @@ Option.compare = binarySum("compare_", GT, LT, EQ);
 Option.compare_ = binarySum_("compare_", GT, LT, EQ);
 
 
-Option.lt = binarySum("lt_", alwaysFalse, alwaysTrue, alwaysFalse);
+Option.lt = binarySum("lt_", False, True, False);
 
 
 // Enum
