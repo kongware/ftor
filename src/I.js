@@ -3,9 +3,7 @@
 
 /**
  * @name identity
- * @type function
- * @param {*} x - type variable
- * @return {*} the unchanged argument
+ * @type function (primitive combinator)
  * @example
  *
  * const o = {};
