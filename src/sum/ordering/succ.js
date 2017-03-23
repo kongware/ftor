@@ -21,7 +21,7 @@ const {raise_} = require("../../raise");
  */
 
 
-// Ordering -> Ordering -> Ordering
+// Ordering -> Ordering
 const succ = ({tag}) => ({
   LT: EQ,
   EQ: GT,

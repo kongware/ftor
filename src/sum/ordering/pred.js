@@ -21,7 +21,7 @@ const {raise_} = require("../../raise");
  */
 
 
-// Ordering -> Ordering -> Ordering
+// Ordering -> Ordering
 const pred = ({tag}) => ({
   LT: raise_(TypeError, "invalid pred invocation with LT"),
   EQ: LT,

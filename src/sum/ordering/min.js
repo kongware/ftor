@@ -20,11 +20,11 @@ const {ternarySum_} = require("./ternarySum");
 
 
 // Ordering -> Ordering -> Ordering
-const min = oy => ox => ternarySum_(K(ox), K(oy), K(ox)) (ox, oy);
+const min = t2 => t1 => ternarySum_(K(t1), K(t2), K(t1)) (t1, t2);
 
 
 // (Ordering, Ordering) -> Ordering
-const min_ = (ox, oy) => ternarySum_(K(ox), K(oy), K(ox)) (ox, oy);
+const min_ = (t1, t2) => ternarySum_(K(t1), K(t2), K(t1)) (t1, t2);
 
 
 // API

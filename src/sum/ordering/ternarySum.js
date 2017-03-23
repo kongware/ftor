@@ -14,9 +14,9 @@ const fromEnum = require("./fromEnum");
 
 
 // (() -> a, () -> a, () -> a) -> Ordering -> Ordering -> a
-const ternarySum = (f, g, h) => oy => ox => {
-  const x = fromEnum(ox),
-   y  = fromEnum(oy);
+const ternarySum = (f, g, h) => t2 => t1 => {
+  const x = fromEnum(t1),
+   y  = fromEnum(t2);
 
   return x < y
    ? f()
@@ -27,9 +27,9 @@ const ternarySum = (f, g, h) => oy => ox => {
 
 
 // (() -> a, () -> a, () -> a) -> (Ordering, Ordering) -> a
-const ternarySum_ = (f, g, h) => (ox, oy) => {
-  const x = fromEnum(ox),
-   y  = fromEnum(oy);
+const ternarySum_ = (f, g, h) => (t1, t2) => {
+  const x = fromEnum(t1),
+   y  = fromEnum(t2);
 
   return x < y
    ? f()
