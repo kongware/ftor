@@ -4,10 +4,10 @@
 // dependencies
 
 
-const {False, K, negf, negf2, True} = require("../generic");
+const {K, negf3, negf3_, True, False} = require("../generic");
 
 
-const {EQ, GT, LT} = require("./ordering");
+const {GT, EQ, LT} = require("./ordering");
 
 
 // private
@@ -56,10 +56,10 @@ Option.eq = binarySum("eq_", False, False, True);
 Option.eq_ = binarySum_("eq_", False, False, True);
 
 
-Option.neq = negf2(Option.eq);
+Option.neq = negf3(Option.eq);
 
 
-Option.neq_ = negf(Option.eq);
+Option.neq_ = negf3_(Option.eq);
 
 
 // Ord
@@ -72,6 +72,27 @@ Option.compare_ = binarySum_("compare_", GT, LT, EQ);
 
 
 Option.lt = binarySum("lt_", False, True, False);
+
+
+Option.lt_ = binarySum_("lt_", False, True, False);
+
+
+Option.lte = binarySum("lte_", False, True, True);
+
+
+Option.lte_ = binarySum_("lte_", False, True, True);
+
+
+Option.gt = binarySum("gt_", True, False, False);
+
+
+Option.gt_ = binarySum_("gt_", True, False, False);
+
+
+Option.gte = binarySum("gte_", True, False, True);
+
+
+Option.gte_ = binarySum_("gte_", True, False, True);
 
 
 // Enum

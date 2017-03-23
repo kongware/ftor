@@ -6,7 +6,7 @@ const {consSet} = require("../abstract/set");
 
 const {get, has, set} = require("./object");
 
-const {add_} = require("../primitive/num"),
+const {add_} = require("../primitive/num");
 
 const array = {};
 

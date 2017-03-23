@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {A, False, K, negf, negf2, raise_, True} = require("../generic");
+const {K, raise_, True, False} = require("../generic");
 
 
 // private
@@ -85,37 +85,55 @@ Ordering.compare = ternarySum(K(LT), K(GT), K(EQ));
 Ordering.compare_ = ternarySum_(K(LT), K(GT), K(EQ));
 
 
-Ordering.lt = ternarySum(True, False, False)
+Ordering.lt = ternarySum(True, False, False);
 
 
-Ordering.lt_ = ternarySum_(True, False, False)
+Ordering.lt_ = ternarySum_(True, False, False);
 
 
-Ordering.lte = ternarySum(True, False, True)
+Ordering.lte = ternarySum(True, False, True);
 
 
-Ordering.lte_ = ternarySum_(True, False, True)
+Ordering.lte_ = ternarySum_(True, False, True);
 
 
-Ordering.gt = ternarySum(False, True, False)
+Ordering.gt = ternarySum(False, True, False);
 
 
-Ordering.gt_ = ternarySum_(False, True, False)
+Ordering.gt_ = ternarySum_(False, True, False);
 
 
-Ordering.gte = ternarySum(False, True, True)
+Ordering.gte = ternarySum(False, True, True);
 
 
-Ordering.gte_ = ternarySum_(False, True, True)
+Ordering.gte_ = ternarySum_(False, True, True);
+
+
+Ordering.min = fy => fx => {
+  const x = Ordering.fromEnum(fx),
+   y  = Ordering.fromEnum(fy);
+
+  return x < y
+   ? fx
+   : x > y
+    ? fy
+    : fx;
+}
+
+
+Ordering.max = fy => fx => {
+  const x = Ordering.fromEnum(fx),
+   y  = Ordering.fromEnum(fy);
+
+  return x < y
+   ? fy
+   : x > y
+    ? fx
+    : fx;
+}
 
 
 // Enum
-
-Ordering.pred = ({tag}) => ({
-  LT: Error,
-  EQ: LT,
-  GT: EQ
-})[tag];
 
 Ordering.pred = ({tag}) => ({
   LT: raise_(TypeError, "invalid pred invocation with LT"),
@@ -131,7 +149,7 @@ Ordering.succ = ({tag}) => ({
 })[tag];
 
 
-Ordering.fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag]);
+Ordering.fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
 
 
 Ordering.toEnum = n => [LT, EQ, GT][n];
@@ -140,10 +158,10 @@ Ordering.toEnum = n => [LT, EQ, GT][n];
 // Semigroup
 
 
-Ordering.concat = sy => ({tag}) => ({LT, EQ: sy, GT})[tag]);
+Ordering.concat = sy => ({tag}) => ({LT, EQ: sy, GT})[tag];
 
 
-Ordering.concat_ = ({tag}, sy) => ({LT, EQ: sy, GT})[tag]);
+Ordering.concat_ = ({tag}, sy) => ({LT, EQ: sy, GT})[tag];
 
 
 // Monoid

@@ -1,8 +1,8 @@
 "use strict";
 
-const {init, last} = require("./produce/array");
+const {init, last} = require("./product/array");
 
-const {LT, EQ, GT} = require("./sum/ordering");
+const {LT, EQ, GT} = require("./sum/Ordering");
 
 const generic = {};
 
@@ -296,10 +296,10 @@ generic.True = generic.K(true);
 generic.U = f => f(f);
 
 
-generic.xor_ = (x, y, default) => !x === !y ? default : x || y;
+generic.xor = _default => y => x => !x === !y ? _default : x || y;
 
 
-generic.xor = default => y => x => !x === !y ? default : x || y;
+generic.xor_ = (x, y, _default) => !x === !y ? _default : x || y;
 
 
 module.exports = generic;

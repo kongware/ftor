@@ -2,7 +2,7 @@
 
 const {A} = require("../generic");
 
-const {curry} = require("./tuple");
+const {curry} = require("./Tuple");
 
 const object = {};
 
