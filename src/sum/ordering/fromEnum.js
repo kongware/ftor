@@ -13,7 +13,7 @@
  */
 
 
-// Object -> Number
+// Ordering -> Number
 const fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
 
 

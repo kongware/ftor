@@ -11,25 +11,25 @@ const {raise_} = require("../../raise");
 
 
 /**
- * @name predecessor
+ * @name successor
  * @type function
  * @example
 
-   pred(EQ); // LT
-   pred(LT); // TypeError
+   succ(EQ); // GT
+   succ(GT); // TypeError
 
  */
 
 
 // Ordering -> Ordering -> Ordering
-const pred = ({tag}) => ({
-  LT: raise_(TypeError, "invalid pred invocation with LT"),
-  EQ: LT,
-  GT: EQ
+const succ = ({tag}) => ({
+  LT: EQ,
+  EQ: GT,
+  GT: raise_(TypeError, "invalid succ invocation with GT")
 })[tag];
 
 
 // API
 
 
-module.exports = pred;
+module.exports = succ;
