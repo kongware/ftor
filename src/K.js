@@ -17,4 +17,7 @@
 const K = x => _ => x;
 
 
+// API
+
+
 module.exports = K;

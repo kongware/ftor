@@ -39,4 +39,7 @@ const ternarySum_ = (f, g, h) => (ox, oy) => {
 };
 
 
+// API
+
+
 module.exports = {ternarySum, ternarySum_};

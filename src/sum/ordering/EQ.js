@@ -16,4 +16,7 @@ const Ordering = require("./Ordering");
 const EQ = ({type: Ordering, tag: "EQ"});
 
 
+// API
+
+
 module.exports = EQ;

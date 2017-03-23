@@ -16,4 +16,7 @@ const Ordering = require("./Ordering");
 const GT = ({type: Ordering, tag: "GT"});
 
 
+// API
+
+
 module.exports = GT;

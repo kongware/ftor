@@ -9,25 +9,25 @@ const {ternarySum_} = require("./ternarySum");
 
 
 /**
- * @name minimum
+ * @name maximum
  * @type function
  * @example
 
-   min(LT) (GT); // LT
-   min(EQ) (GT); // EQ
+   max(LT) (GT); // GT
+   max(EQ) (LT); // EQ
 
  */
 
 
 // Ordering -> Ordering -> Ordering
-const min = oy => ox => ternarySum_(K(ox), K(oy), K(ox)) (ox, oy);
+const max = oy => ox => ternarySum_(K(oy), K(ox), K(ox)) (ox, oy);
 
 
 // (Ordering, Ordering) -> Ordering
-const min_ = (ox, oy) => ternarySum_(K(ox), K(oy), K(ox)) (ox, oy);
+const max_ = (ox, oy) => ternarySum_(K(oy), K(ox), K(ox)) (ox, oy);
 
 
 // API
 
 
-module.exports = {min, min_};
+module.exports = {max, max_};
