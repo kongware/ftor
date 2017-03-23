@@ -6,8 +6,10 @@
  * @type function (primitive combinator)
  * @example
  *
- * const o = {};
- * I(o) === o; // true
+
+   const o = {};
+   I(o) === o; // true
+
  */
 
 

@@ -6,8 +6,10 @@
  * @type function (primitive combinator)
  * @example
  *
- * const True = K(true);
- * True(false); // true
+
+   const True = K(true);
+   True(false); // true
+
  */
 
 

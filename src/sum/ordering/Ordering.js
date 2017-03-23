@@ -7,7 +7,7 @@
  */
 
 
-// *
+// kind *
 const Ordering = {};
 
 
