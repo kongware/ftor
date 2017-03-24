@@ -3,7 +3,7 @@
 
 /**
  * @name applicative apply
- * @type function (primitive combinator)
+ * @type higher order function
  * @example
  *
 

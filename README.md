@@ -198,6 +198,8 @@ The typical ftor function is so atomic that its purpose is easly comprehensible.
 
 ## Todos
 
+- [ ] add type signature legend
+- [ ] add how to require
 - [ ] fold with monoids is called mconcat
 - [ ] examine natural transformations, hom functor and f-algebra
 - [ ] fold Objects without intermediate (generator i/o Object.keys(Object.values)

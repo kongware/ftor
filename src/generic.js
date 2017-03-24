@@ -7,24 +7,6 @@ const {LT, EQ, GT} = require("./sum/Ordering");
 const generic = {};
 
 
-generic.A = f => x => f(x);
-
-
-generic.A2 = f => x => y => f(x) (y);
-
-
-generic.A3 = f => x => y => z => f(x) (y) (z);
-
-
-generic.A4 = f => w => x => y => z => f(w) (x) (y) (z);
-
-
-generic.A5 = f => v => w => x => y => z => f(v) (w) (x) (y) (z);
-
-
-generic.ap = f => g => x => f(x) (g(x));
-
-
 generic.and_ = (x, y) => x && y;
 
 

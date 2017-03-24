@@ -3,7 +3,7 @@
 
 /**
  * @name identity
- * @type function (primitive combinator)
+ * @type primitive combinator
  * @example
  *
 

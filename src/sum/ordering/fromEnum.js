@@ -3,7 +3,7 @@
 
 /**
  * @name from enumeration
- * @type function
+ * @type operator function
  * @example
 
    fromEnum(LT); // 0

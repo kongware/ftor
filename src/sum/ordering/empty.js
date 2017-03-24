@@ -9,7 +9,7 @@ const EQ = require("./EQ");
 
 /**
  * @name empty
- * @type function
+ * @type constant function
  * @example
 
    empty(); // EQ

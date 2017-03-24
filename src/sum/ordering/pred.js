@@ -12,7 +12,7 @@ const {raise_} = require("../../raise");
 
 /**
  * @name predecessor
- * @type function
+ * @type operator function
  * @example
 
    pred(EQ); // LT

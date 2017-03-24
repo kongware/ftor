@@ -10,7 +10,7 @@ const {ternarySum_} = require("./ternarySum");
 
 /**
  * @name minimum
- * @type function
+ * @type operator function
  * @example
 
    min(LT) (GT); // LT

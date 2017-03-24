@@ -3,16 +3,11 @@
 
 /**
  * @name apply
- * @type function (primitive combinator)
+ * @type higher order function
  * @example
  *
 
-   A(({0: head}) => {
-     switch (head) {
-       case undefined: return 0;
-       default: return head + 1;
-     }
-   }) ([]); // 0
+   A(x => x * x) (5); // 25
 
  */
 

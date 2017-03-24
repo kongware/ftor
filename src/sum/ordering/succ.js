@@ -12,7 +12,7 @@ const {raise_} = require("../../raise");
 
 /**
  * @name successor
- * @type function
+ * @type operator function
  * @example
 
    succ(EQ); // GT

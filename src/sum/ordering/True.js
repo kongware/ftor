@@ -9,7 +9,7 @@ const K = require("../../K");
 
 /**
  * @name True
- * @type nullary constructor
+ * @type constant constructor
  * @example
 
    True(false); // true

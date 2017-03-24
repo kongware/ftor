@@ -3,7 +3,7 @@
 
 /**
  * @name catamorphism
- * @type function
+ * @type operator function
  * @example
 
    const safeInc = cata({Some: x => x + 1, None: () => 0});

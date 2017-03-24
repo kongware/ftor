@@ -11,7 +11,7 @@ const {ternarySum, ternarySum_} = require("./ternarySum");
 
 /**
  * @name lower than
- * @type function
+ * @type operator function
  * @example
 
    lt(EQ) (GT); // true

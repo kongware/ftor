@@ -9,7 +9,7 @@ const {cata} = require("./cata");
 
 /**
  * @name fold
- * @type function
+ * @type operator function
  * @example
 
    const safeInc = fold(x => x + 1) (() => 0);

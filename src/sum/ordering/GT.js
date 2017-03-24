@@ -9,7 +9,7 @@ const Ordering = require("./Ordering");
 
 /**
  * @name Greater Than
- * @type nullary constructor
+ * @type constant
  */
 
 
