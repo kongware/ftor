@@ -7,15 +7,6 @@ const {LT, EQ, GT} = require("./sum/Ordering");
 const generic = {};
 
 
-generic.and_ = (x, y) => x && y;
-
-
-generic.and = y => x => x && y;
-
-
-generic.chain = f => g => x => f(g(x)) (x);
-
-
 generic.comp = f => g => x => f(g(x));
 
 

@@ -51,20 +51,32 @@ Many people claim that this were not idiomatic Javascript. Don't believe them, b
 * respect DRY, SRP
 * and the principle of least astonishment
 
+## Terminology
+
+* composable function: A function that is partially applicable in its last argument
+* operator function: A first class function, i.e. a function without any functions arguments
+* type representative: A plain old Javascript object that contains functions (no methods) and represents a type class (e.g. Functor)
+
 ## Currying
 
-All functions are manually curried in ftor. However, operator functions, i.e. all first order functions are also provided in uncurried or composable form. Such functions are marked with a trailing underscore in their name.
-
-Composable functions are curried only in their last argument to make them partially applicable (e.g. for function composition):
+Operator Functions are offered in two variants in ftor: In curried or uncurried form:
 
 ```Javascript
-const comp = f => g => x => f(g(x)); // curried function
-const comp_ = (f, g) => x => f(g(x)); // composable function
+const add = y => x => x + y; // curried form
+const add_ = (x, y) => x + y; // uncurried form
 ```
+As you can see the arguments of the curried form are flipped, because this is the natural argument order of curried operator functions.
 
-Usually higher order functions expect curried functions as arguments. To improve performance, iterative higher order functions exceptionally expect uncurried operator functions.
+Higher order functions are offered in three variants: In curried form or in composable form that expects the passed operator function either in curried or uncurried form.
 
-ftor has broad support of the tuple type and thus can handle multi-argument functions pretty well.
+```Javascript
+const comp2 = f => g => x => y => f(g(x, y)); // curried function
+const comp2_ = (f, g, x) => y => f(g(x) (y)); // composable function that expects a curried operator function
+const comp2__ = (f, g, x) => y => f(g(x, y)); // composable function that expects an uncurried operator function
+```
+As you can see there is a strict naming convention. See more in the naming section.
+
+All variants of a function are bundled in a single module, that is, you can require only the variants you desire.
 
 ## Type representatives
 
@@ -92,6 +104,9 @@ ftor introduces the following data types:
 * Option (tagged union)
 * Ordering (tagged union)
 * Tuple (Church encoded)
+* to be continued...
+
+Church encoded means that a type is represented solely by higher order functions.
 
 ## Type classes and extended built-ins
 
@@ -106,6 +121,7 @@ The following type classes are offered:
 * Monoid
 * Ord
 * Traversable
+* to be continued...
 
 ## Tagged unions (sum types)
 
@@ -122,26 +138,26 @@ Here is an simplyfied sketch of the `Option` type:
 const Option = {};
 
 Option.cata = pattern => ({tag, x}) => pattern[tag](x);
-Option.fold = f => g => Option.cata({some: f, none: g});
+Option.fold = f => g => Option.cata({Some: f, None: g});
 
-Option.concat = type => ({tag: tagy, x: y}) => ({tag: tagx, x: x}) => tagx === "none"
- ? tagy === "none"
+Option.concat = Rep => ({tag: tagy, x: y}) => ({tag: tagx, x: x}) => tagx === "None"
+ ? tagy === "None"
   ? None()
   : Some(y)
- : tagy === "none"
+ : tagy === "None"
   ? Some(x)
-  : Some(type.concat(y) (x));
+  : Some(Rep.concat(y) (x));
 
 // constructors
 
-const Some = x => ({type: Option, tag: "some", x: x});
-const None = () => ({type: Option, tag: "none"});
+const Some = x => ({type: Option, tag: "Some", x: x});
+const None = () => ({type: Option, tag: "None"});
 
 // auxiliary functions
 
-const cata = type => type.cata;
-const concat = type => type.concat;
-const fold = type => type.fold;
+const cata = Rep => Rep.cata;
+const concat = Rep => Rep.concat;
+const fold = Rep => Rep.fold;
 const K = x => _ => x;
 
 // mock types/functions/data
@@ -172,25 +188,29 @@ concat(Option) (All) (x) (y); // {..., x: false}
 concat(Option) (Any) (x) (y); // {..., x: true}
 ```
 
-## Debugging
-
-Besides common helpers like `tap` or `trace` ftor offers a functional type checker that checks both, expected types of arguments and return values as well as the arity of procedurally applied curried functions. In order to use the type checker, just apply it to functions of imported modules. As long as your code doesn't depend on the `name` or ` length` property  of the function prototype, the type checker doesn't alter the behavior of your program. Hence you can easily remove it as soon as you finish the development stage.
-
 ## Naming Convention
 
 * use `[v, w, x, y, z]` for generic variables of any type
 * use `[vs, ws, xs, ys, zs]` for generic collections
 * use `[o, p, q, r, s]` for generic object types
 * use `[f, g, h, i, j]` for generic functions
-* use `[?x, ?y, ?z]` for values wrapped in a context, where `?` is the first letter of the type class
-* use `[Rep]` to define a type representative (type dictionary)
-* `[name_]` indicates first order functions (operator functions) in either uncurried or composable form
+* use `[t1, t2, t3]` for values wrapped in a context, where `t` may be replaced with the initial letter of the type class (e.g. `f` for `Functor` or `m` for `Monad`)
+* use `[Rep1, Rep2, Rep3]` to define a type representative (type dictionary)
+* `[name_]` indicates an operator function in uncurried form
+* `[name_]` indicates a higher order function in composable form, which applies the given operator functions procedurally with one argument per call
+* `[name__]` indicates a higher order function in composable form, which applies the given operator function(s) with a single call with multiple arguments
 * `[_name]` distinguishes either a slightly different variant of an existing function or avoids naming conflicts with reserved keywords or allows names with leading numbers
 * `[$name]` may represent a native Symbol
 
-Functional programming doesn't mean to always use generalized names like `x` or `f`. Use speaking names for specific functions/variables and generic names for generic ones. The specificity of names is a good indicator of how generalized your functions are.
+Functional programming doesn't mean to always use generalized names like `x` or `f`. Use speaking names for specific functions/variables and generic names for generic ones. However, names are a good indicator of how generalized your functions are.
 
-Please note that ftor doesn't take care of naming conflicts within the library. You have to handle that yourself.
+## How to properly require
+
+ftor strongly relies on the one function per module paradigm. However, some functions belong together semantically because, for example, they form a type class. Such functions ought to be grouped in a type representative, which also helps to avoid naming conflicts.
+
+## Debugging
+
+Besides common helpers like `tap` or `trace` ftor offers a functional type checker that checks both, expected types of arguments and return values as well as the arity of procedurally applied curried functions. In order to use the type checker, just apply it to functions of imported modules. As long as your code doesn't depend on the `name` or ` length` property  of the function prototype, the type checker doesn't alter the behavior of your program. Hence you can easily remove it as soon as you finish the development stage.
 
 ## Documentation
 
