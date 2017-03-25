@@ -4,8 +4,8 @@
 // dependencies
 
 
-const False = require("./False");
-const True = require("./True");
+const False = require("../../False");
+const True = require("../../True");
 const {ternarySum, ternarySum_} = require("./ternarySum");
 
 
