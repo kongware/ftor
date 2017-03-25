@@ -76,7 +76,7 @@ const comp2__ = (f, g, x) => y => f(g(x, y)); // composable function that expect
 ```
 As you can see there is a strict naming convention. See more in the naming section.
 
-All variants of a function are bundled in a single module, that is, you can require only the variants you desire.
+All function variants are bundled in a single module, that is, you can require only the variants you desire.
 
 ## Type representatives
 
@@ -206,7 +206,7 @@ Functional programming doesn't mean to always use generalized names like `x` or 
 
 ## How to properly require
 
-ftor strongly relies on the one function per module paradigm. However, some functions belong together semantically because, for example, they form a type class. Such functions ought to be grouped in a type representative, which also helps to avoid naming conflicts.
+ftor strongly relies on the one function per module paradigm. However, some functions belong together semantically because, for example, they form a type class. Such functions ought to be grouped in a type representative when imported, which also helps to avoid naming conflicts.
 
 ## Debugging
 
