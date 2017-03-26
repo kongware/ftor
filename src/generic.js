@@ -7,55 +7,7 @@ const {LT, EQ, GT} = require("./sum/Ordering");
 const generic = {};
 
 
-generic.comp = f => g => x => f(g(x));
-
-
-generic.comp2 = f => g => x => y => f(g(x) (y));
-
-
-generic.comp3 = f => g => x => y => z => f(g(x) (y) (z));
-
-
-generic.comp4 = f => g => w => x => y => z => f(g(w) (x) (y) (z));
-
-
-generic.comp5 = f => g => v => w => x => y => z => f(g(v) (w) (x) (y) (z));
-
-
-generic.compn = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
-
-
-generic.compn2 = (...fs) => x => generic.compn(...init(fs), last(fs) (x));
-
-
-generic.compn3 = (...fs) => x => y => generic.compn(...init(fs), last(fs) (x) (y));
-
-
-generic.compn4 = (...fs) => x => y => z => generic.compn(...init(fs), last(fs) (x) (y) (z));
-
-
-generic.compn5 = (...fs) => w => x => y => z => generic.compn(...init(fs), last(fs) (w) (x) (y) (z));
-
-
-generic.compare_ = (x, y) => x < y ? LT : y < x ? GT : EQ;
-
-
-generic.compare = y => x => x < y ? LT : y < x ? GT : EQ;
-
-
-generic.compareBy = f => x => y => f(x) (y) ? LT : f(y) (x) ? GT : EQ;
-
-
-generic.composable_ = (f, ...args) => x => f(...args, x);
-
-
-generic.composable = f => (...args) => x => f(...args, x);
-
-
 generic.evaluate = x => typeof x === "function" ? x() : x;
-
-
-generic.False = generic.K(false);
 
 
 geneirc.flip = f => y => x => f(x) (y);
@@ -261,9 +213,6 @@ generic.trace4 = tag => generic.tap4(generic.partial(log) (tag));
 
 
 generic.trace5 = tag => generic.tap5(generic.partial(log) (tag));
-
-
-generic.True = generic.K(true);
 
 
 generic.U = f => f(f);

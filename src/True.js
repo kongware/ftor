@@ -4,7 +4,7 @@
 // dependencies
 
 
-const K = require("../../K");
+const K = require("./K");
 
 
 /**
