@@ -31,7 +31,7 @@ Many people claim that this were not idiomatic Javascript. Don't believe them, b
 * generator functions
 * arrow functions to facillitate currying
 
-**Regain hope all ye who enter here.**
+Regain hope all ye who enter here.
 
 ## Criteria
 
@@ -206,7 +206,16 @@ Functional programming doesn't mean to always use generalized names like `x` or 
 
 ## How to properly require
 
-ftor strongly relies on the one function per module paradigm. However, some functions belong together semantically because, for example, they form a type class. Such functions ought to be grouped in a type representative when imported, which also helps to avoid naming conflicts.
+ftor strongly relies on the one function per module paradigm. However, some functions belong together semantically because, for example, they form a type class. Such functions ought to be grouped in a type representative when imported, which also helps to avoid naming conflicts:
+
+```Javascript
+  const _Function = {}; // type representative
+  
+  _Function.map = require(".../comp"); // _Function implements the Functor type class
+  _Function.ap = require(".../ap");
+  _Function.of = require(".../K"); // _Function implements the Applicative type class
+  _Function.chain = require(".../chain"); // _Function implements the Monad type class
+```
 
 ## Debugging
 
