@@ -7,27 +7,6 @@ const {LT, EQ, GT} = require("./sum/Ordering");
 const generic = {};
 
 
-generic.evaluate = x => typeof x === "function" ? x() : x;
-
-
-geneirc.flip = f => y => x => f(x) (y);
-
-
-generic.guard = f => pred => x => pred(x) ? f(x) : x;
-
-
-generic.guard2 = f => pred => x => y => pred(y) ? f(x) (y) : y;
-
-
-generic.guard3 = f => pred => x => y => z => pred(z) ? f(x) (y) (z) : z;
-
-
-generic.guard4 = f => pred => w => x => y => z => pred(z) ? f(w) (x) (y) (z) : z;
-
-
-generic.guard5 = f => pred => v => w => x => y => z => pred(z) ? f(v) (w) (x) (y) (z) : z;
-
-
 generic.I = x => x;
 
 

@@ -9,6 +9,7 @@
 
    const foldl = (f, acc, xs) => xs.reduce(f, acc);
    const foldl_ = composable(foldl) ((x, y) => x + y, 0);
+   
    foldl_([1, 2, 3]); // 6
 
  */
