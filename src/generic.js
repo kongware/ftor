@@ -7,9 +7,6 @@ const {LT, EQ, GT} = require("./sum/Ordering");
 const generic = {};
 
 
-generic.lift = f => g => h => x => f(g(x)) (h(x));
-
-
 generic.localeCompare_ = (x, y) => x.localeCompare(y);
 
 

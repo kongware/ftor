@@ -18,11 +18,9 @@ const ternarySum = (f, g, h) => t2 => t1 => {
   const x = fromEnum(t1),
    y  = fromEnum(t2);
 
-  return x < y
-   ? f()
-   : x > y
-    ? g()
-    : h();
+  return x < y ? f()
+   : x > y ? g()
+   : h();
 };
 
 
@@ -31,11 +29,9 @@ const ternarySum_ = (f, g, h) => (t1, t2) => {
   const x = fromEnum(t1),
    y  = fromEnum(t2);
 
-  return x < y
-   ? f()
-   : x > y
-    ? g()
-    : h();
+  return x < y ? f()
+   : x > y ? g()
+   : h();
 };
 
 

@@ -8,7 +8,7 @@
  *
 
   const repeat = x => [x, repeat(x)];
-  _repeat = lazy(repeat) (2) (); // [2, function]
+  lazy(repeat) (2) (); // [2, function]
 
  */
 
