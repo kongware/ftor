@@ -209,7 +209,7 @@ Functional programming doesn't mean to always use generalized names like `x` or 
 ftor strongly relies on the one function per module paradigm. However, some functions belong together semantically because, for example, they form a type class. Such functions ought to be grouped in a type representative when imported, which also helps to avoid naming conflicts:
 
 ```Javascript
-  const _Function = {}; // type representative
+  const _Function = {}; // "on demand" type representative
   
   _Function.map = require("./comp").comp; // _Function implements the Functor type class
   _Function.ap = require("./ap").ap;

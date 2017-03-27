@@ -7,27 +7,6 @@ const {LT, EQ, GT} = require("./sum/Ordering");
 const generic = {};
 
 
-generic.I = x => x;
-
-
-generic.isAssigned = x => x !== undefined && x !== null;
-
-
-generic.K = x => _ => x;
-
-
-generic.lazy2 = f => x => () => f(x);
-
-
-generic.lazy3 = f => x => y => () => f(x) (y);
-
-
-generic.lazy4 = f => x => y => z => () => f(x) (y) (z);
-
-
-generic.lazy5 = f => w => x => y => z => () => f(w) (x) (y) (z);
-
-
 generic.lift = f => g => h => x => f(g(x)) (h(x));
 
 
