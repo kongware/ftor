@@ -211,10 +211,17 @@ ftor strongly relies on the one function per module paradigm. However, some func
 ```Javascript
   const _Function = {}; // type representative
   
-  _Function.map = require(".../comp").comp; // _Function implements the Functor type class
-  _Function.ap = require(".../ap").ap;
-  _Function.of = require(".../K"); // _Function implements the Applicative type class
-  _Function.chain = require(".../chain").chain; // _Function implements the Monad type class
+  _Function.map = require("./comp").comp; // _Function implements the Functor type class
+  _Function.ap = require("./ap").ap;
+  _Function.of = require("./K"); // _Function implements the Applicative type class
+  _Function.chain = require("./chain").chain; // _Function implements the Monad type class
+  
+  // or with destructuring assignment
+  
+  ({map: _Function.map} = require("./comp"));
+  ({ap: _Function.ap} = require("./ap"));
+  ({of: _Function.of} = require("./K"));
+  ({chain: _Function.chain} = require("./chain"));
 ```
 
 ## Debugging
