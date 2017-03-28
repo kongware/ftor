@@ -13,15 +13,11 @@
  */
 
 
-// a -> b -> a|b
+// ?
 const U = f => f(f);
-
-
-// (a, b) -> a|b
-const and_ = (x, y) => x && y;
 
 
 // API
 
 
-module.exports = {and, and_};
+module.exports = U;
