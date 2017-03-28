@@ -9,7 +9,7 @@ const {render_} = require("./render");
 
 /**
  * @name raise
- * @type impure, variadic operator function
+ * @type impure, variadic function
  * @example
  *
 

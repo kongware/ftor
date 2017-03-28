@@ -15,7 +15,7 @@ const GT = require("./sum/ordering/GT");
  * @example
  *
 
-   
+   localeCompare_("a", "ä"); // LT
 
  */
 

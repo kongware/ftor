@@ -7,10 +7,10 @@
  * @example
  *
 
-   and({}) (1); // {}
-   and(1) ({}); // 1
-   and({}) (null); // null
-   and(null) ({}); // null
+   and_({}, 1); // 1
+   and_(1, {}); // {}
+   and_({}, null); // null
+   and_(null, {}); // null
 
  */
 
@@ -19,7 +19,7 @@
 const and = y => x => x && y;
 
 
-// (a -> b) -> a|b
+// (a, b) -> a|b
 const and_ = (x, y) => x && y;
 
 

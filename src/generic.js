@@ -7,66 +7,6 @@ const {LT, EQ, GT} = require("./sum/Ordering");
 const generic = {};
 
 
-generic.localeCompare_ = (x, y) => x.localeCompare(y);
-
-
-generic.localeCompare = y => x => x.localeCompare(y);
-
-
-generic.log_ = (...args) => console.log(...args);
-
-
-generic.log = (...args) => x => console.log(x, ...args);
-
-
-generic.negf = f => x => !f(x);
-
-
-generic.negf2 = f => x => y => !f(x) (y);
-
-
-generic.negf2_ = f => (x, y) => !f(x, y);
-
-
-generic.negf3 = f => x => y => z => !f(x) (y) (z);
-
-
-generic.negf3_ = f => (x, y, z) => !f(x, y, z);
-
-
-generic.negf4 = f => w => x => y => z => !f(w) (x) (y) (z);
-
-
-generic.negf4_ = f => (w, x, y, z) => !f(w, x, y, z);
-
-
-generic.negf5 = f => v => w => x => y => z => !f(v) (w) (x) (y) (z);
-
-
-generic.negf5_ = f => (v, w, x, y, z) => !f(v, w, x, y, z);
-
-
-generic.or_ = (x, y) => x || y;
-
-
-generic.or = y => x => x || y;
-
-
-generic.partial_ = (f, ...args) => (...args2) => f(...args, ...args2);
-
-
-generic.partial = f => (...args) => (...args2) => f(...args, ...args2);
-
-
-generic.print = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
-
-
-generic.raise_ = (cons, template) => (...args) => { throw new cons(template(...args)) };
-
-
-generic.raise = cons => template => (...args) => { throw new cons(template(...args)) };
-
-
 generic.repeat = n => f => x => {
   const next = (x, n) => n > 0 ? next(f(x), n - 1) : x;
   return next(x, n);
