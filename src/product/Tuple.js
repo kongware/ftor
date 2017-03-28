@@ -12,42 +12,6 @@ const Tuple = {};
 // constructors
 
 
-const Tuple0 = () => f => f();
-
-
-const Tuple1 = T;
-
-
-const Tuple2 = (x, y) => f => f(x, y);
-
-
-const Tuple3 = (x, y, z) => f => f(x, y, z);
-
-
-const Tuple4 = (w, x, y, z) => f => f(w, x, y, z);
-
-
-const Tuple5 = (v, w, x, y, z) => f => f(v, w, x, y, z);
-
-
-// general
-
-
-Tuple._1st = I;
-
-
-Tuple._2nd = K;
-
-
-Tuple._3rd = (x, y, z) => z;
-
-
-Tuple._4th = (w, x, y, z) => z;
-
-
-Tuple._5th = (v, w, x, y, z) => z;
-
-
 Tuple.curry = f => x => y => f(x, y);
 
 

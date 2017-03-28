@@ -3,7 +3,7 @@
 
 /**
  * @name swap arguments
- * @type operator function
+ * @type higher order function
  * @example
  *
 
