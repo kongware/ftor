@@ -13,10 +13,10 @@
 
 
 // (a, b, c, d, e) -> ((a, b, c, d, e) => f) -> f
-const Tuple4 = (v, w, x, y, z) => f => f(v, w, x, y, z);
+const Tuple5 = (v, w, x, y, z) => f => f(v, w, x, y, z);
 
 
 // API
 
 
-module.exports = Tuple4;
+module.exports = Tuple5;

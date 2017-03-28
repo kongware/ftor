@@ -8,7 +8,7 @@ const I = require("../../I");
 
 
 /**
- * @name first
+ * @name first item
  * @type operator function
  * @example
  *

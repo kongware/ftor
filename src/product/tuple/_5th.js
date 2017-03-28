@@ -2,12 +2,12 @@
 
 
 /**
- * @name fifth
+ * @name fifth item
  * @type operator function
  * @example
  *
 
-   const tuple5 = Tuple4(1, 2, 3, 4, 5);
+   const tuple5 = Tuple5(1, 2, 3, 4, 5);
    tuple5(_5th); // 5
 
  */

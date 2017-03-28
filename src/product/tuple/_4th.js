@@ -2,7 +2,7 @@
 
 
 /**
- * @name fourth
+ * @name fourth item
  * @type operator function
  * @example
  *

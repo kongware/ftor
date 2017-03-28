@@ -8,7 +8,7 @@ const K = require("../../K");
 
 
 /**
- * @name second
+ * @name second item
  * @type operator function
  * @example
  *
