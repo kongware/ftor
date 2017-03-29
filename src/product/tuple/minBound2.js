@@ -21,11 +21,11 @@ const Pair = require("./Pair");
  */
 
 
-// Bounded a, Bounded b => Object -> Object -> (a -> b -> c)
+// Bounded a, Bounded b => Object -> Object -> ((a, b) -> c)
 const minBound2 = Rep1 => Rep2 => Pair(Rep1.minBound, Rep2.minBound);
 
 
-// Bounded a, Bounded b => (Object, Object) -> (a -> b -> c)
+// Bounded a, Bounded b => (Object, Object) -> ((a, b) -> c)
 const minBound2_ = (Rep1, Rep2) => Pair(Rep1.minBound, Rep2.minBound);
 
 

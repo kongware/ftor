@@ -23,11 +23,11 @@ const Triplet = require("./Triplet");
  */
 
 
-// Bounded a, Bounded b, Bounded c => Object -> Object -> Object -> (a -> b -> c -> d)
+// Bounded a, Bounded b, Bounded c => Object -> Object -> Object -> ((a, b, c) -> d)
 const maxBound3 = Rep1 => Rep2 => Rep3 => Pair(Rep1.maxBound, Rep2.maxBound, Rep3.maxBound);
 
 
-// Bounded a, Bounded b, Bounded c => (Object, Object, Object) -> (a -> b -> c -> d)
+// Bounded a, Bounded b, Bounded c => (Object, Object, Object) -> ((a, b, c) -> d)
 const maxBound3_ = (Rep1, Rep2, Rep3) => Pair(Rep1.maxBound, Rep2.maxBound, Rep3.maxBound);
 
 

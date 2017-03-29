@@ -21,11 +21,11 @@ const Pair = require("./Pair");
  */
 
 
-// Bounded a, Bounded b => Object -> Object -> (a -> b -> c)
+// Bounded a, Bounded b => Object -> Object -> ((a, b) -> c)
 const maxBound2 = Rep1 => Rep2 => Pair(Rep1.maxBound, Rep2.maxBound);
 
 
-// Bounded a, Bounded b => (Object, Object) -> (a -> b -> c)
+// Bounded a, Bounded b => (Object, Object) -> ((a, b) -> c)
 const maxBound2_ = (Rep1, Rep2) => Pair(Rep1.maxBound, Rep2.maxBound);
 
 
