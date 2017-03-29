@@ -13,7 +13,7 @@
  */
 
 
-// ?
+// [*] -> Number
 const last = (...args) => args[args.length - 1];
 
 

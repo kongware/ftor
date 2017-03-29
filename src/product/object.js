@@ -7,18 +7,6 @@ const {curry} = require("./Tuple");
 const object = {};
 
 
-object.assign = (...os) => Object.assign({}, ...os);
-
-
-object.clone = o => Object.assign({}, o);
-
-
-object.cons = ctor => x => Reflect.construct(ctor, [x]);
-
-
-object.consn = ctor => xs => Reflect.construct(ctor, xs);
-
-
 object.contains_ = (o, x) => Object.keys(o).some(k => o[k] === x);
 
 

@@ -267,3 +267,4 @@ The typical ftor function is so atomic that its purpose is easly comprehensible.
 - [ ] introduce unzip
 - [ ] introduce Enum type
 - [ ] explore finger trees/sequences and tries
+- [ ] Tuple has not foldable
