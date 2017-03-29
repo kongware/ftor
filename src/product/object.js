@@ -7,12 +7,6 @@ const {curry} = require("./Tuple");
 const object = {};
 
 
-object.contains_ = (o, x) => Object.keys(o).some(k => o[k] === x);
-
-
-object.contains = x => o => Object.keys(o).some(k => o[k] === x);
-
-
 object.del_ = (o, k) => object.destructiveDel(k) (object.clone(o));
 
 
