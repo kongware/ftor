@@ -21,23 +21,23 @@ const Tuple = require("./Tuple");
  */
 
 
-// a -> (_, [*]) -> Function
+// a -> (_, (*)) -> ((*) -> a)
 const set1 = x => (_, ...args) => Tuple(x, ...args);
 
 
-// a -> (b, _, [*]) -> Function
+// a -> (b, _, (*)) -> ((*) -> a)
 const set2 = y => (x, _, ...args) => Tuple(x, y, ...args);
 
 
-// a -> (b, c, _, [*]) -> Function
+// a -> (b, c, _, (*)) -> ((*) -> a)
 const set3 = z => (x, y, _, ...args) => Tuple(x, y, z, ...args);
 
 
-// a -> (b, c, d, _, [*]) -> Function
+// a -> (b, c, d, _, (*)) -> ((*) -> a)
 const set4 = z => (w, x, y, _, ...args) => Tuple(w, x, y, z, ...args);
 
 
-// a -> (b, c, d, e, _, [*]) -> Function
+// a -> (b, c, d, e, _, (*)) -> ((*) -> a)
 const set5 = z => (v, w, x, y, _, ...args) => Tuple(v, w, x, y, z, ...args);
 
 

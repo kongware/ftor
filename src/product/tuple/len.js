@@ -12,7 +12,7 @@
  */
 
 
-// ?
+// (*) -> Number
 const len = (...args) => args.length;
 
 

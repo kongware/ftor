@@ -15,11 +15,11 @@
  */
 
 
-// ?
+// ((*), (*) -> a) -> (*) -> (*) -> a
 const partial = f => (...args) => (...args2) => f(...args, ...args2);
 
 
-// ?
+// (((*), (*) -> a), (*)) -> (*) -> a
 const partial_ = (f, ...args) => (...args2) => f(...args, ...args2);
 
 

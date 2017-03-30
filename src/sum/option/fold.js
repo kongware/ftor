@@ -20,11 +20,11 @@ const {cata} = require("./cata");
  */
 
 
-// Function -> Function -> Option -> a
+// ?
 const fold = f => g => cata({Some: f, None: g});
 
 
-// (Function, Function) -> Option -> a
+// ?
 const fold_ = (f, g) => cata({Some: f, None: g});
 
 

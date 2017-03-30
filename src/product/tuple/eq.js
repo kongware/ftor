@@ -1,32 +1,34 @@
 "use strict";
 
 
+// dependencies
+
+
+const len = require("./len");
+
+
 /**
- * @name curry function
+ * @name equal
  * @type higher order function
  * @example
  *
 
-   const add2 = curry((x, y) => x + y) (2);
-   add2(3); // 5
+   ?
 
  */
 
-toArray
-toTuple
-compare
-lt/lte
-gt/gte
 
-// ((a, b) -> c) -> a -> b -> c
-const curry = f => x => y => f(x, y);
+// Object -> (a -> b) -> (a -> b) -> Boolean
+const eq = Rep => t2 => t1 => t1(len) === t2(len)
+ && t1(x => t2(y => Rep.eq_(x, y)));
 
 
-// ((a, b, c) -> d) -> a -> b -> c -> d
-const curry3 = f => x => y => z => f(x, y, z);
+// Object -> Object -> ((a, b) -> c) -> ((a, b) -> c) -> Boolean
+const eq2 = Rep1 => Rep2 => t2 => t1 => t1(len) === t2(len)
+ && t1((w, x) => t2((y, z) => Rep1.eq_(w, y) && Rep2.eq_(x, z)));
 
 
 // API
 
 
-module.exports = {curry, curry3};
+module.exports = {eq, eq2};

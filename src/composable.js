@@ -15,11 +15,11 @@
  */
 
 
-// ?
+// (((*), a) -> b) -> (*) -> a -> b
 const composable = f => (...args) => x => f(...args, x);
 
 
-// ?
+// ((((*), a) -> b), (*)) -> a -> b
 const composable_ = (f, ...args) => x => f(...args, x);
 
 

@@ -18,11 +18,11 @@ const {render_} = require("./render");
  */
 
 
-// Function -> String -> [*] -> String
+// (String -> Error) -> String -> (*) -> Error
 const raise = cons => template => (...args) => { throw new cons(render_(template, ...args)) };
 
 
-// (Function -> String, [*]) -> String
+// ((String -> Error) -> String, (*)) -> Error
 const raise_ = (cons, template, ...args) => { throw new cons(render_(template, ...args)) };
 
 

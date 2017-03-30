@@ -12,7 +12,7 @@
  */
 
 
-// [Object] -> Object
+// (Object) -> Object
 const assign = (...os) => Object.assign({}, ...os);
 
 

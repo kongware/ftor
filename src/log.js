@@ -18,11 +18,11 @@ const {render_} = require("./render");
  */
 
 
-// String -> [*] -> String
+// String -> (*) -> String
 const log = template => (...args) => (console.log(render_(template, ...args)), args[args.length - 1]);
 
 
-// (String, [*]) -> String
+// (String, (*)) -> String
 const log_ = (template, ...args) => (console.log(render_(template, ...args)), args[args.length - 1]);
 
 
