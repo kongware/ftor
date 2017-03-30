@@ -78,6 +78,18 @@ As you can see there is a strict naming convention. See more in the naming secti
 
 All function variants are bundled in a single module, that is, you can require only the variants you desire.
 
+## Primitive combinators
+
+There are a couple of primitive combinators named with a single upper case letter. This naming is choosen not to obfuscate the code but because they are act like operators and just like operator syntax, you have to memorize them:
+
+* A (apply)
+* B (composition)
+* D (binary composition)
+* I (identity)
+* K (constant)
+* T (reverse application)
+* U (recursion)
+
 ## Type representatives
 
 ftor doesn't rely on the prototype system but on type represetatives, which have to be passed around explicitly. Type representative is just a fany word for a static type dictionary, i.e. a plain old Javascript `Object` with a couple of attached static methods (or rather funcions):
