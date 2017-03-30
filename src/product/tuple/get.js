@@ -13,8 +13,7 @@ const I = require("../../I");
  * @example
  *
 
-   const tuple4 = Tuple4(1, 2, 3, 4);
-   triplet(get3); // 3
+   Tuple4(1, 2, 3, 4) (get3); // 3
 
  */
 

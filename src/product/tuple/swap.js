@@ -7,8 +7,9 @@
  * @example
  *
 
-   swap((x, y) => x / y) (3, 0); // 0
-
+   Pair(2, 3) (swap((x, y) => x - y)); // 1
+   swap((x, y) => x - y) (2, 3); // 1
+   
  */
 
 

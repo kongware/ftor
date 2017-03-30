@@ -7,7 +7,7 @@
  * @example
  *
 
-   Pair(1, 2) (len); // 2
+   Triplet(1, 2, 3) (len); // 3
 
  */
 

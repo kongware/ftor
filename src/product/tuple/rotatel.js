@@ -7,7 +7,7 @@
  * @example
  *
 
-   ?
+   rotatel(1, 2, 3) (get1); // 2
 
  */
 

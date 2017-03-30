@@ -13,10 +13,10 @@ const Tuple = require("./Tuple");
  * @example
  *
 
-   const triplet = Tuple(1, 2, 3);
-   const triplet_ = triplet(set1(0));
-   triplet(x => x); // 1
-   triplet_(x => x); // 0
+   const triple = Tuple(1, 2, 3);
+   const triple_ = triple(set1(0));
+   triple(get1); // 1
+   triple_(get1); // 0
 
  */
 
