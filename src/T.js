@@ -2,7 +2,7 @@
 
 
 /**
- * @name reversed apply
+ * @name thrush combinator (reverse application)
  * @type higher order function
  * @example
  *

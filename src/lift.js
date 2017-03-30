@@ -20,7 +20,11 @@ const lift = f => g => h => x => f(g(x)) (h(x));
 const lift_ = (f, g, h) => x => f(g(x)) (h(x));
 
 
+// (((b, c) -> d), (a -> b), (a -> c)) -> a -> d
+const lift__ = (f, g, h) => x => f(g(x), h(x));
+
+
 // API
 
 
-module.exports = {lift, lift_};
+module.exports = {lift, lift_, lift__};

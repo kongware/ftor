@@ -2,8 +2,8 @@
 
 
 /**
- * @name constant
- * @type primitive combinator
+ * @name kestrel combinator (constant)
+ * @type higher order function
  * @example
  *
 

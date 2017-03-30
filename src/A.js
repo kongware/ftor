@@ -2,7 +2,7 @@
 
 
 /**
- * @name apply
+ * @name apply combinator
  * @type higher order function
  * @example
  *

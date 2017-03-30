@@ -2,8 +2,8 @@
 
 
 /**
- * @name identity
- * @type primitive combinator
+ * @name idiot combinator (identity)
+ * @type higher order function
  * @example
  *
 
