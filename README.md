@@ -80,7 +80,7 @@ All function variants are bundled in a single module, that is, you can require o
 
 ## Primitive combinators
 
-There are a couple of primitive combinators named with a single upper case letter. This naming is choosen not to obfuscate the code but because they are act like operators and just like operator syntax, you have to memorize them:
+There are a couple of primitive combinators named with a single upper case letter. This naming is choosen not to obfuscate the code but because they behave like operators and just like operator syntax, you have to memorize them:
 
 * A (apply)
 * B (composition)
