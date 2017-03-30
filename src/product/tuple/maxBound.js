@@ -31,35 +31,35 @@ const Tuple5 = require("./Tuple5");
 const maxBound = Rep => Single(Rep.maxBound);
 
 
-// Bounded a, Bounded b => Object -> Object -> ((a, b) -> c)
+// (Bounded a, Bounded b) => Object -> Object -> ((a, b) -> c)
 const maxBound2 = Rep1 => Rep2 => Pair(Rep1.maxBound, Rep2.maxBound);
 
 
-// Bounded a, Bounded b => (Object, Object) -> ((a, b) -> c)
+// (Bounded a, Bounded b) => (Object, Object) -> ((a, b) -> c)
 const maxBound2_ = (Rep1, Rep2) => Pair(Rep1.maxBound, Rep2.maxBound);
 
 
-// Bounded a, Bounded b, Bounded c => Object -> Object -> Object -> ((a, b, c) -> d)
+// (Bounded a, Bounded b, Bounded c) => Object -> Object -> Object -> ((a, b, c) -> d)
 const maxBound3 = Rep1 => Rep2 => Rep3 => Pair(Rep1.maxBound, Rep2.maxBound, Rep3.maxBound);
 
 
-// Bounded a, Bounded b, Bounded c => (Object, Object, Object) -> ((a, b, c) -> d)
+// (Bounded a, Bounded b, Bounded c) => (Object, Object, Object) -> ((a, b, c) -> d)
 const maxBound3_ = (Rep1, Rep2, Rep3) => Pair(Rep1.maxBound, Rep2.maxBound, Rep3.maxBound);
 
 
-// Bounded a, Bounded b, Bounded c, Bounded d => Object -> Object -> Object -> Object -> ((a, b, c, d) -> e)
+// (Bounded a, Bounded b, Bounded c, Bounded d) => Object -> Object -> Object -> Object -> ((a, b, c, d) -> e)
 const maxBound4 = Rep1 => Rep2 => Rep3 => Rep4 => Pair(Rep1.maxBound, Rep2.maxBound, Rep3.maxBound, Rep4.maxBound);
 
 
-// Bounded a, Bounded b, Bounded c, Bounded d => (Object, Object, Object, Object) -> ((a, b, c, d) -> e)
+// (Bounded a, Bounded b, Bounded c, Bounded d) => (Object, Object, Object, Object) -> ((a, b, c, d) -> e)
 const maxBound4_ = (Rep1, Rep2, Rep3, Rep4) => Pair(Rep1.maxBound, Rep2.maxBound, Rep3.maxBound, Rep4.maxBound);
 
 
-// Bounded a, Bounded b, Bounded c, Bounded d, Bounded e => Object -> Object -> Object -> Object -> Object -> ((a, b, c, d, e) -> f)
+// (Bounded a, Bounded b, Bounded c, Bounded d, Bounded e) => Object -> Object -> Object -> Object -> Object -> ((a, b, c, d, e) -> f)
 const maxBound5 = Rep1 => Rep2 => Rep3 => Rep4 => Rep5 => Pair(Rep1.maxBound, Rep2.maxBound, Rep3.maxBound, Rep4.maxBound, Rep5.maxBound);
 
 
-// Bounded a, Bounded b, Bounded c, Bounded d, Bounded e => (Object, Object, Object, Object, Object) -> ((a, b, c, d, e) -> f)
+// (Bounded a, Bounded b, Bounded c, Bounded d, Bounded e) => (Object, Object, Object, Object, Object) -> ((a, b, c, d, e) -> f)
 const maxBound5_ = (Rep1, Rep2, Rep3, Rep4, Rep5) => Pair(Rep1.maxBound, Rep2.maxBound, Rep3.maxBound, Rep4.maxBound, Rep5.maxBound);
 
 

@@ -202,17 +202,17 @@ concat(Option) (Any) (x) (y); // {..., x: true}
 
 ## Naming Convention
 
-* use `[v, w, x, y, z]` for generic variables of any type
-* use `[vs, ws, xs, ys, zs]` for generic collections
-* use `[o, p, q, r, s]` for generic object types
-* use `[f, g, h, i, j]` for generic functions
-* use `[t1, t2, t3]` for values wrapped in a context, where `t` may be replaced with the initial letter of the type class (e.g. `f` for `Functor` or `m` for `Monad`)
-* use `[Rep1, Rep2, Rep3]` to define a type representative (type dictionary)
-* `[name_]` indicates an operator function in uncurried form
-* `[name_]` indicates a higher order function in composable form, which applies the given operator functions procedurally with one argument per call
-* `[name__]` indicates a higher order function in composable form, which applies the given operator function(s) with a single call with multiple arguments
-* `[_name]` distinguishes either a slightly different variant of an existing function or avoids naming conflicts with reserved keywords or allows names with leading numbers
-* `[$name]` may represent a native Symbol
+* use `v, w, x, y, z` for generic variables of any type
+* use `vs, ws, xs, ys, zs` for generic collections
+* use `o, p, q, r, s` for generic object types
+* use `f, g, h, i, j` for generic functions
+* use `t1, t2, t3` for values wrapped in a context, where `t` may be replaced with the initial letter of the type class (e.g. `f` for `Functor` or `m` for `Monad`)
+* use `Rep1, Rep2, Rep3` to define a type representative (type dictionary)
+* `name_` indicates an operator function in uncurried form
+* `name_` indicates a higher order function in composable form, which applies the given operator functions procedurally with one argument per call
+* `name__` indicates a higher order function in composable form, which applies the given operator function(s) with a single call with multiple arguments
+* `_name` distinguishes either a slightly different variant of an existing function or avoids naming conflicts with reserved keywords or allows names with leading numbers
+* `$name` represents a strictly (or greedy) evaluated version of a function
 
 Functional programming doesn't mean to always use generalized names like `x` or `f`. Use speaking names for specific functions/variables and generic names for generic ones. However, names are a good indicator of how generalized your functions are.
 
