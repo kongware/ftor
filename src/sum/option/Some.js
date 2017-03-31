@@ -9,7 +9,7 @@ const Option = require("./Option");
 
 /**
  * @name Some
- * @type unary constructor
+ * @type unary value constructor
  * @example
 
    Some(5); // {type: Option, tag: "Some", x: 5}
@@ -17,7 +17,7 @@ const Option = require("./Option");
  */
 
 
-// a -> Option
+// Option t => a -> t a
 const Some = x => ({type: Option, tag: "Some", x: x});
 
 
