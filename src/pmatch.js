@@ -11,10 +11,6 @@
    const otherwise = K;
    const shortc_ = (f, y) => x => x === true && f(y);
 
-   const xs = [[1], [2], [3]],
-    ys = [1],
-    zs = {};
-
    const checkType = pmatch(
      ({length: len}) => shortc_(I, "empty array") (len === 0),
 
@@ -31,9 +27,9 @@
      otherwise("no match at all")
    );
 
-   checkType(xs); // "nested multiple element array"
-   checkType(ys); // "flat single element array"
-   checkType(zs); // "no match at all"
+   checkType([[1], [2], [3]]); // "nested multiple element array"
+   checkType([1]); // "flat single element array"
+   checkType({}); // "no match at all"
 
  */
 
