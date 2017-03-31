@@ -8,8 +8,9 @@
  *
 
    const K = x => _ => x;
+   const I = x => x;
    const otherwise = K;
-   const shortc_ = (f, y) => x => x === true && f(y);
+   const shortc_ = (f, y) => x => (x === true || null) && f(y);
 
    const checkType = pmatch(
      ({length: len}) => shortc_(I, "empty array") (len === 0),
@@ -36,16 +37,18 @@
 
 // ?
 const pmatch = (...fs) => x => {
-  let y;
+  let y = null;
 
   fs.some(f => {
     try {
       y = f(x);
-      return y !== false;
+      return y !== null;
     }
 
     catch (_) { return false }
   });
+
+  if (y === null) throw new TypeError("invalid pattern matching");
 
   return y;
 };

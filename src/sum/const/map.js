@@ -9,7 +9,7 @@ const Const = require("./Const");
 
 /**
  * @name map
- * @type operator function
+ * @type higher order function
  * @example
 
    map(x => x * x) (Const(5)); // {type: Const, x: 5}

@@ -12,12 +12,12 @@
  */
 
 
-// (a -> b) -> a -> Boolean -> b|Boolean
-const shortc = f => y => x => x === true && f(y);
+// (a -> b) -> a -> Boolean -> b|null
+const shortc = f => y => x => (x === true || null) && f(y);
 
 
-// ((a -> b), a) -> Boolean -> b|Boolean
-const shortc_ = (f, y) => x => x === true && f(y);
+// ((a -> b), a) -> Boolean -> b|null
+const shortc_ = (f, y) => x => (x === true || null) && f(y);
 
 
 // API

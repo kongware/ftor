@@ -9,7 +9,7 @@ const Ident = require("./Ident");
 
 /**
  * @name map
- * @type operator function
+ * @type higher order function
  * @example
 
    map(x => x * x) (Ident(5)); // {type: Ident, x: 25}
