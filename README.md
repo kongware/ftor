@@ -11,76 +11,63 @@ This library is experimental and still work in progress.
 
 ## Mission
 
-Functions.
+ftor's mission is to convince devs to
 
-Or more precisely pure, first class functions
-
-in curried form, which close over their environments.
-
-Such function are used to define higher order functions and primitive combinators,
-
-which are derived to combined combinators and funtion compositions of arbitrary complexity.
-
-Ultimately, this is all you need to create domain specific languages of any expressive power.
-
-Many people claim that this were not idiomatic Javascript. Don't believe them, because Javascript ships with...
-
-* closurses
-* first class functions
-* higher order functions
-* generator functions
-* arrow functions to facillitate currying
+* embrace the mighty expressiveness of pure functions
+* avoid magic and false simplicity
+* reject micro optimizations and performance as an end in itself
+* reify effects into first class values
+* model data by disjunctions instead of conjunctions
+* consider point free as a side effect of declarative programming
+* follow algebraic laws, instead of just make stuff up
 
 Regain hope all ye who enter here.
 
 ## Criteria
 
-* love functions
-* enjoy purity
-* long for TCO
-* avoid magic and false simplicity
-* reject micro optimizations
-* model your data by disjunctions
-* follow laws, not your guts
-* follow parametricity
-* encode declaratively
-* point free is an effect, not a purpose
-* reify effects
-* embrace immutability
-* do it recursively
-* respect DRY, SRP
-* and the principle of least astonishment
+The lib highly depends on:
+
+* pure first and higher order functions
+* parametric polymorphic algebraic data types
+* ad hoc polymorphism and type classes
+* currying and partial application
+* function composition and combinatorics
+* recursive iteration
+* immutable data structures
+* DRY, SRP and the principle of least astonishment
 
 ## Terminology
 
 * composable function: A function that is partially applicable in its last argument
-* operator function: A first class function, i.e. a function without any functions arguments
-* type representative: A plain old Javascript object that contains functions (no methods) and represents a type class (e.g. Functor)
+* operator function: A first order function, i.e. a function that neither expects nor returns a function
+* type representative: A plain old Javascript object that contains static methods and forms a type class (e.g. Functor)
 
 ## Currying
 
-Operator Functions are offered in two variants in ftor: In curried or uncurried form:
+Operator Functions are offered in curried and uncurried form:
 
 ```Javascript
 const add = y => x => x + y; // curried form
 const add_ = (x, y) => x + y; // uncurried form
 ```
-As you can see the arguments of the curried form are flipped, because this is the natural argument order of curried operator functions.
+As you can see the arguments of the curried form are flipped, because this is their natural argument order.
 
-Higher order functions are offered in three variants: In curried form or in composable form that expects the passed operator function either in curried or uncurried form.
+Higher order functions are offered in three variants:
+
+* in curried form
+* in composable form, where the passed function is in curried form
+* in composable form, where the passed function is in uncurried form
 
 ```Javascript
-const comp2 = f => g => x => y => f(g(x, y)); // curried function
-const comp2_ = (f, g, x) => y => f(g(x) (y)); // composable function that expects a curried operator function
-const comp2__ = (f, g, x) => y => f(g(x, y)); // composable function that expects an uncurried operator function
+const B2 = f => g => x => y => f(g(x, y)); // curried function
+const B2_ = (f, g, x) => y => f(g(x) (y)); // composable function that expects a curried operator function
+const B2__ = (f, g, x) => y => f(g(x, y)); // composable function that expects an uncurried operator function
 ```
-As you can see there is a strict naming convention. See more in the naming section.
-
-All function variants are bundled in a single module, that is, you can require only the variants you desire.
+As you can see there is a strict naming convention. See more in the naming section. All function variants are bundled in a single module, that is, you can require only the variants you desire.
 
 ## Primitive combinators
 
-There are a couple of primitive combinators named with a single upper case letter. This naming is choosen not to obfuscate the code but because they behave like operators and just like operator syntax, you have to memorize them:
+There are a couple of primitive combinators named with a single upper case letter. This naming is choosen because they behave like operators and as with operator syntax you have to memorize them:
 
 * A (apply)
 * B (composition)
@@ -90,17 +77,36 @@ There are a couple of primitive combinators named with a single upper case lette
 * T (reverse application)
 * U (recursion)
 
+## Records
+
+Javascript's `Object` data type is highly flawed:
+
+* `this` encourages devs to mix data and logic
+* getters silently return `undefined` for not existing properties
+* it can contain `null`/`undefined`
+* it is a mutable data type
+
+`Object`s are designed to be used for everything but cannot do anything right. For this reason ftor treats `Object`s as records. A record is immutable and avoids `this`, that is, it solves the first and the last issue and thus is much safer. Since we don't want to lose object literal syntax and destructuring assignment ftor's records are still plain old Javascript `Object`s - with a policy though.
+
+If you need subtyping use sum types (tagged unions). If you need modularity use ES2015 modules. Otherwise use records.
+
+## Tuples
+
+Javascripts doesn't support a tuple data type, but a tuple syntax along with multi argument functions. ftor recognizes this quirk and introduces a church encoded tuple type that represents a real tuple data type and beyond that, facilitates working with multi argument functions.
+
 ## Type representatives
 
-ftor doesn't rely on the prototype system but on type represetatives, which have to be passed around explicitly. Type representative is just a fany word for a static type dictionary, i.e. a plain old Javascript `Object` with a couple of attached static methods (or rather funcions):
+ftor doesn't rely on the prototype system but on type represetatives, which have to be passed around explicitly. Type representative is just a fany word for a static type dictionary, i.e. a plain old Javascript `Object` with a couple of static methods attached:
 
 ```Javascript
-const _Function = {
+// functor type representative of the function instance
+
+const Fun = {
   map: f => g => x => f(g(x))
 };
 ```
 
-While type representatives lead to somewhat verbose code on the calling side, they also improve its readability, since you always see the used types in place. With type representatives we are able to
+While type representatives lead to somewhat verbose code on the calling side, they also improve readability, since you can see the used types in place explicitly . With type representatives we are able to
 
 * mitigate Javascript's lack of type inference
 * extend built-ins (object and primitive types) without touching them at all
@@ -120,7 +126,7 @@ ftor introduces the following data types:
 
 Church encoded means that a type is represented solely by higher order functions.
 
-## Type classes and extended built-ins
+## Type classes
 
 The following type classes are offered:
 
@@ -134,71 +140,6 @@ The following type classes are offered:
 * Ord
 * Traversable
 * to be continued...
-
-## Tagged unions (sum types)
-
-ftor's sum types must use explicit type dicts instead of prototypes. Each choice of a sum must implement its own value constructor that enriches values with the following meta information:
-
-* type property holding a reference to the corresponding type dict
-* tag property to allow pattern matching
-
-Here is an simplyfied sketch of the `Option` type:
-
-```Javascript
-// type defintion
-
-const Option = {};
-
-Option.cata = pattern => ({tag, x}) => pattern[tag](x);
-Option.fold = f => g => Option.cata({Some: f, None: g});
-
-Option.concat = Rep => ({tag: tagy, x: y}) => ({tag: tagx, x: x}) => tagx === "None"
- ? tagy === "None"
-  ? None()
-  : Some(y)
- : tagy === "None"
-  ? Some(x)
-  : Some(Rep.concat(y) (x));
-
-// constructors
-
-const Some = x => ({type: Option, tag: "Some", x: x});
-const None = () => ({type: Option, tag: "None"});
-
-// auxiliary functions
-
-const cata = Rep => Rep.cata;
-const concat = Rep => Rep.concat;
-const fold = Rep => Rep.fold;
-const K = x => _ => x;
-
-// mock types/functions/data
-
-const All = {
-  concat: y => x => x && y
-}
-
-const Any = {
-  concat: y => x => x || y
-}
-
-const sqr = x => x * x;
-
-const v = Some(5);
-const w = None();
-
-const x = Some(true);
-const y = Some(false);
-
-
-// application
-
-fold(Option) (sqr) (K(0)) (v); // 25
-fold(Option) (sqr) (K(0)) (w); // 0
-
-concat(Option) (All) (x) (y); // {..., x: false}
-concat(Option) (Any) (x) (y); // {..., x: true}
-```
 
 ## Naming Convention
 
@@ -236,13 +177,13 @@ ftor strongly relies on the one function per module paradigm. However, some func
   ({chain: _Function.chain} = require("./chain"));
 ```
 
-## Debugging
+## Type signatures
 
-Besides common helpers like `tap` or `trace` ftor offers a functional type checker that checks both, expected types of arguments and return values as well as the arity of procedurally applied curried functions. In order to use the type checker, just apply it to functions of imported modules. As long as your code doesn't depend on the `name` or ` length` property  of the function prototype, the type checker doesn't alter the behavior of your program. Hence you can easily remove it as soon as you finish the development stage.
+To meet Javascript's dynamic type system ftor uses extended type signatures:
 
-## Documentation
-
-The typical ftor function is so atomic that its purpose is easly comprehensible. However, often its application isn't intuitive for programmer, who are accustomed to the imperative style. Hence I will provide inline application examples for each function asap.
+* `[*]` represents a list of various types (e.g. `[1, "a", true]`)
+* `(*)` represents the rest syntax `...` in argument lists (e.g. `(*) -> [*]`)
+* `|` represents a conjunction (e.g. `(a -> b) -> a -> b|null`)
 
 ## Todos
 
