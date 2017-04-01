@@ -8,7 +8,7 @@
  *
 
    const o = {name: "THX1138", friends: [{name: "LUH3417"}, {name: "SEN5241"}]}
-   getBy(() => "friends", xs => xs.length - 1, () => "name") (o); // "SEN5241"
+   getBy(K("friends"), xs => xs.length - 1, K("name")) (o); // "SEN5241"
 
  */
 
