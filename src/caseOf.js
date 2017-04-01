@@ -17,7 +17,7 @@ const caseOf = f => y => x => (x === true || null) && f(y);
 
 
 // ((a -> b), a) -> Boolean -> b|null
-const caseOf = (f, y) => x => (x === true || null) && f(y);
+const caseOf_ = (f, y) => x => (x === true || null) && f(y);
 
 
 // API

@@ -7,7 +7,7 @@
  * @example
  *
 
-   const o = {name:"THX1138", friends: [{name: "LUH3417"}, {name: "SEN5241"}]}
+   const o = {name: "THX1138", friends: [{name: "LUH3417"}, {name: "SEN5241"}]}
    getr("friends", 0, "name") (o); // "LUH3417"
 
  */
@@ -25,7 +25,7 @@ const getr = (...ks) => o => {
 };
 
 
-// (Object, String) -> a
+// (Object, (String)) -> a
 const getr_ = (o, ...ks) => {
   const aux = (o, [k, ...tail]) => {
     if (k === undefined) return o;

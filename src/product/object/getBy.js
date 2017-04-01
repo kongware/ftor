@@ -7,7 +7,7 @@
  * @example
  *
 
-   const o = {name:"THX1138", friends: [{name: "LUH3417"}, {name: "SEN5241"}]}
+   const o = {name: "THX1138", friends: [{name: "LUH3417"}, {name: "SEN5241"}]}
    getBy(() => "friends", xs => xs.length - 1, () => "name") (o); // "SEN5241"
 
  */
@@ -26,7 +26,7 @@ const getBy = (...fs) => o => {
 };
 
 
-// (Object, (Object|Array -> String)) -> a
+// (Object, ((Object|Array -> String))) -> a
 const getBy = (o, ...fs) => {
   const aux = (o, k, [f, ...tail]) => {
     if (f === undefined) return o;
