@@ -2,7 +2,7 @@
 
 
 /**
- * @name short circuit
+ * @name case of
  * @type short circuiting operator function
  * @example
  *
@@ -13,14 +13,14 @@
 
 
 // (a -> b) -> a -> Boolean -> b|null
-const shortc = f => y => x => (x === true || null) && f(y);
+const caseOf = f => y => x => (x === true || null) && f(y);
 
 
 // ((a -> b), a) -> Boolean -> b|null
-const shortc_ = (f, y) => x => (x === true || null) && f(y);
+const caseOf = (f, y) => x => (x === true || null) && f(y);
 
 
 // API
 
 
-module.exports = {shortc, shortc_};
+module.exports = {caseOf, caseOf_};

@@ -10,20 +10,20 @@
    const K = x => _ => x;
    const I = x => x;
    const otherwise = K;
-   const shortc_ = (f, y) => x => (x === true || null) && f(y);
+   const caseOf_ = (f, y) => x => (x === true || null) && f(y);
 
    const checkType = pmatch(
-     ({length: len}) => shortc_(I, "empty array") (len === 0),
+     ({length: len}) => caseOf_(I, "empty array") (len === 0),
 
-     ({length: len, "0": [x]}) => shortc_(I, "nested empty array") (len === 1 && x === undefined),
+     ({length: len, "0": [x]}) => caseOf_(I, "nested empty array") (len === 1 && x === undefined),
 
-     ({length: len, "0": [x]}) => shortc_(I, "nested single element array") (len === 1 && x !== undefined),
+     ({length: len, "0": [x]}) => caseOf_(I, "nested single element array") (len === 1 && x !== undefined),
     
-     ({length: len}) => shortc_(I, "flat single element array") (len === 1),
+     ({length: len}) => caseOf_(I, "flat single element array") (len === 1),
 
-     ([[x]]) => shortc_(I, "nested multiple element array") (x !== undefined),
+     ([[x]]) => caseOf_(I, "nested multiple element array") (x !== undefined),
 
-     ({length: len}) => shortc_(I, "flat multiple element array") (len > 1),
+     ({length: len}) => caseOf_(I, "flat multiple element array") (len > 1),
 
      otherwise("no match at all")
    );

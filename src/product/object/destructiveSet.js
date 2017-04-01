@@ -15,11 +15,11 @@
 
 
 // String -> a -> Object -> Object
-const destructiveSet = k => v => o => Object.assign(o, {k: v});
+const destructiveSet = k => v => o => (o[k] = v, o);
 
 
 // (Object, String, a) -> Object
-const destructiveSet_ = (o, k, v) => Object.assign(o, {k: v});
+const destructiveSet_ = (o, k, v) => (o[k] = v, o);
 
 
 // API

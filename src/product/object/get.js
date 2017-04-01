@@ -14,11 +14,17 @@
 
 
 // String -> Object -> a
-const get = k => o => o[k];
+const get = k => o => {
+  if (k in o) o[k];
+  throw new TypeError("invalid property");
+}
 
 
 // (Object, String) -> a
-const get_ = (o, k) => o[k];
+const get_ = (o, k) => {
+  if (k in o) o[k];
+  throw new TypeError("invalid property");
+}
 
 
 // API

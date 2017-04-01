@@ -1,13 +1,6 @@
 "use strict";
 
 
-// dependencies
-
-
-const clone = require("./clone");
-const destructiveDel = require("./destructiveDel");
-
-
 /**
  * @name delete property
  * @type operator function
@@ -22,11 +15,19 @@ const destructiveDel = require("./destructiveDel");
 
 
 // String -> Object -> Object
-const del = k => o => destructiveDel(k) (clone(o));
+const del = k => o => {
+  const p = Object.assign({}, o);
+  delete p[k];
+  return p;
+}
 
 
 // (Object, String) -> Object
-const del_ = (o, k) => destructiveDel(k) (clone(o));
+const del = (o, k) => {
+  const p = Object.assign({}, o);
+  delete p[k];
+  return p;
+}
 
 
 // API
