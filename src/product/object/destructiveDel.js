@@ -2,7 +2,7 @@
 
 
 /**
- * @name delete property destructively
+ * @name delete a property of a shallow object destructively
  * @type impure operator function
  * @example
  *

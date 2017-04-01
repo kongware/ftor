@@ -2,7 +2,7 @@
 
 
 /**
- * @name set a property
+ * @name set a property of a shallow object
  * @type operator function
  * @example
  *
