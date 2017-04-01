@@ -67,7 +67,7 @@ As you can see there is a strict naming convention. See more in the naming secti
 
 ## Primitive combinators
 
-There are a couple of primitive combinators named with a single upper case letter. This naming is choosen because they behave like operators and as with operator syntax you have to memorize them:
+There are a couple of primitive combinators named with a single upper case letter. This naming is chosen because they behave like operators and as with operator syntax you have to memorize them:
 
 * A (apply)
 * B (composition)
@@ -96,7 +96,7 @@ Javascripts doesn't support a tuple data type, but a tuple syntax along with mul
 
 ## Type representatives
 
-ftor doesn't rely on the prototype system but on type represetatives, which have to be passed around explicitly. Type representative is just a fany word for a static type dictionary, i.e. a plain old Javascript `Object` with a couple of static methods attached:
+ftor doesn't rely on the prototype system but on type representatives, which have to be passed around explicitly. Type representative is just a fancy word for a static type dictionary, i.e. a plain old Javascript `Object` with a couple of static methods attached:
 
 ```Javascript
 // functor type representative of the function instance
@@ -116,9 +116,10 @@ While type representatives lead to somewhat verbose code on the calling side, th
 
 ftor introduces the following data types:
 
-* Char (subclassed)
 * Cont (tagged union)
+* Const (?)
 * Either (tagged union)
+* Ident (?)
 * Option (tagged union)
 * Ordering (tagged union)
 * Tuple (Church encoded)
