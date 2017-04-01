@@ -15,11 +15,11 @@
 
 
 // String -> a -> Object -> Object
-const set = k => v => o => Object.assign({}, o, {k: v});
+const set = k => v => o => Object.assign({}, o, {[k]: v});
 
 
 // (Object, String, a) -> Object
-const set_ = (o, k, v) => Object.assign({}, o, {k: v});
+const set_ = (o, k, v) => Object.assign({}, o, {[k]: v});
 
 
 // API

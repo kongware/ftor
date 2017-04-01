@@ -88,7 +88,7 @@ Javascript's `Object` data type is highly flawed:
 
 `Object`s are designed to be used for everything but cannot do anything right. For this reason ftor treats `Object`s as records. A record is immutable, avoids `this` and throws a `TypeError` when accessing non-existing properties, that is, it solves most of the issues and thus is much safer. Since we don't want to lose object literal syntax and destructuring assignment ftor's records are still plain old Javascript `Object`s - with a policy though.
 
-If you need subtyping use sum types (tagged unions). If you need modularity use ES2015 modules. If you need something to iterate over, use a collection like `Array`. If you need a composite type without named fields, use tuples. Otherwise use records.
+If you need subtyping use sum types (tagged unions). If you need modularity use ES2015 modules. If you need something to iterate over, use a collection like `Array`. If you need a composite type of related data without named fields, use tuples. Otherwise use records.
 
 ## Tuples
 
