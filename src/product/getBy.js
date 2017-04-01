@@ -27,7 +27,7 @@ const getBy = (...fs) => o => {
 
 
 // (Object, ((Object|Array -> String))) -> a
-const getBy = (o, ...fs) => {
+const getBy_ = (o, ...fs) => {
   const aux = (o, k, [f, ...tail]) => {
     if (f === undefined) return o;
     k = f(o);

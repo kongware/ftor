@@ -2,7 +2,7 @@
 
 
 /**
- * @name set property
+ * @name set a property
  * @type operator function
  * @example
  *
