@@ -2,7 +2,7 @@
 
 
 /**
- * @name get property value recursively
+ * @name get nested property value recursively
  * @type operator function
  * @example
  *
@@ -19,7 +19,7 @@ const getr = (...ks) => o => {
     if (k === undefined) return o;
     if (k in o) return aux(o[k], tail);
     throw new TypeError("invalid property");
-  }
+  };
 
   return aux(o, ks);
 };
@@ -31,7 +31,7 @@ const getr_ = (o, ...ks) => {
     if (k === undefined) return o;
     if (k in o) return aux(o[k], tail);
     throw new TypeError("invalid property");
-  }
+  };
 
   return aux(o, ks);
 };

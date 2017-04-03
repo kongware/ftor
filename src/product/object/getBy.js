@@ -2,7 +2,7 @@
 
 
 /**
- * @name get property value by functions recursively
+ * @name get nested property value by functions recursively
  * @type higher order function
  * @example
  *
@@ -20,7 +20,7 @@ const getBy = (...fs) => o => {
     k = f(o);
     if (k in o) return aux(o[k], tail);
     throw new TypeError("invalid property");
-  }
+  };
 
   return aux(o, "", fs);
 };
@@ -33,7 +33,7 @@ const getBy_ = (o, ...fs) => {
     k = f(o);
     if (k in o) return aux(o[k], tail);
     throw new TypeError("invalid property");
-  }
+  };
 
   return aux(o, "", fs);
 };

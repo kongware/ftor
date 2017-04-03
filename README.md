@@ -188,7 +188,11 @@ To meet Javascript's dynamic type system ftor uses extended type signatures:
 
 ## Todos
 
-- [ ] add type signature legend
+- [ ] rename notf to notBy
+- [ ] add immutability and lenses to readme
+- [ ] add nameBy naming convetion to readme
+- [ ] provide missing code examples
+- [ ] reconsider right to left pipe hof
 - [ ] add a trace function
 - [ ] fold with monoids is called mconcat
 - [ ] examine natural transformations, hom functor and f-algebra
