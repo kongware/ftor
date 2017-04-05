@@ -1,47 +1,57 @@
 "use strict";
 
 
+// dependencies
+
+
+const init = require("./product/array/init");
+const last = require("./product/array/last");
+
+
 /**
  * @name bluebird combinator (function Bosition)
  * @type higher order function
  * @example
  *
 
-   B(x => x * x) (x => x + 1) (4); // 25
+   const inc = x => x + 1;
+   const sqr = x => x * x;
+   
+   B_(sqr, inc, inc, inc, inc) (1); // 25
 
  */
 
 
-// (b -> c) -> (a -> b) -> a -> c
-const B = f => g => x => f(g(x));
+// (Function) -> (a -> b) -> a -> ?
+const B = (...fs) => g => x => fs.reduce((acc, f) => f(acc), g(x));
 
 
-// ((b -> c), (a -> b)) -> a -> c
-const B_ = (f, g) => x => f(g(x));
+// (Function) -> a -> ?
+const B_ = (...fs) => x => fs.reduce((acc, f) => f(acc), x);
 
 
-// (c -> d) -> (a -> b -> c) -> a -> d
-const B2 = f => g => x => y => f(g(x) (y));
+// (Function) -> (a -> b -> c) -> a -> b -> ?
+const B2 = (...fs) => g => x => y => fs.reduce((acc, f) => f(acc), g(x) (y));
 
 
-// ((c -> d), (a -> b -> c)) -> a -> d
-const B2_ = (f, g, x) => y => f(g(x) (y));
+// (Function) -> a -> b -> ?
+const B2_ = (...fs) => x => B_(...init(fs), last(fs) (x));
 
 
-// ((c -> d), ((a, b) -> c)) -> a -> d
-const B2__ = (f, g, x) => y => f(g(x, y));
+// (Function) -> (a, b) -> ?
+const B2__ = (...fs) => (x, y) => B_(...init(fs)) (last(fs) (x, y));
 
 
-// (d -> e) -> (a -> b -> c -> d) -> a -> e
-const B3 = f => g => x => y => z => f(g(x) (y) (z));
+// (Function) -> (a -> b -> c -> d) -> a -> b -> c -> ?
+const B3 = (...fs) => g => x => y => z => fs.reduce((acc, f) => f(acc), g(x) (y) (z));
 
 
-// ((d -> e), (a -> b -> c -> d)) -> a -> e
-const B3_ = (f, g, x, y) => z => f(g(x) (y) (z));
+// (Function) -> a -> b -> c -> ?
+const B3_ = (...fs) => x => y => B_(...init(fs), last(fs) (x) (y));
 
 
-// ((d -> e), ((a, b, c) -> d)) -> a -> e
-const B3__ = (f, g, x, y) => z => f(g(x, y, z));
+// (Function) -> (a, b, c) -> ?
+const B3__ = (...fs) => (x, y, z) => B_(...init(fs)) (last(fs) (x, y, z));
 
 
 // API
