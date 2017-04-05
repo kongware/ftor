@@ -9,7 +9,7 @@
 
    const o = {x: 1}
    const p = set("y") (2); // {x: 1, y: 2}
-   o === p // false
+   console.assert(o !== p); // passes
 
  */
 

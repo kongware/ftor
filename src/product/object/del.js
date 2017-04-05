@@ -9,7 +9,7 @@
 
    const o = {x: 1, y: 2, z: 3}
    const p = del("y") (o); // {x: 1, z: 3}
-   o === p // false
+   console.assert(o !== p); // passes
 
  */
 

@@ -13,7 +13,7 @@ const mapBy = require("../../mapBy");
  * @example
  *
 
-   ?
+   @see ../view
 
  */
 

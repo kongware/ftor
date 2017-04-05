@@ -9,7 +9,7 @@
 
    const o = {name: "European Union", cc: "eu"};
    const p = map(x => x.toUpperCase()) ("cc") (o); // {name: "European Union", cc: "EU"};
-   o === p; // false
+   console.assert(o !== p); // passes
 
  */
 

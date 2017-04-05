@@ -17,7 +17,7 @@ ftor's mission is to convince devs to
 * avoid magic and false simplicity
 * reject micro optimizations and performance as an end in itself
 * reify effects into first class values
-* model data by disjunctions instead of conjunctions
+* model data by dis- instead of conjunctions
 * consider point free as a side effect of declarative programming
 * follow algebraic laws, instead of just make stuff up
 
@@ -76,6 +76,31 @@ There are a couple of primitive combinators named with a single upper case lette
 * K (constant)
 * T (reverse application)
 * U (recursion)
+
+## Immutability
+
+ftor opts for immutable data but doesn't enfore it with `Object.freeze` or `Object.seal`. Immutability in Javascript is just a policy and ftor provides various operations that comply with this policy.
+
+One of these operations are functional lenses:
+
+```Javascript
+  const o = {name: "Bob", addresses: [
+    {street: "99 Maple", zip: 94004, type: "home"},
+    {street: "9200 Sunset", zip: 90069, type: "work"},
+    {street: "1 Infinite Loop", zip: 95014, type: "life"},
+  ], friends: [
+    {name: "Zarah"},
+    {name: "Kalib"}
+  ]}
+
+  const _2ndStreetLens = B(key("addresses")) (B(index(1)) (key("street")));
+  const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o); // {...[...{street: "9200 SUNSET",...}...]...}
+
+  console.assert(o !== p); // passes
+  console.assert(o.friends === p.friends); // passes
+```
+
+As you can see by lenses you get immutable `Object`s for free. Since lenses only clone the necessary portions of the underlying data structure, the rest can be shared. There is no need for deep cloning but resources are used carefully.
 
 ## Records
 

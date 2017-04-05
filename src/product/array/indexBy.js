@@ -13,7 +13,16 @@ const mapBy = require("../../mapBy");
  * @example
  *
 
-   ?
+   const o = {name: "Bob", addresses: [
+     {street: "99 Maple", zip: 94004, type: "home"},
+     {street: "9200 Sunset", zip: 90069, type: "work"},
+     {street: "1 Infinite Loop", zip: 95014, type: "life"},
+   ]}
+
+   const _2ndStreetLens = B(key("addresses")) (B(indexBy(xs => xs[xs.length - 1])) (key("street")));
+   const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o); // {...[...{street: "1 INFINITE LOOP",...}...]...}
+
+   console.assert(o !== p); // passes
 
  */
 
