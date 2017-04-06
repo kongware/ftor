@@ -2,17 +2,13 @@
 
 
 /**
- * @name Ident
- * @type unary value constructor
- * @example
-
-   Ident(5); // {type: Ident, x: 5}
-
+ * @name Identity
+ * @type type constructor
  */
 
 
-// Ident t => a -> t a
-const Ident = x => ({type: Ident, x: x});
+// kind * -> *
+const Ident = {};
 
 
 // API

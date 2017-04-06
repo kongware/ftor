@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {cata} = require("./cata");
+const cata = require("./cata");
 
 
 /**
@@ -24,11 +24,7 @@ const {cata} = require("./cata");
 const fold = f => g => cata({Some: f, None: g});
 
 
-// ?
-const fold_ = (f, g) => cata({Some: f, None: g});
-
-
 // API
 
 
-module.exports = {fold, fold_};
+module.exports = fold;

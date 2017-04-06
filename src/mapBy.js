@@ -2,7 +2,7 @@
 
 
 /**
- * @name generic map by
+ * @name generic map by type
  * @type higher order function
  * @example
  *
@@ -16,11 +16,7 @@
 const mapBy = f => t => t.type.map(f) (t);
 
 
-// Functor f => (f a, (a -> b)) -> f b
-const mapBy_ = f => t => t.type.map(f) (t);
-
-
 // API
 
 
-module.exports = {mapBy, mapBy_};
+module.exports = mapBy

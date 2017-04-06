@@ -4,7 +4,7 @@
 // dependencies
 
 
-const Const = require("./Const");
+const cons = require("./cons");
 
 
 /**
@@ -12,13 +12,13 @@ const Const = require("./Const");
  * @type higher order function
  * @example
 
-   map(x => x * x) (Const(5)); // {type: Const, x: 5}
+   map(x => x * x) (cons(5)); // {type: Const, x: 5}
 
  */
 
 
 // Const t => (a -> b) -> t a -> t a
-const map = f => t => Const(t.x);
+const map = f => t => cons(t.x);
 
 
 // API

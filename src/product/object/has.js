@@ -17,11 +17,7 @@
 const has = k => o => k in o;
 
 
-// (Object, String) -> Boolean
-const has_ = (o, k) => k in o;
-
-
 // API
 
 
-module.exports = {has, has_};
+module.exports = has;

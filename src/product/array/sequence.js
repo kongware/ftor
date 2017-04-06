@@ -23,17 +23,7 @@ const sequence = stepper => x => y => {
 };
 
 
-// Ord a => ((a -> b),  a) -> a -> [a]
-const sequence_ = (stepper, x) => y => {
-  const aux = (acc, z) => z <= y
-   ? aux(acc.concat(z), stepper(z))
-   : acc;
-
-  return aux([], x);
-};
-
-
 // API
 
 
-module.exports = {sequence, sequence_};
+module.exports = sequence;

@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {render_} = require("./render");
+const render = require("./render");
 
 
 /**
@@ -19,14 +19,10 @@ const {render_} = require("./render");
 
 
 // String -> (*) -> String
-const log = template => (...args) => (console.log(render_(template, ...args)), args[args.length - 1]);
-
-
-// (String, (*)) -> String
-const log_ = (template, ...args) => (console.log(render_(template, ...args)), args[args.length - 1]);
+const log = template => (...args) => (console.log(render(template, ...args)), args[args.length - 1]);
 
 
 // API
 
 
-module.exports = {log, log_};
+module.exports = log;

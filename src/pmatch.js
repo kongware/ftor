@@ -3,27 +3,27 @@
 
 /**
  * @name pattern matching
- * @type higher order function
+ * @type short circuiting higher order function
  * @example
  *
 
    const K = x => _ => x;
    const I = x => x;
    const otherwise = K;
-   const caseOf_ = (f, y) => x => (x === true || null) && f(y);
+   const caseOf = f => x => y => (y === true || null) && f(x);
 
    const checkType = pmatch(
-     ({length: len}) => caseOf_(I, "empty array") (len === 0),
+     ({length: len}) => caseOf(I) ("empty array") (len === 0),
 
-     ({length: len, "0": [x]}) => caseOf_(I, "nested empty array") (len === 1 && x === undefined),
+     ({length: len, "0": [x]}) => caseOf(I) ("nested empty array") (len === 1 && x === undefined),
 
-     ({length: len, "0": [x]}) => caseOf_(I, "nested single element array") (len === 1 && x !== undefined),
+     ({length: len, "0": [x]}) => caseOf(I) ("nested single element array") (len === 1 && x !== undefined),
     
-     ({length: len}) => caseOf_(I, "flat single element array") (len === 1),
+     ({length: len}) => caseOf(I) ("flat single element array") (len === 1),
 
-     ([[x]]) => caseOf_(I, "nested multiple element array") (x !== undefined),
+     ([[x]]) => caseOf(I) ("nested multiple element array") (x !== undefined),
 
-     ({length: len}) => caseOf_(I, "flat multiple element array") (len > 1),
+     ({length: len}) => caseOf(I) ("flat multiple element array") (len > 1),
 
      otherwise("no match at all")
    );

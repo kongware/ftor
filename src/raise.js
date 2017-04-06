@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {render_} = require("./render");
+const render = require("./render");
 
 
 /**
@@ -19,14 +19,10 @@ const {render_} = require("./render");
 
 
 // (String -> Error) -> String -> (*) -> Error
-const raise = cons => template => (...args) => { throw new cons(render_(template, ...args)) };
-
-
-// ((String -> Error) -> String, (*)) -> Error
-const raise_ = (cons, template, ...args) => { throw new cons(render_(template, ...args)) };
+const raise = cons => template => (...args) => { throw new cons(render(template) (...args)) };
 
 
 // API
 
 
-module.exports = {raise, raise_};
+module.exports = raise;

@@ -9,98 +9,93 @@ An idiomatic, non-dogmatic lazy lib that facilitates the functional paradigm in 
 
 This library is experimental and still work in progress.
 
-## Mission
+## Principles
 
 ftor's mission is to convince devs to
 
-* embrace the mighty expressiveness of pure functions
-* avoid magic and false simplicity
-* reject micro optimizations and performance as an end in itself
-* reify effects into first class values
-* model data by dis- instead of conjunctions
-* consider point free as a side effect of declarative programming
-* follow algebraic laws, instead of just make stuff up
+* shift state into call stacks
+* make control flows explicit
+* reify effects to first class values
+* move effects to the edge of the application
+* forgo magic and false simplicity
+* turn away from micro optimizations
+* consider disjunctions to model data
+* stop fetishizing the dot operator
+* follow algebraic laws, instead of just makeing stuff up
+
+And the most important: Compose everything, always!
 
 Regain hope all ye who enter here.
 
-## Criteria
-
-The lib highly depends on:
-
-* pure first and higher order functions
-* parametric polymorphic algebraic data types
-* ad hoc polymorphism and type classes
-* currying and partial application
-* function composition and combinatorics
-* recursive iteration
-* immutable data structures
-* DRY, SRP and the principle of least astonishment
-
 ## Terminology
 
-* composable function: A function that is partially applicable in its last argument
-* operator function: A first order function, i.e. a function that neither expects nor returns a function
+* composable function: A pure function that is partially applicable in its last argument
+* operator function: A pure first order function, i.e. a function that neither expects nor returns a function type
+* action: An impure (and frequently nullary) function that performs side effects
 * type representative: A plain old Javascript object that contains static methods and forms a type class (e.g. Functor)
 
 ## Currying
 
-Operator Functions are offered in curried and uncurried form:
-
-```Javascript
-const add = y => x => x + y; // curried form
-const add_ = (x, y) => x + y; // uncurried form
-```
-As you can see the arguments of the curried form are flipped, because this is their natural argument order.
-
-Higher order functions are offered in three variants:
-
-* in curried form
-* in composable form, where the passed function is in curried form
-* in composable form, where the passed function is in uncurried form
-
-```Javascript
-const B2 = f => g => x => y => f(g(x, y)); // curried function
-const B2_ = (f, g, x) => y => f(g(x) (y)); // composable function that expects a curried operator function
-const B2__ = (f, g, x) => y => f(g(x, y)); // composable function that expects an uncurried operator function
-```
-As you can see there is a strict naming convention. See more in the naming section. All function variants are bundled in a single module, that is, you can require only the variants you desire.
+All functions in ftor are in manually curried form. Currying leads to abstraction over arity in many cases and thus facilitates function composition and combinatorics.
 
 ## Primitive combinators
 
-There are a couple of primitive combinators named with a single upper case letter. This naming is chosen because they behave like operators and as with operator syntax you have to memorize them:
+There are a couple of primitive combinators named with a single upper case letter. This naming is chosen because they behave like operators. Just memorize them and you'll soon appreciate their conciseness.
 
 * A (apply)
 * B (composition)
+* C (flip arguments)
 * D (binary composition)
 * I (identity)
 * K (constant)
+* S (applicative lift)
 * T (reverse application)
 * U (recursion)
 
 ## Immutability
 
-ftor opts for immutable data but doesn't enfore it with `Object.freeze` or `Object.seal`. Immutability in Javascript is just a policy and ftor provides various operations that comply with this policy.
+ftor opts for immutable data but doesn't enforce it with `Object.freeze` or `Object.seal`. Immutability in Javascript is just a policy and ftor provides various operations that comply with this policy.
 
 One of these operations are functional lenses:
 
 ```Javascript
-  const o = {name: "Bob", addresses: [
-    {street: "99 Maple", zip: 94004, type: "home"},
-    {street: "9200 Sunset", zip: 90069, type: "work"},
-    {street: "1 Infinite Loop", zip: 95014, type: "life"},
-  ], friends: [
-    {name: "Zarah"},
-    {name: "Kalib"}
-  ]}
+const Ident = {
+  cons: x => ({type: Ident, x: x}),
+  map: f => t => Ident.cons(f(t.x)),
+  run: t => t.x
+};
 
-  const _2ndStreetLens = B(key("addresses")) (B(index(1)) (key("street")));
-  const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o); // {...[...{street: "9200 SUNSET",...}...]...}
+const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
 
-  console.assert(o !== p); // passes
-  console.assert(o.friends === p.friends); // passes
+const mapBy = f => t => t.type.map(f) (t);
+
+const key = k => f => o => mapBy(v => Object.assign({}, o, {[k]: v})) (f(o[k]));
+
+const index = i => f => xs => mapBy(v => Object.assign([], xs, {[i]: v})) (f(xs[i]));
+
+const map = lens => f => B_(run, lens(B_(cons, f)));
+
+const o = {name: "Bob", addresses: [
+  {street: "99 Maple", zip: 94004, type: "home"},
+  {street: "77 Sunset", zip: 90069, type: "work"},
+  {street: "1 Infinite Loop", zip: 95014, type: "life"},
+], friends: [
+  {name: "Zarah"},
+  {name: "Kalib"}
+]}
+
+const _2ndStreetLens = B(key("addresses")) (B(index(1)) (key("street")));
+
+const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o);
+
+console.assert(o !== p); // passes
+console.assert(o.friends === p.friends); // passes
+
+console.log(o.addresses[1].street); // "77 Sunset"
+console.log(p.addresses[1].street); // "77 SUNSET"
 ```
 
-As you can see by lenses you get immutable `Object`s for free. Since lenses only clone the necessary portions of the underlying data structure, the rest can be shared. There is no need for deep cloning but resources are used carefully.
+Lenses treat `Object`s as immutable and they merely clone the necessary portions of the data structure while sharing the rest.
 
 ## Records
 
@@ -131,15 +126,17 @@ const Fun = {
 };
 ```
 
-While type representatives lead to somewhat verbose code on the calling side, they also improve readability, since you can see the used types in place explicitly . With type representatives we are able to
+While type representatives lead to somewhat verbose code on the calling side, they also improve readability, since you can explicitly see the used types in place. With type representatives we are able to
 
 * mitigate Javascript's lack of type inference
 * extend built-ins (object and primitive types) without touching them at all
 * define several type classes for each data type
 
+Since instances hold a reference to their type representatives we can fall back on this reference when desired (see the lens example above).
+
 ## New data types
 
-ftor introduces the following data types:
+ftor will eventually introduce the following data types:
 
 * Cont (tagged union)
 * Const (?)
@@ -154,18 +151,35 @@ Church encoded means that a type is represented solely by higher order functions
 
 ## Type classes
 
-The following type classes are offered:
+The following type classes will be offered eventually:
 
-* Applicative
+* Alternative (choose)
+* Applicative (sequence effects)
+* Bifunctor (covariant in both arguments)
 * Bounded
+* Comonad (build structures)
 * Enum
-* Eq (Semigroup)
-* Functor
-* Monad
-* Monoid
+* Setoid (equality)
+* Semigroup (concat)
+* Foldable
+* Functor (co-/contravariant)
+* Monad (sequence effects with dependencies)
+* MonadPlus (choose, monoidal monads)
+* Monoid (safe concat)
 * Ord
-* Traversable
-* to be continued...
+* Profunctor (contravariant/covaraint functors)
+* Traversable (inside-out)
+
+## Algebraic constructs
+
+ftor will examine the following algebraic constructs:
+
+* coyoneda
+* Kleisli composition
+* F-algebras
+* natural transformations
+* free monads
+* corecursion
 
 ## Naming Convention
 
@@ -175,33 +189,23 @@ The following type classes are offered:
 * use `f, g, h, i, j` for generic functions
 * use `t1, t2, t3` for values wrapped in a context, where `t` may be replaced with the initial letter of the type class (e.g. `f` for `Functor` or `m` for `Monad`)
 * use `Rep1, Rep2, Rep3` to define a type representative (type dictionary)
-* `name_` indicates an operator function in uncurried form
-* `name_` indicates a higher order function in composable form, which applies the given operator functions procedurally with one argument per call
-* `name__` indicates a higher order function in composable form, which applies the given operator function(s) with a single call with multiple arguments
-* `_name` distinguishes either a slightly different variant of an existing function or avoids naming conflicts with reserved keywords or allows names with leading numbers
+* `name_` or `_name` indicates a slightly modified variant of an existing function
 * `$name` represents a strictly (or greedy) evaluated version of a function
 
 Functional programming doesn't mean to always use generalized names like `x` or `f`. Use speaking names for specific functions/variables and generic names for generic ones. However, names are a good indicator of how generalized your functions are.
 
-## How to properly require
+## On-Demand types
 
-ftor strongly relies on the one function per module paradigm. However, some functions belong together semantically because, for example, they form a type class. Such functions ought to be grouped in a type representative when imported, which also helps to avoid naming conflicts:
+ftor strongly relies on the one function per module paradigm. However, various functions may form a type class and hence must be grouped in a type representative as demonstrated wihtin the lens example above:
 
 ```Javascript
-  const _Function = {}; // "on demand" type representative
-  
-  _Function.map = require("./comp").comp; // _Function implements the Functor type class
-  _Function.ap = require("./ap").ap;
-  _Function.of = require("./K"); // _Function implements the Applicative type class
-  _Function.chain = require("./chain").chain; // _Function implements the Monad type class
-  
-  // or with destructuring assignment
-  
-  ({map: _Function.map} = require("./comp"));
-  ({ap: _Function.ap} = require("./ap"));
-  ({of: _Function.of} = require("./K"));
-  ({chain: _Function.chain} = require("./chain"));
+const Ident = {};
+
+Ident.cons = require("../sum/ident/cons");
+Ident.map = require("../sum/ident/map");
+Ident.run = require("../sum/ident/run");
 ```
+Please note that on-demand types are experimental and I am not sure if I'll continue to pursue this approach.
 
 ## Type signatures
 
@@ -213,12 +217,11 @@ To meet Javascript's dynamic type system ftor uses extended type signatures:
 
 ## Todos
 
-- [ ] rename notf to notBy
-- [ ] add immutability and lenses to readme
+- [ ] foldMap + concatMap
+- [ ] rename impure functions as actions
 - [ ] add nameBy naming convetion to readme
+- [ ] add rest operator support for intercept
 - [ ] provide missing code examples
-- [ ] reconsider right to left pipe hof
-- [ ] add a trace function
 - [ ] fold with monoids is called mconcat
 - [ ] examine natural transformations, hom functor and f-algebra
 - [ ] fold Objects without intermediate (generator i/o Object.keys(Object.values)

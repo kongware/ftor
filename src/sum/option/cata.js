@@ -18,11 +18,7 @@
 const cata = pattern => ({tag, x}) => pattern[tag](x);
 
 
-// (Option, Object) -> a
-const cata_ = ({tag, x}, pattern) => pattern[tag](x);
-
-
 // API
 
 
-module.exports = {cata, cata_};
+module.exports = cata;

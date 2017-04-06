@@ -4,7 +4,7 @@
 // dependencies
 
 
-const Ident = require("./Ident");
+const cons = require("./cons");
 
 
 /**
@@ -12,13 +12,13 @@ const Ident = require("./Ident");
  * @type higher order function
  * @example
 
-   map(x => x * x) (Ident(5)); // {type: Ident, x: 25}
+   map(x => x * x) (cons(5)); // {type: Ident, x: 25}
 
  */
 
 
 // Ident t => (a -> b) -> t a -> t b
-const map = f => t => Ident(f(t.x));
+const map = f => t => cons(f(t.x));
 
 
 // API

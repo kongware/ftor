@@ -6,7 +6,7 @@
 
 const False = require("../../False");
 const True = require("../../True");
-const {ternarySum, ternarySum_} = require("./ternarySum");
+const ternarySum = require("./ternarySum");
 
 
 /**
@@ -25,11 +25,7 @@ const {ternarySum, ternarySum_} = require("./ternarySum");
 const gte = ternarySum(False, True, True);
 
 
-// (Ordering, Ordering) -> Boolean
-const gte = ternarySum(False, True, True);
-
-
 // API
 
 
-module.exports = {gte, gte_};
+module.exports = gte;

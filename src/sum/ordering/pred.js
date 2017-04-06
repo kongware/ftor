@@ -7,7 +7,7 @@
 const EQ = require("./EQ");
 const GT = require("./GT");
 const LT = require("./LT");
-const {raise_} = require("../../raise");
+const raise = require("../../raise");
 
 
 /**
@@ -23,7 +23,7 @@ const {raise_} = require("../../raise");
 
 // Ordering -> Ordering
 const pred = ({tag}) => ({
-  LT: raise_(TypeError, "invalid pred invocation with LT"),
+  LT: raise(TypeError) ("invalid pred invocation with LT"),
   EQ: LT,
   GT: EQ
 })[tag];

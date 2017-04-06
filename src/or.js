@@ -7,10 +7,7 @@
  * @example
  *
 
-   or_({}, 1); // {}
-   or_(1, {}); // 1
-   or_({}, null); // {}
-   or_(null, {}); // {}
+   or(false) ({}); // {}
 
  */
 
@@ -19,11 +16,7 @@
 const or = y => x => x || y;
 
 
-// (a, b) -> a|b
-const or_ = (x, y) => x || y;
-
-
 // API
 
 
-module.exports = {or, or_};
+module.exports = or;

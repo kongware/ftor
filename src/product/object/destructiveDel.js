@@ -18,11 +18,7 @@
 const destructiveDel = k => o => (delete o[k], o);
 
 
-// (Object, String) -> Object
-const destructiveDel_ = (o, k) => (delete o[k], o);
-
-
 // API
 
 
-module.exports = {destructiveDel, destructiveDel_};
+module.exports = destructiveDel;

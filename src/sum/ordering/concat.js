@@ -17,11 +17,7 @@
 const concat = t2 => ({tag}) => ({LT, EQ: t2, GT})[tag];
 
 
-// (Ordering, Ordering) -> Ordering
-const concat_ = ({tag}, t2) => ({LT, EQ: t2, GT})[tag];
-
-
 // API
 
 
-module.exports = {concat, concat_};
+module.exports = concat;

@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {A} = require("./A");
+const {A, A2, A3} = require("./A");
 
 
 /**
@@ -33,27 +33,11 @@ const _switch = A;
 const _switch2 = A2;
 
 
-// ((a -> b -> c), a) -> b -> c
-const _switch2_ = A2_;
-
-
-// (((a, b) -> c), a) -> b -> c
-const _switch2__ = A2__;
-
-
 // (a -> b -> c -> d) -> a -> b -> c -> d
 const _switch3 = A3;
-
-
-// ((a -> b -> c -> d), a, b) -> c -> d
-const _switch3_ = A3_;
-
-
-// (((a, b, c) -> d), a, b) -> c -> d
-const _switch3__ = A3__;
 
 
 // API
 
 
-module.exports = {_switch, _switch2, _switch2_, _switch2__, _switch3, _switch3_, _switch3__};
+module.exports = {_switch, _switch2, _switch3};

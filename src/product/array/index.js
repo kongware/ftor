@@ -19,7 +19,7 @@ const mapBy = require("../../mapBy");
 
 
 // Functor f => Number -> (a -> f b) -> Array -> Array
-const index = k => f => xs => mapBy(v => Object.assign([], xs, {[k]: v})) (f(xs[k]));
+const index = i => f => xs => mapBy(v => Object.assign([], xs, {[i]: v})) (f(xs[i]));
 
 
 // API

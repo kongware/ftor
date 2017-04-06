@@ -16,11 +16,7 @@
 const cond = b => y => x => b ? x : y;
 
 
-// (Boolean, a) -> a -> a
-const cond_ = (b, y) => x => b ? x : y;
-
-
 // API
 
 
-module.exports = {cond, cond_};
+module.exports = cond;

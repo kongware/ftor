@@ -7,7 +7,7 @@
 const EQ = require("./EQ");
 const GT = require("./GT");
 const LT = require("./LT");
-const {raise_} = require("../../raise");
+const raise = require("../../raise");
 
 
 /**
@@ -25,7 +25,7 @@ const {raise_} = require("../../raise");
 const succ = ({tag}) => ({
   LT: EQ,
   EQ: GT,
-  GT: raise_(TypeError, "invalid succ invocation with GT")
+  GT: raise(TypeError) ("invalid succ invocation with GT")
 })[tag];
 
 

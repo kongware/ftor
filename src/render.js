@@ -16,11 +16,7 @@
 const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
 
 
-// (String, (*)) -> String
-const render_ = (template, ...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
-
-
 // API
 
 
-module.exports = {render, render_};
+module.exports = render;

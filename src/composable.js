@@ -19,11 +19,7 @@
 const composable = f => (...args) => x => f(...args, x);
 
 
-// ((((*), a) -> b), (*)) -> a -> b
-const composable_ = (f, ...args) => x => f(...args, x);
-
-
 // API
 
 
-module.exports = {composable, composable_};
+module.exports = composable;

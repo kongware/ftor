@@ -2,7 +2,7 @@
 
 
 /**
- * @name dove combinator (binary function composition)
+ * @name dove combinator (function composition on the 2nd argument)
  * @type higher order function
  * @example
  *
@@ -16,15 +16,7 @@
 const D = f => x => g => y => f(x) (g(y));
 
 
-// (((a -> c -> d), a, (b -> c)) -> b -> d
-const D_ = (f, x, g) => y => f(x) (g(y));
-
-
-// ((((a, c) -> d), a, (b -> c)) -> b -> d
-const D__ = (f, x, g) => y => f(x, g(y));
-
-
 // API
 
 
-module.exports = {D, D_, D__};
+module.exports = D;

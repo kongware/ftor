@@ -17,11 +17,7 @@
 const contains = x => o => Object.keys(o).some(k => o[k] === x);
 
 
-// (Object, a) -> Boolean
-const contains_ = (o, a) => Object.keys(o).some(k => o[k] === x);
-
-
 // API
 
 
-module.exports = {contains, contains_};
+module.exports = contains;

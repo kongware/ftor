@@ -4,14 +4,17 @@
 // dependencies
 
 
-const B = require("../B");
+const {B_} = require("../B");
+const cons = require("../sum/ident/cons");
 const Ident = require("../sum/ident/Ident");
 const run = require("../sum/ident/run");
+
+Ident.map = require("../sum/ident/map");
 
 
 /**
  * @name map over a lens
- * @type operator function
+ * @type higher order function
  * @example
  *
 
@@ -21,7 +24,7 @@ const run = require("../sum/ident/run");
      {street: "1 Infinite Loop", zip: 95014, type: "life"},
    ]}
 
-   const _2ndStreetLens = B(key("addresses")) (B(index(1)) (key("street")));
+   const _2ndStreetLens = B_(key("addresses"), index(1), key("street"));
    const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o); // {...[...{street: "9200 SUNSET",...}...]...}
 
    console.assert(o !== p); // passes
@@ -30,7 +33,7 @@ const run = require("../sum/ident/run");
 
 
 // Functor f => (b -> f b) -> (a -> b) -> Object|Array -> Object|Array
-const map = lens => f => B(run) (lens(B(Ident) (f)));
+const map = lens => f => B_(run, lens(B_(cons, f)));
 
 
 // API

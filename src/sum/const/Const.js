@@ -2,17 +2,13 @@
 
 
 /**
- * @name Const
- * @type unary value constructor
- * @example
-
-   Const(5); // {type: Const, x: 5}
-
+ * @name Constant
+ * @type type constructor
  */
 
 
-// Const t => a -> t a
-const Const = x => ({type: Const, x: x});
+// kind * -> *
+const Const = {};
 
 
 // API

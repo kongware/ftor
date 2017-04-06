@@ -8,7 +8,7 @@ const EQ = require("./EQ");
 const GT = require("./GT");
 const K = require("../../K");
 const LT = require("./LT");
-const {ternarySum, ternarySum_} = require("./ternarySum");
+const ternarySum = require("./ternarySum");
 
 
 /**
@@ -27,11 +27,7 @@ const {ternarySum, ternarySum_} = require("./ternarySum");
 const compare = ternarySum(K(LT), K(GT), K(EQ));
 
 
-// (Ordering, Ordering) -> Ordering
-const compare_ = ternarySum_(K(LT), K(GT), K(EQ));
-
-
 // API
 
 
-module.exports = {compare, compare_};
+module.exports = compare;

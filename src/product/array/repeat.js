@@ -16,11 +16,7 @@
 const repeat = n => x => Array(n).fill(x);
 
 
-// (Number, a) -> [a]
-const repeat_ = (x, n) => Array(n).fill(x);
-
-
 // API
 
 
-module.exports = {repeat, repeat_};
+module.exports = repeat;

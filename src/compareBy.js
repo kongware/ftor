@@ -24,15 +24,7 @@ const GT = require("./sum/ordering/GT");
 const compareBy = f => x => y => f(x) (y) ? LT : f(y) (x) ? GT : EQ;
 
 
-// Ord a => ((a -> a -> Boolean), a) -> a -> Ordering
-const compareBy_ = (f, x) => y => f(x) (y) ? LT : f(y) (x) ? GT : EQ;
-
-
-// Ord a => (((a, a) -> Boolean), a) -> a -> Ordering
-const compareBy__ = (f, x) => y => f(x, y) ? LT : f(y, x) ? GT : EQ;
-
-
 // API
 
 
-module.exports = {compareBy, compareBy_, compareBy__};
+module.exports = compareBy;

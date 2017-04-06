@@ -7,10 +7,7 @@
  * @example
  *
 
-   xor_({}, 1); // 1
-   xor_(1, {}); // {}
-   xor_({}, null); // null
-   xor_(null, {}); // null
+   xor("default") ({}) (1); // "default"
 
  */
 
@@ -19,11 +16,7 @@
 const xor = _default => y => x => !x === !y ? _default : x || y;
 
 
-// (a, b, c) -> a|b|c
-const xor_ = (x, y, _default) => !x === !y ? _default : x || y;
-
-
 // API
 
 
-module.exports = {xor, xor_};
+module.exports = xor;

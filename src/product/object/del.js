@@ -22,15 +22,7 @@ const del = k => o => {
 }
 
 
-// (Object, String) -> Object
-const del = (o, k) => {
-  const p = Object.assign({}, o);
-  delete p[k];
-  return p;
-}
-
-
 // API
 
 
-module.exports = {del, del_};
+module.exports = del;

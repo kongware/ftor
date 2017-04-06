@@ -3,7 +3,7 @@
 
 /**
  * @name case of
- * @type short circuiting operator function
+ * @type short circuiting higher order function
  * @example
  *
 
@@ -13,14 +13,10 @@
 
 
 // (a -> b) -> a -> Boolean -> b|null
-const caseOf = f => y => x => (x === true || null) && f(y);
-
-
-// ((a -> b), a) -> Boolean -> b|null
-const caseOf_ = (f, y) => x => (x === true || null) && f(y);
+const caseOf = f => x => y => (y === true || null) && f(x);
 
 
 // API
 
 
-module.exports = {caseOf, caseOf_};
+module.exports = caseOf;

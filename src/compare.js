@@ -26,11 +26,7 @@ const GT = require("./sum/ordering/GT");
 const compare = y => x => x < y ? LT : y < x ? GT : EQ;
 
 
-// Ord a => (a, a) -> Ordering
-const compare_ = (x, y) => x < y ? LT : y < x ? GT : EQ;
-
-
 // API
 
 
-module.exports = {compare, compare_};
+module.exports = compare;

@@ -15,7 +15,7 @@ const GT = require("./sum/ordering/GT");
  * @example
  *
 
-   localeCompare_("a", "ä"); // LT
+   localeCompare("ä") ("a"); // LT
 
  */
 
@@ -27,11 +27,7 @@ const map = {"-1": LT, 0: EQ, 1: GT};
 const localeCompare = y => x => map[x.localeCompare(y)];
 
 
-// (a, a) -> Ordering
-const localeCompare_ = (x, y) => map[x.localeCompare(y)];
-
-
 // API
 
 
-module.exports = {localeCompare, localeCompare_};
+module.exports = localeCompare;

@@ -18,11 +18,7 @@
 const destructiveSet = k => v => o => (o[k] = v, o);
 
 
-// (Object, String, a) -> Object
-const destructiveSet_ = (o, k, v) => (o[k] = v, o);
-
-
 // API
 
 
-module.exports = {destructiveSet, destructiveSet_};
+module.exports = destructiveSet;

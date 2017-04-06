@@ -20,14 +20,7 @@ const get = k => o => {
 };
 
 
-// (Object, String) -> a
-const get_ = (o, k) => {
-  if (k in o) return o[k];
-  throw new TypeError("invalid property");
-};
-
-
 // API
 
 
-module.exports = {get, get_};
+module.exports = get;

@@ -17,11 +17,7 @@
 const getk = v => o => Object.keys(o).find(k => o[k] === v);
 
 
-// (Object, a) -> String
-const getk_ = (o, v) => Object.keys(o).find(k => o[k] === v);
-
-
 // API
 
 
-module.exports = {getk, getk_};
+module.exports = getk;
