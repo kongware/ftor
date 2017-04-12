@@ -116,22 +116,25 @@ Javascripts doesn't support tuples, since `Array`s may contain various types (e.
 
 ```Javascript
 const Pair = (x, y) => f => f(x, y);
+const bimap = f => g => t => t((x, y) => Pair(f(x), g(y)));
 const get1 = (x, _) => x;
 const get2 = (_, x) => x;
-const set1 = x => (_, ...args) => Tuple(x, ...args);
-const sub = y => x => x - y;
 const toArray = (...args) => args
 const Tuple = (...args) => f => f(...args);
 const uncurryOp = f => (y, x) => f(x) (y);
 
-const pair = Pair(2, 3);
+const dbl = x => x + x;
+const inc = x => x + 1;
+const sub = y => x => x - y;
 
-pair(get1); // 2
-pair(get2); // 3
+const pair = Pair(1, "a");
 
-pair(uncurryOp(sub)); // -1
+pair(get1); // 1
+pair(get2); // "a"
 
-toArray(set1(0) (pair)); [0, 3]
+Pair(2, 3) (uncurryOp(sub)); // -1
+
+toArray(bimap(inc) (dbl) (pair)); [2, "aa"]
 ```
 Generally, I encourage the reader to use tuples rather than collections, if a composite type of related data with different types is required.
 
