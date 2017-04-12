@@ -176,6 +176,7 @@ The following type classes will be offered eventually:
 
 * Alternative (choose)
 * Applicative (sequence effects)
+* Arrow (function abstraction)
 * Bifunctor (covariant in both arguments)
 * Bounded
 * Comonad (build structures)
@@ -195,12 +196,12 @@ The following type classes will be offered eventually:
 
 ftor will examine the following algebraic constructs:
 
-* coyoneda
-* Kleisli composition
+* Kleisli arrow composition
+* corecursion
 * F-algebras
 * natural transformations
-* free monads
-* corecursion
+* (co-)yoneda
+* free applicatives/monads
 
 ## Naming Convention
 
