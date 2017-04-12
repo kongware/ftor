@@ -3,16 +3,15 @@
 
 /**
  * @name Tuple from Array
- * @type operator function
+ * @type higher order function
  * @example
- *
 
    fromArray([1, 2]) ((x, y) => x + y); // 3
 
  */
 
 // [*] -> ((*) -> b) -> b
-const fromArray = [args] => f => f(...args);
+const fromArray = args => f => f(...args);
 
 
 // API

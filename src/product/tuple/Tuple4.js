@@ -3,11 +3,10 @@
 
 /**
  * @name 4-tuple
- * @type quaternary constructor
+ * @type data constructor
  * @example
- *
 
-   Tuple4(1, 2, 3, 4) ((_, _, _, z) => z); // 4
+   Tuple4(1, 2, 3, 4) (last); // 4
  
  */
 

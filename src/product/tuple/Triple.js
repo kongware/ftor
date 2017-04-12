@@ -3,13 +3,12 @@
 
 /**
  * @name triple tuple
- * @type ternary constructor
+ * @type data constructor
  * @example
- *
 
-   Triple(1, 2, 3) ((x, _, _) => x); // 1
-   Triple(1, 2, 3) ((_, y, _) => x); // 2
-   Triple(1, 2, 3) ((_, _, z) => x); // 3
+   Triple(1, 2, 3) (_1st); // 1
+   Triple(1, 2, 3) (_2nd); // 2
+   Triple(1, 2, 3) (_3rd); // 3
 
  */
 

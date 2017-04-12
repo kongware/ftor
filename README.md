@@ -112,7 +112,27 @@ If you need subtyping use sum types (tagged unions). If you need modularity use 
 
 ## Tuples
 
-Javascripts doesn't support a tuple data type, but a tuple syntax along with multi argument functions. ftor recognizes this quirk and introduces a church encoded tuple type that represents a real tuple data type and beyond that, facilitates working with multi argument functions.
+Javascripts doesn't support tuples, since it supports `Array`s that contain various types. However, Javascript supports a tuple like syntax to enable multi argument functions. ftor acknowledges this quirk and introduces a church encoded tuple type that acts something like a tuple and in addition provides operations to facilitate working with multi argument functions. Usually ftor operates with curried functions, thus such multi argument operations come in handy:
+
+```Javascript
+const Pair = (x, y) => f => f(x, y);
+const get1 = (x, _) => x;
+const get2 = (_, x) => x;
+const set1 = x => (_, ...args) => Tuple(x, ...args);
+const sub = y => x => x - y;
+const toArray = (...args) => args
+const Tuple = (...args) => f => f(...args);
+const uncurryOp = f => (y, x) => f(x) (y);
+
+const pair = Pair(2, 3);
+
+pair(get1); // 2
+pair(get2); // 3
+
+pair(uncurryOp(sub)); // -1
+
+toArray(set1(0) (pair)); [0, 3]
+```
 
 ## Type representatives
 

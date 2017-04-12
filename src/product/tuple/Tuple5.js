@@ -3,11 +3,10 @@
 
 /**
  * @name 5-tuple
- * @type quinary constructor
+ * @type data constructor
  * @example
- *
 
-   Tuple4(1, 2, 3, 4, 5) ((_, _, _, _, z) => z); // 5
+   Tuple4(1, 2, 3, 4, 5) (last); // 5
  
  */
 

@@ -5,10 +5,9 @@
  * @name swap arguments
  * @type higher order function
  * @example
- *
 
-   Pair(2, 3) (swap((x, y) => x - y)); // 1
-   swap((x, y) => x - y) (2, 3); // 1
+   const pair = Pair(2, 3);
+   toArray(swap(pair)); // [3, 2]
    
  */
 

@@ -3,11 +3,10 @@
 
 /**
  * @name rotate right
- * @type operator function
+ * @type higher order function
  * @example
- *
 
-   rotater(1, 2, 3) (get1); // 3
+   rotater(1, 2, 3) (_1st); // 3
 
  */
 

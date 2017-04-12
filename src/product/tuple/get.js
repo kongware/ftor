@@ -8,33 +8,32 @@ const I = require("../../I");
 
 
 /**
- * @name get first item
+ * @name get element
  * @type operator function
  * @example
- *
 
-   Tuple4(1, 2, 3, 4) (get3); // 3
+   Triple(1, 2, 3) (get3); // 3
 
  */
 
 
-// (a, b) -> ((a, _) => a) -> a
+// (a, _) => a
 const get1 = I;
 
 
-// (a, b) -> ((_, b) => b) -> b
-const get2 = (_, y) => y;
+// (_, a) => a
+const get2 = (_, x) => x;
 
 
-// (a, b, c) -> ((_, _, c) => c) -> c
+// (_, _, a) -> a
 const get3 = (_, _, z) => z;
 
 
-// (a, b, c, d) -> ((_, _, _, d) => d) -> d
+// (_, _, _, a) -> a
 const get4 = (_, _, _, z) => z;
 
 
-// (a, b, c, d, e) -> ((_, _, _, _, e) => e) -> e
+// (_, _, _, _, a) -> a
 const get5 = (_, _, _, _, z) => z;
 
 

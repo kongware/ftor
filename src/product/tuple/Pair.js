@@ -3,12 +3,11 @@
 
 /**
  * @name pair tuple
- * @type binary constructor
+ * @type data constructor
  * @example
- *
 
-   Pair(1, 2) ((x, _) => x); // 1
-   Pair(1, 2) ((_, y) => y); // 2
+   Pair(1, 2) (_1st); // 1
+   Pair(1, 2) (_2nd); // 2
 
  */
 

@@ -3,7 +3,7 @@
 
 /**
  * @name unit tuple
- * @type constant constructor
+ * @type nullary data constructor
  * @example
  *
 

@@ -2,10 +2,9 @@
 
 
 /**
- * @name bluebird combinator (function Bosition)
+ * @name bluebird combinator (function composition)
  * @type higher order function
  * @example
- *
 
    const inc = x => x + 1;
    const sqr = x => x * x;
