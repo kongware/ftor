@@ -8,12 +8,12 @@ const Tuple = require("./Tuple");
 
 
 /**
- * @name set nth item
+ * @name set nth element
  * @type operator function
  * @example
 
    const triple = Tuple(1, 2, 3);
-   toArray(triple(set1(0)); // [0, 2, 3]
+   toArray(triple(set1(0))); // [0, 2, 3]
 
  */
 

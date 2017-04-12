@@ -239,6 +239,9 @@ To meet Javascript's dynamic type system ftor uses extended type signatures:
 
 ## Todos
 
+- [ ] add Monoid to tuples
+- [ ] add Ord/Eq/Enum to built-in types
+- [ ] replace monomophic tuple examples to polymorphic ones
 - [ ] foldMap + concatMap
 - [ ] rename impure functions as actions
 - [ ] add nameBy naming convetion to readme
