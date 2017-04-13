@@ -4,11 +4,7 @@
 // dependencies
 
 
-const Single = require("./Single");
-const Pair = require("./Pair");
-const Triple = require("./Triple");
-const Tuple4 = require("./Tuple4");
-const Tuple5 = require("./Tuple5");
+const Tuple = require("./Tuple");
 
 
 /**
@@ -22,23 +18,23 @@ const Tuple5 = require("./Tuple5");
 
 
 // Bounded a => Object -> (a -> b)
-const minBound = Rep => Single(Rep.minBound);
+const minBound = Rep => Tuple(Rep.minBound);
 
 
 // Bounded a, Bounded b => (Object, Object) -> ((a, b) -> c)
-const minBound2 = (Rep1, Rep2) => Pair(Rep1.minBound, Rep2.minBound);
+const minBound2 = (Rep1, Rep2) => Tuple(Rep1.minBound, Rep2.minBound);
 
 
 // Bounded a, Bounded b, Bounded c => (Object, Object, Object) -> ((a, b, c) -> d)
-const minBound3 = (Rep1, Rep2, Rep3) => Triple(Rep1.minBound, Rep2.minBound, Rep3.minBound);
+const minBound3 = (Rep1, Rep2, Rep3) => Tuple(Rep1.minBound, Rep2.minBound, Rep3.minBound);
 
 
 // Bounded a, Bounded b, Bounded c, Bounded d => (Object, Object, Object, Object) -> ((a, b, c, d) -> e)
-const minBound4 = (Rep1, Rep2, Rep3, Rep4) => Tuple4(Rep1.minBound, Rep2.minBound, Rep3.minBound, Rep4.minBound);
+const minBound4 = (Rep1, Rep2, Rep3, Rep4) => Tuple(Rep1.minBound, Rep2.minBound, Rep3.minBound, Rep4.minBound);
 
 
 // Bounded a, Bounded b, Bounded c, Bounded d, Bounded e => (Object, Object, Object, Object, Object) -> ((a, b, c, d, e) -> f)
-const minBound5 = (Rep1, Rep2, Rep3, Rep4, Rep5) => Tuple5(Rep1.minBound, Rep2.minBound, Rep3.minBound, Rep4.minBound, Rep5.minBound);
+const minBound5 = (Rep1, Rep2, Rep3, Rep4, Rep5) => Tuple(Rep1.minBound, Rep2.minBound, Rep3.minBound, Rep4.minBound, Rep5.minBound);
 
 
 // API

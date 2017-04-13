@@ -135,7 +135,7 @@ pair(get2); // "a"
 Pair(2, 3) (uncurryOp(sub)); // -1
 
 toArray(bimap(inc) (dbl) (pair)); [2, "aa"]
-```
+``` 
 Generally, I encourage the reader to use tuples rather than collections, if a composite type of related data with different types is required.
 
 ## Type representatives
@@ -149,7 +149,6 @@ const Fun = {
   map: f => g => x => f(g(x))
 };
 ```
-
 While type representatives lead to somewhat verbose code on the calling side, they also improve readability, since you can explicitly see the used types in place. With type representatives we are able to
 
 * mitigate Javascript's lack of type inference
@@ -246,6 +245,7 @@ To meet Javascript's dynamic type system ftor uses extended type signatures:
 - [ ] add Ord/Eq/Enum to built-in types
 - [ ] replace monomophic tuple examples to polymorphic ones
 - [ ] foldMap + concatMap
+- [ ] introduce church encoded value objects
 - [ ] rename impure functions as actions
 - [ ] add nameBy naming convetion to readme
 - [ ] add rest operator support for intercept
@@ -277,7 +277,6 @@ To meet Javascript's dynamic type system ftor uses extended type signatures:
 - [ ] traverse unknown object (tree)
 - [ ] object left/right difference + intersection
 - [ ] examine bimap
-- [ ] examine functional value object
 - [ ] introduce unzip
 - [ ] introduce Enum type
 - [ ] explore finger trees/sequences and tries
