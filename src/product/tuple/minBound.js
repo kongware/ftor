@@ -8,11 +8,14 @@ const Tuple = require("./Tuple");
 
 
 /**
- * @name mininmal bounded Single
+ * @name mininmal bounded
  * @type operator function
  * @example
 
-   ?
+   const Num = { minBound: -Infinity }
+   const Chr = { minBound: "\u{0}" }
+
+   minBound2(Num, Chr); // Pair(-Infinity, "\u{0}")
 
  */
 
