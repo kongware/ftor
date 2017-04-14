@@ -2,10 +2,9 @@
 
 
 /**
- * @name uncurry binary operator function
+ * @name uncurry operator function
  * @type higher order function
  * @example
- *
 
    uncurryOp(y => x => x - y) (3, 2); // 1
 
@@ -16,7 +15,11 @@
 const uncurryOp = f => (y, x) => f(x) (y);
 
 
+// (a -> b -> c -> d) -> (c, a, b) -> d
+const uncurryOp3 = f => (z, x, y) => f(x) (y) (z);
+
+
 // API
 
 
-module.exports = uncurryOp;
+module.exports = {uncurryOp, uncurryOp3};

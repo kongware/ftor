@@ -32,7 +32,7 @@ Regain hope all ye who enter here.
 * composable function: A pure function that is partially applicable in its last argument
 * operator function: A pure first order function, i.e. a function that neither expects nor returns a function type
 * action: An impure (and frequently nullary) function that performs side effects
-* type representative: A plain old Javascript object that contains static methods and forms a type class (e.g. Functor)
+* type representative (type rep): A plain old Javascript object that contains static methods and forms a type class (e.g. Functor)
 
 ## Currying
 
@@ -112,31 +112,69 @@ If you need subtyping use sum types (tagged unions). If you need modularity use 
 
 ## Tuples
 
-Javascripts doesn't support tuples, since `Array`s may contain various types (e.g. `[1, "a", true]`. However, Javascript supports a tuple like syntax to enable multi argument functions. ftor acknowledges this quirk and introduces a church encoded tuple type that acts something like a tuple and in addition provides operations to facilitate working with multi argument functions. Usually ftor operates with curried functions, thus such multi argument operations come in handy:
+Javascripts doesn't support tuples, because `Array`s may contain various types (e.g. `[1, "a", true]`. However, Javascript supports a tuple like syntax to allow multi argument functions. ftor acknowledges this situation by introducing a church encoded tuple type, i.e. a type with higher order functions as interface:
 
 ```Javascript
 const Pair = (x, y) => f => f(x, y);
-const bimap = f => g => t => t((x, y) => Pair(f(x), g(y)));
 const get1 = (x, _) => x;
 const get2 = (_, x) => x;
+const bimap = f => g => t => t((x, y) => Pair(f(x), g(y)));
 const toArray = (...args) => args
-const Tuple = (...args) => f => f(...args);
-const uncurryOp = f => (y, x) => f(x) (y);
 
 const dbl = x => x + x;
 const inc = x => x + 1;
-const sub = y => x => x - y;
 
 const pair = Pair(1, "a");
 
 pair(get1); // 1
 pair(get2); // "a"
 
-Pair(2, 3) (uncurryOp(sub)); // -1
-
-toArray(bimap(inc) (dbl) (pair)); [2, "aa"]
+toArray(bimap(inc) (dbl) (pair)); // [2, "aa"]
 ``` 
-Generally, I encourage the reader to use tuples rather than collections, if a composite type of related data with different types is required.
+Genrally, tuples should be selected if a composite type of related data with different types is required.
+
+Tuples implement the following type classes for their elements:
+
+* Bounded
+* Ord
+* Setoid
+* Monoid
+
+```Javascript
+const Pair = (x, y) => f => f(x, y);
+
+const compare2 = (Rep1, Rep2) => t2 => t1 => t1((w, x) => t2((y, z) => {
+  switch (Rep1.compare(y) (w).tag) {
+    case "LT": return LT;
+    case "GT": return GT;
+    case "EQ": {
+      switch (Rep2.compare(z) (x).tag) {
+        case "LT": return LT;
+        case "GT": return GT;
+        case "EQ": return EQ;
+      }
+    }
+  }
+}));
+
+const max2 = (Rep1, Rep2) => t2 => t1 => {
+  switch (compare2(Rep1, Rep2) (t2) (t1).tag) {
+    case "LT": return t2;
+    default: return t1;
+  }
+};
+
+const pair1 = Pair(2, "a");
+const pair2 = Pair(2, "b");
+const pair3 = Pair(1, "b");
+
+const Num = { compare: y => x => x < y ? LT : y < x ? GT : EQ } // type rep
+const Str = { compare: y => x => x < y ? LT : y < x ? GT : EQ } // type rep
+
+max2(Num, Str) (pair2) (pair1); // pair2
+max2(Num, Str) (pair3) (pair1); // pair1
+``` 
+Please note that tuples themselves are not Monoids but the elements they contain may be. Tuples don't implement the enumerable, foldable and mappable (functor) type class intenionally. If you need such behavior please fall back to collections like `Array`s.
 
 ## Type representatives
 
@@ -241,8 +279,10 @@ To meet Javascript's dynamic type system ftor uses extended type signatures:
 
 ## Todos
 
-- [ ] add Monoid to tuples
+- [ ] add type rep dependencies to inline doc
 - [ ] add Ord/Eq/Enum to built-in types
+- [ ] add swap/rotate to tuples
+- [ ] add zip/unzip to tuples
 - [ ] replace monomophic tuple examples to polymorphic ones
 - [ ] foldMap + concatMap
 - [ ] introduce church encoded value objects
