@@ -9,16 +9,22 @@ const Tuple = require("./Tuple");
 
 /**
  * @name concat
- * @type operator function
+ * @type higher order function
+ * @class Semigroup
  * @example
+
+   const Tuple = (...args) => f => f(...args);
+   const Pair = (x, y) => f => f(x, y);
+   const toArray = (...args) => args;
+   const concat2 = (Rep1, Rep2) => t2 => t1 => t1((w, x) => t2((y, z) => Tuple(Rep1.concat(y) (w), Rep2.concat(z) (x))));
 
    const pair1 = Pair(1, "a");
    const pair2 = Pair(2, "b");
 
-   const Num = { concat: y => x => x + y }
-   const Str = { concat: y => x => x + y }
+   const Num = {concat: y => x => x + y}
+   const Str = {concat: y => x => x + y}
 
-   concat2(Num, Str) (pair2) (pair1); // Pair(3, "ab")
+   concat2(Num, Str) (pair2) (pair1) (toArray); // [3, "ab"]
 
  */
 
@@ -28,7 +34,7 @@ const concat = Rep => t2 => t1 => t1(x => t2(y => Tuple(Rep.concat(y) (x))));
 
 
 // (Semigroup a, Semigroup b) => (Object, Object) -> ((a, b) -> c) -> ((a, b) -> c) -> ((a, b) -> c)
-const concat2 = (Rep1, Rep2) => t2 => t1 => t1((w, x) => t2((y, z) => Tuple(Rep1.concat(y) (w), Rep2.concat(x) (z))));
+const concat2 = (Rep1, Rep2) => t2 => t1 => t1((w, x) => t2((y, z) => Tuple(Rep1.concat(y) (w), Rep2.concat(z) (x))));
 
 
 // (Semigroup a, Semigroup b, Semigroup c) => (Object, Object, Object) -> ((a, b, c) -> d) -> ((a, b, c) -> d) -> ((a, b, c) -> d)

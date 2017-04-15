@@ -6,7 +6,7 @@
  * @type variadic data constructor
  * @example
 
-   Tuple(1, 2, 3) (len); // 3
+   @see Pair
  
  */
 

@@ -12,9 +12,8 @@ const Triple = require("./Triple");
  * @type higher order function
  * @example
 
-   const triple = Triple(1, "a", false);
-   trimap(x => x + 1) (x => "" + x + x) (x => x || true) (triple) (toArray); // [2, "aa", true]
-
+   @see bimap
+   
  */
 
 

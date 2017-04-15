@@ -6,7 +6,10 @@
  * @type operator function
  * @example
 
-   Triplet(1, 2, 3) (len); // 3
+   const Triple = (x, y, z) => f => f(x, y, z);
+   const len = (...args) => args.length;
+
+   Triple(1, 2, 3) (len); // 3
 
  */
 

@@ -6,8 +6,15 @@
  * @type data constructor
  * @example
 
-   Pair(1, 2) (_1st); // 1
-   Pair(1, 2) (_2nd); // 2
+   const Pair = (x, y) => f => f(x, y);
+   const toArray = (...args) => args;
+   const I = x => x;
+   const get1 = I;
+   const get2 = (_, x) => x;
+
+   Pair(1, "a") (toArray); // [1, "a"]
+   Pair(1, "a") (get1); // 1
+   Pair(1, "a") (get2); // "a"
 
  */
 

@@ -10,18 +10,11 @@ const Single = require("./Single");
 
 /**
  * @name maximal
- * @type operator function
+ * @type higher order function
+ * @class Ord
  * @example
 
-   const pair1 = Pair(2, "a");
-   const pair2 = Pair(2, "b");
-   const pair3 = Pair(1, "b");
-
-   const Num = { compare: y => x => x < y ? LT : y < x ? GT : EQ }
-   const Str = { compare: y => x => x < y ? LT : y < x ? GT : EQ }
-
-   max2(Num, Str) (pair2) (pair1); // pair2
-   max2(Num, Str) (pair3) (pair1); // pair1
+   @see min
 
  */
 

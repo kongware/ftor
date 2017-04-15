@@ -7,7 +7,7 @@
  * @example
  *
 
-   Unit() (x => x); // undefined
+   @see Pair
 
  */
 

@@ -12,8 +12,12 @@ const Pair = require("./Pair");
  * @type higher order function
  * @example
 
-   const pair = Pair(2, 4);
-   pair(swap); // Pair(4, 2)
+   const Pair = (x, y) => f => f(x, y);
+   const swap = (y, x) => Pair(x, y);
+   const toArray = (...args) => args;
+   const pair = Pair(1, "a");
+
+   pair(swap) (toArray); // ["a", 1]
 
  */
 

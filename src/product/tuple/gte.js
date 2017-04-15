@@ -9,18 +9,11 @@ const {compare2, compare3, compare4, compare5} = require("./compare");
 
 /**
  * @name greater than or equal
- * @type operator function
+ * @type higher order function
+ * @class Ord
  * @example
 
-   const pair1 = Pair(2, "b");
-   const pair2 = Pair(2, "a");
-   const pair3 = Pair(2, "b");
-
-   const Num = { compare: y => x => x < y ? LT : y < x ? GT : EQ }
-   const Str = { compare: y => x => x < y ? LT : y < x ? GT : EQ }
-
-   gte2(Num, Str) (pair2) (pair1); // true
-   gte2(Num, Str) (pair3) (pair1); // true
+   @see lte
 
  */
 

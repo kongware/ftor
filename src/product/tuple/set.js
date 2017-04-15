@@ -9,11 +9,19 @@ const Tuple = require("./Tuple");
 
 /**
  * @name set nth element
- * @type operator function
+ * @type higher order function
  * @example
 
-   const triple = Tuple(1, 2, 3);
-   toArray(triple(set1(0))); // [0, 2, 3]
+   const Tuple = (...args) => f => f(...args);
+   const Triple = (x, y, z) => f => f(x, y, z);
+   const toArray = (...args) => args;
+   const set1 = x => (_, ...args) => Tuple(x, ...args);
+
+   const triple = Tuple(1, "a", true);
+   const triple_ = triple(set1(0));
+
+   triple_(toArray); // [0, "a", true]
+   console.assert(triple !== triple_); // passes
 
  */
 

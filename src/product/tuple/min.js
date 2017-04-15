@@ -10,18 +10,48 @@ const Single = require("./Single");
 
 /**
  * @name minimal
- * @type operator function
+ * @type higher order function
+ * @class Ord
  * @example
+
+   const Ordering = {};
+   const LT = ({type: Ordering, tag: "LT"});
+   const EQ = ({type: Ordering, tag: "EQ"});
+   const GT = ({type: Ordering, tag: "GT"});
+
+   const Pair = (x, y) => f => f(x, y);
+   const toArray = (...args) => args;
+
+   const compare2 = (Rep1, Rep2) => t2 => t1 => t1((w, x) => t2((y, z) => {
+     switch (Rep1.compare(y) (w).tag) {
+       case "LT": return LT;
+       case "GT": return GT;
+       case "EQ": {
+         switch (Rep2.compare(z) (x).tag) {
+           case "LT": return LT;
+           case "GT": return GT;
+           case "EQ": return EQ;
+         }
+       }
+     }
+   }));
+
+   const min2 = (Rep1, Rep2) => t2 => t1 => {
+     switch (compare2(Rep1, Rep2) (t2) (t1).tag) {
+       case "GT": return t2;
+       default: return t1;
+     }
+   };
+
+   const Num = {compare: y => x => x < y ? LT : y < x ? GT : EQ}
+   const Str = {compare: y => x => x < y ? LT : y < x ? GT : EQ}
 
    const pair1 = Pair(2, "a");
    const pair2 = Pair(2, "b");
    const pair3 = Pair(1, "b");
 
-   const Num = { compare: y => x => x < y ? LT : y < x ? GT : EQ }
-   const Str = { compare: y => x => x < y ? LT : y < x ? GT : EQ }
-
-   min2(Num, Str) (pair2) (pair1); // pair1
-   min2(Num, Str) (pair3) (pair1); // pair3
+   min2(Num, Str) (pair2) (pair1) (toArray); // [2, "a"]
+   min2(Num, Str) (pair3) (pair1) (toArray); // [1, "b"]
 
  */
 

@@ -6,7 +6,10 @@
  * @type higher order function
  * @example
 
-   fromArray([1, 2]) ((x, y) => x + y); // 3
+   const add = (x, y) => x + y;
+   const fromArray = args => f => f(...args);
+   
+   fromArray([1, 2]) (add); // 3
 
  */
 

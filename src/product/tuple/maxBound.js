@@ -8,14 +8,12 @@ const Tuple = require("./Tuple");
 
 
 /**
- * @name maxinmal bounded
- * @type operator function
+ * @name maximal bounded
+ * @type higher order function
+ * @class Bounded
  * @example
 
-   const Num = { maxBound: Infinity }
-   const Chr = { maxBound: "\u{10FFFF}" }
-
-   maxBound2(Num, Chr); // Pair(Infinity, "\u{10FFFF}")
+   @see minBound
 
  */
 

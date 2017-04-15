@@ -6,8 +6,11 @@
  * @type operator function
  * @example
 
-   const tuple5 = Tuple5(1, 2, 3, 4, 5);
-   tuple5(last); // 5
+   const Tuple5 = (v, w, x, y, z) => f => f(v, w, x, y, z);
+   const last = (...args) => args[args.length - 1];
+   const tuple5 = Tuple5(1, "a", true, {foo: true}, ["bar"]);
+   
+   tuple5(last); // ["bar"]
 
  */
 

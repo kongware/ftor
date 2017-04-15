@@ -9,18 +9,50 @@ const {compare2, compare3, compare4, compare5} = require("./compare");
 
 /**
  * @name lower than or equal
- * @type operator function
+ * @type higher order function
+ * @class Ord
  * @example
 
-   const pair1 = Pair(2, "a");
-   const pair2 = Pair(2, "b");
-   const pair3 = Pair(2, "a");
+   const Ordering = {};
+   const LT = ({type: Ordering, tag: "LT"});
+   const EQ = ({type: Ordering, tag: "EQ"});
+   const GT = ({type: Ordering, tag: "GT"});
+
+   const compare2 = (Rep1, Rep2) => t2 => t1 => t1((w, x) => t2((y, z) => {
+     switch (Rep1.compare(y) (w).tag) {
+       case "LT": return LT;
+       case "GT": return GT;
+       case "EQ": {
+         switch (Rep2.compare(z) (x).tag) {
+           case "LT": return LT;
+           case "GT": return GT;
+           case "EQ": return EQ;
+         }
+       }
+     }
+   }));
+
+   const Pair = (x, y) => f => f(x, y);
+
+   const lte2 = (Rep1, Rep2) => t2 => t1 => {
+     switch (compare2(Rep1, Rep2) (t2) (t1).tag) {
+       case "LT":
+       case "EQ": return true;
+       default: return false;
+     }
+   };
 
    const Num = { compare: y => x => x < y ? LT : y < x ? GT : EQ }
    const Str = { compare: y => x => x < y ? LT : y < x ? GT : EQ }
 
+   const pair1 = Pair(2, "a");
+   const pair2 = Pair(2, "b");
+   const pair3 = Pair(2, "a");
+   const pair4 = Pair(1, "b");
+
    lte2(Num, Str) (pair2) (pair1); // true
    lte2(Num, Str) (pair3) (pair1); // true
+   lte2(Num, Str) (pair4) (pair1); // false
 
  */
 

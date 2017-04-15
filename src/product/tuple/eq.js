@@ -10,17 +10,24 @@ const len = require("./len");
 /**
  * @name equal
  * @type operator function
+ * @class Setoid
  * @example
+
+   const Pair = (x, y) => f => f(x, y);
+   const len = (...args) => args.length;
+
+   const eq2 = (Rep1, Rep2) => t2 => t1 => t1(len) === t2(len)
+    && t1((w, x) => t2((y, z) => Rep1.eq(y) (w) && Rep2.eq(z) (x)));
+
+   const Num = {eq: y => x => x === y};
+   const Str = {eq: y => x => x === y};
 
    const x = Pair(1, "a");
    const y = Pair(1, "a");
    const z = Pair(1, "b");
    
-   const Num = {eq: (x, y) => x === y};
-   const Str = {eq: (x, y) => x === y};
-
-   eq3(Num, Str) (x) (y); // true
-   eq3(Num, Str) (x) (z); // false
+   eq2(Num, Str) (x) (y); // true
+   eq2(Num, Str) (x) (z); // false
 
  */
 

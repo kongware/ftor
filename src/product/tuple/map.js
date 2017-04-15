@@ -12,10 +12,15 @@ const Tuple = require("./Tuple");
  * @type higher order function
  * @example
 
-   const triple = Tuple(1, 2, 3);
-   const inc = x => x + 1;
+   const Tuple = (...args) => f => f(...args);
+   const Triple = (x, y, z) => f => f(x, y, z);
+   const toArray = (...args) => args;
+   const map3 = f => (x, y, z, ...args) => Tuple(x, y, f(z), ...args);
    
-   toArray(triple(map1(inc))); // [2, 2, 3]
+   const sqr = x => x * x;
+   const triple = Triple(1, 2, 3);
+   
+   triple(map3(sqr)) (toArray); // [1, 2, 9]
 
  */
 

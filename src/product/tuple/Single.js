@@ -12,7 +12,7 @@ const {T} = require("../../T");
  * @type data constructor
  * @example
 
-   Single(1) (x => x + 1); // 2
+   @see Pair
 
  */
 

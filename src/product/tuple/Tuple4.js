@@ -6,7 +6,7 @@
  * @type data constructor
  * @example
 
-   Tuple4(1, 2, 3, 4) (last); // 4
+   @see Pair
  
  */
 

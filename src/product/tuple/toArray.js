@@ -6,9 +6,13 @@
  * @type operator function
  * @example
 
-   Triple(1,2,3) (toArray); // [1, 2, 3]
+   const Triple = (x, y, z) => f => f(x, y, z);
+   const toArray = (...args) => args;
+
+   Triple(1, "a", true) (toArray); // [1, "a", true]
 
  */
+
 
 // (*) -> [*]
 const toArray = (...args) => args;

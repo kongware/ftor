@@ -9,13 +9,42 @@ const Tuple = require("./Tuple");
 
 /**
  * @name mininmal bounded
- * @type operator function
+ * @type higher order function
+ * @class Bounded
  * @example
 
-   const Num = { minBound: -Infinity }
-   const Chr = { minBound: "\u{0}" }
+   const Ordering = {};
+   const LT = ({type: Ordering, tag: "LT"});
+   const EQ = ({type: Ordering, tag: "EQ"});
+   const GT = ({type: Ordering, tag: "GT"});
 
-   minBound2(Num, Chr); // Pair(-Infinity, "\u{0}")
+   const compare2 = (Rep1, Rep2) => t2 => t1 => t1((w, x) => t2((y, z) => {
+     switch (Rep1.compare(y) (w).tag) {
+       case "LT": return LT;
+       case "GT": return GT;
+       case "EQ": {
+         switch (Rep2.compare(z) (x).tag) {
+           case "LT": return LT;
+           case "GT": return GT;
+           case "EQ": return EQ;
+         }
+       }
+     }
+   }));
+
+   const Tuple = (...args) => f => f(...args);
+   const Pair = (x, y) => f => f(x, y);
+   const toArray = (...args) => args;
+   const minBound2 = (Rep1, Rep2) => Tuple(Rep1.minBound, Rep2.minBound);
+   const lt2 = (Rep1, Rep2) => t2 => t1 => compare2(Rep1, Rep2) (t2) (t1).tag === "LT";
+
+   const Num = {minBound: -Infinity, compare: y => x => x < y ? LT : y < x ? GT : EQ}
+   const Chr = {minBound: "\u{0}", compare: y => x => x < y ? LT : y < x ? GT : EQ}
+
+   const minPair = minBound2(Num, Chr);
+   const pair = Pair(0, "a");
+
+   lt2(Num, Chr) (pair) (minPair); // true
 
  */
 

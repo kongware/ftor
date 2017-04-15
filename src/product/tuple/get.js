@@ -12,7 +12,10 @@ const I = require("../../I");
  * @type operator function
  * @example
 
-   Triple(1, 2, 3) (get3); // 3
+   const Triple = (x, y, z) => f => f(x, y, z);
+   const get2 = (_, x) => x;
+
+   Triple(1, "a", true) (get2); // "a"
 
  */
 
