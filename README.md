@@ -133,14 +133,14 @@ toArray(bimap(inc) (dbl) (pair)); // [2, "aa"]
 ``` 
 Genrally, tuples should be selected if a composite type of related data with different types is required.
 
-Tuples implement the following type classes if all of their elements implement them:
+Tuples delegate the implementation of the following type classes to their elements:
 
 * Bounded
 * Ord
 * Setoid
 * Monoid
 
-Here is an example for the `Ord` type class along with tuples:
+For instance, if all elements of a tuple implement the `Ord` type class, related operations can be applied to the tuple:
 
 ```Javascript
 const Pair = (x, y) => f => f(x, y);
@@ -175,8 +175,13 @@ const Str = { compare: y => x => x < y ? LT : y < x ? GT : EQ } // type rep
 
 max2(Num, Str) (pair2) (pair1); // pair2
 max2(Num, Str) (pair3) (pair1); // pair1
-``` 
-You may wonder why tuples themselves don't implement the enumerable, foldable or mappable (functor) type class. This is intenionally. If you need such behavior please fall back to collections like `Array`s. However, since tuples are product types, they implement the bifunctor and profunctor type classes.
+```
+Tuples themselves are product types and thus implement the following type classes:
+
+* Bifunctor
+* Profunctor
+
+You may wonder why tuples themselves don't implement the enumerable, foldable or mappable (functor) type class. This is intenionally. If you need such behavior please fall back to collections like `Array`s.
 
 ## Type representatives
 
