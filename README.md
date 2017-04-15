@@ -112,7 +112,7 @@ If you need subtyping use sum types (tagged unions). If you need modularity use 
 
 ## Tuples
 
-Javascripts doesn't support tuples, because `Array`s may contain various types (e.g. `[1, "a", true]`. However, Javascript supports a tuple like syntax to allow multi argument functions. ftor acknowledges this situation by introducing a church encoded tuple type, i.e. a type with higher order functions as interface:
+Javascripts doesn't support tuples, because `Array`s may contain various types (e.g. `[1, "a", true]`. However, Javascript supports a tuple like syntax to allow multi argument functions. ftor acknowledges this fact by introducing a church encoded tuple type, i.e. a type with higher order functions as interface:
 
 ```Javascript
 const Pair = (x, y) => f => f(x, y);
@@ -133,12 +133,14 @@ toArray(bimap(inc) (dbl) (pair)); // [2, "aa"]
 ``` 
 Genrally, tuples should be selected if a composite type of related data with different types is required.
 
-Tuples implement the following type classes for their elements:
+Tuples implement the following type classes if all of their elements implement them:
 
 * Bounded
 * Ord
 * Setoid
 * Monoid
+
+Here is an example for the `Ord` type class along with tuples:
 
 ```Javascript
 const Pair = (x, y) => f => f(x, y);
@@ -174,7 +176,7 @@ const Str = { compare: y => x => x < y ? LT : y < x ? GT : EQ } // type rep
 max2(Num, Str) (pair2) (pair1); // pair2
 max2(Num, Str) (pair3) (pair1); // pair1
 ``` 
-Please note that tuples themselves are not Monoids but the elements they contain may be. Tuples don't implement the enumerable, foldable and mappable (functor) type class intenionally. If you need such behavior please fall back to collections like `Array`s.
+You may wonder why tuples themselves don't implement the enumerable, foldable or mappable (functor) type class. This is intenionally. If you need such behavior please fall back to collections like `Array`s. However, since tuples are product types, they implement the bifunctor and profunctor type classes.
 
 ## Type representatives
 

@@ -10,6 +10,7 @@ const Triple = require("./Triple");
 /**
  * @name trimap over a pair
  * @type higher order function
+ * @class Bifunctor
  * @example
 
    @see bimap

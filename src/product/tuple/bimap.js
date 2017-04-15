@@ -10,6 +10,7 @@ const Pair = require("./Pair");
 /**
  * @name bimap over a pair
  * @type higher order function
+ * @class Bifunctor
  * @example
 
    const Pair = (x, y) => f => f(x, y);
