@@ -17,7 +17,7 @@
 const curryOp = f => y => x => f(x, y);
 
 
-// ((a, b) -> c) -> b -> a -> c
+// ((a, b, c) -> d) -> c -> a -> b -> d
 const curryOp3 = f => z => x => y => f(x, y, z);
 
 

@@ -281,9 +281,7 @@ To meet Javascript's dynamic type system ftor uses extended type signatures:
 
 - [ ] add type rep dependencies to inline doc
 - [ ] add Ord/Eq/Enum to built-in types
-- [ ] add swap/rotate to tuples
 - [ ] add zip/unzip to tuples
-- [ ] replace monomophic tuple examples to polymorphic ones
 - [ ] foldMap + concatMap
 - [ ] introduce church encoded value objects
 - [ ] rename impure functions as actions

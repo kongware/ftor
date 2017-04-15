@@ -18,7 +18,7 @@ const Triple = require("./Triple");
  */
 
 
-// Tuple t => (a -> b) -> (c -> d) -> (e -> f) -> t a c e -> t b d f
+// (a -> b) -> (c -> d) -> (e -> f) -> ((a, c, e) -> g) -> ((b, d, f) -> g)
 const trimap = f => g => h => t => t((x, y, z) => Pair(f(x), g(y)));
 
 

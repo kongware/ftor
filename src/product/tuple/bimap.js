@@ -12,13 +12,16 @@ const Pair = require("./Pair");
  * @type higher order function
  * @example
 
+   const Pair = (x, y) => f => f(x, y);
+   const bimap = f => g => t => t((x, y) => Pair(f(x), g(y)));
    const pair = Pair(1, "a");
+   
    bimap(x => x + 1) (x => "" + x + x) (pair) (toArray); // [2, "aa"]
 
  */
 
 
-// Tuple t => (a -> b) -> (c -> d) -> t a c -> t b d
+// (a -> b) -> (c -> d) -> ((a, c) -> e) -> ((b, d) -> e)
 const bimap = f => g => t => t((x, y) => Pair(f(x), g(y)));
 
 

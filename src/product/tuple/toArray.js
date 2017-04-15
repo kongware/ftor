@@ -11,7 +11,7 @@
  */
 
 // (*) -> [*]
-const toArray = (...args) => args
+const toArray = (...args) => args;
 
 
 // API
