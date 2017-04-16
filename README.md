@@ -112,7 +112,7 @@ If you need subtyping use sum types (tagged unions). If you need modularity use 
 
 ## Tuples
 
-Javascripts doesn't support tuples, because `Array`s may contain various types (e.g. `[1, "a", true]`. However, Javascript supports a tuple like syntax to allow multi argument functions. ftor acknowledges this fact by introducing a church encoded tuple type, i.e. a type with higher order functions as interface:
+Javascripts doesn't support tuples, because `Array`s can contain various types (e.g. `[1, "a", true]`. However, Javascript supports a tuple like syntax to allow multi argument functions. ftor acknowledges this fact by introducing a church encoded tuple type, i.e. a type with higher order functions as interface:
 
 ```Javascript
 const Pair = (x, y) => f => f(x, y);
@@ -175,7 +175,7 @@ const Str = { compare: y => x => x < y ? LT : y < x ? GT : EQ } // type rep
 max2(Num, Str) (pair2) (pair1); // pair2
 max2(Num, Str) (pair3) (pair1); // pair1
 ```
-If you desitre to map over all elements of a tuple or to concat tuples themselves, then you might want to fall back to a collection type like `Array`s.
+If you desire to map over all elements of a tuple or to concat tuples themselves, then you might want to fall back to a collection type like `Array`s.
 
 ## Type representatives
 
