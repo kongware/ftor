@@ -124,23 +124,22 @@ const toArray = (...args) => args
 const dbl = x => x + x;
 const inc = x => x + 1;
 
-const pair = Pair(1, "a");
+const pair1 = Pair(1, "a");
+const pair2 = bimap(inc) (dbl) (pair1);
 
-pair(get1); // 1
-pair(get2); // "a"
+pair1(get1); // 1
+pair1(get2); // "a"
 
-toArray(bimap(inc) (dbl) (pair)); // [2, "aa"]
+pair2(toArray); // [2, "aa"]
 ``` 
-Genrally, tuples should be selected if a composite type of related data with different types is required.
-
-Tuples delegate the implementation of the following type classes to their elements:
+The type of a `Pair` is `((a, b) -> c)`. Genrally, tuples should be chosen if a composite type of fix length and related data with different types is required. Considering this properties and because tuples are product types they merely implement the `Bifunctor` type class, whereas the following type classes are delegated to their elements:
 
 * Bounded
 * Ord
 * Setoid
 * Monoid
 
-For instance, if all elements of a tuple implement the `Ord` type class, related operations can be applied to the tuple:
+If, for instance, `a` and `b` of a `Pair` implement the `Ord` type class, then the tuple has a notion of order:
 
 ```Javascript
 const Pair = (x, y) => f => f(x, y);
@@ -176,12 +175,7 @@ const Str = { compare: y => x => x < y ? LT : y < x ? GT : EQ } // type rep
 max2(Num, Str) (pair2) (pair1); // pair2
 max2(Num, Str) (pair3) (pair1); // pair1
 ```
-Tuples themselves are product types and thus implement the following type classes:
-
-* Bifunctor
-* Profunctor
-
-You may wonder why tuples themselves don't implement the enumerable, foldable or mappable (functor) type class. This is intenionally. If you need such behavior please fall back to collections like `Array`s.
+If you desitre to map over all elements of a tuple or to concat tuples themselves, then you might want to fall back to a collection type like `Array`s.
 
 ## Type representatives
 
@@ -291,6 +285,7 @@ To meet Javascript's dynamic type system ftor uses extended type signatures:
 - [ ] add zip/unzip to tuples
 - [ ] add contramap/dimap to tuple?
 - [ ] foldMap + concatMap
+- [ ] add join for functions
 - [ ] introduce church encoded value objects
 - [ ] rename impure functions as actions
 - [ ] add nameBy naming convetion to readme

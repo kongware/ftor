@@ -25,23 +25,23 @@ const Tuple = require("./Tuple");
  */
 
 
-// (a -> b) -> (a, (*)) -> ((*) -> c)
+// (a -> b) -> (a, (*)) -> ((*) -> b)
 const map1 = f => (x, ...args) => Tuple(f(x), ...args);
 
 
-// (b -> c) -> (a, b, (*)) -> ((*) -> d)
+// (b -> c) -> (a, b, (*)) -> ((*) -> c)
 const map2 = f => (x, y, ...args) => Tuple(x, f(y), ...args);
 
 
-// (c -> d) -> (a, b, c, (*)) -> ((*) -> e)
+// (c -> d) -> (a, b, c, (*)) -> ((*) -> d)
 const map3 = f => (x, y, z, ...args) => Tuple(x, y, f(z), ...args);
 
 
-// (d -> e) -> (a, b, c, d, (*)) -> ((*) -> f)
+// (d -> e) -> (a, b, c, d, (*)) -> ((*) -> e)
 const map4 = f => (w, x, y, z, ...args) => Tuple(w, x, y, f(z), ...args);
 
 
-// (e -> f) -> (a, b, c, d, e, (*)) -> ((*) -> g)
+// (e -> f) -> (a, b, c, d, e, (*)) -> ((*) -> f)
 const map5 = f => (v, w, x, y, z, ...args) => Tuple(v, w, x, y, f(z), ...args);
 
 

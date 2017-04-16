@@ -15,7 +15,6 @@ const Tuple = require("./Tuple");
    const Tuple = (...args) => f => f(...args);
    const rotater = (z, x, y) => Tuple(x, y, z);
    const reduce = (f, acc, xs) => xs.reduce(f, acc);
-   const composable = f => (...args) => x => f(...args, x);
    const add = (x, y) => x + y;
 
    const xs = [1, 2, 3, 4];
