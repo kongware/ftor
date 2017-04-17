@@ -10,9 +10,8 @@ const map = require("./map");
 
 /**
  * @name set through a lens
- * @type operator function
+ * @type higher order function
  * @example
- *
 
    const o = {name: "Bob", addresses: [
      {street: "99 Maple", zip: 94004, type: "home"},
@@ -28,7 +27,7 @@ const map = require("./map");
  */
 
 
-// Functor f => (a -> f a) -> a -> Object|Array -> Object|Array
+// Functor f => (a -> f b) -> a -> t * -> t *
 const set = lens => x => map(lens) (K(x));
 
 

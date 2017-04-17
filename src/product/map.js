@@ -5,18 +5,14 @@
 
 
 const {B_} = require("../B");
-const cons = require("../sum/ident/cons");
 const Ident = require("../sum/ident/Ident");
-const run = require("../sum/ident/run");
-
-Ident.map = require("../sum/ident/map");
+const runBy = require("../runBy");
 
 
 /**
  * @name map over a lens
  * @type higher order function
  * @example
- *
 
    const o = {name: "Bob", addresses: [
      {street: "99 Maple", zip: 94004, type: "home"},
@@ -32,8 +28,8 @@ Ident.map = require("../sum/ident/map");
  */
 
 
-// Functor f => (b -> f b) -> (a -> b) -> Object|Array -> Object|Array
-const map = lens => f => B_(run, lens(B_(cons, f)));
+// Functor f => (a -> f b) -> (a -> b) -> t * -> t *
+const map = lens => f => B_(runBy, lens(B_(Ident, f)));
 
 
 // API

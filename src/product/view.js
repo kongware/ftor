@@ -5,18 +5,14 @@
 
 
 const {B_} = require("../B");
-const Const_ = require("../sum/const/Const_");
 const Const = require("../sum/const/Const");
 const runBy = require("../runBy");
-
-Const_.map = require("../sum/const/map");
 
 
 /**
  * @name view through a lense
- * @type operator function
+ * @type higher order function
  * @example
- *
 
    const o = {name: "Bob", addresses: [
      {street: "99 Maple", zip: 94004, type: "home"},

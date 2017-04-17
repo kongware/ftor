@@ -1,12 +1,6 @@
 "use strict";
 
 
-// dependencies
-
-
-const I = require("../../I");
-
-
 /**
  * @name get nth element
  * @type operator function
