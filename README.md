@@ -162,14 +162,14 @@ pair2(toArray); // [2, "aa"]
 ```
 Please note that since tuples are immutable, you always get a new tuple with operations that carry out mutations. ftor also supports lenses that operate on tuples, i.e. retrieving or modifying nested values is as easy as with flat tuples.
 
-The type of a `Pair`, for instance, is `((a, b) -> c)`. Genrally, tuples should be chosen if a composite type of fix length and related data with different types is required. Considering this properties and because tuples are product types they merely implement the `Bifunctor` type class, whereas the following type classes are delegated to their elements:
+The type of a `Pair`, for instance, is `((a, b) -> c)`. Genrally, tuples should be chosen if a composite type of fix length and related data with different types is required. Considering this properties and because tuples are product types they merely implement the `Bifunctor` and `trifunctor` type class, whereas the following type classes are delegated to their elements:
 
 * Bounded
 * Ord
 * Setoid
 * Monoid
 
-Provided that, for instance, `a` and `b` of a `Pair` implement the `Ord` type class, the tuple has a notion of order. If it is desired to map over all elements of a tuple or to concat tuples themselves, then you might want to fall back to a collection type like `Array`s.
+Provided that `a` and `b` of a `Pair`, for instance, implement the `Ord` type class, the tuple has a notion of order. If it is desired to map over all elements of a tuple or to concat tuples themselves, then you might want to fall back to a collection type like `Array`s.
 
 ## New data types
 
