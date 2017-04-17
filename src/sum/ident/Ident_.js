@@ -20,7 +20,6 @@ const Ident_ = {};
 /**
  * @name map
  * @type higher order function
- * @class Ident
  * @example
 
    const Ident_ = {};
