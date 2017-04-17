@@ -10,7 +10,7 @@ const setn = require("./setn");
 
 
 /**
- * @name elem lens
+ * @name element lens
  * @type higher order function
  * @example
 

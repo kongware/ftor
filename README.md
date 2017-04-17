@@ -38,8 +38,9 @@ Regain hope all ye who enter here.
 
 To meet Javascript's dynamic type system and certain techniques ftor uses extended type signatures:
 
-* `[*]` represents a list of various types (e.g. `[1, "a", true]`)
-* `(*)` represents an n-tuple of indefinite length, e.g. `(1)`, `(1, "a")` or `(1, "a", true)` etc.
+* `*` represents an indefinite number of type variables that may represent various types
+* `[*]` represents a list of such type variables, e.g. `[1, "a", true]`
+* `(*)` represents an n-tuple of such type variables, e.g. `(1)`, `(1, "a")` or `(1, "a", true)` etc.
 * `|` represents a conjunction of two fixed types, e.g. `a -> String|Number`
 
 With the second syntax it is possible to represent the rest syntax in Javascript.
@@ -162,7 +163,7 @@ pair2(toArray); // [2, "aa"]
 ```
 Please note that since tuples are immutable, you always get a new tuple with operations that carry out mutations. ftor also supports lenses that operate on tuples, i.e. retrieving or modifying nested values is as easy as with flat tuples.
 
-The type of a `Pair`, for instance, is `((a, b) -> c)`. Genrally, tuples should be chosen if a composite type of fix length and related data with different types is required. Considering this properties and because tuples are product types they merely implement the `Bifunctor` and `trifunctor` type class, whereas the following type classes are delegated to their elements:
+The type of a `Pair`, for instance, is `((a, b) -> c)`. Genrally, tuples should be chosen if a composite type of fix length and related data with different types is required. Considering this properties and because tuples are product types they merely implement the `Bifunctor` and `Trifunctor` type class, whereas the following type classes are delegated to their elements:
 
 * Bounded
 * Ord
@@ -237,19 +238,6 @@ While type representatives lead to somewhat verbose code on the calling side, th
 * define several type classes for each data type
 
 Since instances hold a reference to their type representatives we can fall back on this reference when desired (see the lens example above).
-
-## On-Demand types
-
-ftor strongly relies on the one function per module paradigm. However, various functions may form a type class and hence must be grouped in a type representative as demonstrated wihtin the lens example above:
-
-```Javascript
-const Ident = {};
-
-Ident.cons = require("../sum/ident/cons");
-Ident.map = require("../sum/ident/map");
-Ident.run = require("../sum/ident/run");
-```
-Please note that on-demand types are experimental and I am not sure if I'll continue to pursue this approach.
 
 ## Todos
 

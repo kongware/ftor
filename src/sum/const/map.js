@@ -10,6 +10,7 @@ const Const = require("./Const");
 /**
  * @name map
  * @type higher order function
+ * @class Const
  * @example
 
    const Const_ = {};

@@ -5,11 +5,11 @@
 
 
 const {B_} = require("../B");
-const cons = require("../sum/const/cons");
+const Const_ = require("../sum/const/Const_");
 const Const = require("../sum/const/Const");
-const run = require("../sum/const/run");
+const runBy = require("../runBy");
 
-Const.map = require("../sum/const/map");
+Const_.map = require("../sum/const/map");
 
 
 /**
@@ -31,8 +31,8 @@ Const.map = require("../sum/const/map");
  */
 
 
-// Functor f => (a -> f a) -> Object|Array -> a
-const view = lens => B_(run, lens(cons));
+// Functor f => (a -> f b) -> t * -> a
+const view = lens => B_(runBy, lens(Const));
 
 
 // API

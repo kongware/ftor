@@ -10,6 +10,7 @@ const Ident = require("./Ident");
 /**
  * @name map
  * @type higher order function
+ * @class Ident
  * @example
 
    const Ident_ = {};
