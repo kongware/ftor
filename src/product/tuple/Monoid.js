@@ -20,7 +20,7 @@ const Monoid = Object.assign({}, Semigroup);
 
 /**
  * @name empty
- * @type constant
+ * @type higher order function
  * @example
 
    const Tuple = (...args) => f => f(...args);
