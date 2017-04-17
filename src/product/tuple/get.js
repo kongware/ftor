@@ -20,11 +20,11 @@ const I = require("../../I");
  */
 
 
-// (a, _) => a
+// (a, _) -> a
 const get1 = I;
 
 
-// (_, a) => a
+// (_, a) -> a
 const get2 = (_, x) => x;
 
 

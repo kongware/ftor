@@ -34,6 +34,34 @@ Regain hope all ye who enter here.
 * action: An impure (and frequently nullary) function that performs side effects
 * type representative (type rep): A plain old Javascript object that contains static methods and forms a type class (e.g. Functor)
 
+## Type signature extensions
+
+To meet Javascript's dynamic type system and certain techniques ftor uses extended type signatures:
+
+* `[*]` represents a list of various types (e.g. `[1, "a", true]`)
+* `(*)` represents an n-tuple of indefinite length, e.g. `(1)`, `(1, "a")` or `(1, "a", true)` etc.
+* `|` represents a conjunction of two fixed types, e.g. `a -> String|Number`
+
+With the second syntax it is possible to represent the rest syntax in Javascript.
+
+## Naming Convention
+
+* `v, w, x, y, z` represents type variables (polymorphism)
+* `vs, ws, xs, ys, zs` represents polymorphic collections
+* `o, p, q, r, s` represents Javascript `Object`s
+* `f, g, h, i, j` represents functions
+* `t, t1, t2, t3` represents values wrapped in a context
+* `Rep, Rep1, Rep2, Rep3` represents type representatives (type dictionary)
+* `name_` or `_name` indicates a slightly modified variant of an existing function
+
+Values wrapped in contexts are not always denoted with `t` but with the initial letter of the type class (e.g. `f` for `Functor` or `m` for `Monad`).
+
+Please note that names are a pretty good indicator of how generic your code is. Generic names indicate generic code and vice versa.
+
+## Name conflicts
+
+Pleae note that ftor uses the same generic names for dozens of functions of different data types and type classes. It is your job o create yxour own name spaces to avoid name conflicts.
+
 ## Currying
 
 All functions in ftor are in manually curried form. Currying leads to abstraction over arity in many cases and thus facilitates function composition and combinatorics.
@@ -112,7 +140,7 @@ If you need subtyping use sum types (tagged unions). If you need modularity use 
 
 ## Tuples
 
-Javascripts doesn't support tuples, because `Array`s can contain various types (e.g. `[1, "a", true]`. However, Javascript supports a tuple like syntax to allow multi argument functions. ftor acknowledges this fact by introducing a church encoded tuple type, i.e. a type with higher order functions as interface:
+Javascripts doesn't support tuples, because `Array`s can contain various types (e.g. `[1, "a", true]`. However, Javascript supports a tuple like syntax to allow multi argument functions. ftor acknowledges this fact by introducing a church encoded, immutable tuple type, i.e. a type with higher order functions as an interface:
 
 ```Javascript
 const Pair = (x, y) => f => f(x, y);
@@ -131,70 +159,17 @@ pair1(get1); // 1
 pair1(get2); // "a"
 
 pair2(toArray); // [2, "aa"]
-``` 
-The type of a `Pair` is `((a, b) -> c)`. Genrally, tuples should be chosen if a composite type of fix length and related data with different types is required. Considering this properties and because tuples are product types they merely implement the `Bifunctor` type class, whereas the following type classes are delegated to their elements:
+```
+Please note that since tuples are immutable, you always get a new tuple with operations that carry out mutations. ftor also supports lenses that operate on tuples, i.e. retrieving or modifying nested values is as easy as with flat tuples.
+
+The type of a `Pair`, for instance, is `((a, b) -> c)`. Genrally, tuples should be chosen if a composite type of fix length and related data with different types is required. Considering this properties and because tuples are product types they merely implement the `Bifunctor` type class, whereas the following type classes are delegated to their elements:
 
 * Bounded
 * Ord
 * Setoid
 * Monoid
 
-If, for instance, `a` and `b` of a `Pair` implement the `Ord` type class, then the tuple has a notion of order:
-
-```Javascript
-const Pair = (x, y) => f => f(x, y);
-
-const compare2 = (Rep1, Rep2) => t2 => t1 => t1((w, x) => t2((y, z) => {
-  switch (Rep1.compare(y) (w).tag) {
-    case "LT": return LT;
-    case "GT": return GT;
-    case "EQ": {
-      switch (Rep2.compare(z) (x).tag) {
-        case "LT": return LT;
-        case "GT": return GT;
-        case "EQ": return EQ;
-      }
-    }
-  }
-}));
-
-const max2 = (Rep1, Rep2) => t2 => t1 => {
-  switch (compare2(Rep1, Rep2) (t2) (t1).tag) {
-    case "LT": return t2;
-    default: return t1;
-  }
-};
-
-const pair1 = Pair(2, "a");
-const pair2 = Pair(2, "b");
-const pair3 = Pair(1, "b");
-
-const Num = { compare: y => x => x < y ? LT : y < x ? GT : EQ } // type rep
-const Str = { compare: y => x => x < y ? LT : y < x ? GT : EQ } // type rep
-
-max2(Num, Str) (pair2) (pair1); // pair2
-max2(Num, Str) (pair3) (pair1); // pair1
-```
-If you desire to map over all elements of a tuple or to concat tuples themselves, then you might want to fall back to a collection type like `Array`s.
-
-## Type representatives
-
-ftor doesn't rely on the prototype system but on type representatives, which have to be passed around explicitly. Type representative is just a fancy word for a static type dictionary, i.e. a plain old Javascript `Object` with a couple of static methods attached:
-
-```Javascript
-// functor type representative of the function instance
-
-const Fun = {
-  map: f => g => x => f(g(x))
-};
-```
-While type representatives lead to somewhat verbose code on the calling side, they also improve readability, since you can explicitly see the used types in place. With type representatives we are able to
-
-* mitigate Javascript's lack of type inference
-* extend built-ins (object and primitive types) without touching them at all
-* define several type classes for each data type
-
-Since instances hold a reference to their type representatives we can fall back on this reference when desired (see the lens example above).
+Provided that, for instance, `a` and `b` of a `Pair` implement the `Ord` type class, the tuple has a notion of order. If it is desired to map over all elements of a tuple or to concat tuples themselves, then you might want to fall back to a collection type like `Array`s.
 
 ## New data types
 
@@ -244,18 +219,24 @@ ftor will examine the following algebraic constructs:
 * (co-)yoneda
 * free applicatives/monads
 
-## Naming Convention
+## Type representatives
 
-* use `v, w, x, y, z` for generic variables of any type
-* use `vs, ws, xs, ys, zs` for generic collections
-* use `o, p, q, r, s` for generic object types
-* use `f, g, h, i, j` for generic functions
-* use `t1, t2, t3` for values wrapped in a context, where `t` may be replaced with the initial letter of the type class (e.g. `f` for `Functor` or `m` for `Monad`)
-* use `Rep1, Rep2, Rep3` to define a type representative (type dictionary)
-* `name_` or `_name` indicates a slightly modified variant of an existing function
-* `$name` represents a strictly (or greedy) evaluated version of a function
+ftor doesn't rely on the prototype system but on type representatives, which have to be passed around explicitly. Type representative is just a fancy word for a static type dictionary, i.e. a plain old Javascript `Object` with a couple of static methods attached:
 
-Functional programming doesn't mean to always use generalized names like `x` or `f`. Use speaking names for specific functions/variables and generic names for generic ones. However, names are a good indicator of how generalized your functions are.
+```Javascript
+// functor type representative of the function instance
+
+const Fun = {
+  map: f => g => x => f(g(x))
+};
+```
+While type representatives lead to somewhat verbose code on the calling side, they also improve readability, since you can explicitly see the used types in place. With type representatives we are able to
+
+* mitigate Javascript's lack of type inference
+* extend built-ins (object and primitive types) without touching them at all
+* define several type classes for each data type
+
+Since instances hold a reference to their type representatives we can fall back on this reference when desired (see the lens example above).
 
 ## On-Demand types
 
@@ -269,14 +250,6 @@ Ident.map = require("../sum/ident/map");
 Ident.run = require("../sum/ident/run");
 ```
 Please note that on-demand types are experimental and I am not sure if I'll continue to pursue this approach.
-
-## Type signatures
-
-To meet Javascript's dynamic type system ftor uses extended type signatures:
-
-* `[*]` represents a list of various types (e.g. `[1, "a", true]`)
-* `(*)` represents the rest syntax `...` in argument lists (e.g. `(*) -> [*]`)
-* `|` represents a conjunction (e.g. `(a -> b) -> a -> b|null`)
 
 ## Todos
 
