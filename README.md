@@ -38,7 +38,7 @@ Regain hope all ye who enter here.
 
 To meet Javascript's dynamic type system and certain techniques ftor uses extended type signatures:
 
-* `*` represents an indefinite number of type variables that may represent various types
+* `*` represents an indefinite number of type variables of various types
 * `[*]` represents a list of such type variables, e.g. `[1, "a", true]`
 * `(*)` represents an n-tuple of such type variables, e.g. `(1)`, `(1, "a")` or `(1, "a", true)` etc.
 * `|` represents a conjunction of two fixed types, e.g. `a -> String|Number`
