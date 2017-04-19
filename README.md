@@ -241,7 +241,7 @@ Since instances hold a reference to their type representatives we can fall back 
 
 ## Pattern matching
 
-Destructuring assignments and functions enable a primitive form of pattern matching in Javascript. More on this later...
+Destructuring assignments and first class functions enable a primitive form of pattern matching in Javascript. More on this later...
 
 ## Todos
 

@@ -5,9 +5,17 @@
  * @name apply combinator
  * @type higher order function
  * @example
- *
 
-   A(x => x * x) (5); // 25
+   const A = f => x => f(x);
+   const B = f => g => x => f(g(x));
+   
+   const add = y => x => x + y;
+   const luckyNum = A(n => n === 7 ? "Lucky number seven!" : "You're out of luck, pal!");
+
+   const comp = B(luckyNum) (add(4));
+
+   comp(3); // "Lucky number seven!"
+   comp(2); // "You're out of luck, pal!"
 
  */
 
