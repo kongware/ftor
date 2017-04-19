@@ -239,6 +239,10 @@ While type representatives lead to somewhat verbose code on the calling side, th
 
 Since instances hold a reference to their type representatives we can fall back on this reference when desired (see the lens example above).
 
+## Pattern matching
+
+Destructuring assignments and functions enable a primitive form of pattern matching in Javascript. More on this later...
+
 ## Todos
 
 - [ ] add type rep dependencies to inline doc
