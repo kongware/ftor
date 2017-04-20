@@ -5,9 +5,15 @@
  * @name cardinal combinator (flip arguments)
  * @type higher order function
  * @example
- *
 
-   C(x => y => x - y) (3) (2); // -1
+   const C = f => y => x => f(x) (y);
+
+   const sub = y => x => x - y;
+   const sub2 = sub(2);
+
+   sub2(10); // 8
+   sub(10) (2); // -8
+   C(sub) (10) (2); // 8
 
  */
 

@@ -5,7 +5,6 @@
  * @name monadic chain
  * @type higher order function
  * @example
- *
 
    ?
 
