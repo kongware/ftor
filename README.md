@@ -36,14 +36,11 @@ Regain hope all ye who enter here.
 
 ## Type signature extensions
 
-To meet Javascript's dynamic type system and certain techniques ftor uses extended type signatures:
+To meet Javascript's dynamic type system and idiomatic techniques ftor uses extended, non-standard type signatures:
 
-* `*` represents an indefinite number of type variables of various types
-* `[*]` represents a list of such type variables, e.g. `[1, "a", true]`
-* `(*)` represents an n-tuple of such type variables, e.g. `(1)`, `(1, "a")` or `(1, "a", true)` etc.
+* `[*]` represents a list of different types, e.g. `[1, "a", true]`
+* `(*)` represents a tuple whose length can only be determined at runtime,  e.g. `(1, "a")` or `(1, "a", true)` etc.
 * `|` represents a conjunction of two fixed types, e.g. `a -> String|Number`
-
-With the second syntax it is possible to represent the rest syntax in Javascript.
 
 ## Naming Convention
 
@@ -67,19 +64,87 @@ Pleae note that ftor uses the same generic names for dozens of functions of diff
 
 All functions in ftor are in manually curried form. Currying leads to abstraction over arity in many cases and thus facilitates function composition and combinatorics.
 
-## Primitive combinators
+## Combinators
 
-There are a couple of primitive combinators named with a single upper case letter. This naming is chosen because they behave like operators. Just memorize them and you'll soon appreciate their conciseness.
+There are a couple of combinators which are regularly encountered when working with pure functions. In ftor this "primitive" combinators have concise names with a single capital letter and an optional subsequent number. Just memorize them like operators and you'll soon appreciate their conciseness:
 
-* A (apply)
-* B (composition)
-* C (flip arguments)
-* D (binary composition)
-* I (identity)
-* K (constant)
-* S (applicative lift)
-* T (reverse application)
-* U (recursion)
+* A (application) :: (a -> b) -> a -> b
+* A_ (reverse application) :: a -> (a -> b) -> b
+* A2 (binary application) :: (a -> b -> c) -> a -> b -> c
+* A2_ (reverse binary application) :: a -> b -> (a -> b -> c) -> c
+* C (composition) :: (Function) -> (a -> b) -> a -> c
+* C2 (binary compostion) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
+* C3 (ternary composition) :: (d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e
+* F (flip) :: (a -> b -> c) -> b -> a -> c
+* F3 (ternary flip) :: (a -> b -> c -> d) -> a -> c -> b -> d
+* D (bi-composition) :: (c -> d -> e) -> (a -> c) -> a -> (b -> d) -> b -> e
+* D2 (composition on 2nd argument) :: (a -> c -> d) -> a -> (b -> c) -> b -> d
+* D3 (composition on 3rd argument) :: (a -> b -> d -> e) -> a -> b -> (c -> d) -> c -> e
+* I (idiot, identity) :: a -> a
+* K (kestrel, constant) :: a -> b -> a
+* on (psi) :: (b -> b -> c) -> (a -> b) -> a -> a -> c
+* L (applicative/monadic lift) :: (b -> c -> d) -> (a -> b) -> (a -> c) -> a -> d
+* U (recursion) :: (a -> a) -> a -> a
+
+Please note that these names differ from those in the literature.
+
+## Avoiding application hell
+
+In Javascript we cannot shift functions to infix position and treat them like operators. We cannot define our own operators either. We are stuck with functions in prefix position. Hence we sooner or later end up in application hell:
+
+```Javascript
+// this concise Haskell code
+triple x y z = [x, y, z]
+triple <$> (+1) <*> (*2) <*> (^2) $ 10 // [11, 20, 100]
+
+// is transformed into
+const triple = x => y => z => [x, y, z];
+ap(ap(C_(triple, inc)) (dbl)) (sqr) (10); // [11, 20, 100]
+```
+While the Javascript version is equally succinct, it is much harder to read. There are a couple of techniques to mitigate this issue.
+
+### Proper code formatting
+
+```Javascript
+ap(
+  ap(
+    C_(triple, inc)
+  ) (dbl)
+) (sqr) (10);
+```
+No real progress, but at least it is now recognizable that `ap` is a binary function and that the outer `ap` gets `sqr` and the inner one `dbl` as second argument.
+
+### Flattening through composition
+
+```Javascript
+C2_(ap, ap) (C_(triple, inc)) (dbl) (sqr) (10);
+```
+Yay, we've avoided deeply nested function calls by using the composition operator. But now we need to know how exactly this combinator works.
+
+### Using a specific lambda
+
+```Javascript
+x => triple(inc(x)) (dbl(x)) (sqr(x));
+```
+Well, sometimes a good old lambda and explicit argument names are the better choice than a fancy combinator.
+
+### The whole code
+
+```Javascript
+const C_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+const C2_ = (...fs) => x => y => fs.slice(0, -1).reduceRight((acc, f) => f(acc), fs[fs.length - 1](x) (y));
+const ap = f => g => x => f(x) (g(x));
+
+const inc = x => x + 1;
+const dbl = x => x * 2;
+const sqr = x => x * x;
+
+const triple = x => y => z => [x, y, z];
+
+ap(ap(C_(triple, inc)) (dbl)) (sqr) (10); // [11, 20, 100]
+C2_(ap, ap) (C_(triple, inc)) (dbl) (sqr) (10); // [11, 20, 100]
+(x => triple(inc(x)) (dbl(x)) (sqr(x))) (10); // [11, 20, 100]
+```
 
 ## Immutability
 
