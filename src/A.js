@@ -8,12 +8,23 @@
 
    const A = f => x => f(x);
    const sqr = x => x * x;
+   const add = x => y => x + y;
 
    // immediately invoke a lambda:
    A(x => x * x) (5); // 25
 
-   // or destructure the input:
-   A(({x}) => sqr(x)) ({x: 5}); // 25
+   // or destructure some input:
+   A(({x, y}) => add(x) (y)) ({x: 2, y: 3}); // 5
+
+   // or transform a statement into an expression:
+   A(n => {
+     switch(n) {
+       case 1: return "one";
+       case 2: return "two";
+       case 3: return "three";
+       default: return "out of range";
+     }
+   }) (2); // "two"
    
  */
 

@@ -80,8 +80,8 @@ There are a couple of combinators which are regularly encountered when working w
 * D3 (composition in 3rd argument) :: `(a -> b -> d -> e) -> a -> b -> (c -> d) -> c -> e`
 * F (flip) :: `(a -> b -> c) -> b -> a -> c`
 * F3 (ternary flip) :: `(a -> b -> c -> d) -> a -> c -> b -> d`
-* I (idiot, identity) :: `a -> a`
-* K (kestrel, constant) :: `a -> b -> a`
+* I (identity) :: `a -> a`
+* K (constant/of) :: `a -> b -> a`
 * U (recursion) :: `(a -> a) -> a -> a`
 
 Please note that these names differ from those in the literature.
