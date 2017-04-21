@@ -42,7 +42,7 @@ To meet Javascript's dynamic type system and idiomatic techniques ftor uses exte
 * `(*)` represents a tuple whose length can only be determined at runtime,  e.g. `(1, "a")` or `(1, "a", true)` etc.
 * `|` represents a conjunction of two fixed types, e.g. `a -> String|Number`
 
-## Naming Convention
+## Naming conventions
 
 * `v, w, x, y, z` represents type variables (polymorphism)
 * `vs, ws, xs, ys, zs` represents polymorphic collections
