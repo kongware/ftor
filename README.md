@@ -68,23 +68,23 @@ All functions in ftor are in manually curried form. Currying leads to abstractio
 
 There are a couple of combinators which are regularly encountered when working with pure functions. In ftor this "primitive" combinators have concise names with a single capital letter and an optional subsequent number. Just memorize them like operators and you'll soon appreciate their conciseness:
 
-* A (application) :: (a -> b) -> a -> b
-* A_ (reverse application) :: a -> (a -> b) -> b
-* A2 (binary application) :: (a -> b -> c) -> a -> b -> c
-* A2_ (reverse binary application) :: a -> b -> (a -> b -> c) -> c
-* C (composition) :: (Function) -> (a -> b) -> a -> c
-* C2 (binary compostion) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
-* C3 (ternary composition) :: (d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e
-* F (flip) :: (a -> b -> c) -> b -> a -> c
-* F3 (ternary flip) :: (a -> b -> c -> d) -> a -> c -> b -> d
-* D (bi-composition) :: (c -> d -> e) -> (a -> c) -> a -> (b -> d) -> b -> e
-* D2 (composition on 2nd argument) :: (a -> c -> d) -> a -> (b -> c) -> b -> d
-* D3 (composition on 3rd argument) :: (a -> b -> d -> e) -> a -> b -> (c -> d) -> c -> e
-* I (idiot, identity) :: a -> a
-* K (kestrel, constant) :: a -> b -> a
-* on (psi) :: (b -> b -> c) -> (a -> b) -> a -> a -> c
-* L (applicative/monadic lift) :: (b -> c -> d) -> (a -> b) -> (a -> c) -> a -> d
-* U (recursion) :: (a -> a) -> a -> a
+* A (application) :: `(a -> b) -> a -> b`
+* A_ (reverse application) :: `a -> (a -> b) -> b`
+* A2 (binary application) :: `(a -> b -> c) -> a -> b -> c`
+* A2_ (reverse binary application) :: `a -> b -> (a -> b -> c) -> c`
+* C (composition) :: `(Function) -> (a -> b) -> a -> c`
+* C2 (binary compostion) :: `(c -> d) -> (a -> b -> c) -> a -> b -> d`
+* C3 (ternary composition) :: `(d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e`
+* F (flip) :: `(a -> b -> c) -> b -> a -> c`
+* F3 (ternary flip) :: `(a -> b -> c -> d) -> a -> c -> b -> d`
+* D (bi-composition) :: `(c -> d -> e) -> (a -> c) -> a -> (b -> d) -> b -> e`
+* D2 (composition on 2nd argument) :: `(a -> c -> d) -> a -> (b -> c) -> b -> d`
+* D3 (composition on 3rd argument) :: `(a -> b -> d -> e) -> a -> b -> (c -> d) -> c -> e`
+* I (idiot, identity) :: `a -> a`
+* K (kestrel, constant) :: `a -> b -> a`
+* on (psi) :: `(b -> b -> c) -> (a -> b) -> a -> a -> c`
+* L (applicative/monadic lift) :: `(b -> c -> d) -> (a -> b) -> (a -> c) -> a -> d`
+* U (recursion) :: `(a -> a) -> a -> a`
 
 Please note that these names differ from those in the literature.
 
