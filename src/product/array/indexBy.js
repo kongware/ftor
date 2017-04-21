@@ -19,7 +19,7 @@ const mapBy = require("../../mapBy");
      {street: "1 Infinite Loop", zip: 95014, type: "life"},
    ]}
 
-   const _2ndStreetLens = B_(key("addresses"), indexBy(xs => xs[xs.length - 1]), key("street"));
+   const _2ndStreetLens = C_(key("addresses"), indexBy(xs => xs[xs.length - 1]), key("street"));
    const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o); // {...[...{street: "1 INFINITE LOOP",...}...]...}
 
    console.assert(o !== p); // passes

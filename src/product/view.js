@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {B_} = require("../B");
+const {C_} = require("../C");
 const Const = require("../sum/const/Const");
 const runBy = require("../runBy");
 
@@ -20,7 +20,7 @@ const runBy = require("../runBy");
      {street: "1 Infinite Loop", zip: 95014, type: "life"},
    ]}
 
-   const _2ndStreetLens = B_(key("addresses"), index(1), key("street"));
+   const _2ndStreetLens = C_(key("addresses"), index(1), key("street"));
 
    view (_2ndStreetLens) (o); // 9200 Sunset
 
@@ -28,7 +28,7 @@ const runBy = require("../runBy");
 
 
 // Functor f => (a -> f b) -> t * -> a
-const view = lens => B_(runBy, lens(Const));
+const view = lens => C_(runBy, lens(Const));
 
 
 // API

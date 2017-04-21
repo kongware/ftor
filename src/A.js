@@ -2,21 +2,19 @@
 
 
 /**
- * @name apply combinator
+ * @name (reverse) application
  * @type higher order function
  * @example
 
    const A = f => x => f(x);
-   const B = f => g => x => f(g(x));
+   const sqr = x => x * x;
+
+   // immediately invoke a lambda:
+   A(x => x * x) (5); // 25
+
+   // or destructure the input:
+   A(({x}) => sqr(x)) ({x: 5}); // 25
    
-   const add = y => x => x + y;
-   const luckyNum = A(n => n === 7 ? "Lucky number seven!" : "You're out of luck, pal!");
-
-   const comp = B(luckyNum) (add(4));
-
-   comp(3); // "Lucky number seven!"
-   comp(2); // "You're out of luck, pal!"
-
  */
 
 
@@ -24,15 +22,27 @@
 const A = f => x => f(x);
 
 
+// a -> (a -> b) -> b
+const A_ = x => f => f(x);
+
+
 // (a -> b -> c) -> a -> b -> c
 const A2 = f => x => y => f(x) (y);
+
+
+// a -> b -> (a -> b -> c) -> c
+const A2_ = x => y => f => f(x) (y);
 
 
 // (a -> b -> c -> d) -> a -> b -> c -> d
 const A3 = f => x => y => z => f(x) (y) (z);
 
 
+// a -> b -> c -> (a -> b -> c -> d) -> d
+const A3_ = x => y => z => f => f(x) (y) (z);
+
+
 // API
 
 
-module.exports = {A, A2, A3};
+module.exports = {A, A_, A2, A2_, A3, A3_};

@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {B_} = require("../B");
+const {C_} = require("../C");
 const Ident = require("../sum/ident/Ident");
 const runBy = require("../runBy");
 
@@ -20,7 +20,7 @@ const runBy = require("../runBy");
      {street: "1 Infinite Loop", zip: 95014, type: "life"},
    ]}
 
-   const _2ndStreetLens = B_(key("addresses"), index(1), key("street"));
+   const _2ndStreetLens = C_(key("addresses"), index(1), key("street"));
    const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o); // {...[...{street: "9200 SUNSET",...}...]...}
 
    console.assert(o !== p); // passes
@@ -29,7 +29,7 @@ const runBy = require("../runBy");
 
 
 // Functor f => (a -> f b) -> (a -> b) -> t * -> t *
-const map = lens => f => B_(runBy, lens(B_(Ident, f)));
+const map = lens => f => C_(runBy, lens(C_(Ident, f)));
 
 
 // API

@@ -75,15 +75,13 @@ There are a couple of combinators which are regularly encountered when working w
 * C (composition) :: `(Function) -> (a -> b) -> a -> c`
 * C2 (binary compostion) :: `(c -> d) -> (a -> b -> c) -> a -> b -> d`
 * C3 (ternary composition) :: `(d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e`
+* D (bi-composition) :: `(c -> d -> e) -> (a -> c) -> a -> (b -> d) -> b -> e`
+* D2 (composition in 2nd argument) :: `(a -> c -> d) -> a -> (b -> c) -> b -> d`
+* D3 (composition in 3rd argument) :: `(a -> b -> d -> e) -> a -> b -> (c -> d) -> c -> e`
 * F (flip) :: `(a -> b -> c) -> b -> a -> c`
 * F3 (ternary flip) :: `(a -> b -> c -> d) -> a -> c -> b -> d`
-* D (bi-composition) :: `(c -> d -> e) -> (a -> c) -> a -> (b -> d) -> b -> e`
-* D2 (composition on 2nd argument) :: `(a -> c -> d) -> a -> (b -> c) -> b -> d`
-* D3 (composition on 3rd argument) :: `(a -> b -> d -> e) -> a -> b -> (c -> d) -> c -> e`
 * I (idiot, identity) :: `a -> a`
 * K (kestrel, constant) :: `a -> b -> a`
-* on (psi) :: `(b -> b -> c) -> (a -> b) -> a -> a -> c`
-* L (applicative/monadic lift) :: `(b -> c -> d) -> (a -> b) -> (a -> c) -> a -> d`
 * U (recursion) :: `(a -> a) -> a -> a`
 
 Please note that these names differ from those in the literature.
@@ -124,13 +122,14 @@ Yay, we've avoided deeply nested function calls by using the composition operato
 ### Using a specific lambda
 
 ```Javascript
-x => triple(inc(x)) (dbl(x)) (sqr(x));
+A(x => triple(inc(x)) (dbl(x)) (sqr(x))) (10);
 ```
 Well, sometimes a good old lambda and explicit argument names are the better choice than a fancy combinator.
 
 ### The whole code
 
 ```Javascript
+const A = f => x => f(x);
 const C_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
 
 const C2_ = (...fs) => x => y => 
@@ -148,7 +147,7 @@ ap(ap(C_(triple, inc)) (dbl)) (sqr) (10); // [11, 20, 100]
 
 C2_(ap, ap) (C_(triple, inc)) (dbl) (sqr) (10); // [11, 20, 100]
 
-(x => triple(inc(x)) (dbl(x)) (sqr(x))) (10); // [11, 20, 100]
+A(x => triple(inc(x)) (dbl(x)) (sqr(x))) (10); // [11, 20, 100]
 ```
 
 ## Immutability
@@ -164,7 +163,7 @@ const Ident = {
   run: t => t.x
 };
 
-const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+const C_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
 
 const mapBy = f => t => t.type.map(f) (t);
 
@@ -172,7 +171,7 @@ const key = k => f => o => mapBy(v => Object.assign({}, o, {[k]: v})) (f(o[k]));
 
 const index = i => f => xs => mapBy(v => Object.assign([], xs, {[i]: v})) (f(xs[i]));
 
-const map = lens => f => B_(run, lens(B_(cons, f)));
+const map = lens => f => C_(run, lens(C_(cons, f)));
 
 const o = {name: "Bob", addresses: [
   {street: "99 Maple", zip: 94004, type: "home"},
@@ -183,7 +182,7 @@ const o = {name: "Bob", addresses: [
   {name: "Kalib"}
 ]}
 
-const _2ndStreetLens = B(key("addresses")) (B(index(1)) (key("street")));
+const _2ndStreetLens = C(key("addresses")) (C(index(1)) (key("street")));
 
 const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o);
 

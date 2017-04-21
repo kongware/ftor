@@ -8,7 +8,7 @@
  *
 
    const inc = x => x + 1;
-   B_(trace("trace:"), inc) (2); // logs trace: 3
+   C_(trace("trace:"), inc) (2); // logs trace: 3
 
  */
 

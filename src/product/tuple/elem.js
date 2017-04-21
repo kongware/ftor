@@ -14,7 +14,7 @@ const setn = require("./setn");
  * @type higher order function
  * @example
 
-   const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+   const C_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
    const K = x => _ => x;
    const mapBy = f => t => t.type.map(f) (t);
    const runBy = t => t.x;
@@ -33,18 +33,18 @@ const setn = require("./setn");
    Ident_.map = f => t => Ident(f(t.x));
    const Ident = x => ({type: Ident_, x: x});
 
-   const view = lens => B_(runBy, lens(Const));
-   const map = lens => f => B_(runBy, lens(B_(Ident, f)));
+   const view = lens => C_(runBy, lens(Const));
+   const map = lens => f => C_(runBy, lens(C_(Ident, f)));
    const set = lens => x => map(lens) (K(x));
    const toUpperCase = x => x.toUpperCase();
 
    const elem = n => f => t => mapBy(x => t(setn(n) (x))) (f(t(getn(n))));
 
    const triple = Triple(Pair(1, "a"), Pair(2, "b"), Pair(3, "c"));
-   const _2ndPairLetter = B_(elem(2), elem(2));
+   const _2ndPairLetter = C_(elem(2), elem(2));
 
    view(_2ndPairLetter) (triple); // "b"
-   view(_2ndPairLetter) (map(_2ndPairLetter) (toUpperCase) (triple)); // "B"
+   view(_2ndPairLetter) (map(_2ndPairLetter) (toUpperCase) (triple)); // "C"
    view(_2ndPairLetter) (set(_2ndPairLetter) ("z") (triple)); "z"
 
  */

@@ -13,7 +13,7 @@
 
 
 // a -> a -> a
-const and = y => x => x && y;
+const and = x => y => x && y;
 
 
 // API

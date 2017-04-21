@@ -11,11 +11,15 @@
  */
 
 
+// (r -> a) -> (a -> r -> b) -> r -> b
+const chain = f => g => x => g(f(x)) (x);
+
+
 // (a -> r -> b) -> (r -> a) -> r -> b
-const chain = f => g => x => f(g(x)) (x);
+const chain_ = f => g => x => f(g(x)) (x);
 
 
 // API
 
 
-module.exports = chain;
+module.exports = {chain, chain_};

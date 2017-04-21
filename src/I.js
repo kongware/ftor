@@ -2,7 +2,7 @@
 
 
 /**
- * @name idiot combinator (identity)
+ * @name identity
  * @type higher order function
  * @example
  *

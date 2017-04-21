@@ -2,7 +2,7 @@
 
 
 /**
- * @name kestrel combinator (constant)
+ * @name constant
  * @type higher order function
  * @example
  *
