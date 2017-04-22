@@ -116,7 +116,7 @@ No real progress, but at least it is now recognizable that `ap` is a binary func
 ```Javascript
 B2_(ap, ap) (B_(triple, inc)) (dbl) (sqr) (10);
 ```
-Yay, we've avoided deeply nested function calls by using the composition combinator. But now we need to know how exactly this combinator works.
+Yay, we've avoided deeply nested function calls by using the composition combinator. But now the control flow is abstracted and we need to know how exactly this combinator works.
 
 ### Using a specific lambda
 
