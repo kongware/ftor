@@ -18,7 +18,11 @@
 const K = x => _ => x;
 
 
+// a -> b -> b
+const K_ = _ => y => y;
+
+
 // API
 
 
-module.exports = K;
+module.exports = {K, K_};

@@ -6,7 +6,7 @@
 
 const EQ = require("./EQ");
 const GT = require("./GT");
-const K = require("../../K");
+const {K} = require("../../K");
 const LT = require("./LT");
 const ternarySum = require("./ternarySum");
 

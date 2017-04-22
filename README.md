@@ -40,6 +40,7 @@ To meet Javascript's dynamic type system and idiomatic techniques ftor uses exte
 
 * `[*]` represents a list of different types, e.g. `[1, "a", true]`
 * `(*)` represents a tuple whose length can only be determined at runtime,  e.g. `(1, "a")` or `(1, "a", true)` etc.
+* `t *` represents a context that contains an arbitrary number of values either with the same or with various types
 * `|` represents a conjunction of two fixed types, e.g. `a -> String|Number`
 
 ## Naming conventions
@@ -66,19 +67,20 @@ All functions in ftor are in manually curried form. Currying leads to abstractio
 
 ## Combinators
 
-There are a couple of combinators which are regularly encountered when working with pure functions. In ftor this "primitive" combinators have concise names with a single capital letter. Just memorize them like operators and you'll soon appreciate their conciseness:
+There are a couple of combinators which are regularly encountered when working with pure functions. In ftor these combinators have concise names with a single capital letter sometime along with a subsequent number. Just memorize them like operators and you'll soon appreciate their conciseness:
 
 * A (application) :: `(a -> b) -> a -> b`
 * A_ (reverse application) :: `a -> (a -> b) -> b`
-* C (variadic, partially applicable composition) :: `(Function) -> (a -> b) -> a -> c`
-* C_ (variadic compostion) :: `(Function) -> a -> b`
+* B (variadic, partially applicable composition) :: `(Function) -> (a -> b) -> a -> c`
+* B_ (variadic compostion) :: `(Function) -> a -> b`
 * D (bi-composition) :: `(c -> d -> e) -> (a -> c) -> a -> (b -> d) -> b -> e`
 * D2 (composition in 2nd argument) :: `(a -> c -> d) -> a -> (b -> c) -> b -> d`
 * D3 (composition in 3rd argument) :: `(a -> b -> d -> e) -> a -> b -> (c -> d) -> c -> e`
-* F (flip) :: `(a -> b -> c) -> b -> a -> c`
-* F3 (ternary flip) :: `(a -> b -> c -> d) -> a -> c -> b -> d`
+* Q (variadic, partially applicable, reverse composition) :: `(Function) -> (a -> b) -> a -> c`
+* Q_ (variadic, reverse compostion) :: `(Function) -> a -> b`
 * I (identity) :: `a -> a`
-* K (constant/of) :: `a -> b -> a`
+* K (constant) :: `a -> b -> a`
+* K_ (constant) :: `a -> b -> b`
 * U (recursion) :: `(a -> a) -> a -> a`
 
 Please note that some of these names differ from those in the literature.
@@ -94,7 +96,7 @@ triple <$> (+1) <*> (*2) <*> (^2) $ 10 // [11, 20, 100]
 
 // is transformed into
 const triple = x => y => z => [x, y, z];
-ap(ap(C_(triple, inc)) (dbl)) (sqr) (10); // [11, 20, 100]
+ap(ap(B_(triple, inc)) (dbl)) (sqr) (10); // [11, 20, 100]
 ```
 While the Javascript version is equally succinct, it is much harder to read. There are a couple of techniques to mitigate this issue.
 
@@ -103,7 +105,7 @@ While the Javascript version is equally succinct, it is much harder to read. The
 ```Javascript
 ap(
   ap(
-    C_(triple, inc)
+    B_(triple, inc)
   ) (dbl)
 ) (sqr) (10);
 ```
@@ -112,7 +114,7 @@ No real progress, but at least it is now recognizable that `ap` is a binary func
 ### Flattening through composition
 
 ```Javascript
-C2_(ap, ap) (C_(triple, inc)) (dbl) (sqr) (10);
+B2_(ap, ap) (B_(triple, inc)) (dbl) (sqr) (10);
 ```
 Yay, we've avoided deeply nested function calls by using the composition combinator. But now we need to know how exactly this combinator works.
 
@@ -123,13 +125,13 @@ A(x => triple(inc(x)) (dbl(x)) (sqr(x))) (10);
 ```
 Well, sometimes a good old lambda and explicit argument names are the better choice than a fancy combinator.
 
-### The whole code
+### Runnable code
 
 ```Javascript
 const A = f => x => f(x);
-const C_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
 
-const C2_ = (...fs) => x => y => 
+const B2_ = (...fs) => x => y => 
  fs.slice(0, -1).reduceRight((acc, f) => f(acc), fs[fs.length - 1](x) (y));
 
 const ap = f => g => x => f(x) (g(x));
@@ -140,9 +142,9 @@ const sqr = x => x * x;
 
 const triple = x => y => z => [x, y, z];
 
-ap(ap(C_(triple, inc)) (dbl)) (sqr) (10); // [11, 20, 100]
+ap(ap(B_(triple, inc)) (dbl)) (sqr) (10); // [11, 20, 100]
 
-C2_(ap, ap) (C_(triple, inc)) (dbl) (sqr) (10); // [11, 20, 100]
+B2_(ap, ap) (B_(triple, inc)) (dbl) (sqr) (10); // [11, 20, 100]
 
 A(x => triple(inc(x)) (dbl(x)) (sqr(x))) (10); // [11, 20, 100]
 ```
@@ -154,56 +156,52 @@ ftor opts for immutable data but doesn't enforce it with `Object.freeze` or `Obj
 One of these operations are functional lenses:
 
 ```Javascript
-const Ident = {
-  cons: x => ({type: Ident, x: x}),
-  map: f => t => Ident.cons(f(t.x)),
-  run: t => t.x
-};
-
-const C_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
-
+const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
 const mapBy = f => t => t.type.map(f) (t);
 
+const Const_ = {};
+Const_.map = f => t => Const(t.x);
+
+const Ident_ = {};
+Ident_.map = f => t => Ident(f(t.x));
+
+const Const = x => ({type: Const_, x: x});
+const Ident = x => ({type: Ident_, x: x});
+const runBy = t => "run" in t ? t.run(t) : t.x;
+
 const key = k => f => o => mapBy(v => Object.assign({}, o, {[k]: v})) (f(o[k]));
-
-const index = i => f => xs => mapBy(v => Object.assign([], xs, {[i]: v})) (f(xs[i]));
-
-const map = lens => f => C_(run, lens(C_(cons, f)));
+const index = i => f => xs => mapBy(x => Object.assign([], xs, {[i]: x})) (f(xs[i]));
+const view = lens => B_(runBy, lens(Const));
+const map = lens => f => B_(runBy, lens(B_(Ident, f)));
 
 const o = {name: "Bob", addresses: [
   {street: "99 Maple", zip: 94004, type: "home"},
   {street: "77 Sunset", zip: 90069, type: "work"},
   {street: "1 Infinite Loop", zip: 95014, type: "life"},
-], friends: [
-  {name: "Zarah"},
-  {name: "Kalib"}
 ]}
 
-const _2ndStreetLens = C(key("addresses")) (C(index(1)) (key("street")));
-
+const _2ndStreetLens = B_(key("addresses"), index(1), key("street"));
 const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o);
 
 console.assert(o !== p); // passes
 console.assert(o.friends === p.friends); // passes
 
-console.log(o.addresses[1].street); // "77 Sunset"
-console.log(p.addresses[1].street); // "77 SUNSET"
+view(_2ndStreetLens) (p); // "77 SUNSET"
 ```
-
-Lenses treat `Object`s as immutable and they merely clone the necessary portions of the data structure while sharing the rest.
+Lenses treat `Object`s as immutable and merely clone the necessary portions of the data structure while the rest is shared.
 
 ## Records
 
 Javascript's `Object` data type is highly flawed:
 
 * `this` encourages devs to mix data and logic
-* getters silently return `undefined` for not existing properties
-* it can contain `null`/`undefined`
+* getters silently return `undefined` for non-existend properties
+* instances may contain `null`/`undefined`
 * it is a mutable data type
 
-`Object`s are designed to be used for everything but cannot do anything right. For this reason ftor treats `Object`s as records. A record is immutable, avoids `this` and throws a `TypeError` when accessing non-existing properties, that is, it solves most of the issues and thus is much safer. Since we don't want to lose object literal syntax and destructuring assignment ftor's records are still plain old Javascript `Object`s - with a policy though.
+`Object`s are designed to be used for everything but cannot do anything right. For this reason ftor considers `Object`s mainly as records. A record avoids `this`, is immutable and throws a `TypeError` when accessing non-existend properties.
 
-If you need subtyping use sum types (tagged unions). If you need modularity use ES2015 modules. If you need something to iterate over, use a collection like `Array`. If you need a composite type of related data without named fields, use tuples. Otherwise use records.
+If you need subtyping use sum types (tagged unions). If you need modularity use ES2015 modules. If you need something to iterate over, use a collection like `Array`. If you need a composite type of related data of different types without named fields, use tuples. Otherwise, use records.
 
 ## Tuples
 

@@ -11,7 +11,6 @@ const mapBy = require("../../mapBy");
  * @name key lens
  * @type operator function
  * @example
- *
 
    @see ../view
 

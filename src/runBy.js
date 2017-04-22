@@ -12,7 +12,7 @@
 
 
 // Object -> a
-const runBy = t => run in t ? t.run(t) : t.x;
+const runBy = t => "run" in t ? t.run(t) : t.x;
 
 
 // API

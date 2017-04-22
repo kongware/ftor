@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {C_} = require("./C");
+const {B_} = require("./B");
 const {concat_} = require("./product/array/concat");
 const foldr = require("./product/array/foldr");
 
@@ -20,7 +20,7 @@ const foldr = require("./product/array/foldr");
 
 
 // (Foldable t, Monoid m) => (Object, Object) -> (a -> m) -> t a -> m
-const foldMap = (Rep1, Rep2) => f => Rep1.foldr(C_(Rep2.concat_, f)) (Rep2.empty);
+const foldMap = (Rep1, Rep2) => f => Rep1.foldr(B_(Rep2.concat_, f)) (Rep2.empty);
 
 
 // API
