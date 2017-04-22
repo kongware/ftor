@@ -66,15 +66,12 @@ All functions in ftor are in manually curried form. Currying leads to abstractio
 
 ## Combinators
 
-There are a couple of combinators which are regularly encountered when working with pure functions. In ftor this "primitive" combinators have concise names with a single capital letter and an optional subsequent number. Just memorize them like operators and you'll soon appreciate their conciseness:
+There are a couple of combinators which are regularly encountered when working with pure functions. In ftor this "primitive" combinators have concise names with a single capital letter. Just memorize them like operators and you'll soon appreciate their conciseness:
 
 * A (application) :: `(a -> b) -> a -> b`
 * A_ (reverse application) :: `a -> (a -> b) -> b`
-* A2 (binary application) :: `(a -> b -> c) -> a -> b -> c`
-* A2_ (reverse binary application) :: `a -> b -> (a -> b -> c) -> c`
-* C (composition) :: `(Function) -> (a -> b) -> a -> c`
-* C2 (binary compostion) :: `(c -> d) -> (a -> b -> c) -> a -> b -> d`
-* C3 (ternary composition) :: `(d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e`
+* C (variadic, partially applicable composition) :: `(Function) -> (a -> b) -> a -> c`
+* C_ (variadic compostion) :: `(Function) -> a -> b`
 * D (bi-composition) :: `(c -> d -> e) -> (a -> c) -> a -> (b -> d) -> b -> e`
 * D2 (composition in 2nd argument) :: `(a -> c -> d) -> a -> (b -> c) -> b -> d`
 * D3 (composition in 3rd argument) :: `(a -> b -> d -> e) -> a -> b -> (c -> d) -> c -> e`
@@ -84,7 +81,7 @@ There are a couple of combinators which are regularly encountered when working w
 * K (constant/of) :: `a -> b -> a`
 * U (recursion) :: `(a -> a) -> a -> a`
 
-Please note that these names differ from those in the literature.
+Please note that some of these names differ from those in the literature.
 
 ## Avoiding application hell
 
@@ -117,7 +114,7 @@ No real progress, but at least it is now recognizable that `ap` is a binary func
 ```Javascript
 C2_(ap, ap) (C_(triple, inc)) (dbl) (sqr) (10);
 ```
-Yay, we've avoided deeply nested function calls by using the composition operator. But now we need to know how exactly this combinator works.
+Yay, we've avoided deeply nested function calls by using the composition combinator. But now we need to know how exactly this combinator works.
 
 ### Using a specific lambda
 

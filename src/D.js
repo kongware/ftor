@@ -14,6 +14,7 @@
 // (c -> d -> e) -> (a -> c) -> a -> (b -> d) -> b -> e
 const D = f => g => x => h => y => f(g(x)) (h(y));
 
+
 // (a -> c -> d) -> a -> (b -> c) -> b -> d
 const D2 = f => x => g => y => f(x) (g(y));
 

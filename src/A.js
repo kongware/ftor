@@ -18,7 +18,7 @@
 
    // or transform a statement into an expression:
    A(n => {
-     switch(n) {
+     switch (n) {
        case 1: return "one";
        case 2: return "two";
        case 3: return "three";
