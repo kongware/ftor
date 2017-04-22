@@ -13,7 +13,7 @@
    // immediately invoke a lambda (semantic sugar):
    A(x => x * x) (5); // 25
 
-   // or destructure the input:
+   // or destructure some input:
    A(({x, y}) => add(x) (y)) ({x: 2, y: 3}); // 5
 
    // or transform a statement into an expression:
