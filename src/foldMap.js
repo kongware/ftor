@@ -20,7 +20,7 @@ const foldr = require("./product/array/foldr");
 
 
 // (Foldable t, Monoid m) => (Object, Object) -> (a -> m) -> t a -> m
-const foldMap = (Rep1, Rep2) => f => Rep1.foldr(C_(Rep2.concat, f)) (Rep2.empty);
+const foldMap = (Rep1, Rep2) => f => Rep1.foldr(C_(Rep2.concat_, f)) (Rep2.empty);
 
 
 // API
