@@ -342,11 +342,12 @@ tell([1]); // "single element list"
 tell([[]]); // "nested empty list"
 tell({}); // "no list at all"
 ```
-Unfortunately, destructuring assignment may throw an error if the pattern doesn't match the data structure. For this reason the operation must be wrapped in a try-catch-block. Additionally we lose some of the nice features of real pattern matching:
+Unfortunately, destructuring assignment throws an error if the pattern doesn't match the data structure. For this reason the operation must be wrapped in a try-catch-block. Additionally, we lose some of the nice features of real pattern matching:
 
-* There are no checks when extracting values: If the type is modified, then the pattern matching will start failing
-* There are no checks whether you are covering all cases
+* There are no checks when extracting values: If the type is modified, the pattern matching will start failing
+* There are no checks whether all cases are being covered
 * There is no checking on tag names: It is easy to make a typo
+* It works only for built-in types
 
 ## Todos
 
