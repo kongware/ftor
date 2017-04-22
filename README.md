@@ -183,10 +183,10 @@ const o = {name: "Bob", addresses: [
 const _2ndStreetLens = B_(key("addresses"), index(1), key("street"));
 const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o);
 
+view(_2ndStreetLens) (p); // "77 SUNSET"
+
 console.assert(o !== p); // passes
 console.assert(o.friends === p.friends); // passes
-
-view(_2ndStreetLens) (p); // "77 SUNSET"
 ```
 Lenses treat `Object`s as immutable and merely clone the necessary portions of the data structure while the rest is shared.
 
@@ -305,25 +305,60 @@ Since instances hold a reference to their type representatives we can fall back 
 
 ## Pattern matching
 
-Destructuring assignments and first class functions enable a primitive form of pattern matching in Javascript. More on this later...
+Destructuring assignments and first class functions enable a primitive form of pattern matching in Javascript:
+
+```Javascript
+const A = f => x => f(x);
+const otherwise = A;
+
+const match = (...fs) => x => {
+  const aux = (r, i) => r !== null ? r
+  : i in fs ? aux(fs[i](x), i + 1)
+  : null;
+
+  return aux(fs[0](x), 1);
+};
+
+const pattern = f => x => {
+  try {
+    return f(x);
+  } catch (_) {
+    return null;
+  }
+};
+
+const tell = match(
+  pattern(([[_]]) => _ === undefined ? "nested empty list" : null),
+  pattern(([[x, _]]) => _ === undefined ? "nested single element list" : null),
+  pattern(([[x, y]]) => "nested multiple element list"),
+  pattern(([_]) => _ === undefined ? "empty list" : null),
+  pattern(([x, _]) => _ === undefined ? "single element list" : null),
+  pattern(([x, y]) => "multiple element list"),
+  otherwise(x => "no list at all")
+);
+
+tell([[1, 2]]); // "nested multiple element list"
+tell([1]); // "single element list"
+tell([[]]); // "nested empty list"
+tell({}); // "no list at all"
+```
+Unfortunately, destructuring assignment may throw an error if the pattern doesn't match the data structure. For this reason the operation must be wrapped in a try-catch-block. Additionally we lose some of the nice features of real pattern matching:
+
+* There are no checks when extracting values: If the type is modified, then the pattern matching will start failing
+* There are no checks whether you are covering all cases
+* There is no checking on tag names: It is easy to make a typo
 
 ## Todos
 
-- [ ] add type rep dependencies to inline doc
 - [ ] add Ord/Eq/Enum to built-in types
-- [ ] add zip/unzip to tuples
+- [ ] add zip/unzip to tuples?
 - [ ] add contramap/dimap to tuple?
-- [ ] foldMap + concatMap
-- [ ] add join for functions
 - [ ] introduce church encoded value objects
 - [ ] rename impure functions as actions
 - [ ] add nameBy naming convetion to readme
 - [ ] add rest operator support for intercept
-- [ ] provide missing code examples
 - [ ] fold with monoids is called mconcat
 - [ ] examine natural transformations, hom functor and f-algebra
-- [ ] fold Objects without intermediate (generator i/o Object.keys(Object.values)
-- [ ] replace uncurried versions with (...args)
 - [ ] introduce continuation functor as compk
 - [ ] check out CPS aux functions
 - [ ] introduce on as wrapper of addEventListener
