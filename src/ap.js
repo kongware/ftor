@@ -2,7 +2,8 @@
 
 
 /**
- * @name applicative apply
+ * @name apply
+ * @note applicative
  * @type higher order function
  * @example
 

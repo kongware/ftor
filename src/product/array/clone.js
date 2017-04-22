@@ -5,11 +5,13 @@
  * @name shallowly clone
  * @type operator function
  * @example
- *
+
+   const clone = xs => [].concat(xs);
 
    const xs = [1, 2, 3];
    const ys = clone(xs); // [1, 2, 3]
-   xs === ys; // false
+   
+   console.assert(xs !== ys); // passes
  
  */
 

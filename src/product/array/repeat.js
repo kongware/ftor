@@ -3,10 +3,10 @@
 
 /**
  * @name repeat
- * @type higher order function
+ * @type operator function
  * @example
- *
 
+   const repeat = n => x => Array(n).fill(x);
    repeat(3) ("ha"); // ["ha", "ha", "ha"]
 
  */

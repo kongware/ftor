@@ -10,10 +10,10 @@
    const sqr = x => x * x;
    const add = x => y => x + y;
 
-   // immediately invoke a lambda:
+   // immediately invoke a lambda (semantic sugar):
    A(x => x * x) (5); // 25
 
-   // or destructure some input:
+   // or destructure the input:
    A(({x, y}) => add(x) (y)) ({x: 2, y: 3}); // 5
 
    // or transform a statement into an expression:
@@ -25,6 +25,12 @@
        default: return "out of range";
      }
    }) (2); // "two"
+
+   // or transform an eager expression into a lazy one:
+   const superstition = A(n => n === 7 ? "Lucky number seven!" : "You're out of luck, pal!");
+
+   superstition(7); // "Lucky number seven!"
+   superstition(1); // "You're out of luck, pal!"
    
  */
 

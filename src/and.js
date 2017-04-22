@@ -3,7 +3,8 @@
 
 /**
  * @name logical and
- * @type commutative, short circuiting operator function
+ * @note commutative, short circuiting
+ * @type operator function
  * @example
 
    const and = y => x => x && y;

@@ -2,7 +2,8 @@
 
 
 /**
- * @name monadic chain
+ * @name chain
+ * @note monadic
  * @type higher order function
  * @example
 

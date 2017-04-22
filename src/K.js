@@ -3,6 +3,7 @@
 
 /**
  * @name constant
+ * @note monadic "of" of the function instance
  * @type higher order function
  * @example
  *

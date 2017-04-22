@@ -2,7 +2,8 @@
 
 
 /**
- * @name variadic composition
+ * @name composition
+ * @note variadic
  * @type higher order function
  * @example
 

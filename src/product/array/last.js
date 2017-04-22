@@ -2,11 +2,12 @@
 
 
 /**
- * @name last value
+ * @name last element
+ * @note returns undefined for empty lists
  * @type operator function
  * @example
- *
 
+   const last = xs => xs[xs.length - 1];
    last([1, 2, 3]); // 3
  
  */

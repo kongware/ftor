@@ -3,6 +3,7 @@
 
 /**
  * @name special composition
+ * @note bi-composition and composition in 2nd/3rd argument
  * @type higher order function
  * @example
 
