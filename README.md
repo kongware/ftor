@@ -36,12 +36,20 @@ Regain hope all ye who enter here.
 
 ## Type signature extensions
 
-To meet Javascript's dynamic type system and idiomatic techniques ftor uses extended, non-standard type signatures:
+To meet Javascript's dynamic type system and idiomatic techniques ftor uses extended, non-standard type signatures, which are of course less precise and pretty confusing. This reflects the flaws of an untyped language. The following syntax is added:
 
-* `[*]` represents a list of different types, e.g. `[1, "a", true]`
-* `(*)` represents a tuple whose length can only be determined at runtime,  e.g. `(1, "a")` or `(1, "a", true)` etc.
-* `t *` represents a context that contains an arbitrary number of values either with the same or with various types
-* `|` represents a conjunction of two fixed types, e.g. `a -> String|Number`
+* `((*) -> a)` matches a variadic function with a rest parameter
+* `((*) -> a)` matches an ftor tuple whose length can be only determined at runtime
+* `((a, *) -> a)` matches a pair (2-tuple) whose first element is of type `a` and the second can be of any type
+* `((*, *) -> a)` matches a pair (2-tuple) whose both elements can be of any type (matches each pair)
+* `[*]` matches an `Array` whose elements can be of various type
+* `[a, b]` matches an `Array` of two elements of different type
+* `[*, b]` matches an `Array` of two elements whose first element can be of any type and the second is of type `a`
+* `[*, *]` matches an `Array` of two elements whose both elements can be of any type
+* `{key1: a, key2: *}` matches an `Object` with two properties: `key1` of type `a` and `key2` of any type
+* `String|Number` matches either `String` or `Number` (conjunction of fixed types)
+
+Please note that `Array` and tuple type signatures that contain commas indicate a data structure of a specific length. Consequently, with type signatures we cannot express an `Array`/tuple with a single element, which is the desired behavior though. As opposed to `Array`s `Object`s and other built-in types are described by their bare type name. Provided that an `Object` consists only of a few properties, the alternative syntax `{key1: a, key2: *}` can be chosen.
 
 ## Naming conventions
 
