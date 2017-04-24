@@ -27,7 +27,7 @@ const Any = {};
  * @type operator function
  * @example
 
-   @see or
+   @see concat
 
  */
 

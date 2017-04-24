@@ -27,7 +27,7 @@ const All = {};
  * @type operator function
  * @example
 
-   @see and
+   @see concat
 
  */
 
