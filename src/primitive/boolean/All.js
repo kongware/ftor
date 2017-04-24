@@ -23,10 +23,11 @@ const All = {};
 
 /**
  * @name append
+ * @note short circuiting
  * @type operator function
  * @example
 
-   ?
+   @see and
 
  */
 
@@ -48,7 +49,7 @@ All.append_ = and_;
  * @type constant
  * @example
 
-   ?
+   @see concat
 
  */
 
@@ -62,7 +63,22 @@ All.empty = true;
  * @type operator function
  * @example
 
-   ?
+   const and_ = x => y => x && y;
+   const foldl = f => acc => xs => xs.reduce((acc, x, i) => f(acc) (x, i), acc);
+
+   const All = {};
+
+   All.append_ = and_;
+   All.empty = true;
+   All.concat = foldl(All.append_) (All.empty);
+
+   All.concat([true, true, true]); // true
+   All.concat([true, false, true]); // false
+
+   // implicit truthy/falsy coercion:
+
+   All.concat([1, 2, 3, 4, 5]); // 5
+   All.concat([1, 0, 3, 4, 5]); // 0
 
  */
 

@@ -15,13 +15,18 @@ const Bounded = {};
  * @type constant
  * @example
 
-   ?
+   const lt_ = x => y => x < y;
+
+   const Bounded = {};
+   Bounded.minBound = false;
+
+   lt_(Bounded.minBound) (true); // true
 
  */
 
 
 // Boolean
-const minBound = false;
+Bounded.minBound = false;
 
 
 /**
@@ -29,16 +34,16 @@ const minBound = false;
  * @type constant
  * @example
 
-   ?
+   @see minBound
 
  */
 
 
 // Boolean
-const maxBound = true;
+Bounded.maxBound = true;
 
 
 // API
 
 
-module.exports = {minBound, maxBound};
+module.exports = Bounded;
