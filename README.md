@@ -49,7 +49,7 @@ To meet Javascript's dynamic type system and idiomatic techniques ftor uses exte
 * `{key1: a, key2: *}` matches an `Object` with two properties: `key1` of type `a` and `key2` of any type
 * `String|Number` matches either `String` or `Number` (conjunction of fixed types)
 
-Please note that `Array` and tuple type signatures that contain commas indicate a data structure of a specific length. Consequently, with type signatures we cannot express an `Array`/tuple with a single element, which is the desired behavior though. As opposed to `Array`s `Object`s and other built-in types are described by their bare type name. Provided that an `Object` consists only of a few properties, the alternative syntax `{key1: a, key2: *}` can be chosen.
+Please note that `Array` and tuple type signatures that contain commata indicate a data structure of a specific length. Consequently, with type signatures we cannot express an `Array`/tuple with a single element, which is the desired behavior though. As opposed to `Array`s `Object`s and other built-in types are described by their bare type name. Provided that an `Object` consists only of a few properties, the alternative syntax `{key1: a, key2: *}` can be chosen.
 
 ## Naming conventions
 
@@ -359,39 +359,4 @@ Unfortunately, destructuring assignment throws an error if the pattern doesn't m
 
 ## Todos
 
-- [ ] add Ord/Eq/Enum to built-in types
-- [ ] add zip/unzip to tuples?
-- [ ] add contramap/dimap to tuple?
-- [ ] introduce church encoded value objects
-- [ ] rename impure functions as actions
-- [ ] add nameBy naming convetion to readme
-- [ ] add rest operator support for intercept
-- [ ] fold with monoids is called mconcat
-- [ ] examine natural transformations, hom functor and f-algebra
-- [ ] introduce continuation functor as compk
-- [ ] check out CPS aux functions
-- [ ] introduce on as wrapper of addEventListener
-- [ ] check out event stream aux functions
-- [ ] introduce new typeclasses
-- [ ] introduce enum type
-- [ ] introduce sum types
-- [ ] examine monadic traverse
-- [ ] examine kleisli composition
-- [ ] introduce Haskell's scan
-- [ ] examine co-recursion/unfold
-- [ ] examine tree un-/serilization
-- [ ] introduce common transducers
-- [ ] introduce group/groupBy
-- [ ] review functional comparators/comparator modifier
-- [ ] look into functional lenses
-- [ ] look into both/eitherOr/guarded functions
-- [ ] are clojure's multimethods a good idea?
-- [ ] examine monotonic array
-- [ ] add object comparison
-- [ ] traverse unknown object (tree)
-- [ ] object left/right difference + intersection
-- [ ] examine bimap
-- [ ] introduce unzip
-- [ ] introduce Enum type
-- [ ] explore finger trees/sequences and tries
-- [ ] Tuple has not foldable
+- [ ] add to doc: flipped versions of append instead of Dual

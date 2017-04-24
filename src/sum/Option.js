@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {K, negf3, negf3_, True, False} = require("../generic");
+const {K, notf3, notf3_, True, False} = require("../generic");
 
 
 const {GT, EQ, LT} = require("./ordering");
@@ -56,10 +56,10 @@ Option.eq = binarySum("eq_", False, False, True);
 Option.eq_ = binarySum_("eq_", False, False, True);
 
 
-Option.neq = negf3(Option.eq);
+Option.neq = notf3(Option.eq);
 
 
-Option.neq_ = negf3_(Option.eq);
+Option.neq_ = notf3_(Option.eq);
 
 
 // Ord
