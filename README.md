@@ -11,7 +11,7 @@ This library is experimental and still work in progress.
 
 ## Principles and mission 
 
-Developers are regularly not good in solving complex problems directly. The most successful strategy is to decompose these problems into smaller ones, solve them individually and then recompose them to solve the original problem. There is actually a mathematical theory that describes this sort of reasoning: Category theory. Functional programming is the awkward attempt to reify category theory into executable programming code.
+Developers are regularly not good in solving complex problems directly. The most successful strategy is to decompose these problems into smaller ones, solve them individually and then recompose them to solve the original problem. There is actually a mathematical theory that describes this sort of reasoning: Category theory. Functional programming is the awkward attempt to reify category theory into executable programming code. It's the best we have and we should start applying it.
 
 Beyond that I want to demonstrate that it is actually good thing to
 
