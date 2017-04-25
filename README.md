@@ -92,7 +92,7 @@ sub2_(4); // 2
 sub(2) (4); // -2
 sub_(2) (4); // 2, ouch
 ```
-That means, whenever a function is partially applied, the version with reversed parameter order should be used, otherwise with normal parameter order. This rule applies for all monoidal operations (combining things) that are non-commutative.
+That means, whenever a function is partially applied, the version with reversed parameter order should be used, otherwise the normal order. This rule applies to all monoidal operations (combining things) that are non-commutative.
 
 Please note that ftor pursues the naming convention given in the example above. Functions with flipped parameter order carry a trailing underscore in their names. Just picture `sub_(2)` as `sub _ - 2` to get a better intuition.
 
