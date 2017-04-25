@@ -9,21 +9,21 @@ An idiomatic, non-dogmatic lazy lib that facilitates the functional paradigm in 
 
 This library is experimental and still work in progress.
 
-## Principles
+## Principles and mission
 
-ftor's mission is to convince devs to
+Developers are regularly not good in solving complex problems directly. The most successful strategy is to decompose these problems into smaller ones, solve them individually and then recompose them to solve the original problem. There is actually a mathematical theory that describes this sort of reasoning: Category theory. Functional programming is the awkward attempt to reify category theory into executable programming code.
+
+Beyond that I want to demonstrate that it is actually good thing to
 
 * shift state into call stacks
 * make control flows explicit
 * reify effects to first class values
 * move effects to the edge of the application
-* forgo magic and false simplicity
+* do without magic and false simplicity
 * turn away from micro optimizations
 * consider disjunctions to model data
 * stop fetishizing the dot operator
 * follow algebraic laws, instead of just makeing stuff up
-
-And the most important: Compose everything, always!
 
 Regain hope all ye who enter here.
 
