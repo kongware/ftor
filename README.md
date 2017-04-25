@@ -67,7 +67,7 @@ Please note that names are a pretty good indicator of how generic your code is. 
 
 ## Name conflicts
 
-Pleae note that ftor uses the same generic names for dozens of functions of different data types and type classes. It is your job o create yxour own name spaces to avoid name conflicts.
+Pleae note that ftor uses the same generic names for dozens of functions of different data types and type classes. It is your obligation to create your own namespaces to avoid name conflicts.
 
 ## Currying
 
