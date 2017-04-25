@@ -73,7 +73,7 @@ Pleae note that ftor uses the same generic names for dozens of functions of diff
 
 All functions in ftor are in manually curried form. Currying leads to abstraction over arity in a lot of scenarios and thus facilitates function composition and combinatorics.
 
-Since Javascript doesn't know left (`(2)sub = y => 2 - y`) or right (`sub(2) = x => x - 2`) sections in the context of partial application, the parameter order for function definitions is significant. Parameter lists are linear and thus there are two different orders:
+Since Javascript doesn't know left sections (`(2)sub = y => 2 - y`) in the context of partial application, the parameter order of function definitions is significant. Parameter lists are linear, hence there are two different orders:
 
 ```Javascript
 const sub = x => y => x - y;
