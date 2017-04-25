@@ -12,11 +12,11 @@
 
 
 // Number -> Number -> Number
-const sub = y => x => x - y;
+const sub = x => y => x - y;
 
 
 // Number -> Number -> Number
-const sub_ = x => y => x - y;
+const sub_ = y => x => x - y;
 
 
 // API

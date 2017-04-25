@@ -12,11 +12,11 @@
 
 
 // Number -> Number -> Number
-const mod = y => x => x % y;
+const mod = x => y => x % y;
 
 
 // Number -> Number -> Number
-const mod_ = x => y => x % y;
+const mod_ = y => x => x % y;
 
 
 // API

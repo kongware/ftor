@@ -30,7 +30,7 @@ Regain hope all ye who enter here.
 ## Terminology
 
 * composable function: A pure function that is partially applicable in its last argument
-* operator function: A pure first order function, i.e. a function that neither expects nor returns a function type
+* operator function: A pure and first order function that performs a monoidal operation (combines something)
 * action: An impure (and frequently nullary) function that performs side effects
 * type representative (type rep): A plain old Javascript object that contains static methods and forms a type class (e.g. Functor)
 
@@ -67,7 +67,7 @@ Please note that names are a pretty good indicator of how generic your code is. 
 
 ## Name conflicts
 
-Pleae note that ftor uses the same generic names for dozens of functions of different data types and type classes. It is your obligation to create your own namespaces to avoid name conflicts.
+Please note that ftor uses the same generic names for several functions of different data types and type classes. It is your obligation to manage namespaces to avoid name conflicts.
 
 ## Currying
 

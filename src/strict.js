@@ -5,10 +5,8 @@
  * @name strict evaluation
  * @type higher order function
  * @example
- *
 
-   const repeat = x => () => [x, repeat(x)];
-   strict(repeat) ("ha"); // ["ha", function]
+   ?
 
  */
 

@@ -12,11 +12,11 @@
 
 
 // Number -> Number -> Number
-const div = y => x => x / y;
+const div = x => y => x / y;
 
 
 // Number -> Number -> Number
-const div_ = x => y => x / y;
+const div_ = y => x => x / y;
 
 
 // API

@@ -5,10 +5,8 @@
  * @name trace
  * @type impure operator function
  * @example
- *
 
-   const inc = x => x + 1;
-   B_(trace("trace:"), inc) (2); // logs trace: 3
+   ?
 
  */
 

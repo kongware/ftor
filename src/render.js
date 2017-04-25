@@ -5,9 +5,8 @@
  * @name render
  * @type variadic operator function
  * @example
- *
 
-   render("${0} developers, ${1} options") (2, 3); // 2 developers, 3 options
+   ?
 
  */
 

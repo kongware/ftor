@@ -6,9 +6,7 @@
  * @type higher order function
  * @example
 
-   const sub = curryOp((x, y) => x - y);
-   const sub2 = sub(2);
-   sub2(3); // 1
+   ?
 
  */
 

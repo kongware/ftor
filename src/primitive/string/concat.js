@@ -12,11 +12,11 @@
 
 
 // String -> String -> String
-const concat = y => x => x.concat(y);
+const concat = x => y => x.concat(y);
 
 
 // String -> String -> String
-const concat_ = x => y => x.concat(y);
+const concat_ = y => x => x.concat(y);
 
 
 // API

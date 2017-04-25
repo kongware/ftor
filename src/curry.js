@@ -6,9 +6,7 @@
  * @type higher order function
  * @example
 
-   const add = curry((x, y) => x + y);
-   const add2 = add(2);
-   add2(3); // 5
+   ?
 
  */
 

@@ -11,9 +11,8 @@ const render = require("./render");
  * @name log
  * @type impure function
  * @example
- *
 
-   log("${0} monkeys on ${1} trees") (12, 2);
+   ?
 
  */
 

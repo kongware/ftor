@@ -5,9 +5,8 @@
  * @name uncurry function
  * @type higher order function
  * @example
- *
 
-   uncurry((x, y) => x + y) (2) (3); // 5
+   ?
 
  */
 

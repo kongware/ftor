@@ -6,14 +6,7 @@
  * @type higher order function
  * @example
 
-   const reduce = (xs, f, acc) => xs.reduce(f, acc);
-   const composable = f => (...args) => x => f(...args, x);
-   const add = (x, y) => x + y;
-   const xs = [1, 2, 3, 4];
-
-   const sum = composable(rotatel(reduce)) (add, 0);
-
-   sum(xs); // 10
+   ?
 
  */
 

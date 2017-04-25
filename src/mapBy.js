@@ -5,7 +5,6 @@
  * @name generic map by type
  * @type higher order function
  * @example
- *
 
    ?
 

@@ -5,14 +5,8 @@
  * @name evaluate
  * @type higher order function
  * @example
- *
 
-   const repeat = x => () => [x, repeat(x)];
-   const x = repeat(3);
-   const y = 3;
-
-   evaluate(x); // [3, function];
-   evaluate(y); // 3
+   ?
 
  */
 

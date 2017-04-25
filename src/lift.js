@@ -5,7 +5,6 @@
  * @name applicative/monadic lift
  * @type higher order function
  * @example
- *
 
    ?
 

@@ -13,9 +13,8 @@ const GT = require("./sum/ordering/GT");
  * @name compare by
  * @type operator function
  * @example
- *
 
-   compareBy(y => x => x.toLowerCase() < y.toLowerCase()) ("A") ("a"); // EQ
+   ?
 
  */
 

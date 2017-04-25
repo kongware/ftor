@@ -12,7 +12,7 @@
 
 
 // (a -> b) -> a -> Boolean
-const notf = notf = f => x => !f(x);
+const notf = f => x => !f(x);
 
 
 // (a -> b -> c) -> a -> b -> Boolean

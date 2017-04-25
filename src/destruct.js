@@ -5,10 +5,8 @@
  * @name destruct
  * @type higher order function
  * @example
- *
 
-   const o = {a: 2, b: 3};
-   destruct2(y => x => x + y) ("a", "b") (o); // 5
+   ?
 
  */
 

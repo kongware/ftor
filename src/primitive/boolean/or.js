@@ -18,11 +18,11 @@
 
 
 // a -> b -> a|b
-const or = y => x => x || y;
+const or = x => y => x || y;
 
 
 // a -> b -> a|b
-const or_ = x => y => x || y;
+const or_ = y => x => x || y;
 
 
 // API

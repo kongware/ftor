@@ -5,10 +5,8 @@
  * @name identity
  * @type higher order function
  * @example
- *
 
-   const o = {};
-   I(o) === o; // true
+   ?
 
  */
 

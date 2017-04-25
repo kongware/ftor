@@ -26,11 +26,11 @@ const map = {"-1": LT, 0: EQ, 1: GT};
 
 
 // String -> String -> Ordering
-const localeCompare = y => x => map[x.localeCompare(y)];
+const localeCompare = x => y => map[x.localeCompare(y)];
 
 
 // String -> String -> Ordering
-const localeCompare_ = x => y => map[x.localeCompare(y)];
+const localeCompare_ = y => x => map[x.localeCompare(y)];
 
 
 // API

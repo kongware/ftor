@@ -6,7 +6,7 @@
  * @type higher order function
  * @example
 
-   uncurryOp(y => x => x - y) (3, 2); // 1
+   ?
 
  */
 

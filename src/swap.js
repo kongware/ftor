@@ -6,8 +6,7 @@
  * @type higher order function
  * @example
 
-   const pair = Pair(2, 3);
-   toArray(swap(pair)); // [3, 2]
+   ?
    
  */
 

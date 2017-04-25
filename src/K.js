@@ -6,10 +6,8 @@
  * @note monadic "of" of the function instance
  * @type higher order function
  * @example
- *
 
-   const True = K(true);
-   True(false); // true
+   ?
 
  */
 

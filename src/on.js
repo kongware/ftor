@@ -5,7 +5,6 @@
  * @name on
  * @type higher order function
  * @example
- *
 
    ?
 

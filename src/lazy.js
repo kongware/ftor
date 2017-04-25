@@ -5,10 +5,8 @@
  * @name lazy evaluation
  * @type higher order function
  * @example
- *
 
-  const repeat = x => [x, repeat(x)];
-  lazy(repeat) (2) (); // [2, function]
+   ?
 
  */
 

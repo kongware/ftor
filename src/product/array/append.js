@@ -11,12 +11,12 @@
  */
 
 
-// a -> [a] -> [a]
-const append = x => xs => xs.concat([x]);
-
-
 // [a] -> a -> [a]
-const append_ = xs => x => xs.concat([x]);
+const append = xs => x => xs.concat([x]);
+
+
+// a -> [a] -> [a]
+const append_ = x => xs => xs.concat([x]);
 
 
 // API

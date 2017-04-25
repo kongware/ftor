@@ -5,10 +5,8 @@
  * @name tap
  * @type impure higher order function
  * @example
- *
 
-   const add = y => x => x + y;
-   tap2(console.log) (add) (2) (3); // logs and returns 5
+   ?
 
  */
 

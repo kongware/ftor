@@ -11,12 +11,12 @@
  */
 
 
-// a -> [a] -> [a]
-const prepend = x => xs => [x].concat(xs);
-
-
 // [a] -> a -> [a]
-const prepend_ = xs => x => [x].concat(xs);
+const prepend = xs => x => [x].concat(xs);
+
+
+// a -> [a] -> [a]
+const prepend_ = x => xs => [x].concat(xs);
 
 
 // API

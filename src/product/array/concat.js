@@ -12,11 +12,11 @@
 
 
 // [a] -> [a] -> [a]
-const concat = ys => xs => xs.concat(ys);
+const concat = xs => ys => xs.concat(ys);
 
 
 // [a] -> [a] -> [a]
-const concat_ = xs => ys => xs.concat(ys);
+const concat_ = ys => xs => xs.concat(ys);
 
 
 // API

@@ -7,22 +7,22 @@
  * @type operator function
  * @example
 
-   const and_ = x => y => x && y;
+   const and = x => y => x && y;
 
-   and_(false) ("foo"); // false
-   and_("foo") (false); // false
-   and_(true) ("foo"); // "foo"
-   and_("foo") (true); // true
+   and(false) ("foo"); // false
+   and("foo") (false); // false
+   and(true) ("foo"); // "foo"
+   and("foo") (true); // true
 
  */
 
 
 // a -> b -> a|b
-const and = y => x => x && y;
+const and = x => y => x && y;
 
 
 // a -> b -> a|b
-const and_ = x => y => x && y;
+const and_ = y => x => x && y;
 
 
 // API

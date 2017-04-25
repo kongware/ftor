@@ -12,11 +12,11 @@
 
 
 // a -> a -> Boolean
-const gt = y => x => x > y;
+const gt = x => y => x > y;
 
 
 // a -> a -> Boolean
-const gt_ = x => y => x > y;
+const gt_ = y => x => x > y;
 
 
 // API

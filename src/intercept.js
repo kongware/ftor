@@ -5,10 +5,8 @@
  * @name intercept
  * @type impure higher order function
  * @example
- *
 
-   const add = y => x => x + y;
-   intercept2("add") (add) (2) (3); // logs "λ add ( 2 ) ( 3 ) => 5"
+   ?
 
  */
 
