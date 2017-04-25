@@ -71,7 +71,30 @@ Pleae note that ftor uses the same generic names for dozens of functions of diff
 
 ## Currying
 
-All functions in ftor are in manually curried form. Currying leads to abstraction over arity in many cases and thus facilitates function composition and combinatorics.
+All functions in ftor are in manually curried form. Currying leads to abstraction over arity in a lot of scenarios and thus facilitates function composition and combinatorics.
+
+Since Javascript doesn't know left (`(2)sub = y => 2 - y`) or right (`sub(2) = x => x - 2`) sections in the context of partial application, the parameter order for function definitions is significant. Parameter lists are linear and thus there are two different orders:
+
+```Javascript
+const sub = x => y => x - y;
+const sub_ = y => x => x - y;
+
+const sub2 = sub(2);
+const sub2_ = sub_(2);
+
+// partial application
+
+sub2(4); // -2, ouch
+sub2_(4); // 2
+
+// full application
+
+sub(2) (4); // -2
+sub_(2) (4); // 2, ouch
+```
+That means, whenever a function is partially applied, the version with reversed parameter order should be used, otherwise with normal parameter order. This rule applies for all monoidal operations (combining things) that are non-commutative.
+
+Please note that ftor pursues the naming convention given in the example above. Functions with flipped parameter order carry a trailing underscore in their names. Just picture `sub_(2)` as `sub _ - 2` to get a better intuition.
 
 ## Combinators
 
