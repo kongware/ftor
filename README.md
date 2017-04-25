@@ -49,7 +49,7 @@ To meet Javascript's dynamic type system and idiomatic techniques ftor uses exte
 * `{key1: a, key2: *}` matches an `Object` with two properties: `key1` of type `a` and `key2` of any type
 * `String|Number` matches either `String` or `Number` (conjunction of fixed types)
 
-Please note that `Array` and tuple type signatures that contain commata indicate a data structure of a specific length. Consequently, with type signatures we cannot express an `Array`/tuple with a single element, which is the desired behavior though. As opposed to `Array`s `Object`s and other built-in types are described by their bare type name. Provided that an `Object` consists only of a few properties, the alternative syntax `{key1: a, key2: *}` can be chosen.
+Please note that `Array` and tuple type signatures that contain commata indicate a data structure of a specific length. Consequently, with type signatures we cannot express an `Array`/tuple with a single element, which is the desired behavior though. As opposed to `Array`s `Object`s and other built-in types are described by their bare type name. Provided that an `Object` consists only of a few properties, the alternative syntax `{key1: a, key2: *}` may be chosen.
 
 ## Naming conventions
 
