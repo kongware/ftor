@@ -10,7 +10,7 @@ const clone = require("../clone") (Map);
 /**
  * @name del
  * @note del_ is a destructive operation
- * @type operator function
+ * @type first order function
  * @example
 
    ?

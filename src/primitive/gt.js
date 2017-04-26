@@ -3,7 +3,7 @@
 
 /**
  * @name greater then
- * @type operator function
+ * @type first order function
  * @example
 
    ?

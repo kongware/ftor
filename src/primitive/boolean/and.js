@@ -3,8 +3,9 @@
 
 /**
  * @name logical and
- * @note short circuiting
- * @type operator function
+ * @note short circuiting; non-commutative
+ * @type associative binary operation (semigroup)
+ * @status stable
  * @example
 
    const and = x => y => x && y;

@@ -10,7 +10,7 @@ const clone = require("../clone") (Set);
 /**
  * @name add
  * @note add_ is a destructive operation
- * @type operator function
+ * @type first order function
  * @example
 
    ?

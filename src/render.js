@@ -3,7 +3,7 @@
 
 /**
  * @name render
- * @type variadic operator function
+ * @type variadic first order function
  * @example
 
    ?

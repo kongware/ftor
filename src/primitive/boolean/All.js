@@ -24,7 +24,7 @@ const All = {};
 /**
  * @name append
  * @note short circuiting
- * @type operator function
+ * @type associative binary operation (semigroup)
  * @example
 
    @see concat
@@ -60,7 +60,7 @@ All.empty = true;
 
 /**
  * @name concat
- * @type operator function
+ * @type first order function
  * @example
 
    const and_ = x => y => x && y;

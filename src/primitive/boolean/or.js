@@ -3,16 +3,17 @@
 
 /**
  * @name logical or
- * @note short circuiting
- * @type operator function
+ * @note short circuiting; non-commutative
+ * @type associative binary operation (semigroup)
+ * @status stable
  * @example
 
-   const or_ = x => y => x || y;
+   const or = x => y => x || y;
 
-   or_(false) ("foo"); // "foo"
-   or_("foo") (false); // "foo"
-   or_(true) ("foo"); // true
-   or_("foo") (true); // "foo"
+   or(false) ("foo"); // "foo"
+   or("foo") (false); // "foo"
+   or(true) ("foo"); // true
+   or("foo") (true); // "foo"
 
  */
 

@@ -3,7 +3,7 @@
 
 /**
  * @name shallowly clone
- * @type operator function
+ * @type first order function
  * @example
 
    const clone = xs => [].concat(xs);

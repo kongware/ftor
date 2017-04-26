@@ -4,16 +4,19 @@
 // dependencies
 
 
-const K = require("../../K");
+const {K} = require("../../K");
 
 
 /**
  * @name False
- * @type constant constructor
+ * @type first order function
+ * @status stable
  * @example
 
+   const K = x => _ => x;
+   const False = K(false);
+
    False(true); // false
-   False({}); // false
 
  */
 

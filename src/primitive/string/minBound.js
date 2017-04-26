@@ -3,7 +3,7 @@
 
 /**
  * @name minimal bound
- * @type operator function
+ * @type first order function
  * @example
 
    ?

@@ -3,7 +3,7 @@
 
 /**
  * @name run by context
- * @type operator function
+ * @type first order function
  * @example
 
    ?

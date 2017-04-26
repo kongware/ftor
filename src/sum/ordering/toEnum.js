@@ -11,7 +11,7 @@ const LT = require("./LT");
 
 /**
  * @name to enumeration
- * @type operator function
+ * @type first order function
  * @example
 
    toEnum(0); // LT

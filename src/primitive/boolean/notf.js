@@ -4,9 +4,13 @@
 /**
  * @name negate function
  * @type higher order function
+ * @status stable
  * @example
 
-   ?
+   const notf2 = f => x => y => !f(x) (y);
+   const eq = x => y => x === y;
+
+   notf2(eq) ("foo") ("bar"); // true
 
  */
 

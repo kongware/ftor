@@ -4,7 +4,7 @@
 /**
  * @name includes
  * @note exits prematurely
- * @type operator function
+ * @type first order function
  * @example
 
    ?

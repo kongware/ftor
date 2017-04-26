@@ -3,7 +3,7 @@
 
 /**
  * @name slice
- * @type operator function
+ * @type first order function
  * @example
 
    ?

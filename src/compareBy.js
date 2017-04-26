@@ -11,7 +11,7 @@ const GT = require("./sum/ordering/GT");
 
 /**
  * @name compare by
- * @type operator function
+ * @type first order function
  * @example
 
    ?

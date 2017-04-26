@@ -10,7 +10,7 @@ const clone = require("../clone") (WeakMap);
 /**
  * @name set
  * @note set_ is a destructive operation
- * @type operator function
+ * @type first order function
  * @example
 
    ?

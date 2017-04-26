@@ -3,7 +3,7 @@
 
 /**
  * @name get property value
- * @type operator function
+ * @type first order function
  * @example
  *
 

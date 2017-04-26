@@ -24,7 +24,7 @@ const Any = {};
 /**
  * @name append
  * @note short circuiting
- * @type operator function
+ * @type first order function
  * @example
 
    @see concat
@@ -60,7 +60,7 @@ Any.empty = false;
 
 /**
  * @name concat
- * @type operator function
+ * @type first order function
  * @example
 
    const or_ = x => y => x || y;

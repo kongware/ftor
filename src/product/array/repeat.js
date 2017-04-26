@@ -3,7 +3,7 @@
 
 /**
  * @name repeat
- * @type operator function
+ * @type first order function
  * @example
 
    const repeat = n => x => Array(n).fill(x);

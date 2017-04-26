@@ -19,7 +19,7 @@ const Enum = {};
 
 /**
  * @name successor
- * @type operator function
+ * @type first order function
  * @example
 
    ?
@@ -33,7 +33,7 @@ Enum.succ = A(x => x ? null : true);
 
 /**
  * @name predecessor
- * @type operator function
+ * @type first order function
  * @example
 
    @see successor
@@ -47,7 +47,7 @@ Enum.pred = A(x => x ? false : null);
 
 /**
  * @name to enumeration
- * @type operator function
+ * @type first order function
  * @example
 
    ?
@@ -61,7 +61,7 @@ Enum.toEnum = of;
 
 /**
  * @name from enumeration
- * @type operator function
+ * @type first order function
  * @example
 
    ?
@@ -75,7 +75,7 @@ Enum.fromEnum = A(x => x ? 1 : 0);
 
 /**
  * @name enumeration from
- * @type operator function
+ * @type first order function
  * @example
 
    ?

@@ -10,7 +10,7 @@ const mapBy = require("../../mapBy");
 /**
  * @name index lens
  * @note should only modify the value of an element, not its type
- * @type operator function
+ * @type first order function
  * @example
 
    @see ../view

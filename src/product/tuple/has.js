@@ -3,7 +3,7 @@
 
 /**
  * @name has element
- * @type operator function
+ * @type first order function
  * @example
 
    const Triple = (x, y, z) => f => f(x, y, z);

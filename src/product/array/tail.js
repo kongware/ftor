@@ -3,7 +3,7 @@
 
 /**
  * @name tail
- * @type operator function
+ * @type first order function
  * @example
 
    ?

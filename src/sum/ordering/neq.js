@@ -11,7 +11,7 @@ const ternarySum = require("./ternarySum");
 
 /**
  * @name not equal
- * @type operator function
+ * @type first order function
  * @example
 
    neq(LT) (LT); // false

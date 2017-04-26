@@ -3,7 +3,7 @@
 
 /**
  * @name concatenate
- * @type operator function
+ * @type first order function
  * @example
 
    concat(LT) (GT); // LT

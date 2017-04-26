@@ -3,11 +3,16 @@
 
 /**
  * @name of
- * @note not an alias of Boolean to avoid constructor use
- * @type operator function
+ * @note avoids constructor use of Boolean
+ * @type first order function
+ * @status unstable
+ * @todo reconsider name
  * @example
 
-   ?
+   const of = x => Boolean(x);
+   
+   of("foo"); // true
+   of(""); // false
 
  */
 

@@ -3,10 +3,12 @@
 
 /**
  * @name not
- * @type operator function
+ * @type first order function
+ * @status stable
  * @example
 
-   ?
+   const not = x => !x;
+   not(true); // false
 
  */
 

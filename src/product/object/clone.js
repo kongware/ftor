@@ -9,7 +9,7 @@ const assign = require("./assign");
 
 /**
  * @name clone
- * @type operator function
+ * @type first order function
  * @example
  *
 

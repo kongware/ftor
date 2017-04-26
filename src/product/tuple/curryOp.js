@@ -8,7 +8,7 @@ const toArray = require("./toArray");
 
 
 /**
- * @name curry operator function
+ * @name curry first order function
  * @type higher order function
  * @example
 

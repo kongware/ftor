@@ -4,7 +4,7 @@
 /**
  * @name head
  * @note yields undefined when list is empty
- * @type operator function
+ * @type first order function
  * @example
 
    ?

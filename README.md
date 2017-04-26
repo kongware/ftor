@@ -30,9 +30,10 @@ Regain hope all ye who enter here.
 ## Terminology
 
 * composable function: A pure function that is partially applicable in its last argument
-* operator function: A pure and first order function that performs a monoidal operation (combines something)
+* first order function: A function that solely takes non-functional arguments and solely returns non-functional results
+* higher order function: A function that accepts functional arguments and/or returns functional results
 * action: An impure (and frequently nullary) function that performs side effects
-* type representative (type rep): A plain old Javascript object that contains static methods and forms a type class (e.g. Functor)
+* type representative (type rep): A plain old Javascript `Object` that contains static methods and forms a type class (e.g. Functor)
 
 ## Type signature extensions
 
@@ -304,16 +305,16 @@ The following type classes will be offered eventually:
 * Profunctor (contravariant/covaraint functors)
 * Traversable (inside-out)
 
-## Algebraic constructs
+## Algebras
 
 ftor will examine the following algebraic constructs:
 
-* Kleisli arrow composition
-* corecursion
+* Arrows/Kleisli arrow
+* Corecursion
 * F-algebras
-* natural transformations
-* (co-)yoneda
-* free applicatives/monads
+* Natural transformations
+* Coyoneda
+* Free applicatives/monads/arrows
 
 ## Type representatives
 

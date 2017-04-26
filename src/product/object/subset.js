@@ -3,7 +3,7 @@
 
 /**
  * @name subset
- * @type operator function
+ * @type first order function
  * @example
  *
 

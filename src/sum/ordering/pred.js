@@ -12,7 +12,7 @@ const raise = require("../../raise");
 
 /**
  * @name predecessor
- * @type operator function
+ * @type first order function
  * @example
 
    pred(EQ); // LT

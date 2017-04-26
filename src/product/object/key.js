@@ -9,7 +9,7 @@ const mapBy = require("../../mapBy");
 
 /**
  * @name key lens
- * @type operator function
+ * @type first order function
  * @example
 
    @see ../view

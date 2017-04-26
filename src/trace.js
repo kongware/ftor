@@ -3,7 +3,7 @@
 
 /**
  * @name trace
- * @type impure operator function
+ * @type impure first order function
  * @example
 
    ?

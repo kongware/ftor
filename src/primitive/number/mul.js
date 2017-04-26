@@ -3,7 +3,7 @@
 
 /**
  * @name mul
- * @type operator function
+ * @type first order function
  * @example
 
    ?

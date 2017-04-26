@@ -4,7 +4,7 @@
 /**
  * @name destructive pop
  * @note destructive operation!!!
- * @type operator function
+ * @type first order function
  * @example
 
    ?

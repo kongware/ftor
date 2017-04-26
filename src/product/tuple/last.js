@@ -3,7 +3,7 @@
 
 /**
  * @name last item
- * @type operator function
+ * @type first order function
  * @example
 
    const Tuple5 = (v, w, x, y, z) => f => f(v, w, x, y, z);

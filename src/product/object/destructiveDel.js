@@ -3,7 +3,7 @@
 
 /**
  * @name delete a property destructivley
- * @type impure operator function
+ * @type impure first order function
  * @example
  *
 

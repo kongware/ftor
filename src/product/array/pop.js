@@ -10,7 +10,7 @@ const Pair = require("../tuple/Pair");
 /**
  * @name pop
  * @note pop_ is a destructive operation!!!
- * @type operator function
+ * @type first order function
  * @example
 
    ?

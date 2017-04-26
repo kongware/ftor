@@ -2,7 +2,7 @@
 
 
 /**
- * @name uncurry operator function
+ * @name uncurry first order function
  * @type higher order function
  * @example
 

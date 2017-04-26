@@ -10,7 +10,7 @@ const Pair = require("../tuple/Pair");
 /**
  * @name shift
  * @note shift_ is a destructive operation!!!
- * @type operator function
+ * @type first order function
  * @example
 
    ?

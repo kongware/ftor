@@ -3,7 +3,7 @@
 
 /**
  * @name initial elements
- * @type operator function
+ * @type first order function
  * @example
 
    const init = xs => xs.slice(0, -1);

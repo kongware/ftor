@@ -9,11 +9,14 @@ const {K} = require("../../K");
 
 /**
  * @name True
- * @type constant constructor
+ * @type first order function
+ * @status stable
  * @example
 
+   const K = x => _ => x;
+   const True = K(true);
+   
    True(false); // true
-   True(null); // true
 
  */
 

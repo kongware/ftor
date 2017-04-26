@@ -3,7 +3,7 @@
 
 /**
  * @name seal object
- * @type operator function
+ * @type first order function
  * @example
  *
 
