@@ -3,7 +3,7 @@
 
 /**
  * @name implies
- * @note logical impication: if x is true y must be true, otherwise y can be everything
+ * @note logical implication: if x is true y must be true, otherwise y can be everything
  * @type associative binary operation (semigroup)
  * @status stable
  * @example
