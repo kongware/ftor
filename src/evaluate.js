@@ -12,7 +12,10 @@
 
 
 // ?
-const evaluate = x => typeof x === "function" ? x() : x;
+const evaluate = f => {
+  while (typeof f === "function" && f.length === 0) f = f();
+  return f;
+}
 
 
 // API

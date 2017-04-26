@@ -12,6 +12,7 @@ const foldr = require("../../product/array/foldr");
 /**
  * @name All
  * @type type representative
+ * @status stable
  */
 
 
@@ -63,14 +64,19 @@ All.empty = true;
  * @type first order function
  * @example
 
-   const and_ = x => y => x && y;
+   const and = x => y => x && y;
+   const and_ = y => x => x && y;
+
    const foldl = f => acc => xs => xs.reduce((acc, x, i) => f(acc) (x, i), acc);
+   const foldr = f => acc => xs => xs.reduceRight((acc, x, i) => f(x) (acc, i), acc);
 
    const All = {};
 
+   All.append = and;
    All.append_ = and_;
    All.empty = true;
-   All.concat = foldl(All.append_) (All.empty);
+   All.concat = foldl(All.append) (All.empty);
+   All.concat_ = foldr(All.append_) (All.empty);
 
    All.concat([true, true, true]); // true
    All.concat([true, false, true]); // false
@@ -80,15 +86,18 @@ All.empty = true;
    All.concat([1, 2, 3, 4, 5]); // 5
    All.concat([1, 0, 3, 4, 5]); // 0
 
+   All.concat_([1, 2, 3, 4, 5]); // 1
+   All.concat_([1, 0, 3, 4, 5]); // 0
+
  */
 
 
 // [All] -> All
-All.concat = foldl(All.append_) (All.empty);
+All.concat = foldl(All.append) (All.empty);
 
 
 // [All] -> All
-All.concat_ = foldr(All.append) (All.empty);
+All.concat_ = foldr(All.append_) (All.empty);
 
 
 // API
