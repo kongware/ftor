@@ -385,3 +385,4 @@ Unfortunately, destructuring assignment throws an error if the pattern doesn't m
 
 - [ ] add to doc: flipped versions of monoidal append instead of Dual
 - [ ] add to doc: ftor takes advantage of implicit type coercion along with Booleans (truthy/falsy)
+- [ ] add andn, nandn, orn, norn, all, any to boolean

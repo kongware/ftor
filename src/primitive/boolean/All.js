@@ -26,6 +26,7 @@ const All = {};
  * @name append
  * @note short circuiting
  * @type associative binary operation (semigroup)
+ * @status stable
  * @example
 
    @see concat
@@ -33,11 +34,11 @@ const All = {};
  */
 
 
-// All -> All -> All
+// a -> a -> a
 All.append = and;
 
 
-// All -> All -> All
+// a -> a -> a
 All.append_ = and_;
 
 
@@ -48,6 +49,7 @@ All.append_ = and_;
  * @name empty
  * @note value/thunk implementations are equivalent
  * @type constant
+ * @status stable
  * @example
 
    @see concat
@@ -62,6 +64,7 @@ All.empty = true;
 /**
  * @name concat
  * @type first order function
+ * @status stable
  * @example
 
    const and = x => y => x && y;
@@ -92,11 +95,11 @@ All.empty = true;
  */
 
 
-// [All] -> All
+// [a] -> a
 All.concat = foldl(All.append) (All.empty);
 
 
-// [All] -> All
+// [a] -> a
 All.concat_ = foldr(All.append_) (All.empty);
 
 

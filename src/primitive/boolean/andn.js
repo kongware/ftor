@@ -19,7 +19,7 @@
 
 
 // a -> a -> a
-const and = x => y => x && y;
+const and = foldl(and) (true);
 
 
 // a -> a -> a

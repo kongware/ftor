@@ -3,7 +3,7 @@
 
 /**
  * @name logical or
- * @note short circuiting; non-commutative
+ * @note short circuiting
  * @type associative binary operation (semigroup)
  * @status stable
  * @example
@@ -18,11 +18,11 @@
  */
 
 
-// a -> b -> a|b
+// a -> a -> a
 const or = x => y => x || y;
 
 
-// a -> b -> a|b
+// a -> a -> a
 const or_ = y => x => x || y;
 
 

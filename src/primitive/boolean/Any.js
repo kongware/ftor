@@ -26,6 +26,7 @@ const Any = {};
  * @name append
  * @note short circuiting
  * @type associative binary operation (semigroup)
+ * @status stable
  * @example
 
    @see concat
@@ -33,11 +34,11 @@ const Any = {};
  */
 
 
-// Any -> Any -> Any
+// a -> a -> a
 Any.append = or;
 
 
-// Any -> Any -> Any
+// a -> a -> a
 Any.append_ = or_;
 
 
@@ -48,6 +49,7 @@ Any.append_ = or_;
  * @name empty
  * @note value/thunk implementations are equivalent
  * @type constant
+ * @status stable
  * @example
 
    @see concat
@@ -62,6 +64,7 @@ Any.empty = false;
 /**
  * @name concat
  * @type first order function
+ * @status stable
  * @example
 
    const or = x => y => x || y;
@@ -92,11 +95,11 @@ Any.empty = false;
  */
 
 
-// [Any] -> Any
+// [a] -> a
 Any.concat = foldl(Any.append_) (Any.empty);
 
 
-// [Any] -> Any
+// [a] -> a
 Any.concat_ = foldr(Any.append) (Any.empty);
 
 

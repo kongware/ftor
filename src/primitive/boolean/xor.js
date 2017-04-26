@@ -3,23 +3,23 @@
 
 /**
  * @name logical xor
- * @note short circuiting; commutative
- * @type first order function
+ * @note logical non-equality; short circuiting; commutative
+ * @type associative binary operation (semigroup)
  * @status stable
  * @example
 
-   const xor = default_ => x => y => !x === !y ? default_ : x || y;
+   const xor = x => y => x ? !y : y;
 
-   xor("default") ("foo") (false); // "foo"
-   xor("default") (false) ("foo"); // "foo"
-   xor("default") ("foo") (true); // "default"
-   xor("default") (true) ("foo"); // "default"
+   xor(true) (true); // false
+   xor(true) (false); // true
+   xor(false) (true); // true
+   xor(false) (false); // false
 
  */
 
 
-// a -> b -> c -> a|b|c
-const xor = default_ => x => y => !x === !y ? default_ : x || y;
+// Boolean -> Boolean -> Boolean
+const xor = x => y => x ? !y : y;
 
 
 // API
