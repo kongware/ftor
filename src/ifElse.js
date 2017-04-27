@@ -3,6 +3,7 @@
 
 /**
  * @name if else
+ * @note lazy conditional expression
  * @type first class function
  * @example
 
