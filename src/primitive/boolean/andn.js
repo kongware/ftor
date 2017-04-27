@@ -2,7 +2,7 @@
 
 
 /**
- * @name logical andn
+ * @name logical and n times
  * @note short circuiting
  * @type catamorphism
  * @status unstable
