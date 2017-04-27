@@ -4,7 +4,8 @@
 /**
  * @name if else
  * @note lazy conditional expression
- * @type first class function
+ * @type first order function
+ * @status stable
  * @example
 
    const ifElse = x => y => z => z ? x : y;
