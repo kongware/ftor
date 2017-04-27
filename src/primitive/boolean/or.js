@@ -10,10 +10,9 @@
 
    const or = x => y => x || y;
 
-   or(false) ("foo"); // "foo"
-   or("foo") (false); // "foo"
-   or(true) ("foo"); // true
-   or("foo") (true); // "foo"
+   or("foo") (""); // "foo"
+   or("") ("bar"); // "bar"
+   or("foo") ("bar"); // "foo"
 
  */
 

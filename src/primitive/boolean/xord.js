@@ -10,10 +10,10 @@
 
    const xord = default_ => x => y => !x === !y ? default_ : x || y;
 
-   xord("default") ("foo") (false); // "foo"
-   xord("default") (false) ("foo"); // "foo"
-   xord("default") ("foo") (true); // "default"
-   xord("default") (true) ("foo"); // "default"
+   xord("default") ("foo") (""); // "foo"
+   xord("default") ("") ("bar"); // "bar"
+   xord("default") ("foo") ("bar"); // "default"
+   xord("default") ("foo") ("bar"); // "default"
 
  */
 

@@ -10,10 +10,9 @@
 
    const and = x => y => x && y;
 
-   and(false) ("foo"); // false
-   and("foo") (false); // false
-   and(true) ("foo"); // "foo"
-   and("foo") (true); // true
+   and("foo") (""); // ""
+   and("") ("bar"); // ""
+   and("foo") ("bar"); // "bar"
 
  */
 
