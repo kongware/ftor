@@ -1,6 +1,12 @@
 "use strict";
 
 
+// dependencies
+
+
+const eq = require("../eq");
+
+
 /**
  * @name if and only if
  * @note logical equality; in an untyped language simply eq; commutative
