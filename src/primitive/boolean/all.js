@@ -21,11 +21,11 @@ const foldrk = require("../../product/array/foldrk");
 
 
 // (a -> b) -> [a] -> b
-const all = f => foldlk(x => y => k => f(y) ? k(true) : false) (true);
+const all = f => xs => xs.every(f);
 
 
 // (a -> b) -> [a] -> b
-const all_ = f => foldrk(x => y => k => f(x) ? k(true) : false) (true);
+const all_ = f => foldrk(x => y => k => f(x) && k(true)) (true);
 
 
 // API
