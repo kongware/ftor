@@ -12,7 +12,7 @@
 
 
 // Number -> Boolean
-const even = x => Math.floor(x) === x && x & 1 === 0;
+const even = x => Math.floor(x) === x && (x & 1) === 0;
 
 
 // API

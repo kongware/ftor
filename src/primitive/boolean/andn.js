@@ -11,7 +11,7 @@ const {and} = require("./and");
 
 /**
  * @name and of n values
- * @note logical conjunction; short circuiting; non-boolean values are allowed
+ * @note logical conjunction; short circuiting; works with all types through implicit type coercion
  * @type list catamorphism
  * @status unstable
  * @example

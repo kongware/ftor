@@ -10,8 +10,8 @@ const foldr = require("../../product/array/foldr");
 
 /**
  * @name all by
- * @note Boolean catamorphism
- * @type first order function
+ * @note Boolean catamorphism; short circuiting
+ * @type higher order function
  * @status unstable
  * @example
 
@@ -21,11 +21,11 @@ const foldr = require("../../product/array/foldr");
 
 
 // Foldable t => Object -> (a -> b) -> t a -> b
-const allBy = Rep => f => Rep.foldl(f) (true);
+const allBy = Rep => f => Rep.foldlk(_ => y => k => f(y) && k(true)) (true);
 
 
 // Foldable t => Object -> (a -> b) -> t a -> b
-const allBy_ = Rep => f => Rep.foldr(f) (true);
+const allBy_ = Rep => f => Rep.foldrk(x => _ => k => f(x) && k(true)) (true);
 
 
 // API

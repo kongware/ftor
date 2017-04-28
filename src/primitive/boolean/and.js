@@ -3,7 +3,7 @@
 
 /**
  * @name and
- * @note logical conjunction; short circuiting; non-boolean values are allowed
+ * @note logical conjunction; short circuiting; works with all types through implicit type coercion
  * @type associative binary operation (semigroup)
  * @status stable
  * @example
@@ -12,8 +12,6 @@
 
    and(true) (true); // true
    and(true) (false); // false
-
-   // implicit truthy/falsy coercion:
 
    and(1) (2); // 2
    and(0) (2); // 0

@@ -3,7 +3,7 @@
 
 /**
  * @name equal
- * @note non-boolean values are allowed
+ * @note works with all types through explicit type cast
  * @type first order function
  * @status stable
  * @example

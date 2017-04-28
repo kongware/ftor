@@ -11,7 +11,7 @@ const {or} = require("./or");
 
 /**
  * @name or of n values
- * @note logical disjunction; short circuiting; non-boolean values are allowed
+ * @note logical disjunction; short circuiting; works with all types through implicit type coercion
  * @type list catamorphism
  * @status unstable
  * @example

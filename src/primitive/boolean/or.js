@@ -3,7 +3,7 @@
 
 /**
  * @name or
- * @note logical disjunction; short circuiting; non-boolean values are allowed
+ * @note logical disjunction; short circuiting; works with all types through implicit type coercion
  * @type associative binary operation (semigroup)
  * @status stable
  * @example
