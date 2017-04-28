@@ -10,9 +10,13 @@
 
    const or = x => y => x || y;
 
-   or("foo") (""); // "foo"
-   or("") ("bar"); // "bar"
-   or("foo") ("bar"); // "foo"
+   or(false) (true); // true
+   or(false) (false); // false
+
+   // implicit truthy/falsy coercion:
+
+   or(0) (2); // 2
+   or(1) (2); // 1
 
  */
 

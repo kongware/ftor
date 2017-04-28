@@ -10,9 +10,13 @@
 
    const and = x => y => x && y;
 
-   and("foo") (""); // ""
-   and("") ("bar"); // ""
-   and("foo") ("bar"); // "bar"
+   and(true) (true); // true
+   and(true) (false); // false
+
+   // implicit truthy/falsy coercion:
+
+   and(1) (2); // 2
+   and(0) (2); // 0
 
  */
 

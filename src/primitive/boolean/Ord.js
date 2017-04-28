@@ -4,8 +4,7 @@
 // dependencies
 
 
-const eq = require("../eq");
-const neq = require("../neq");
+const {compare, compare_} = require("./compare");
 
 
 /**
@@ -17,21 +16,6 @@ const neq = require("../neq");
 
 
 const Ord = {};
-
-
-/**
- * @name compare
- * @type first order function
- * @status unstable
- * @example
-
-   ?
-
- */
-
-
-// Boolean -> Boolean -> Boolean
-Ord.compare = ;
 
 
 // API

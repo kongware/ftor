@@ -20,34 +20,7 @@ const Any = {};
 // Semigroup
 
 
-/**
- * @name concat
- * @note logical disjunction; short circuiting; non-boolean values are allowed
- * @type associative binary operation (semigroup)
- * @status stable
- * @example
-
-   const or = x => y => x || y;
-
-   const Any = {};
-   Any.concat = or;
-
-   Any.concat(false) (true); // true
-   Any.concat(false) (false); // false
-
-   // implicit truthy/falsy coercion:
-
-   Any.concat(0) (2); // 2
-   Any.concat(1) (2); // 1
-
- */
-
-
-// a -> a -> a
 Any.concat = or;
-
-
-// a -> a -> a
 Any.concat_ = or_;
 
 
