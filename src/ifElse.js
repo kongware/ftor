@@ -3,7 +3,7 @@
 
 /**
  * @name if else
- * @note lazy conditional expression
+ * @note lazy conditional expression; catamorphism for Booleans analogous to foldl
  * @type first order function
  * @status stable
  * @example
