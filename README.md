@@ -11,7 +11,7 @@ This library is experimental and still work in progress.
 
 ## Principles and mission 
 
-Devs are regularly bad at solving complex problems directly. The most successful strategy is to decompose these problems into smaller ones, solve them individually and then recompose them again. There is actually a mathematical theory that describes this sort of reasoning: Category theory. Functional programming is the (awkward) attempt to reify category theory into executable programming code. It is the best we have and we should start applying it.
+Devs are regularly bad at solving complex problems directly. The most successful strategy is to decompose such problems into smaller ones, solve them individually and then recomposing them again. There is actually a mathematical theory that describes this sort of reasoning: Category theory. Functional programming is the (awkward) attempt to reify category theory into executable programming code. It is the best we have and we should start applying it.
 
 Beyond that ftor demonstrates that it is actually a good idea to
 
