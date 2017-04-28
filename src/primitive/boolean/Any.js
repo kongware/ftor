@@ -10,7 +10,7 @@ const {or, or_} = require("./or");
 /**
  * @name Any
  * @type type representative
- * @status unstable
+ * @status stable
  */
 
 
@@ -57,10 +57,19 @@ Any.concat_ = or_;
 /**
  * @name empty
  * @type constant
- * @status unstable
+ * @status stable
  * @example
 
-   ?
+   const foldl = f => acc => xs => xs.reduce((acc, x, i) => f(acc) (x, i), acc);
+   const or = x => y => x || y;
+
+   const Any = {};
+   Any.concat = or;
+   Any.empty = false;
+
+   const fold = foldl(Any.concat) (Any.empty);
+
+   fold([false, true, false]); // true
 
  */
 

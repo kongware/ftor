@@ -10,7 +10,7 @@ const {and, and_} = require("./and");
 /**
  * @name All
  * @type type representative
- * @status unstable
+ * @status stable
  */
 
 
@@ -57,10 +57,19 @@ All.concat_ = and_;
 /**
  * @name empty
  * @type constant
- * @status unstable
+ * @status stable
  * @example
 
-   ?
+   const foldl = f => acc => xs => xs.reduce((acc, x, i) => f(acc) (x, i), acc);
+   const and = x => y => x && y;
+
+   const All = {};
+   All.concat = and;
+   All.empty = true;
+
+   const fold = foldl(All.concat) (All.empty);
+
+   fold([true, true, true]); // true
 
  */
 

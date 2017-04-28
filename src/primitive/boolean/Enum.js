@@ -10,8 +10,9 @@ const of = require("./of");
 
 /**
  * @name Enumeration
+ * @note partial order
  * @type type representative
- * @status unstable
+ * @status stable
  */
 
 
@@ -20,10 +21,18 @@ const Enum = {};
 
 /**
  * @name successor
+ * @note works with truthy/falsy values as well
  * @type first order function
+ * @status stable
  * @example
 
-   ?
+   const A = f => x => f(x);
+
+   const Enum = {};
+   Enum.succ = A(x => x ? null : true);
+
+   Enum.succ(false); // true
+   Enum.succ(true); // null
 
  */
 
@@ -34,7 +43,9 @@ Enum.succ = A(x => x ? null : true);
 
 /**
  * @name predecessor
+ * @note works with truthy/falsy values as well
  * @type first order function
+ * @status stable
  * @example
 
    @see successor
@@ -48,10 +59,12 @@ Enum.pred = A(x => x ? false : null);
 
 /**
  * @name to enumeration
+ * @note works with truthy/falsy values as well
  * @type first order function
+ * @status stable
  * @example
 
-   ?
+   @see Enum.fromEnum
 
  */
 
@@ -62,10 +75,20 @@ Enum.toEnum = of;
 
 /**
  * @name from enumeration
+ * @note works with truthy/falsy values as well
  * @type first order function
+ * @status stable
  * @example
 
-   ?
+   const A = f => x => f(x);
+
+   const Enum = {};
+   Enum.fromEnum = A(x => x ? 1 : 0);
+
+   Enum.fromEnum(false); // 0
+   Enum.fromEnum(true); // 1
+   Enum.fromEnum(""); // 0
+   Enum.fromEnum("foo"); // 1
 
  */
 
@@ -76,10 +99,28 @@ Enum.fromEnum = A(x => x ? 1 : 0);
 
 /**
  * @name enumeration from
+ * @note works with truthy/falsy values as well
  * @type first order function
+ * @status stable
  * @example
 
-   ?
+   const A = f => x => f(x);
+   const of = x => Boolean(x);
+
+   const Enum = {};
+   Enum.succ = A(x => x ? null : true);
+   Enum.toEnum = of;
+
+   Enum.enumFrom = x => {
+     const aux = (x, acc) => x === null
+      ? acc
+      : aux(Enum.succ(x), acc.concat(x));
+
+     return aux(Enum.toEnum(x), []);
+   };
+
+   Enum.enumFrom(false); // [false, true]
+   Enum.enumFrom(true); // [true]
 
  */
 
@@ -88,13 +129,13 @@ Enum.fromEnum = A(x => x ? 1 : 0);
 Enum.enumFrom = x => {
   const aux = (x, acc) => x === null
    ? acc
-   : aux(succ(x), acc.concat(x));
+   : aux(Enum.succ(x), acc.concat(x));
 
-  return aux(toEnum(x), []);
+  return aux(Enum.toEnum(x), []);
 };
 
 
 // API
 
 
-module.exports = {};
+module.exports = Enum;
