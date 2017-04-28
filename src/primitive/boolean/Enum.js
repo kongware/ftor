@@ -11,6 +11,7 @@ const of = require("./of");
 /**
  * @name Enumeration
  * @type type representative
+ * @status unstable
  */
 
 

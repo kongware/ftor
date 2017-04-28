@@ -3,7 +3,7 @@
 
 /**
  * @name of
- * @note avoids constructor use of Boolean
+ * @note prevents constructor use of Boolean
  * @type first order function
  * @status unstable
  * @todo reconsider name

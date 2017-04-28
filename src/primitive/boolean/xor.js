@@ -2,8 +2,8 @@
 
 
 /**
- * @name logical xor
- * @note logical non-equality; short circuiting; commutative
+ * @name exclusive or
+ * @note logical inequality; short circuiting; commutative
  * @type associative binary operation (semigroup)
  * @status stable
  * @example

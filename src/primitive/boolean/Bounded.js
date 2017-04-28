@@ -4,6 +4,7 @@
 /**
  * @name Bounded
  * @type type representative
+ * @status stable
  */
 
 

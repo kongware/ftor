@@ -60,7 +60,8 @@ Please note that `Array` and tuple type signatures that contain commata indicate
 * `f, g, h, i, j` represents functions
 * `t, t1, t2, t3` represents values wrapped in a context
 * `Rep, Rep1, Rep2, Rep3` represents type representatives (type dictionary)
-* `name_` or `_name` indicates a slightly modified variant of an existing function
+* `name_` or `_name` indicates a slightly modified variant of an existing function `name`
+* `nameBy` or `nameWith` indicates a more general version of an existing function `name`
 
 Values wrapped in contexts are not always denoted with `t` but with the initial letter of the type class (e.g. `f` for `Functor` or `m` for `Monad`).
 
@@ -384,6 +385,6 @@ Unfortunately, destructuring assignment throws an error if the pattern doesn't m
 
 ## Todos
 
-- [ ] add to doc: flipped versions of monoidal append instead of Dual
-- [ ] add to doc: ftor takes advantage of implicit type coercion along with Booleans (truthy/falsy)
-- [ ] add andn, nandn, orn, norn, all, any to boolean
+- [ ] add to doc: flipped versions of monoidal append instead of Dual type rep
+- [ ] add to doc: ftor utilizes/abuses implicit type coercion along with Booleans (truthy/falsy)
+- [ ] add to src: Eq and Ord type reps for Boolean

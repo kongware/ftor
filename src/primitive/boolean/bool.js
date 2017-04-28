@@ -3,8 +3,7 @@
 
 /**
  * @name bool
- * @note catamorphism
- * @type first order function
+ * @type Boolean catamorphism
  * @status stable
  * @example
 

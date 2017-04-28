@@ -10,9 +10,9 @@ const {and} = require("./and");
 
 
 /**
- * @name and of n values
+ * @name and of n values by
  * @note logical conjunction; short circuiting; non-boolean values are allowed
- * @type list catamorphism
+ * @type catamorphism
  * @status unstable
  * @example
 
@@ -21,15 +21,15 @@ const {and} = require("./and");
  */
 
 
-// [a] -> a
-const andn = foldl(and) (true);
+// Foldable t => Object -> t a -> a
+const andnBy = Rep = Rep.foldl(and) (true);
 
 
-// [a] -> a
-const andn_ = foldr(and) (true);
+// Foldable t => Object -> t a -> a
+const andnBy_ = Rep = Rep.foldr(and) (true);
 
 
 // API
 
 
-module.exports = {andn, andn_};
+module.exports = {andnBy, andnBy_};

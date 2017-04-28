@@ -2,8 +2,8 @@
 
 
 /**
- * @name logical and
- * @note short circuiting
+ * @name and
+ * @note logical conjunction; short circuiting; non-boolean values are allowed
  * @type associative binary operation (semigroup)
  * @status stable
  * @example

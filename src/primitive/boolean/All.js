@@ -10,7 +10,7 @@ const {and, and_} = require("./and");
 /**
  * @name All
  * @type type representative
- * @status stable
+ * @status unstable
  */
 
 
@@ -22,7 +22,7 @@ const All = {};
 
 /**
  * @name concat
- * @note short circuiting
+ * @note logical conjunction; short circuiting; non-boolean values are allowed
  * @type associative binary operation (semigroup)
  * @status stable
  * @example
@@ -56,19 +56,11 @@ All.concat_ = and_;
 
 /**
  * @name empty
- * @note value/thunk implementations are equivalent
  * @type constant
- * @status stable
+ * @status unstable
  * @example
 
-   const and = x => y => x && y;
-
-   const All = {};
-   All.concat = and;
-   All.empty = true;
-
-   All.concat(true) (All.empty); // true
-   All.concat(false) (All.empty); // false
+   ?
 
  */
 

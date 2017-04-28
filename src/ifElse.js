@@ -25,7 +25,7 @@
 const ifElse = x => y => z => z ? x : y;
 
 
-// a -> a -> Boolean -> a
+// Boolean -> a -> a -> a
 const ifElse_ = z => x => y => z ? x : y;
 
 

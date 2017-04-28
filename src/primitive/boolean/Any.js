@@ -10,7 +10,7 @@ const {or, or_} = require("./or");
 /**
  * @name Any
  * @type type representative
- * @status stable
+ * @status unstable
  */
 
 
@@ -22,7 +22,7 @@ const Any = {};
 
 /**
  * @name concat
- * @note short circuiting
+ * @note logical disjunction; short circuiting; non-boolean values are allowed
  * @type associative binary operation (semigroup)
  * @status stable
  * @example
@@ -56,19 +56,11 @@ Any.concat_ = or_;
 
 /**
  * @name empty
- * @note value/thunk implementations are equivalent
  * @type constant
- * @status stable
+ * @status unstable
  * @example
 
-   const or = x => y => x || y;
-
-   const Any = {};
-   Any.concat = or;
-   Any.empty = false;
-
-   Any.concat(true) (Any.empty); // true
-   Any.concat(false) (Any.empty); // false
+   ?
 
  */
 

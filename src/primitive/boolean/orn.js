@@ -6,12 +6,12 @@
 
 const foldl = require("../../product/array/foldl");
 const foldr = require("../../product/array/foldr");
-const {and} = require("./and");
+const {or} = require("./or");
 
 
 /**
- * @name and of n values
- * @note logical conjunction; short circuiting; non-boolean values are allowed
+ * @name or of n values
+ * @note logical disjunction; short circuiting; non-boolean values are allowed
  * @type list catamorphism
  * @status unstable
  * @example
@@ -22,14 +22,14 @@ const {and} = require("./and");
 
 
 // [a] -> a
-const andn = foldl(and) (true);
+const orn = foldl(or) (false);
 
 
 // [a] -> a
-const andn_ = foldr(and) (true);
+const orn_ = foldr(or) (false);
 
 
 // API
 
 
-module.exports = {andn, andn_};
+module.exports = {orn, orn_};
