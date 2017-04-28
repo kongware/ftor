@@ -1,13 +1,6 @@
 "use strict";
 
 
-// dependencies
-
-
-const foldl = require("../../product/array/foldl");
-const foldr = require("../../product/array/foldr");
-
-
 /**
  * @name all by
  * @note Boolean catamorphism; short circuiting
