@@ -5,7 +5,7 @@
  * @name of
  * @note lambda prevents constructor use of Boolean
  * @type first order function
- * @status unstable
+ * @status stable
  * @todo reconsider name
  * @example
 

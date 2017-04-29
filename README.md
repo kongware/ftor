@@ -383,8 +383,12 @@ Unfortunately, destructuring assignment throws an error if the pattern doesn't m
 * There is no checking on tag names: It is easy to make a typo
 * It works only for built-in types
 
+## Boolean
+
+Since Javascript has only function in prefix position, argument order is crucial in conjunction with binary semigroup operations. For this reason ftor doesn't implement a `Dual` type class but provides a version of such functions with swapped arguments for each type class.
+
+Please note that ftor allows certain functions of the boolean type to be applied with non-boolean values. This is possible because all values are implicitly coerced to boolean in Javascript depending on whether they are truthy or falsy. I am unsure if this kind of polymorphism is useful though. It might change in future versions.
+
 ## Todos
 
-- [ ] add to doc: flipped versions of monoidal append instead of Dual type rep
-- [ ] add to doc: ftor utilizes/abuses implicit type coercion along with Booleans (truthy/falsy)
-- [ ] add to src: Eq and Ord type reps for Boolean
+none.

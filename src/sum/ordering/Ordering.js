@@ -2,12 +2,13 @@
 
 
 /**
- * @name Ordering
- * @type type constructor
+ * @name Ordering type
+ * @type type representative
+ * @kind *
+ * @status stable
  */
 
 
-// kind *
 const Ordering = {};
 
 

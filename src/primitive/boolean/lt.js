@@ -5,10 +5,14 @@
  * @name lower than
  * @note works with all types through explicit type cast
  * @type first order function
- * @status unstable
+ * @status stable
  * @example
 
-   ?
+   const lt = x => y => !!x < !!y;
+
+   lt(false) (true); // true
+   lt("foo") (""); // false
+   lt("foo") ("bar"); // false
 
  */
 

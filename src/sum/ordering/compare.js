@@ -6,15 +6,30 @@
 
 const EQ = require("./EQ");
 const GT = require("./GT");
-const {K} = require("../../K");
 const LT = require("./LT");
-const ternarySum = require("./ternarySum");
 
 
 /**
  * @name compare
  * @type first order function
+ * @status stable
  * @example
+
+   const Ordering = {};
+   const LT = ({type: Ordering, tag: "LT"});
+   const EQ = ({type: Ordering, tag: "EQ"});
+   const GT = ({type: Ordering, tag: "GT"});
+
+   const fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
+   
+   const compare = t1 => t2 => {
+     const x = fromEnum(t1),
+      y  = fromEnum(t2);
+
+     return x < y ? LT
+      : x > y ? GT
+      : EQ;
+   };
 
    compare(EQ) (GT); // LT
    compare(GT) (GT); // EQ
@@ -24,7 +39,14 @@ const ternarySum = require("./ternarySum");
 
 
 // Ordering -> Ordering -> Ordering
-const compare = ternarySum(K(LT), K(GT), K(EQ));
+const compare = t1 => t2 => {
+  const x = fromEnum(t1),
+   y  = fromEnum(t2);
+
+  return x < y ? LT
+   : x > y ? GT
+   : EQ;
+};
 
 
 // API

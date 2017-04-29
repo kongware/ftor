@@ -9,16 +9,13 @@ const EQ = require("./EQ");
 
 /**
  * @name empty
- * @type constant function
- * @example
-
-   empty(); // EQ
-
+ * @type identity element (monoid)
+ * @status stable
  */
 
 
-// () -> Ordering
-const empty = () => EQ;
+// Ordering
+const empty = EQ;
 
 
 // API

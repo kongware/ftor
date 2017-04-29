@@ -8,7 +8,7 @@ const Const_ = require("./Const_");
 
 
 /**
- * @name Constant constructor
+ * @name Constant
  * @type value constructor
  * @example
 

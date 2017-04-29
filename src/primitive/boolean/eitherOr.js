@@ -5,7 +5,8 @@
  * @name either or
  * @note logical inequality with default value; short circuiting; commutative
  * @type first order function
- * @status unstable
+ * @status stable
+ * @todo reconsider name
  * @example
 
    const eitherOr = default_ => x => y => !x === !y ? default_ : x || y;

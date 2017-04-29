@@ -8,8 +8,9 @@ const Ordering = require("./Ordering");
 
 
 /**
- * @name Equal
+ * @name equal
  * @type constant
+ * @status stable
  */
 
 

@@ -5,10 +5,6 @@
  * @name maximal bound
  * @type constant
  * @status stable
- * @example
-
-   @see minBound
-
  */
 
 

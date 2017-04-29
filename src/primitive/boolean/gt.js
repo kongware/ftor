@@ -5,10 +5,10 @@
  * @name greater than
  * @note works with all types through explicit type cast
  * @type first order function
- * @status unstable
+ * @status stable
  * @example
 
-   ?
+   @see lt
 
  */
 

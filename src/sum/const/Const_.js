@@ -8,7 +8,7 @@ const Const = require("./Const");
 
 
 /**
- * @name Constant type class
+ * @name Constant type
  * @type type representative
  * @kind * -> * -> *
  */

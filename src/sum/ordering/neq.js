@@ -1,27 +1,20 @@
 "use strict";
 
 
-// dependencies
-
-
-const False = require("../../False");
-const True = require("../../True");
-const ternarySum = require("./ternarySum");
-
-
 /**
  * @name not equal
+ * @note commutative
  * @type first order function
+ * @status stable
  * @example
 
-   neq(LT) (LT); // false
-   neq(EQ) (LT); // true
+   @see eq
 
  */
 
 
 // Ordering -> Ordering -> Boolean
-const neq = ternarySum(True, True, False);
+const neq = ({tag: x}) => ({tag: y}) => x !== y;
 
 
 // API

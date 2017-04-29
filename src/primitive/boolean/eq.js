@@ -3,7 +3,7 @@
 
 /**
  * @name equal
- * @note works with all types through explicit type cast
+ * @note works with all types through explicit type cast; commutative
  * @type first order function
  * @status stable
  * @example
