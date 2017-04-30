@@ -1,6 +1,12 @@
 "use strict";
 
 
+// dependencies
+
+
+const {concat, concat_} = require("./Any");
+
+
 /**
  * @name or
  * @note logical disjunction; short circuiting; works with all types through implicit type coercion
@@ -22,11 +28,11 @@
 
 
 // a -> a -> a
-const or = x => y => x || y;
+const or = concat;
 
 
 // a -> a -> a
-const or_ = y => x => x || y;
+const or_ = concat_;
 
 
 // API

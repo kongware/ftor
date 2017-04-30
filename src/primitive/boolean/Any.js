@@ -1,27 +1,58 @@
 "use strict";
 
 
-// dependencies
-
-
-const {or, or_} = require("./or");
-
-
 /**
  * @name Any
+ * @note combined type and constructor; primitive
  * @type type representative
+ * @kind *
  * @status stable
  */
 
 
-const Any = {};
+// constructor
+
+
+/**
+ * @name Any
+ * @note lambda to prevent new-operator use
+ * @type constructor
+ * @status stable
+ */
+
+
+const Any = x => Boolean(x);
 
 
 // Semigroup
 
 
-Any.concat = or;
-Any.concat_ = or_;
+/**
+ * @name concat
+ * @note logical disjunction; short circuiting; works with all types through implicit type coercion
+ * @type associative binary operation (semigroup)
+ * @status stable
+ * @example
+
+   const or = x => y => x || y;
+
+   or(false) (true); // true
+   or(false) (false); // false
+
+   // implicit truthy/falsy coercion:
+
+   or(0) (2); // 2
+   or(1) (2); // 1
+
+ */
+
+
+// a -> a -> a
+const concat = x => y => x || y;
+
+
+// a -> a -> a
+const concat_ = y => x => x || y;
 
 
 // Monoid

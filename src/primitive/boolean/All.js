@@ -1,27 +1,56 @@
 "use strict";
 
 
-// dependencies
-
-
-const {and, and_} = require("./and");
-
-
 /**
  * @name All
+ * @note combined type and constructor; primitive
  * @type type representative
+ * @kind *
  * @status stable
  */
 
 
-const All = {};
+// constructor
+
+
+/**
+ * @name All
+ * @note lambda to prevent new-operator use
+ * @type constructor
+ * @status stable
+ */
+
+
+const All = x => Boolean(x);
 
 
 // Semigroup
 
 
-All.concat = and;
-All.concat_ = and_;
+/**
+ * @name concat
+ * @note logical conjunction; short circuiting; works with all types through implicit type coercion
+ * @type associative binary operation (semigroup)
+ * @status stable
+ * @example
+
+   const and = x => y => x && y;
+
+   and(true) (true); // true
+   and(true) (false); // false
+
+   and(1) (2); // 2
+   and(0) (2); // 0
+
+ */
+
+
+// a -> a -> a
+const concat = x => y => x && y;
+
+
+// a -> a -> a
+const concat_ = y => x => x && y;
 
 
 // Monoid

@@ -29,6 +29,22 @@ Ordering.GT = GT;
 // catamorphism
 
 
+/**
+ * @name ordering
+ * @type first order function
+ * @status stable
+ * @example
+
+   const Ordering = {};
+   Ordering.ordering = pattern => ({tag}) => pattern[tag]();
+
+   const LT = ({type: Ordering, tag: "LT"});
+
+   Ordering.ordering({LT: () => "lower than", EQ: () => "equal", GT: () => "greater than"}) (LT); // "lower than"
+
+ */
+
+
 // Object -> Ordering -> a
 Ordering.ordering = pattern => ({tag}) => pattern[tag]();
 
