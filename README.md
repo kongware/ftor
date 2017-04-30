@@ -274,9 +274,9 @@ Provided that `a` and `b` of a `Pair`, for instance, implement the `Ord` type cl
 ftor will eventually introduce the following data types:
 
 * Cont (tagged union)
-* Const (?)
+* Const (tagged union)
 * Either (tagged union)
-* Ident (?)
+* Ident (tagged union)
 * Option (tagged union)
 * Ordering (tagged union)
 * Tuple (Church encoded)

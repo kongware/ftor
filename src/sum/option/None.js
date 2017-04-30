@@ -9,7 +9,7 @@ const Option = require("./Option");
 
 /**
  * @name None
- * @type nullary value constructor
+ * @type constructor
  * @example
 
    None(); // {type: Option, tag: "None"}
