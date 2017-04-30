@@ -4,28 +4,29 @@
 // dependencies
 
 
-const False = require("../../False");
-const True = require("../../True");
-const ternarySum = require("./ternarySum");
+const fromEnum = require("./fromEnum");
 
 
 /**
  * @name greater than or equal
  * @type first order function
+ * @status stable
  * @example
 
-   gte(EQ) (GT); // false
-   gte(GT) (LT); // true
-   gte(LT) (LT); // true
+   @see lte
 
  */
 
 
 // Ordering -> Ordering -> Boolean
-const gte = ternarySum(False, True, True);
+const gte = t1 => t2 => fromEnum(t1) >= fromEnum(t2);
+
+
+// Ordering -> Ordering -> Boolean
+const gte_ = t2 => t1 => fromEnum(t1) >= fromEnum(t2);
 
 
 // API
 
 
-module.exports = gte;
+module.exports = {gte, gte_};

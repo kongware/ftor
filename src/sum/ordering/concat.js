@@ -1,6 +1,13 @@
 "use strict";
 
 
+// dependencies
+
+
+const LT = require("./LT");
+const GT = require("./GT");
+
+
 /**
  * @name concatenate
  * @type associative binary operation (semigroup)

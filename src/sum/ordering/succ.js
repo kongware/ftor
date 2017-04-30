@@ -6,17 +6,27 @@
 
 const EQ = require("./EQ");
 const GT = require("./GT");
-const LT = require("./LT");
-const raise = require("../../raise");
 
 
 /**
  * @name successor
  * @type first order function
+ * @status stable
  * @example
 
+   const Ordering = {};
+   const LT = ({type: Ordering, tag: "LT"});
+   const EQ = ({type: Ordering, tag: "EQ"});
+   const GT = ({type: Ordering, tag: "GT"});
+
+   const succ = ({tag}) => ({
+     LT: EQ,
+     EQ: GT,
+     GT: null
+   })[tag];
+
    succ(EQ); // GT
-   succ(GT); // TypeError
+   succ(GT); // null
 
  */
 
@@ -25,7 +35,7 @@ const raise = require("../../raise");
 const succ = ({tag}) => ({
   LT: EQ,
   EQ: GT,
-  GT: raise(TypeError) ("invalid succ invocation with GT")
+  GT: null
 })[tag];
 
 

@@ -49,7 +49,18 @@ const compare = t1 => t2 => {
 };
 
 
+// Ordering -> Ordering -> Ordering
+const compare_ = t2 => t1 => {
+  const x = fromEnum(t1),
+   y  = fromEnum(t2);
+
+  return x < y ? LT
+   : x > y ? GT
+   : EQ;
+};
+
+
 // API
 
 
-module.exports = compare;
+module.exports = {compare, compare_};

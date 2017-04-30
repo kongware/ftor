@@ -4,26 +4,24 @@
 // dependencies
 
 
-const EQ = require("./EQ");
-const GT = require("./GT");
 const LT = require("./LT");
-const raise = require("../../raise");
+const EQ = require("./EQ");
 
 
 /**
- * @name predecessor
+ * @name predessor
  * @type first order function
+ * @status stable
  * @example
 
-   pred(EQ); // LT
-   pred(LT); // TypeError
+   @see succ
 
  */
 
 
 // Ordering -> Ordering
 const pred = ({tag}) => ({
-  LT: raise(TypeError) ("invalid pred invocation with LT"),
+  LT: null,
   EQ: LT,
   GT: EQ
 })[tag];

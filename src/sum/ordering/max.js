@@ -4,23 +4,23 @@
 // dependencies
 
 
-const {K} = require("../../K");
-const ternarySum = require("./ternarySum");
+const fromEnum = require("./fromEnum");
 
 
 /**
  * @name maximum
+ * @note commutative
  * @type first order function
+ * @status stable
  * @example
 
-   max(LT) (GT); // GT
-   max(EQ) (LT); // EQ
+   @see min
 
  */
 
 
 // Ordering -> Ordering -> Ordering
-const max = t2 => t1 => ternarySum(K(t2), K(t1), K(t1)) (t1) (t2);
+const max = t1 => t2 => fromEnum(t1) >= fromEnum(t2) ? t1 : t2;
 
 
 // API
