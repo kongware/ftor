@@ -1,6 +1,12 @@
 "use strict";
 
 
+// dependencies
+
+
+const {$tag, $Const} = require("../interop/props");
+
+
 /**
  * @name Constant
  * @note combined type and constructor; tagged union
@@ -21,7 +27,7 @@
 
 
 // Const t => a -> t a
-const Const = x => ({type: Const, tag: "Const", x: x});
+const Const = x => ({[$tag]: "Const", [$Const]: x});
 
 
 // Functor
@@ -46,7 +52,7 @@ const Const = x => ({type: Const, tag: "Const", x: x});
 
 
 // Const t => (a -> b) -> t a -> t a
-Const.map = f => t => Const(t.x);
+Const.map = f => t => Const(t[$Const]);
 
 
 // API

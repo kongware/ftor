@@ -1,6 +1,12 @@
 "use strict";
 
 
+// dependencies
+
+
+const {$tag, $Ident} = require("../interop/props");
+
+
 /**
  * @name Identity
  * @note combined type and constructor; tagged union
@@ -21,7 +27,7 @@
 
 
 // Ident t => a -> t a
-const Ident = x => ({type: Ident, tag: "Ident", x: x});
+const Ident = x => ({[$tag]: "Ident", [$Ident]: x});
 
 
 // Functor
@@ -46,7 +52,7 @@ const Ident = x => ({type: Ident, tag: "Ident", x: x});
 
 
 // Ident t => (a -> b) -> t a -> t b
-Ident.map = f => t => Ident(f(t.x));
+Ident.map = f => t => Ident(f(t[$Ident]));
 
 
 // API

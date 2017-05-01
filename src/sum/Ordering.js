@@ -1,6 +1,12 @@
 "use strict";
 
 
+// dependencies
+
+
+const {$tag, $Ordering} = require("../interop/props");
+
+
 /**
  * @name Ordering
  * @note tagged union
@@ -16,13 +22,13 @@ const Ordering = {};
 // constructors
 
 
-const LT = ({type: Ordering, tag: "LT"});
+const LT = ({[$tag]: "LT"});
 Ordering.LT = LT;
 
-const EQ = ({type: Ordering, tag: "EQ"});
+const EQ = ({[$tag]: "EQ"});
 Ordering.EQ = EQ;
 
-const GT = ({type: Ordering, tag: "GT"});
+const GT = ({[$tag]: "GT"});
 Ordering.GT = GT;
 
 
@@ -35,10 +41,12 @@ Ordering.GT = GT;
  * @status stable
  * @example
 
-   const Ordering = {};
-   Ordering.ordering = pattern => ({tag}) => pattern[tag]();
+   const $tag = Symbol.for("ftor/tag");
 
-   const LT = ({type: Ordering, tag: "LT"});
+   const Ordering = {};
+   Ordering.ordering = pattern => ({[$tag]: tag}) => pattern[tag]();
+
+   const LT = ({[$tag]: "LT"});
 
    Ordering.ordering({LT: () => "lower than", EQ: () => "equal", GT: () => "greater than"}) (LT); // "lower than"
 
@@ -46,7 +54,7 @@ Ordering.GT = GT;
 
 
 // Object -> Ordering -> a
-Ordering.ordering = pattern => ({tag}) => pattern[tag]();
+Ordering.ordering = pattern => ({[$tag]: tag}) => pattern[tag]();
 
 
 // Bounded
@@ -83,17 +91,19 @@ Ordering.maxBound = GT;
  * @status stable
  * @example
 
+   const $tag = Symbol.for("ftor/tag");
+
    const Ordering = {};
 
-   Ordering.succ = ({tag}) => ({
+   Ordering.succ = ({[$tag]: tag}) => ({
      LT: EQ,
      EQ: GT,
      GT: null
    })[tag];
 
-   const LT = ({type: Ordering, tag: "LT"});
-   const EQ = ({type: Ordering, tag: "EQ"});
-   const GT = ({type: Ordering, tag: "GT"});
+   const LT = ({[$tag]: "LT"});
+   const EQ = ({[$tag]: "EQ"});
+   const GT = ({[$tag]: "GT"});
 
    Ordering.succ(EQ); // GT
    Ordering.succ(GT); // null
@@ -102,7 +112,7 @@ Ordering.maxBound = GT;
 
 
 // Ordering -> Ordering
-Ordering.succ = ({tag}) => ({
+Ordering.succ = ({[$tag]: tag}) => ({
   LT: EQ,
   EQ: GT,
   GT: null
@@ -121,7 +131,7 @@ Ordering.succ = ({tag}) => ({
 
 
 // Ordering -> Ordering
-Ordering.pred = ({tag}) => ({
+Ordering.pred = ({[$tag]: tag}) => ({
   LT: null,
   EQ: LT,
   GT: EQ
@@ -134,16 +144,18 @@ Ordering.pred = ({tag}) => ({
  * @status stable
  * @example
 
+   const $tag = Symbol.for("ftor/tag");
+
    const Ordering = {};
    Ordering.toEnum = n => [LT, EQ, GT][n];
 
-   const LT = ({type: Ordering, tag: "LT"});
-   const EQ = ({type: Ordering, tag: "EQ"});
-   const GT = ({type: Ordering, tag: "GT"});
+   const LT = ({[$tag]: "LT"});
+   const EQ = ({[$tag]: "EQ"});
+   const GT = ({[$tag]: "GT"});
 
-   Ordering.toEnum(0); // LT
-   Ordering.toEnum(1); // EQ
-   Ordering.toEnum(2); // GT
+   Ordering.toEnum(0); // {$tag: "LT"}
+   Ordering.toEnum(1); // {$tag: "EQ"}
+   Ordering.toEnum(2); // {$tag: "GT"}
 
  */
 
@@ -158,12 +170,14 @@ Ordering.toEnum = n => [LT, EQ, GT][n];
  * @status stable
  * @example
 
-   const Ordering = {};
-   Ordering.fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
+   const $tag = Symbol.for("ftor/tag");
 
-   const LT = ({type: Ordering, tag: "LT"});
-   const EQ = ({type: Ordering, tag: "EQ"});
-   const GT = ({type: Ordering, tag: "GT"});
+   const Ordering = {};
+   Ordering.fromEnum = ({[$tag]: tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
+
+   const LT = ({[$tag]: "LT"});
+   const EQ = ({[$tag]: "EQ"});
+   const GT = ({[$tag]: "GT"});
 
    Ordering.fromEnum(LT); // 0
    Ordering.fromEnum(EQ); // 1
@@ -173,7 +187,7 @@ Ordering.toEnum = n => [LT, EQ, GT][n];
 
 
 // Ordering -> Number
-Ordering.fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
+Ordering.fromEnum = ({[$tag]: tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
 
 
 /**
@@ -182,9 +196,11 @@ Ordering.fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
  * @status stable
  * @example
 
+   const $tag = Symbol.for("ftor/tag");
+
    const Ordering = {};
 
-   Ordering.succ = ({tag}) => ({
+   Ordering.succ = ({[$tag]: tag}) => ({
      LT: EQ,
      EQ: GT,
      GT: null
@@ -198,9 +214,9 @@ Ordering.fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
      return aux(t, []);
    };
 
-   const LT = ({type: Ordering, tag: "LT"});
-   const EQ = ({type: Ordering, tag: "EQ"});
-   const GT = ({type: Ordering, tag: "GT"});
+   const LT = ({[$tag]: "LT"});
+   const EQ = ({[$tag]: "EQ"});
+   const GT = ({[$tag]: "GT"});
 
    Ordering.enumFrom(LT); // [LT, EQ, GT]
    Ordering.enumFrom(EQ); // [EQ, GT]
@@ -227,8 +243,10 @@ Ordering.enumFrom = t => {
  * @status stable
  * @example
 
+   const $tag = Symbol.for("ftor/tag");
+
    const Ordering = {};
-   Ordering.fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
+   Ordering.fromEnum = ({[$tag]: tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
    
    Ordering.compare = t1 => t2 => {
      const x = Ordering.fromEnum(t1),
@@ -239,9 +257,9 @@ Ordering.enumFrom = t => {
       : EQ;
    };
 
-   const LT = ({type: Ordering, tag: "LT"});
-   const EQ = ({type: Ordering, tag: "EQ"});
-   const GT = ({type: Ordering, tag: "GT"});
+   const LT = ({[$tag]: "LT"});
+   const EQ = ({[$tag]: "EQ"});
+   const GT = ({[$tag]: "GT"});
 
    Ordering.compare(EQ) (GT); // LT
    Ordering.compare(GT) (GT); // EQ
@@ -278,13 +296,15 @@ Ordering.compare_ = t2 => t1 => {
  * @status stable
  * @example
 
+   const $tag = Symbol.for("ftor/tag");
+
    const Ordering = {};
-   Ordering.fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
+   Ordering.fromEnum = ({[$tag]: tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
    Ordering.lt = t1 => t2 => Ordering.fromEnum(t1) < Ordering.fromEnum(t2);
 
-   const LT = ({type: Ordering, tag: "LT"});
-   const EQ = ({type: Ordering, tag: "EQ"});
-   const GT = ({type: Ordering, tag: "GT"});
+   const LT = ({[$tag]: "LT"});
+   const EQ = ({[$tag]: "EQ"});
+   const GT = ({[$tag]: "GT"});
 
    Ordering.lt(EQ) (GT); // true
 
@@ -305,13 +325,15 @@ Ordering.lt_ = t2 => t1 => Ordering.fromEnum(t1) < Ordering.fromEnum(t2);
  * @status stable
  * @example
 
+   const $tag = Symbol.for("ftor/tag");
+
    const Ordering = {};
-   Ordering.fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
+   Ordering.fromEnum = ({[$tag]: tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
    Ordering.lte = t1 => t2 => Ordering.fromEnum(t1) <= Ordering.fromEnum(t2);
 
-   const LT = ({type: Ordering, tag: "LT"});
-   const EQ = ({type: Ordering, tag: "EQ"});
-   const GT = ({type: Ordering, tag: "GT"});
+   const LT = ({[$tag]: "LT"});
+   const EQ = ({[$tag]: "EQ"});
+   const GT = ({[$tag]: "GT"});
 
    Ordering.lte(EQ) (GT); // true
    Ordering.lte(GT) (GT); // true
@@ -333,7 +355,7 @@ Ordering.lte_ = t2 => t1 => Ordering.fromEnum(t1) <= Ordering.fromEnum(t2);
  * @status stable
  * @example
 
-   @see Ordering.gt
+   @see Ordering.lt
 
  */
 
@@ -372,13 +394,15 @@ Ordering.gte_ = t2 => t1 => Ordering.fromEnum(t1) >= Ordering.fromEnum(t2);
  * @status stable
  * @example
 
+   const $tag = Symbol.for("ftor/tag");
+
    const Ordering = {};
-   Ordering.fromEnum = ({tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
+   Ordering.fromEnum = ({[$tag]: tag}) => ({LT: 0, EQ: 1, GT: 2})[tag];
    Ordering.min = t1 => t2 => Ordering.fromEnum(t1) <= Ordering.fromEnum(t2) ? t1 : t2;
 
-   const LT = ({type: Ordering, tag: "LT"});
-   const EQ = ({type: Ordering, tag: "EQ"});
-   const GT = ({type: Ordering, tag: "GT"});
+   const LT = ({[$tag]: "LT"});
+   const EQ = ({[$tag]: "EQ"});
+   const GT = ({[$tag]: "GT"});
 
    Ordering.min(GT) (LT); // LT
    Ordering.min(EQ) (GT); // EQ
@@ -416,12 +440,14 @@ Ordering.max = t1 => t2 => Ordering.fromEnum(t1) >= Ordering.fromEnum(t2) ? t1 :
  * @status stable
  * @example
 
-   const Ordering = {};
-   Ordering.eq = ({tag: x}) => ({tag: y}) => x === y;
+   const $tag = Symbol.for("ftor/tag");
 
-   const LT = ({type: Ordering, tag: "LT"});
-   const EQ = ({type: Ordering, tag: "EQ"});
-   const GT = ({type: Ordering, tag: "GT"});
+   const Ordering = {};
+   Ordering.eq = ({[$tag]: x}) => ({[$tag]: y}) => x === y;
+
+   const LT = ({[$tag]: "LT"});
+   const EQ = ({[$tag]: "EQ"});
+   const GT = ({[$tag]: "GT"});
 
    Ordering.eq(LT) (LT); // true
    Ordering.eq(EQ) (LT); // false
@@ -430,7 +456,7 @@ Ordering.max = t1 => t2 => Ordering.fromEnum(t1) >= Ordering.fromEnum(t2) ? t1 :
 
 
 // Ordering -> Ordering -> Boolean
-Ordering.eq = ({tag: x}) => ({tag: y}) => x === y;
+Ordering.eq = ({[$tag]: x}) => ({[$tag]: y}) => x === y;
 
 
 /**
@@ -446,7 +472,7 @@ Ordering.eq = ({tag: x}) => ({tag: y}) => x === y;
 
 
 // Ordering -> Ordering -> Boolean
-Ordering.neq = ({tag: x}) => ({tag: y}) => x !== y;
+Ordering.neq = ({[$tag]: x}) => ({[$tag]: y}) => x !== y;
 
 
 // Semigroup
@@ -459,12 +485,14 @@ Ordering.neq = ({tag: x}) => ({tag: y}) => x !== y;
  * @status stable
  * @example
 
-   const Ordering = {};
-   Ordering.concat = ({tag: x}) => t => ({LT, EQ: t, GT})[x];
+   const $tag = Symbol.for("ftor/tag");
 
-   const LT = ({type: Ordering, tag: "LT"});
-   const EQ = ({type: Ordering, tag: "EQ"});
-   const GT = ({type: Ordering, tag: "GT"});
+   const Ordering = {};
+   Ordering.concat = ({[$tag]: tag}) => t => ({LT, EQ: t, GT})[tag];
+
+   const LT = ({[$tag]: "LT"});
+   const EQ = ({[$tag]: "EQ"});
+   const GT = ({[$tag]: "GT"});
 
    Ordering.concat(LT) (LT); // LT
    Ordering.concat(LT) (EQ); // LT
@@ -475,11 +503,11 @@ Ordering.neq = ({tag: x}) => ({tag: y}) => x !== y;
 
 
 // Ordering -> Ordering -> Ordering
-Ordering.concat = ({tag}) => t => ({LT, EQ: t, GT})[tag];
+Ordering.concat = ({[$tag]: tag}) => t => ({LT, EQ: t, GT})[tag];
 
 
 // Ordering -> Ordering -> Ordering
-Ordering.concat_ = t => ({tag}) => ({LT, EQ: t, GT})[tag];
+Ordering.concat_ = t => ({[$tag]: tag}) => ({LT, EQ: t, GT})[tag];
 
 
 // Monoid

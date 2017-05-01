@@ -125,7 +125,7 @@ ftor doesn't rely on the prototype system but on type representatives. Type reps
 const $tag = Symbol.for("ftor/tag");
 const $Ident = Symbol.for("ftor/Ident");
 
-// combined type representative and constructor
+// combined type rep and constructor
 
 const Ident = x => ({[$tag]: "Ident", [$Ident]: x});
 
@@ -158,7 +158,7 @@ Here is another example of the `Ordering` type with pattern matching:
 const $tag = Symbol.for("ftor/tag");
 const $Ident = Symbol.for("ftor/Ident");
 
-// type
+// type rep
 
 const Ordering = {};
 
