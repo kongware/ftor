@@ -11,7 +11,7 @@ This library is experimental and still work in progress.
 
 ## Principles and mission 
 
-The most successful strategy to solve complex problems is to decompose them into smaller ones, solve these sub-problems individually and then recomposing them again. There is actually a mathematical theory that describes this sort of reasoning: Category theory. Functional programming is the attempt to reify category theory into executable programming code. It is the most robust approach we have and we should start applying it.
+The most successful strategy to solve complex problems is to decompose them into smaller ones, solve them individually and recompose them again. There is actually a mathematical theory that describes this sort of reasoning: Category theory. Functional programming is the attempt to reify category theory into executable programming code. It is the most robust approach we have and we should start applying it.
 
 Beyond that ftor demonstrates that it is actually a good idea to
 
