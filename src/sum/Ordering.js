@@ -36,7 +36,7 @@ Ordering.GT = GT;
 
 
 /**
- * @name ordering
+ * @name catamorphism
  * @type first order function
  * @status stable
  * @example
@@ -54,7 +54,7 @@ Ordering.GT = GT;
 
 
 // Object -> Ordering -> a
-Ordering.ordering = pattern => ({[$tag]: tag}) => pattern[tag]();
+Ordering.cata = pattern => ({[$tag]: tag}) => pattern[tag]();
 
 
 // Bounded
