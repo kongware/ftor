@@ -35,6 +35,22 @@ Regain hope all ye who enter here.
 * action: An impure (and frequently nullary) function that performs side effects
 * type representative (type rep): A plain old Javascript `Object` that contains static methods and forms a type class (e.g. Functor)
 
+## Naming conventions
+
+* `v, w, x, y, z` represents type variables (polymorphism)
+* `vs, ws, xs, ys, zs` represents polymorphic collections
+* `o, p, q, r, s` represents Javascript `Object`s
+* `f, g, h, i, j` represents functions
+* `t, t1, t2, t3` represents values wrapped in a context
+* `Rep, Rep1, Rep2, Rep3` represents type representatives (type dictionary)
+* `name_` or `_name` indicates a slightly modified variant of an existing function `name`
+* `nameBy` or `nameWith` indicates a more general version of an existing function `name`
+* `$name` indicates a native `Symbol`.
+
+Values wrapped in contexts are not always denoted with `t` but with the initial letter of the type class (e.g. `f` for `Functor` or `m` for `Monad`).
+
+Please note that names are a pretty good indicator of how generic your code is. Generic names indicate generic code and vice versa.
+
 ## Type signature extensions
 
 To meet Javascript's dynamic type system and idiomatic techniques ftor uses extended, non-standard type signatures, which are of course less precise and pretty confusing. This reflects the flaws of an untyped language. The following syntax is added:
@@ -52,26 +68,7 @@ To meet Javascript's dynamic type system and idiomatic techniques ftor uses exte
 
 Please note that `Array` and tuple type signatures that contain commata indicate a data structure of a specific length. Consequently, with type signatures we cannot express an `Array`/tuple with a single element, which is the desired behavior though. As opposed to `Array`s `Object`s and other built-in types are described by their bare type name. Provided that an `Object` consists only of a few properties, the alternative syntax `{key1: a, key2: *}` may be chosen.
 
-## Naming conventions
-
-* `v, w, x, y, z` represents type variables (polymorphism)
-* `vs, ws, xs, ys, zs` represents polymorphic collections
-* `o, p, q, r, s` represents Javascript `Object`s
-* `f, g, h, i, j` represents functions
-* `t, t1, t2, t3` represents values wrapped in a context
-* `Rep, Rep1, Rep2, Rep3` represents type representatives (type dictionary)
-* `name_` or `_name` indicates a slightly modified variant of an existing function `name`
-* `nameBy` or `nameWith` indicates a more general version of an existing function `name`
-
-Values wrapped in contexts are not always denoted with `t` but with the initial letter of the type class (e.g. `f` for `Functor` or `m` for `Monad`).
-
-Please note that names are a pretty good indicator of how generic your code is. Generic names indicate generic code and vice versa.
-
-## Name conflicts
-
-Please note that ftor uses the same generic names for several functions of different data types and type classes. It is your obligation to manage namespaces to avoid name conflicts.
-
-## Currying
+## Currying and partial application
 
 All functions in ftor are in manually curried form. Currying leads to abstraction over arity in a lot of scenarios and thus facilitates function composition and combinatorics.
 
@@ -118,69 +115,35 @@ There are a couple of combinators which are regularly encountered when working w
 
 Please note that some of these names differ from those in the literature.
 
-## Avoiding application hell
+## Type representatives
 
-In Javascript we cannot shift functions to infix position and treat them like operators. We cannot define our own operators either. We are stuck with functions in prefix position. Hence we sooner or later end up in application hell:
-
-```Javascript
-// this concise Haskell code
-triple x y z = [x, y, z]
-triple <$> (+1) <*> (*2) <*> (^2) $ 10 // [11, 20, 100]
-
-// is transformed into
-const triple = x => y => z => [x, y, z];
-ap(ap(B_(triple, inc)) (dbl)) (sqr) (10); // [11, 20, 100]
-```
-While the Javascript version is equally succinct, it is much harder to read. There are a couple of techniques to mitigate this issue.
-
-### Proper code formatting
+ftor doesn't rely on the prototype system but on type representatives. Type reps are plain old Javascript `Object`s with some static methods that don't depend on `this`. The renouncement of prototypes is accompanied by the necessity to pass around types explicitly. This is the major drawback of this approach, the advantages outweigh though. More on this later. Here is an extract of the `Ident` type along with the functor type class:
 
 ```Javascript
-ap(
-  ap(
-    B_(triple, inc)
-  ) (dbl)
-) (sqr) (10);
+// interop
+
+const $tag = Symbol.for("ftor/tag");
+const $Ident = Symbol.for("ftor/Ident");
+
+// combined type representative and constructor
+
+const Ident = x => ({[$tag]: "Ident", [$Ident]: x});
+
+// Functor
+
+Ident.map = f => t => Ident(f(t[$Ident]));
 ```
-No real progress, but at least it is now recognizable that `ap` is a binary function and that the outer `ap` gets `sqr` and the inner one `dbl` as second argument.
+Every instance of `Ident` has two properties, which are accessable via `Symbol`s. This was essentially done to achieve avoid name conflicts with third party libraries. `$tag` is mainly used to enable a primitive form of pattern matching. ftor ships with other sum types with several value constructors where this teqhnique makes more sense. `$Ident` provides access to the actual value. Each type in ftor has its independent value `Symbol`, so that only the corresonding type rep can actually access it. This mechanism is sane, since there is no implicit reference between a value and its (proto-)type anymore.
 
-### Flattening through composition
+While it is somewhat laborious to pass type reps explicitly, they offer the following advantages:
 
-```Javascript
-B2_(ap, ap) (B_(triple, inc)) (dbl) (sqr) (10);
-```
-Yay, we've avoided deeply nested function calls by using the composition combinator. But now the control flow is abstracted and we need to know how exactly this combinator works.
+also improve readability, since you can explicitly see the used types in place. With type representatives we are able to
 
-### Using a specific lambda
-
-```Javascript
-A(x => triple(inc(x)) (dbl(x)) (sqr(x))) (10);
-```
-Well, sometimes a good old lambda and explicit argument names are the better choice than a fancy combinator.
-
-### Runnable code
-
-```Javascript
-const A = f => x => f(x);
-const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
-
-const B2_ = (...fs) => x => y => 
- fs.slice(0, -1).reduceRight((acc, f) => f(acc), fs[fs.length - 1](x) (y));
-
-const ap = f => g => x => f(x) (g(x));
-
-const inc = x => x + 1;
-const dbl = x => x * 2;
-const sqr = x => x * x;
-
-const triple = x => y => z => [x, y, z];
-
-ap(ap(B_(triple, inc)) (dbl)) (sqr) (10); // [11, 20, 100]
-
-B2_(ap, ap) (B_(triple, inc)) (dbl) (sqr) (10); // [11, 20, 100]
-
-A(x => triple(inc(x)) (dbl(x)) (sqr(x))) (10); // [11, 20, 100]
-```
+* they mitigate Javascript's lack of type inference
+* they allow us to redefine built-in types
+* they enable the definition of multiple type classes per type
+* they lead to more readable code, since types are always explicit
+* they avoid confusing `Function.prototype.bind` and `this` constructs
 
 ## Immutability
 
@@ -318,25 +281,6 @@ ftor will examine the following algebraic constructs:
 * Coyoneda
 * Free applicatives/monads/arrows
 
-## Type representatives
-
-ftor doesn't rely on the prototype system but on type representatives, which have to be passed around explicitly. Type representative is just a fancy word for a static type dictionary, i.e. a plain old Javascript `Object` with a couple of static methods attached:
-
-```Javascript
-// functor type representative of the function instance
-
-const Fun = {
-  map: f => g => x => f(g(x))
-};
-```
-While type representatives lead to somewhat verbose code on the calling side, they also improve readability, since you can explicitly see the used types in place. With type representatives we are able to
-
-* mitigate Javascript's lack of type inference
-* extend built-ins (object and primitive types) without touching them at all
-* define several type classes for each data type
-
-Since instances hold a reference to their type representatives we can fall back on this reference when desired (see the lens example above).
-
 ## Pattern matching
 
 Destructuring assignments and first class functions enable a primitive form of pattern matching in Javascript:
@@ -389,6 +333,69 @@ Since Javascript has only function in prefix position, argument order is crucial
 
 Please note that ftor allows certain functions of the boolean type to be applied with non-boolean values. This is possible because all values are implicitly coerced to boolean in Javascript depending on whether they are truthy or falsy. I am unsure if this kind of polymorphism is useful though. It might change in future versions.
 
+## Avoiding application hell
+
+In Javascript we cannot shift functions to infix position and treat them like operators. We cannot define our own operators either. We are stuck with functions in prefix position. Hence we sooner or later end up in application hell:
+
+```Javascript
+// this concise Haskell code
+triple x y z = [x, y, z]
+triple <$> (+1) <*> (*2) <*> (^2) $ 10 // [11, 20, 100]
+
+// is transformed into
+const triple = x => y => z => [x, y, z];
+ap(ap(B_(triple, inc)) (dbl)) (sqr) (10); // [11, 20, 100]
+```
+While the Javascript version is equally succinct, it is much harder to read. There are a couple of techniques to mitigate this issue.
+
+### Proper code formatting
+
+```Javascript
+ap(
+  ap(
+    B_(triple, inc)
+  ) (dbl)
+) (sqr) (10);
+```
+No real progress, but at least it is now recognizable that `ap` is a binary function and that the outer `ap` gets `sqr` and the inner one `dbl` as second argument.
+
+### Flattening through composition
+
+```Javascript
+B2_(ap, ap) (B_(triple, inc)) (dbl) (sqr) (10);
+```
+Yay, we've avoided deeply nested function calls by using the composition combinator. But now the control flow is abstracted and we need to know how exactly this combinator works.
+
+### Using a specific lambda
+
+```Javascript
+A(x => triple(inc(x)) (dbl(x)) (sqr(x))) (10);
+```
+Well, sometimes a good old lambda and explicit argument names are the better choice than a fancy combinator.
+
+### Runnable code
+
+```Javascript
+const A = f => x => f(x);
+const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+
+const B2_ = (...fs) => x => y => 
+ fs.slice(0, -1).reduceRight((acc, f) => f(acc), fs[fs.length - 1](x) (y));
+
+const ap = f => g => x => f(x) (g(x));
+
+const inc = x => x + 1;
+const dbl = x => x * 2;
+const sqr = x => x * x;
+
+const triple = x => y => z => [x, y, z];
+
+ap(ap(B_(triple, inc)) (dbl)) (sqr) (10); // [11, 20, 100]
+
+B2_(ap, ap) (B_(triple, inc)) (dbl) (sqr) (10); // [11, 20, 100]
+
+A(x => triple(inc(x)) (dbl(x)) (sqr(x))) (10); // [11, 20, 100]
+```
 ## Todos
 
 none.
