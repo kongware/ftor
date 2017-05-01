@@ -137,8 +137,6 @@ Every instance of an ftor type has two properties, which are accessable via `Sym
 
 While it is somewhat laborious to pass type reps explicitly, they offer the following advantages:
 
-also improve readability, since you can explicitly see the used types in place. With type representatives we are able to
-
 * they mitigate Javascript's lack of type inference
 * they allow us to redefine built-in types
 * they enable the definition of multiple type classes per type
