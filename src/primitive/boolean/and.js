@@ -1,12 +1,6 @@
 "use strict";
 
 
-// dependencies
-
-
-const {concat, concat_} = require("./All");
-
-
 /**
  * @name and
  * @note logical conjunction; short circuiting; works with all types through implicit type coercion
@@ -26,11 +20,11 @@ const {concat, concat_} = require("./All");
 
 
 // a -> a -> a
-const and = concat;
+const and = x => y => x && y;
 
 
 // a -> a -> a
-const and_ = concat;
+const and_ = y => x => x && y;
 
 
 // API

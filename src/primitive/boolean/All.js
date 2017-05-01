@@ -1,6 +1,12 @@
 "use strict";
 
 
+// dependencies
+
+
+const {and, and_} = require("./and");
+
+
 /**
  * @name All
  * @note combined type and constructor; primitive
@@ -28,8 +34,8 @@ const All = x => Boolean(x);
 
 
 /**
- * @name catamorphism
- * @note Boolean list catamorphism; short circuiting; works with all types through implicit type coercion
+ * @name all
+ * @note boolean list catamorphism; short circuiting; works with all types through implicit type coercion
  * @type higher order function
  * @status stable
  * @example
@@ -48,24 +54,41 @@ const All = x => Boolean(x);
    const I = x => x;
 
    const All = x => Boolean(x);
-   All.cata = f => xs => xs.every(A(f));
+   All.all = f => xs => xs.every(A(f));
 
-   All.cata(even) ([2, 4, 6, 8, 10]); // true
-
-   // implicit type coercion:
-
-   All.cata(I) (["foo", "bar", "baz"]); // true
-   All.cata(I) (["foo", "", "baz"]); // false
+   All.all(even) ([2, 4, 6, 8, 10]); // true
+   All.all(I) (["foo", "bar", "baz"]); // true
+   All.all(I) (["foo", "", "baz"]); // false
 
  */
 
 
 // (a -> b) -> [a] -> Boolean
-All.cata = f => xs => xs.every(A(f));
+All.all = f => xs => xs.every(A(f));
 
 
 // (a -> b) -> [a] -> Boolean
-All.cata_ = f => foldrk(x => _ => k => f(x) && k(true)) (true);
+All.all_ = f => foldrk(x => _ => k => f(x) && k(true)) (true);
+
+
+/**
+ * @name all by
+ * @note boolean catamorphism; short circuiting; works with all types through implicit type coercion
+ * @type higher order function
+ * @status unstable
+ * @example
+
+   ?
+
+ */
+
+
+// Foldable t => Object -> (a -> b) -> t a -> Boolean
+All.allBy = Rep => f => Rep.foldlk(_ => y => k => f(y) && k(true)) (true);
+
+
+// Foldable t => Object -> (a -> b) -> t a -> Boolean
+All.allBy_ = Rep => f => Rep.foldrk(x => _ => k => f(x) && k(true)) (true);
 
 
 // Semigroup
@@ -78,8 +101,10 @@ All.cata_ = f => foldrk(x => _ => k => f(x) && k(true)) (true);
  * @status stable
  * @example
 
+   const and = x => y => x && y;
+
    const All = x => Boolean(x);
-   All.concat = x => y => x && y;
+   All.concat = and;
 
    All.concat(true) (true); // true
    All.concat(true) (false); // false
@@ -91,11 +116,11 @@ All.cata_ = f => foldrk(x => _ => k => f(x) && k(true)) (true);
 
 
 // a -> a -> a
-All.concat = x => y => x && y;
+All.concat = and;
 
 
 // a -> a -> a
-All.concat_ = y => x => x && y;
+All.concat_ = and_
 
 
 // Monoid
@@ -108,9 +133,10 @@ All.concat_ = y => x => x && y;
  * @example
 
    const foldl = f => acc => xs => xs.reduce((acc, x, i) => f(acc) (x, i), acc);
+   const and = x => y => x && y;
 
    const All = x => Boolean(x);
-   All.concat = x => y => x && y;
+   All.concat = and;
    All.empty = true;
 
    const fold = foldl(All.concat) (All.empty);
