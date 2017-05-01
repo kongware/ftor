@@ -133,7 +133,7 @@ const Ident = x => ({[$tag]: "Ident", [$Ident]: x});
 
 Ident.map = f => t => Ident(f(t[$Ident]));
 ```
-Every instance of `Ident` has two properties, which are accessable via `Symbol`s. This was essentially done to achieve avoid name conflicts with third party libraries. `$tag` is mainly used to enable a primitive form of pattern matching. ftor ships with other sum types with several value constructors where this teqhnique makes more sense. `$Ident` provides access to the actual value. Each type in ftor has its independent value `Symbol`, so that only the corresonding type rep can actually access it. This mechanism is sane, since there is no implicit reference between a value and its (proto-)type anymore.
+Every instance of an ftor type has two properties, which are accessable via `Symbol`s. This is essentially done to avoid name conflicts with third party libraries. `$tag` is mainly used to enable a primitive form of pattern matching. ftor ships with other sum types with several value constructors where this teqhnique makes more sense. `$Ident` provides access to the actual value. Each type in ftor has its independent value `Symbol`, so that only the corresonding type rep can actually access it. This mechanism is sane, since there is no implicit reference between a value and its (proto-)type anymore.
 
 While it is somewhat laborious to pass type reps explicitly, they offer the following advantages:
 
