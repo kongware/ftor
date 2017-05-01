@@ -156,7 +156,6 @@ Here is another example of the `Ordering` type with pattern matching:
 // interop
 
 const $tag = Symbol.for("ftor/tag");
-const $Ident = Symbol.for("ftor/Ident");
 
 // type rep
 
@@ -181,7 +180,7 @@ Ordering.eq = ({[$tag]: x}) => ({[$tag]: y}) => x === y;
 
 Ordering.eq(GT) (GT); // true
 ```
-`Ordering` has three nullary value constructors (or constants) in ftor and hence doesn't comprise an access `Symbol`.
+`Ordering` has three nullary value constructors (or constants in ftor) and hence doesn't comprise an access `Symbol`.
 
 ## Immutability
 
