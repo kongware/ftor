@@ -370,9 +370,9 @@ Since Javascript has only function in prefix position, argument order is crucial
 
 Please note that ftor allows certain functions of the boolean type to be applied with non-boolean values. This is possible because all values are implicitly coerced to boolean in Javascript depending on whether they are truthy or falsy. I am unsure if this kind of polymorphism is useful though. It might change in future versions.
 
-## Avoiding application hell
+## Application hell and point-free style
 
-In Javascript we cannot shift functions to infix position and treat them like operators. We cannot define our own operators either. We are stuck with functions in prefix position. Hence we sooner or later end up in application hell:
+In Javascript we cannot define our own operators in infix position and move them to prefix position as desired. We are stuck with functions and prefix notation. This is not the best prerequisite for lambda abstractions:
 
 ```Javascript
 // this concise Haskell code
@@ -383,7 +383,7 @@ triple <$> (+1) <*> (*2) <*> (^2) $ 10 // [11, 20, 100]
 const triple = x => y => z => [x, y, z];
 ap(ap(B_(triple, inc)) (dbl)) (sqr) (10); // [11, 20, 100]
 ```
-While the Javascript version is equally succinct, it is much harder to read. There are a couple of techniques to mitigate this issue.
+The result is a deeply nested function application, also known as function composition. I'd rather call it application hell. There are a couple of techniques to mitigate this issue.
 
 ### Proper code formatting
 
@@ -394,21 +394,21 @@ ap(
   ) (dbl)
 ) (sqr) (10);
 ```
-No real progress, but at least it is now recognizable that `ap` is a binary function and that the outer `ap` gets `sqr` and the inner one `dbl` as second argument.
+No real progress, but at least it is now comprehensable that `ap` is a binary function and that the outer one receives `sqr` and the inner one `dbl` as second argument.
 
-### Flattening through composition
+### Further lambda abstraction and point-free style
 
 ```Javascript
 B2_(ap, ap) (B_(triple, inc)) (dbl) (sqr) (10);
 ```
-Yay, we've avoided deeply nested function calls by using the composition combinator. But now the control flow is abstracted and we need to know how exactly this combinator works.
+Yay, we've avoided deeply nested function calls by using the binary composition combinator. But now the control flow is even more abstracted and we need to know how exactly this combinator works.
 
 ### Using a specific lambda
 
 ```Javascript
 A(x => triple(inc(x)) (dbl(x)) (sqr(x))) (10);
 ```
-Well, sometimes a good old lambda and explicit argument names are the better choice than a fancy combinator.
+Well, sometimes a good old lambda and explicit argument names are the better choice than lambda abstraction through combinators. The control flow is now quite obvious and even though we are less DRY it is the preferable way of solving the task.
 
 ### Runnable code
 
