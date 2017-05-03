@@ -3,7 +3,7 @@
 
 /**
  * @name Bool
- * @note combined type and constructor; primitive
+ * @note combined type and constructor
  * @type type representative
  * @kind *
  * @status stable
@@ -69,7 +69,7 @@ Bool.minBound = false
 
 
 // Boolean
-const maxBound = true
+Bool.maxBound = true
 
 
 // Enum
@@ -77,26 +77,27 @@ const maxBound = true
 
 /**
  * @name successor
- * @note works with truthy/falsy values as well
+ * @note works with all types through implicit type coercion
  * @type first order function
  * @status stable
  * @example
 
-   const succ = x => x ? null : true;
+   const Bool = x => Boolean(x);
+   Bool.succ = x => x ? null : true;
 
-   succ(false); // true
-   succ(true); // null
+   Bool.succ(false); // true
+   Bool.succ(true); // null
 
  */
 
 
 // a -> Boolean|null
-const succ = x => x ? null : true;
+Bool.succ = x => x ? null : true;
 
 
 /**
  * @name predecessor
- * @note works with truthy/falsy values as well
+ * @note works with all types through implicit type coercion
  * @type first order function
  * @status stable
  * @example
@@ -107,7 +108,7 @@ const succ = x => x ? null : true;
 
 
 // a -> Boolean|null
-const pred = x => x ? false : null;
+Bool.pred = x => x ? false : null;
 
 
 /**
@@ -127,59 +128,60 @@ const pred = x => x ? false : null;
 
 
 // a -> Boolean
-const toEnum = Bool;
+Bool.toEnum = Bool;
 
 
 /**
  * @name from enumeration
- * @note works with truthy/falsy values as well
+ * @note works with all types through implicit type coercion
  * @type first order function
  * @status stable
  * @example
 
-   const fromEnum = x => x ? 1 : 0;
+   const Bool = x => Boolean(x);
+   Bool.fromEnum = x => x ? 1 : 0;
 
-   fromEnum(false); // 0
-   fromEnum(true); // 1
-
-   // implicit type coercion:
-   
-   fromEnum(""); // 0
-   fromEnum("foo"); // 1
+   Bool.fromEnum(false); // 0
+   Bool.fromEnum(true); // 1
+   Bool.fromEnum(""); // 0
+   Bool.fromEnum("foo"); // 1
 
  */
 
 
 // a -> Number
-const fromEnum = x => x ? 1 : 0;
+Bool.fromEnum = x => x ? 1 : 0;
 
 
 /**
  * @name enumeration from
- * @note works with truthy/falsy values as well
+ * @note works with all types through implicit type coercion
  * @type first order function
  * @status stable
  * @example
 
-   const succ = x => x ? null : true;
-   const of = x => Boolean(x);
+   const Bool = x => Boolean(x);
+   Bool.succ = x => x ? null : true;
+   Bool.toEnum = Bool;
 
-   const enumFrom = x => {
+   Bool.enumFrom = x => {
      const aux = (x, acc) => x === null
       ? acc
-      : aux(succ(x), acc.concat(x));
+      : aux(Bool.succ(x), acc.concat(x));
 
-     return aux(of(x), []);
+     return aux(Bool.toEnum(x), []);
    };
 
-   enumFrom(false); // [false, true]
-   enumFrom(true); // [true]
+   Bool.enumFrom(false); // [false, true]
+   Bool.enumFrom(true); // [true]
+   Bool.enumFrom(0); // [false, true]
+   Bool.enumFrom(7); // [true]
 
  */
 
 
 // a => [Boolean]
-const enumFrom = x => {
+Bool.enumFrom = x => {
   const aux = (x, acc) => x === null
    ? acc
    : aux(Bool.succ(x), acc.concat(x));
@@ -203,7 +205,9 @@ const enumFrom = x => {
    const EQ = ({type: Ordering, tag: "EQ"});
    const GT = ({type: Ordering, tag: "GT"});
 
-   const compare = x => y => {
+   const Bool = x => Boolean(x);
+
+   Bool.compare = x => y => {
      x = !!x;
      y = !!y;
 
@@ -212,15 +216,15 @@ const enumFrom = x => {
       : EQ;
    };
 
-   compare(false) (true); // LT
-   compare(true) (false); // GT
-   compare("foo") ("bar"); // EQ
+   Bool.compare(false) (true); // LT
+   Bool.compare(true) (false); // GT
+   Bool.compare("foo") ("bar"); // EQ
 
  */
 
 
 // a -> a -> Ordering
-const compare = x => y => {
+Bool.compare = x => y => {
   x = !!x;
   y = !!y;
 
@@ -231,7 +235,7 @@ const compare = x => y => {
 
 
 // a -> a -> Ordering
-const compare_ = y => x => {
+Bool.compare_ = y => x => {
   x = !!x;
   y = !!y;
 
@@ -248,21 +252,22 @@ const compare_ = y => x => {
  * @status stable
  * @example
 
-   const lt = x => y => !!x < !!y;
+   const Bool = x => Boolean(x);
+   Bool.lt = x => y => !!x < !!y;
 
-   lt(false) (true); // true
-   lt("foo") (""); // false
-   lt("foo") ("bar"); // false
+   Bool.lt(false) (true); // true
+   Bool.lt("foo") (""); // false
+   Bool.lt("foo") ("bar"); // false
 
  */
 
 
 // a -> a -> Boolean
-const lt = x => y => !!x < !!y;
+Bool.lt = x => y => !!x < !!y;
 
 
 // a -> a -> Boolean
-const lt_ = y => x => !!x < !!y;
+Bool.lt_ = y => x => !!x < !!y;
 
 
 /**
@@ -272,21 +277,22 @@ const lt_ = y => x => !!x < !!y;
  * @status stable
  * @example
 
-   const lte = x => y => !!x <= !!y;
+   const Bool = x => Boolean(x);
+   Bool.lte = x => y => !!x <= !!y;
 
-   lte(false) (true); // true
-   lte("foo") (""); // false
-   lte("foo") ("bar"); // true
+   Bool.lte(false) (true); // true
+   Bool.lte("foo") (""); // false
+   Bool.lte("foo") ("bar"); // true
 
  */
 
 
 // a -> a -> Boolean
-const lte = x => y => !!x <= !!y;
+Bool.lte = x => y => !!x <= !!y;
 
 
 // a -> a -> Boolean
-const lte_ = y => x => !!x <= !!y;
+Bool.lte_ = y => x => !!x <= !!y;
 
 
 /**
@@ -302,11 +308,11 @@ const lte_ = y => x => !!x <= !!y;
 
 
 // a -> a -> Boolean
-const gt = x => y => !!x > !!y;
+Bool.gt = x => y => !!x > !!y;
 
 
 // a -> a -> Boolean
-const gt_ = y => x => !!x > !!y;
+Bool.gt_ = y => x => !!x > !!y;
 
 
 /**
@@ -322,11 +328,11 @@ const gt_ = y => x => !!x > !!y;
 
 
 // a -> a -> Boolean
-const gte = x => y => !!x >= !!y;
+Bool.gte = x => y => !!x >= !!y;
 
 
 // a -> a -> Boolean
-const gte_ = y => x => !!x >= !!y;
+Bool.gte_ = y => x => !!x >= !!y;
 
 
 /**
@@ -336,18 +342,18 @@ const gte_ = y => x => !!x >= !!y;
  * @status stable
  * @example
 
-   const min = x => y => !!x <= !!y ? x : y;
+   const Bool = x => Boolean(x);
+   Bool.min = x => y => !!x <= !!y ? x : y;
 
-   min(false) (true); // false
-   min("foo") (""); // ""
-   min("foo") ("bar"); // "foo"
-
+   Bool.min(false) (true); // false
+   Bool.min("foo") (""); // ""
+   Bool.min("foo") ("bar"); // "foo"
 
  */
 
 
 // a -> a -> a
-const min = x => y => !!x <= !!y ? x : y;
+Bool.min = x => y => !!x <= !!y ? x : y;
 
 
 /**
@@ -357,17 +363,13 @@ const min = x => y => !!x <= !!y ? x : y;
  * @status stable
  * @example
 
-   const max = x => y => !!x >= !!y ? x : y;
-
-   max(false) (true); // true
-   max("") ("foo"); // "foo"
-   max("foo") ("bar"); // "foo"
+   @see min
 
  */
 
 
 // a -> a -> a
-const max = x => y => !!x >= !!y ? x : y;
+Bool.max = x => y => !!x >= !!y ? x : y;
 
 
 // Setoid
@@ -380,20 +382,18 @@ const max = x => y => !!x >= !!y ? x : y;
  * @status stable
  * @example
 
-   const eq = x => y => !!x === !!y;
+   const Bool = x => Boolean(x);
+   Bool.eq = x => y => !!x === !!y;
 
-   eq(false) (false); // true
-
-   // implicit type coercion:
-
-   eq("foo") ("bar"); // true
-   eq("foo") (""); // false
+   Bool.eq(false) (false); // true
+   Bool.eq("foo") ("bar"); // true
+   Bool.eq("foo") (""); // false
 
  */
 
 
 // a -> a -> Boolean
-const eq = x => y => !!x === !!y;
+Bool.eq = x => y => !!x === !!y;
 
 
 /**
@@ -409,7 +409,7 @@ const eq = x => y => !!x === !!y;
 
 
 // a -> a -> Boolean
-const neq = x => y => !!x !== !!y;
+Bool.neq = x => y => !!x !== !!y;
 
 
 // API
