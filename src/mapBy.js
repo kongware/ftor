@@ -12,7 +12,7 @@
 
 
 // Functor f => (a -> b) -> f a -> f b
-const mapBy = f => t => t.type.map(f) (t);
+const mapBy = Rep => f => t => Rep.map(f) (t);
 
 
 // API

@@ -5,11 +5,11 @@ ftor
 
 An idiomatic, non-dogmatic lazy lib that encodes the functional paradigm in Javascript.
 
-## Status
+# Status
 
 This library is experimental and still work in progress.
 
-## Principles and mission 
+# Principles
 
 The most successful strategy to solve complex problems is to decompose them into smaller ones, solve them individually and recompose them again. There is actually a mathematical theory that describes this sort of reasoning: Category theory. Functional programming is the attempt to reify category theory into executable programming code. It is the most robust approach we have and we should start applying it.
 
@@ -26,6 +26,8 @@ Beyond that ftor demonstrates that it is actually a good idea to
 * follow algebraic laws, instead of just makeing stuff up
 
 Regain hope all ye who enter here.
+
+# Fundamentals
 
 ## Terminology
 
@@ -115,6 +117,47 @@ There are a couple of combinators which are regularly encountered when working w
 
 Please note that some of these names differ from those in the literature.
 
+## Immutability
+
+ftor opts for immutable data but doesn't enforce it with `Object.freeze` or `Object.seal`. Immutability in Javascript is just a policy and ftor provides various operations that comply with this policy.
+
+One of these operations are functional lenses:
+
+```Javascript
+const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+const mapBy = f => t => t.type.map(f) (t);
+
+const Const_ = {};
+Const_.map = f => t => Const(t.x);
+
+const Ident_ = {};
+Ident_.map = f => t => Ident(f(t.x));
+
+const Const = x => ({type: Const_, x: x});
+const Ident = x => ({type: Ident_, x: x});
+const runBy = t => "run" in t ? t.run(t) : t.x;
+
+const key = k => f => o => mapBy(v => Object.assign({}, o, {[k]: v})) (f(o[k]));
+const index = i => f => xs => mapBy(x => Object.assign([], xs, {[i]: x})) (f(xs[i]));
+const view = lens => B_(runBy, lens(Const));
+const map = lens => f => B_(runBy, lens(B_(Ident, f)));
+
+const o = {name: "Bob", addresses: [
+  {street: "99 Maple", zip: 94004, type: "home"},
+  {street: "77 Sunset", zip: 90069, type: "work"},
+  {street: "1 Infinite Loop", zip: 95014, type: "life"},
+]}
+
+const _2ndStreetLens = B_(key("addresses"), index(1), key("street"));
+const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o);
+
+view(_2ndStreetLens) (p); // "77 SUNSET"
+
+console.assert(o !== p); // passes
+console.assert(o.friends === p.friends); // passes
+```
+Lenses treat `Object`s as immutable and merely clone the necessary portions of the data structure while the rest is shared.
+
 ## Type representatives
 
 ftor doesn't rely on the prototype system but on type representatives. Type reps are plain old Javascript `Object`s with some static methods that don't depend on `this`. The abandonment of prototypes goes hand in hand with the necessity of passing types explicitly. This is the major drawback of this approach, the advantages outweigh though. More on this later. Here is an extract of the `Ident` type along with the functor type class:
@@ -182,143 +225,27 @@ Ordering.eq(GT) (GT); // true
 ```
 `Ordering` has three nullary value constructors (or constants in ftor) and hence doesn't comprise an access `Symbol`.
 
-## Immutability
+## Lazy evaluation
 
-ftor opts for immutable data but doesn't enforce it with `Object.freeze` or `Object.seal`. Immutability in Javascript is just a policy and ftor provides various operations that comply with this policy.
+in progress...
 
-One of these operations are functional lenses:
+## Parametric and ad-hoc polymorphism
 
-```Javascript
-const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
-const mapBy = f => t => t.type.map(f) (t);
+in progress...
 
-const Const_ = {};
-Const_.map = f => t => Const(t.x);
+## Modelling the real world
 
-const Ident_ = {};
-Ident_.map = f => t => Ident(f(t.x));
+in progress...
 
-const Const = x => ({type: Const_, x: x});
-const Ident = x => ({type: Ident_, x: x});
-const runBy = t => "run" in t ? t.run(t) : t.x;
+### Sum types
 
-const key = k => f => o => mapBy(v => Object.assign({}, o, {[k]: v})) (f(o[k]));
-const index = i => f => xs => mapBy(x => Object.assign([], xs, {[i]: x})) (f(xs[i]));
-const view = lens => B_(runBy, lens(Const));
-const map = lens => f => B_(runBy, lens(B_(Ident, f)));
+in progress...
 
-const o = {name: "Bob", addresses: [
-  {street: "99 Maple", zip: 94004, type: "home"},
-  {street: "77 Sunset", zip: 90069, type: "work"},
-  {street: "1 Infinite Loop", zip: 95014, type: "life"},
-]}
+### Product types
 
-const _2ndStreetLens = B_(key("addresses"), index(1), key("street"));
-const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o);
+in progress...
 
-view(_2ndStreetLens) (p); // "77 SUNSET"
-
-console.assert(o !== p); // passes
-console.assert(o.friends === p.friends); // passes
-```
-Lenses treat `Object`s as immutable and merely clone the necessary portions of the data structure while the rest is shared.
-
-## Records
-
-Javascript's `Object` data type is highly flawed:
-
-* `this` encourages devs to mix data and logic
-* getters silently return `undefined` for non-existend properties
-* instances may contain `null`/`undefined`
-* it is a mutable data type
-
-`Object`s are designed to be used for everything but cannot do anything right. For this reason ftor considers `Object`s mainly as records. A record avoids `this`, is immutable and throws a `TypeError` when accessing non-existend properties.
-
-If you need subtyping use sum types (tagged unions). If you need modularity use ES2015 modules. If you need something to iterate over, use a collection like `Array`. If you need a composite type of related data of different types without named fields, use tuples. Otherwise, use records.
-
-## Tuples
-
-Javascripts doesn't support tuples, because `Array`s can contain various types (e.g. `[1, "a", true]`. However, Javascript supports a tuple like syntax to allow multi argument functions. ftor acknowledges this fact by introducing a church encoded, immutable tuple type, i.e. a type with higher order functions as an interface:
-
-```Javascript
-const Pair = (x, y) => f => f(x, y);
-const get1 = (x, _) => x;
-const get2 = (_, x) => x;
-const bimap = f => g => t => t((x, y) => Pair(f(x), g(y)));
-const toArray = (...args) => args
-
-const dbl = x => x + x;
-const inc = x => x + 1;
-
-const pair1 = Pair(1, "a");
-const pair2 = bimap(inc) (dbl) (pair1);
-
-pair1(get1); // 1
-pair1(get2); // "a"
-
-pair2(toArray); // [2, "aa"]
-```
-Please note that since tuples are immutable, you always get a new tuple with operations that carry out mutations. ftor also supports lenses that operate on tuples, i.e. retrieving or modifying nested values is as easy as with flat tuples.
-
-It is important to realize that tuples are a non-recursive data type. A `Pair` (`(a, b) -> c`), for instance, is totally unrelated to a `Triple` (`(a, b, c) -> d`). Genrally, tuples should be chosen if a composite type of related data with different types and fix length is required. Considering this properties and because tuples are product types they merely implement the `Bifunctor` and `Trifunctor` type class, whereas the following type classes are delegated to their elements:
-
-* Bounded
-* Ord
-* Setoid
-* Monoid
-
-Provided that `a` and `b` of a `Pair`, for instance, implement the `Ord` type class, the tuple has a notion of order. If it is desired to map over all elements of a tuple or to concat tuples themselves, then you might want to fall back to a collection type like `Array`s.
-
-## New data types
-
-ftor will eventually introduce the following data types:
-
-* Cont (tagged union)
-* Const (tagged union)
-* Either (tagged union)
-* Ident (tagged union)
-* Option (tagged union)
-* Ordering (tagged union)
-* Tuple (Church encoded)
-* to be continued...
-
-Church encoded means that a type is represented solely by higher order functions.
-
-## Type classes
-
-The following type classes will be offered eventually:
-
-* Alternative (choose)
-* Applicative (sequence effects)
-* Arrow (function abstraction)
-* Bifunctor (covariant in both arguments)
-* Bounded
-* Comonad (build structures)
-* Enum
-* Setoid (equality)
-* Semigroup (concat)
-* Foldable
-* Functor (co-/contravariant)
-* Monad (sequence effects with dependencies)
-* MonadPlus (choose, monoidal monads)
-* Monoid (safe concat)
-* Ord
-* Profunctor (contravariant/covaraint functors)
-* Traversable (inside-out)
-
-## Algebras
-
-ftor will examine the following algebraic constructs:
-
-* Arrows/Kleisli arrows
-* Corecursion
-* F-algebra + Cata-/Anamorphisms
-* Hylomorphisms
-* Natural transformations
-* Coyoneda
-* Free applicatives/monads/arrows
-
-## Pattern matching
+### Pattern matching
 
 Destructuring assignments and first class functions enable a primitive form of pattern matching in Javascript:
 
@@ -364,11 +291,110 @@ Unfortunately, destructuring assignment throws an error if the pattern doesn't m
 * There is no checking on tag names: It is easy to make a typo
 * It works only for built-in types
 
+# Types
+
 ## Boolean
 
 Since Javascript has only function in prefix position, argument order is crucial in conjunction with binary semigroup operations. For this reason ftor doesn't implement a `Dual` type class but provides a version of such functions with swapped arguments for each type class.
 
 Please note that ftor allows certain functions of the boolean type to be applied with non-boolean values. This is possible because all values are implicitly coerced to boolean in Javascript depending on whether they are truthy or falsy. I am unsure if this kind of polymorphism is useful though. It might change in future versions.
+
+## Records
+
+Javascript's `Object` data type has a lot of drawbacks:
+
+* it is a mutable
+* `this` encourages devs to mix data and logic
+* getters silently return `undefined` for non-existend properties
+* instances may contain `null`/`undefined`
+
+Additionally, there is a widespread misuse of the type within the Javascript community. `Object`s are not supposed to be collections or homogeneous dictionaries. If you need something to iterate over, use a collection like `Array`. If you need a dict, use ES2015 `Map`. If you don't need named fields, use tuples. Otherwise, use records.
+
+ftor has a rather strict understanding of `Object`s. It considers them either as records or as namespaces to structure code. A record is a composite type of related data of various type, in which each element is named. Records avoid `this` and are immutable and thus solve some of the drawbacks. Since we don't want to lose the object literal syntax and destructuring assignment, ftor's records are plain old Javascript `Object`s and the listed properties are merely a policy.
+
+## Tuples
+
+Javascripts doesn't support tuples, because `Array`s can contain various types (e.g. `[1, "a", true]`. However, Javascript supports a tuple like syntax to allow multi argument functions. ftor acknowledges this fact by introducing a church encoded, immutable tuple type, i.e. a type with higher order functions as an interface:
+
+```Javascript
+const Pair = (x, y) => f => f(x, y);
+const get1 = (x, _) => x;
+const get2 = (_, x) => x;
+const bimap = f => g => t => t((x, y) => Pair(f(x), g(y)));
+const toArray = (...args) => args
+
+const dbl = x => x + x;
+const inc = x => x + 1;
+
+const pair1 = Pair(1, "a");
+const pair2 = bimap(inc) (dbl) (pair1);
+
+pair1(get1); // 1
+pair1(get2); // "a"
+
+pair2(toArray); // [2, "aa"]
+```
+Please note that since tuples are immutable, you always get a new tuple with operations that carry out mutations. ftor also supports lenses that operate on tuples, i.e. retrieving or modifying nested values is as easy as with flat tuples.
+
+It is important to realize that tuples are a non-recursive data type. A `Pair` (`(a, b) -> c`), for instance, is totally unrelated to a `Triple` (`(a, b, c) -> d`). Genrally, tuples should be chosen if a composite type of related data with different types and fix length is required. Considering this properties and because tuples are product types they merely implement the `Bifunctor` and `Trifunctor` type class, whereas the following type classes are delegated to their elements:
+
+* Bounded
+* Ord
+* Setoid
+* Monoid
+
+Provided that `a` and `b` of a `Pair`, for instance, implement the `Ord` type class, the tuple has a notion of order. If it is desired to map over all elements of a tuple or to concat tuples themselves, then you might want to fall back to a collection type like `Array`s.
+
+## Various types
+
+ftor will eventually introduce the following data types:
+
+* Cont (tagged union)
+* Const (tagged union)
+* Either (tagged union)
+* Ident (tagged union)
+* Option (tagged union)
+* Ordering (tagged union)
+* Tuple (Church encoded)
+* to be continued...
+
+Church encoded means that a type is represented solely by higher order functions.
+
+# Type classes
+
+The following type classes will be offered eventually:
+
+* Alternative (choose)
+* Applicative (sequence effects)
+* Arrow (function abstraction)
+* Bifunctor (covariant in both arguments)
+* Bounded
+* Comonad (build structures)
+* Enum
+* Setoid (equality)
+* Semigroup (concat)
+* Foldable
+* Functor (co-/contravariant)
+* Monad (sequence effects with dependencies)
+* MonadPlus (choose, monoidal monads)
+* Monoid (safe concat)
+* Ord
+* Profunctor (contravariant/covaraint functors)
+* Traversable (inside-out)
+
+# Algebras
+
+ftor will examine the following algebraic constructs:
+
+* Arrows/Kleisli arrows
+* Corecursion
+* F-algebra + Cata-/Anamorphisms
+* Hylomorphisms
+* Natural transformations
+* Coyoneda
+* Free applicatives/monads/arrows
+
+# Miscellaneous
 
 ## Application hell and point-free style
 
