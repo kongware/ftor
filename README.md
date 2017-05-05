@@ -233,7 +233,7 @@ in progress...
 
 in progress...
 
-## Modelling the real world
+## Algebraic data types
 
 in progress...
 
@@ -242,6 +242,26 @@ in progress...
 in progress...
 
 ### Product types
+
+in progress...
+
+### Recursive types
+
+in progress...
+
+### Function types
+
+in progress...
+
+### Singleton types
+
+in progress...
+
+### Unit type
+
+in progress...
+
+### Zero type
 
 in progress...
 
@@ -459,6 +479,10 @@ B2_(ap, ap) (B_(triple, inc)) (dbl) (sqr) (10); // [11, 20, 100]
 
 A(x => triple(inc(x)) (dbl(x)) (sqr(x))) (10); // [11, 20, 100]
 ```
+## Modelling the world with alternatives instead of hierarchies
+
+in progress...
+
 ## Todos
 
 none.
