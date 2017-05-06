@@ -227,7 +227,44 @@ Ordering.eq(GT) (GT); // true
 
 ## Lazy evaluation
 
-in progress...
+Usually lazy evaluation is implemented at the type level. Since Javascript is evaluated in application order, we cannot help but realize lazyness with means of the language. We can create lazy expressions with functions and lazy functions with thunks. With function composition we can even mimic lazy argument expressions - in a very primitvie way though.
+
+However, without native support lazyness isn't that effective. So far I've encountered basically two use cases.
+
+### Infinite recursion
+
+Thunks allow us to implement infinite recursion:
+
+```Javascript
+const evaluate = r => typeof r === "function" && r.length === 0 ? r() : r;
+const take = n => xs => n === 0 ? [] : [xs[0], take(n - 1) (evaluate(xs[1]))];
+const repeat = x => [x, () => repeat(x)];
+
+JSON.stringify(take(3) (repeat("x"))); // "[x, [x, [x, []]]]"
+```
+
+### Stack safe recursion
+
+Lazy evaluation allows us to implement stack safe recursion:
+
+```Javascript
+const eager = f => (...args) => {
+  let g = f(...args);
+  
+  while (typeof g === "function" && g.length === 0) g = g();
+  return g;
+}
+
+const repeat = n => f => x => {
+  const aux = (x, n) => n === 0 ? x : () => aux(f(x), n - 1);
+  return eager(aux) (x, n);
+};
+
+const inc = x => x + 1;
+
+repeat(1e6) (inc) (0); // 1000000
+```
+Maybe there is a kind of lazy monad, which allows us to work with thunks in a fully transparent manner. Further examination are necessary though.
 
 ## Parametric and ad-hoc polymorphism
 
