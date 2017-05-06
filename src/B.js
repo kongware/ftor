@@ -3,8 +3,9 @@
 
 /**
  * @name composition
- * @note variadic
+ * @note functorial; variadic; composable
  * @type higher order function
+ * @status stable
  * @example
 
    const B = (...fs) => g => x => fs.reduceRight((acc, f) => f(acc), g(x));

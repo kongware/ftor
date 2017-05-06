@@ -4,17 +4,23 @@
 // dependencies
 
 
-const LT = require("./sum/ordering/LT");
-const EQ = require("./sum/ordering/EQ");
-const GT = require("./sum/ordering/GT");
+const {LT, EQ, GT} = require("./sum/Ordering");
 
 
 /**
  * @name compare
  * @type first order function
+ * @status stable
  * @example
 
-   ?
+   const $tag = Symbol.for("ftor/tag");
+
+   const LT = ({[$tag]: "LT"});
+   const EQ = ({[$tag]: "EQ"});
+   const GT = ({[$tag]: "GT"});
+
+   const compare = x => y => x < y ? LT : y < x ? GT : EQ;
+   compare("foo") ("bar"); // GT
 
  */
 

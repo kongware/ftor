@@ -5,6 +5,7 @@
  * @name chain
  * @note monadic
  * @type higher order function
+ * @status stable
  * @example
 
    ?

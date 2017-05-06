@@ -352,9 +352,9 @@ Unfortunately, destructuring assignment throws an error if the pattern doesn't m
 
 ## Boolean
 
-Since Javascript has only function in prefix position, argument order is crucial in conjunction with semigroups. For this reason ftor doesn't implement a `Dual` type class to abstract over swapped `append`-like operations but provides such an operation for each type class.
+Since Javascript has only functions in prefix position, the argument order is crucial in conjunction with semigroups. For this reason ftor doesn't implement a `Dual` type class to abstract over swapped `append`-like operations but provides such an operation for each type class.
 
-Please also note that both `All` and `Any` work with normal `Boolean`s. There is no type wrapper. If a `Boolean` is treated as `All`, `Any` or merely `Boolean` depends solely on the passed type representative. Moreover, most of the functions connected to the `Boolean` type perform implicit or explicit type coercion, i.e. work with all types, because all types in Javascript are inherently truthy/falsy. It is just that we deal with a dynamically typed language and we should embrace this behavior when it makes sense.
+Please also note that both `All` and `Any` monoids work with native `Boolean`s. There is no type wrapper. Whether a `Boolean` is treated as `All`, `Any` or `Bool` depends solely on the passed type representative. Moreover, most of the functions connected to the `Boolean` type perform implicit or explicit type coercion, i.e. work with all types, because all types in Javascript are inherently truthy/falsy. It is just that we deal with a dynamically typed language and we should embrace this behavior when it makes sense.
 
 ## Records
 
@@ -520,6 +520,6 @@ A(x => triple(inc(x)) (dbl(x)) (sqr(x))) (10); // [11, 20, 100]
 
 in progress...
 
-## Todos
+# Todos
 
 a lot.

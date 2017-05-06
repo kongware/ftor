@@ -5,6 +5,7 @@
  * @name apply
  * @note lisp style; composable
  * @type higher order function
+ * @status stable
  * @example
 
    const $ = (f, ...args) => args.reduce((g, x) => g(x), f);

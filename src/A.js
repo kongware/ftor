@@ -4,19 +4,11 @@
 /**
  * @name (reverse) application
  * @type higher order function
+ * @status stable
  * @example
 
    const A = f => x => f(x);
-   const sqr = x => x * x;
-   const add = x => y => x + y;
 
-   // immediately invoke a lambda (semantic sugar):
-   A(x => x * x) (5); // 25
-
-   // or destructure some input:
-   A(({x, y}) => add(x) (y)) ({x: 2, y: 3}); // 5
-
-   // or transform a statement into an expression:
    A(n => {
      switch (n) {
        case 1: return "one";
@@ -26,12 +18,6 @@
      }
    }) (2); // "two"
 
-   // or transform an eager expression into a lazy one:
-   const superstition = A(n => n === 7 ? "Lucky number seven!" : "You're out of luck, pal!");
-
-   superstition(7); // "Lucky number seven!"
-   superstition(1); // "You're out of luck, pal!"
-   
  */
 
 
