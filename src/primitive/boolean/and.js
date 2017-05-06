@@ -3,7 +3,7 @@
 
 /**
  * @name and
- * @note logical conjunction; short circuiting; works with all types through implicit type coercion
+ * @note logical conjunction; short circuiting; performs an implicit type coercion
  * @type associative binary operation (semigroup)
  * @status stable
  * @example

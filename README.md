@@ -352,9 +352,9 @@ Unfortunately, destructuring assignment throws an error if the pattern doesn't m
 
 ## Boolean
 
-Since Javascript has only function in prefix position, argument order is crucial in conjunction with binary semigroup operations. For this reason ftor doesn't implement a `Dual` type class but provides a version of such functions with swapped arguments for each type class.
+Since Javascript has only function in prefix position, argument order is crucial in conjunction with semigroups. For this reason ftor doesn't implement a `Dual` type class to abstract over swapped `append`-like operations but provides such an operation for each type class.
 
-Please note that ftor allows certain functions of the boolean type to be applied with non-boolean values. This is possible because all values are implicitly coerced to boolean in Javascript depending on whether they are truthy or falsy. I am unsure if this kind of polymorphism is useful though. It might change in future versions.
+Please also note that both `All` and `Any` work with normal `Boolean`s. There is no type wrapper. If a `Boolean` is treated as `All`, `Any` or merely `Boolean` depends solely on the passed type representative. Moreover, most of the functions connected to the `Boolean` type perform implicit or explicit type coercion, i.e. work with all types, because all types in Javascript are inherently truthy/falsy. It is just that we deal with a dynamically typed language and we should embrace this behavior when it makes sense.
 
 ## Records
 

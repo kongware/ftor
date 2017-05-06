@@ -35,7 +35,7 @@ const Any = x => Boolean(x);
 
 /**
  * @name any
- * @note Boolean list catamorphism; short circuiting; works with all types through implicit type coercion
+ * @note Boolean list catamorphism; short circuiting; performs an implicit type coercion
  * @type higher order function
  * @status stable
  * @example
@@ -73,7 +73,7 @@ Any.cata_ = f => foldrk(x => _ => k => f(x) || k(false)) (false);
 
 /**
  * @name any by
- * @note Boolean catamorphism; short circuiting; works with all types through implicit type coercion
+ * @note Boolean catamorphism; short circuiting; performs an implicit type coercion
  * @type higher order function
  * @status unstable
  * @example
@@ -96,7 +96,7 @@ Any.anyBy_ = Rep => f => Rep.foldrk(x => _ => k => f(x) || k(false)) (false);
 
 /**
  * @name concat
- * @note logical disjunction; short circuiting; works with all types through implicit type coercion
+ * @note logical disjunction; short circuiting; performs an implicit type coercion
  * @type associative binary operation (semigroup)
  * @status stable
  * @example

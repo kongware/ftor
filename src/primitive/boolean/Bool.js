@@ -77,7 +77,7 @@ Bool.maxBound = true
 
 /**
  * @name successor
- * @note works with all types through implicit type coercion
+ * @note performs an implicit type coercion
  * @type first order function
  * @status stable
  * @example
@@ -97,7 +97,7 @@ Bool.succ = x => x ? null : true;
 
 /**
  * @name predecessor
- * @note works with all types through implicit type coercion
+ * @note performs an implicit type coercion
  * @type first order function
  * @status stable
  * @example
@@ -113,7 +113,7 @@ Bool.pred = x => x ? false : null;
 
 /**
  * @name toEnum
- * @note works with all types through implicit type coercion
+ * @note performs an implicit type coercion
  * @type first order function
  * @status stable
  * @example
@@ -133,7 +133,7 @@ Bool.toEnum = Bool;
 
 /**
  * @name from enumeration
- * @note works with all types through implicit type coercion
+ * @note performs an implicit type coercion
  * @type first order function
  * @status stable
  * @example
@@ -155,7 +155,7 @@ Bool.fromEnum = x => x ? 1 : 0;
 
 /**
  * @name enumeration from
- * @note works with all types through implicit type coercion
+ * @note performs an implicit type coercion
  * @type first order function
  * @status stable
  * @example
@@ -195,7 +195,7 @@ Bool.enumFrom = x => {
 
 /**
  * @name compare
- * @note works with all types through explicit type cast
+ * @note performs an explicit type cast
  * @type first order function
  * @status stable
  * @example
@@ -247,7 +247,7 @@ Bool.compare_ = y => x => {
 
 /**
  * @name lower than
- * @note works with all types through explicit type cast
+ * @note performs an explicit type cast
  * @type first order function
  * @status stable
  * @example
@@ -272,7 +272,7 @@ Bool.lt_ = y => x => !!x < !!y;
 
 /**
  * @name lower than or equal
- * @note works with all types through explicit type cast
+ * @note performs an explicit type cast
  * @type first order function
  * @status stable
  * @example
@@ -297,7 +297,7 @@ Bool.lte_ = y => x => !!x <= !!y;
 
 /**
  * @name greater than
- * @note works with all types through explicit type cast
+ * @note performs an explicit type cast
  * @type first order function
  * @status stable
  * @example
@@ -317,7 +317,7 @@ Bool.gt_ = y => x => !!x > !!y;
 
 /**
  * @name greater than or equal
- * @note works with all types through explicit type cast
+ * @note performs an explicit type cast
  * @type first order function
  * @status stable
  * @example
@@ -337,7 +337,7 @@ Bool.gte_ = y => x => !!x >= !!y;
 
 /**
  * @name minimal value
- * @note works with all types through explicit type cast; commutative
+ * @note performs an explicit type cast; commutative
  * @type first order function
  * @status stable
  * @example
@@ -358,7 +358,7 @@ Bool.min = x => y => !!x <= !!y ? x : y;
 
 /**
  * @name maximal value
- * @note works with all types through explicit type cast; commutative
+ * @note performs an explicit type cast; commutative
  * @type first order function
  * @status stable
  * @example
@@ -377,7 +377,7 @@ Bool.max = x => y => !!x >= !!y ? x : y;
 
 /**
  * @name equal
- * @note works with all types through explicit type cast; commutative
+ * @note performs an explicit type cast; commutative
  * @type first order function
  * @status stable
  * @example
@@ -398,7 +398,7 @@ Bool.eq = x => y => !!x === !!y;
 
 /**
  * @name not equal
- * @note works with all types through explicit type cast
+ * @note performs an explicit type cast
  * @type first order function
  * @status stable
  * @example

@@ -35,7 +35,7 @@ const All = x => Boolean(x);
 
 /**
  * @name all
- * @note boolean list catamorphism; short circuiting; works with all types through implicit type coercion
+ * @note boolean list catamorphism; short circuiting; performs an implicit type coercion
  * @type higher order function
  * @status stable
  * @example
@@ -73,7 +73,7 @@ All.all_ = f => foldrk(x => _ => k => f(x) && k(true)) (true);
 
 /**
  * @name all by
- * @note boolean catamorphism; short circuiting; works with all types through implicit type coercion
+ * @note boolean catamorphism; short circuiting; performs an implicit type coercion
  * @type higher order function
  * @status unstable
  * @example
@@ -96,7 +96,7 @@ All.allBy_ = Rep => f => Rep.foldrk(x => _ => k => f(x) && k(true)) (true);
 
 /**
  * @name concat
- * @note logical conjunction; short circuiting; works with all types through implicit type coercion
+ * @note logical conjunction; short circuiting; performs an implicit type coercion
  * @type associative binary operation (semigroup)
  * @status stable
  * @example
