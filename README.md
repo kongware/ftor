@@ -245,7 +245,7 @@ JSON.stringify(take(3) (repeat("x"))); // "[x, [x, [x, []]]]"
 
 ### Stack safe recursion
 
-Lazy evaluation allows us to implement stack safe recursion:
+Thunks enable us to implement stack safe recursion:
 
 ```Javascript
 const eager = f => (...args) => {
