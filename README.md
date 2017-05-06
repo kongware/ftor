@@ -522,4 +522,4 @@ in progress...
 
 # Todos
 
-[ ] run function for each sum type + runBy generic
+- [ ] run function for each sum type + runBy generic
