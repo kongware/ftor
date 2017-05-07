@@ -203,6 +203,7 @@ The use of pre-curried arrow functions in ftor results in obfustacted debug info
 
 ```Javascript
 const inc = _$_(x => x + 1, "inc");
+
 inc(2); // inc(Number<2>) ==> Number<3>
 
 // or inline
@@ -213,6 +214,7 @@ More complex functions can be intercepted too:
 
 ```Javascript
 const concat = _$$_(xs => ys => xs.concat(ys), "concat");
+
 concat(["foo"]) (["bar"]);
 
 // logs the sequence
