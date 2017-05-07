@@ -208,7 +208,7 @@ inc(2); // inc(Number<2>) ==> Number<3>
 
 // or inline
 
-_$_(x => x + 1) (2); // inc(Number<2>) ==> Number<3>
+_$_(x => x + 1, "inc") (2); // inc(Number<2>) ==> Number<3>
 ```
 More complex functions can be intercepted too:
 
