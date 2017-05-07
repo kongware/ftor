@@ -154,7 +154,7 @@ While it is somewhat laborious to pass type reps explicitly, they offer the foll
 * they lead to more readable code, since types are always explicit
 * they avoid confusing `Function.prototype.bind` and `this` constructs
 
-Please note that there are sometimes several type classes for a type and as a result of this several type representatives. However, since type reps are just plain old Javascript `Object`s it is easy to merge them, so that they meet the corresponding requirements.
+Please note that there are sometimes several type classes for a type and as a result of this several type representatives. However, since type reps are just plain old Javascript `Object`s it is easy to merge them in-place while passing them to a function, so that they meet the corresponding requirements.
 
 ## Immutability
 
