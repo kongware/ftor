@@ -248,7 +248,7 @@ concat(["foo"]) (["bar"]);
 // concat(Array[String<foo>]) ...
 // concat(Array[String<foo>]) (Array[String<bar>]) ==> Array[String<foo>, String<bar>]
 ```
-With the intercepting applicators you can visualize the control flow of arbitrarily composed functions. They work with multi argument functions as well as with variadic ones and function particularly well with ftor specific types.
+With the intercepting applicators you can visualize the control flow of arbitrarily composed functions. They work with multi argument functions as well as with variadic ones and particularly well with ftor specific types.
 
 ## Lazy evaluation
 
