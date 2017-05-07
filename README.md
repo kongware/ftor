@@ -117,47 +117,6 @@ There are a couple of combinators which are regularly encountered when working w
 
 Please note that some of these names differ from those in the literature.
 
-## Immutability
-
-ftor opts for immutable data but doesn't enforce it with `Object.freeze` or `Object.seal`. Immutability in Javascript is just a policy and ftor provides various operations that comply with this policy.
-
-One of these operations are functional lenses:
-
-```Javascript
-const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
-const mapBy = f => t => t.type.map(f) (t);
-
-const Const_ = {};
-Const_.map = f => t => Const(t.x);
-
-const Ident_ = {};
-Ident_.map = f => t => Ident(f(t.x));
-
-const Const = x => ({type: Const_, x: x});
-const Ident = x => ({type: Ident_, x: x});
-const runBy = t => "run" in t ? t.run(t) : t.x;
-
-const key = k => f => o => mapBy(v => Object.assign({}, o, {[k]: v})) (f(o[k]));
-const index = i => f => xs => mapBy(x => Object.assign([], xs, {[i]: x})) (f(xs[i]));
-const view = lens => B_(runBy, lens(Const));
-const map = lens => f => B_(runBy, lens(B_(Ident, f)));
-
-const o = {name: "Bob", addresses: [
-  {street: "99 Maple", zip: 94004, type: "home"},
-  {street: "77 Sunset", zip: 90069, type: "work"},
-  {street: "1 Infinite Loop", zip: 95014, type: "life"},
-]}
-
-const _2ndStreetLens = B_(key("addresses"), index(1), key("street"));
-const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o);
-
-view(_2ndStreetLens) (p); // "77 SUNSET"
-
-console.assert(o !== p); // passes
-console.assert(o.friends === p.friends); // passes
-```
-Lenses treat `Object`s as immutable and merely clone the necessary portions of the data structure while the rest is shared.
-
 ## Type representatives
 
 ftor doesn't rely on the prototype system but on type representatives. Type reps are plain old Javascript `Object`s with some static methods that don't depend on `this`. The abandonment of prototypes goes hand in hand with the necessity of passing types explicitly. This is the major drawback of this approach, the advantages outweigh though. More on this later. Here is an extract of the `Ident` type along with the functor type class:
@@ -224,6 +183,72 @@ Ordering.eq = ({[$tag]: x}) => ({[$tag]: y}) => x === y;
 Ordering.eq(GT) (GT); // true
 ```
 `Ordering` has three nullary value constructors (or constants in ftor) and hence doesn't comprise an access `Symbol`.
+
+## Immutability
+
+ftor opts for immutable data but doesn't enforce it with `Object.freeze` or `Object.seal`. Immutability in Javascript is just a policy and ftor provides various operations that comply with this policy.
+
+One of these operations are functional lenses:
+
+```Javascript
+const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+const mapBy = f => t => t.type.map(f) (t);
+
+const Const_ = {};
+Const_.map = f => t => Const(t.x);
+
+const Ident_ = {};
+Ident_.map = f => t => Ident(f(t.x));
+
+const Const = x => ({type: Const_, x: x});
+const Ident = x => ({type: Ident_, x: x});
+const runBy = t => "run" in t ? t.run(t) : t.x;
+
+const key = k => f => o => mapBy(v => Object.assign({}, o, {[k]: v})) (f(o[k]));
+const index = i => f => xs => mapBy(x => Object.assign([], xs, {[i]: x})) (f(xs[i]));
+const view = lens => B_(runBy, lens(Const));
+const map = lens => f => B_(runBy, lens(B_(Ident, f)));
+
+const o = {name: "Bob", addresses: [
+  {street: "99 Maple", zip: 94004, type: "home"},
+  {street: "77 Sunset", zip: 90069, type: "work"},
+  {street: "1 Infinite Loop", zip: 95014, type: "life"},
+]}
+
+const _2ndStreetLens = B_(key("addresses"), index(1), key("street"));
+const p = map(_2ndStreetLens) (x => x.toUpperCase()) (o);
+
+view(_2ndStreetLens) (p); // "77 SUNSET"
+
+console.assert(o !== p); // passes
+console.assert(o.friends === p.friends); // passes
+```
+Lenses treat `Object`s as immutable and merely clone the necessary portions of the data structure while the rest is shared.
+
+## Debugging
+
+The use of pre-curried arrow functions in ftor results in obfustacted debug information full of anonymous lambdas. Since ftor pursues manual currying there is no way to simply add names during the currying process. However, a proper functional solution must provide means to solve this issue. Hence, ftor ships with a couple of helpers of which the intercepting applicators (`_$_`, `_$$_` etc.) are the most important. Intercepting applicators leave both the input and result of a function untouched but intercept their type information. Its uncommon name helps to search and replace it in your codebase. You can either apply them at the import or simply in-place in the calling code:
+
+```Javascript
+const inc = _$_(x => x + 1, "inc");
+inc(2); // inc(Number<2>) ==> Number<3>
+
+// or inline
+
+_$_(inc) (2); // inc(Number<2>) ==> Number<3>
+```
+More complex functions can be intercepted too:
+
+```Javascript
+const concat = _$$_(xs => ys => xs.concat(ys), "concat");
+concat(["foo"]) (["bar"]);
+
+// logs the sequence
+
+// concat(Array[String<foo>]) ...
+// concat(Array[String<foo>]) (Array[String<bar>]) ==> Array[String<foo>, String<bar>]
+```
+With the intercepting applicators you can visualize the control flow of arbitrarily composed functions. They work with multi argument functions as well as with variadic ones and function particularly well with ftor specific types.
 
 ## Lazy evaluation
 
@@ -522,4 +547,8 @@ in progress...
 
 # Todos
 
-- [ ] run function for each sum type + runBy generic
+- [ ] replace $x as accessor for box values
+- [ ] box types have usually no run method unless $x contains a function
+- [ ] switch to decentralized type classes!!!
+- [ ] reconsider fundamental approach: throwing or silently returning null
+- [ ] reconsider pattern matching
