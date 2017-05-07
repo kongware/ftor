@@ -227,7 +227,7 @@ Lenses treat `Object`s as immutable and merely clone the necessary portions of t
 
 ## Debugging
 
-The use of pre-curried arrow functions in ftor results in obfustacted debug information full of anonymous functions. I'd call it rather lambda hell. Since ftor pursues manual currying there is no way to simply add names during the currying process. However, a proper functional solution must provide means to solve this issue. Hence, ftor ships with a couple of helpers of which the intercepting applicators (`_$_`, `_$$_` etc.) are the most important. Intercepting applicators leave both the input and result of a function untouched but intercept their type information. Its uncommon name helps to search and replace it in your codebase. You can either apply them at the import or simply in-place in the calling code:
+The use of pre-curried arrow functions in ftor results in obfustacted debug information full of anonymous functions. I'd call it rather lambda hell. Since ftor pursues manual currying there is no way to simply add corresponding names during the currying process. However, a proper functional solution must provide means to solve this issue. Hence, ftor ships with a couple of helpers of which the intercepting applicators (`_$_`, `_$$_` etc.) are the most important. Intercepting applicators leave both the input and result of a function untouched but intercept their type information. Their uncommon denotements help to search and replace them in the codebase. You can either apply them at import or simply in-place at the calling code:
 
 ```Javascript
 const inc = _$_(x => x + 1, "inc");
