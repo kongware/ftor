@@ -125,24 +125,26 @@ ftor doesn't rely on the prototype system but on type representatives. Type reps
 // interop
 
 const $tag = Symbol.for("ftor/tag");
-const $Ident = Symbol.for("ftor/Ident");
+const $x = Symbol.for("ftor/x");
 
 // combined type rep and constructor
 
-const Ident = x => ({[$tag]: "Ident", [$Ident]: x});
+const Ident = x => ({[$tag]: "Ident", [$x]: x});
 
 // Functor type class
 
-Ident.map = f => t => Ident(f(t[$Ident]));
+Ident.map = f => t => Ident(f(t[$x]));
 
 // applying
 
 const sqr = x => x * x;
 const x = Ident(5);
 
-Ident.map(sqr) (x); // {$tag: "Ident", $Ident: 25}
+Ident.map(sqr) (x); // Ident(25)
 ```
-Every instance of an ftor type has two properties, which are accessable via `Symbol`s. This is essentially done to avoid name conflicts with third party libraries. `$tag` is mainly used to enable a primitive form of pattern matching. ftor ships with other sum types with several value constructors where this teqhnique makes more sense. `$Ident` provides access to the actual value. Each type in ftor has its independent value `Symbol`, so that only the corresonding type rep can actually access it. This mechanism is sane, since there is no implicit reference between a value and its (proto-)type anymore.
+Every instance of an ftor specific type includes two properties, which are accessable via `Symbol`s. This is essentially done to preclude name conflicts with third party libraries. `$tag` is used to enable a primitive form of pattern matching. ftor offers other sum types with several value constructors, which benefit more form this approach. `$x` provides access to the actual boxed value.
+
+Nice, but why symbols? Well, instead of using strings like "ftor/map" for instance, which inavitably are going to be accessed via a variable in order to avoid typing, I prefer `Symbol`s, which were designed to fulfill exactly this task. There is a name convention in ftor that every `Symbol` has a leading `$` sign in its name, so that no names are blocked for regular variables.
 
 While it is somewhat laborious to pass type reps explicitly, they offer the following advantages:
 
@@ -152,37 +154,7 @@ While it is somewhat laborious to pass type reps explicitly, they offer the foll
 * they lead to more readable code, since types are always explicit
 * they avoid confusing `Function.prototype.bind` and `this` constructs
 
-Here is another example of the `Ordering` type with pattern matching:
-
-```Javascript
-// interop
-
-const $tag = Symbol.for("ftor/tag");
-
-// type rep
-
-const Ordering = {};
-
-// constructors
-
-const LT = ({[$tag]: "LT"});
-Ordering.LT = LT;
-
-const EQ = ({[$tag]: "EQ"});
-Ordering.EQ = EQ;
-
-const GT = ({[$tag]: "GT"});
-Ordering.GT = GT;
-
-// Setoid type class
-
-Ordering.eq = ({[$tag]: x}) => ({[$tag]: y}) => x === y;
-
-// applying
-
-Ordering.eq(GT) (GT); // true
-```
-`Ordering` has three nullary value constructors (or constants in ftor) and hence doesn't comprise an access `Symbol`.
+Please note that there are sometimes several type classes for a type and as a result of this alternative type representatives. However, since type reps are just plain old Javascript `Object`s it is easy to merge them, so that they meet the requirements.
 
 ## Immutability
 

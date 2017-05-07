@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {$tag, $Ident} = require("../interop/props");
+const {$tag, $x} = require("../interop/props");
 
 
 /**
@@ -27,7 +27,7 @@ const {$tag, $Ident} = require("../interop/props");
 
 
 // Ident t => a -> t a
-const Ident = x => ({[$tag]: "Ident", [$Ident]: x});
+const Ident = x => ({[$tag]: "Ident", [$x]: x});
 
 
 // Functor
@@ -40,19 +40,30 @@ const Ident = x => ({[$tag]: "Ident", [$Ident]: x});
  * @status stable
  * @example
 
-   const Ident = x => ({type: Ident, x: x});
-   Ident.map = f => t => Ident(f(t.x));
+   const Ident = x => ({[$tag]: "Ident", [$x]: x});
+   Ident.map = f => t => Ident(f(t[$x]));
 
-   const ident5 = Ident(5);
    const sqr = x => x * x;
+   const ident5 = Ident(5);
 
-   Ident.map(sqr) (ident5); // {type: Ident, x: 25}
+   Ident.map(sqr) (ident5); // Ident(25)
 
  */
 
 
 // Ident t => (a -> b) -> t a -> t b
-Ident.map = f => t => Ident(f(t[$Ident]));
+Ident.map = f => t => Ident(f(t[$x]));
+
+
+/**
+ * @name run
+ * @type first order function
+ * @status stable
+ */
+
+
+// Ident t => t a -> a
+Ident.run = t => t[$x];
 
 
 // API

@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {$tag, $Const} = require("../interop/props");
+const {$tag, $x} = require("../interop/props");
 
 
 /**
@@ -27,7 +27,7 @@ const {$tag, $Const} = require("../interop/props");
 
 
 // Const t => a -> t a
-const Const = x => ({[$tag]: "Const", [$Const]: x});
+const Const = x => ({[$tag]: "Const", [$x]: x});
 
 
 // Functor
@@ -40,19 +40,30 @@ const Const = x => ({[$tag]: "Const", [$Const]: x});
  * @status stable
  * @example
 
-   const Const = x => ({type: Const, x: x});
-   Const.map = f => t => Const(t.x);
+   const Const = x => ({[$tag]: "Const", [$x]: x});
+   Const.map = f => t => Const(t[$x]);
 
-   const const5 = Const(5);
    const sqr = x => x * x;
+   const const5 = Const(5);
 
-   Const.map(sqr) (const5); // {type: Const, x: 5}
+   Const.map(sqr) (const5); // Const(5)
 
  */
 
 
 // Const t => (a -> b) -> t a -> t a
-Const.map = f => t => Const(t[$Const]);
+Const.map = f => t => Const(t[$x]);
+
+
+/**
+ * @name run
+ * @type first order function
+ * @status stable
+ */
+
+
+// Const t => t a -> a
+Const.run = t => t[$x];
 
 
 // API

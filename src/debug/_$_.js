@@ -11,7 +11,7 @@ const $tag = require("./interop/props");
  * @name _$_
  * @note intercepting applicator; impure
  * @type higher order function
- * @status experimental
+ * @status stable
  * @example
 
    const add = _$$_(x => y => x + y, "add");

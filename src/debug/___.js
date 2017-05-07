@@ -5,6 +5,7 @@
  * @name ___
  * @note trace; impure
  * @type first order function
+ * @status stable
  * @example
 
    const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
