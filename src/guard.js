@@ -11,15 +11,15 @@
  */
 
 
-// (a -> b) -> (a -> Boolean) -> a -> a|b
+// (a -> b) -> (a -> Boolean) -> a -> b
 const guard = f => pred => x => pred(x) ? f(x) : x;
 
 
-// (a -> b -> c) -> (a -> b -> Boolean) -> a -> b -> b|c
+// (a -> b -> c) -> (a -> b -> Boolean) -> a -> b -> c
 const guard2 = f => pred => x => y => pred(x) (y) ? f(x) (y) : y;
 
 
-// (a -> b -> c -> d) -> (a -> b -> c -> Boolean) -> a -> b -> c -> c|d
+// (a -> b -> c -> d) -> (a -> b -> c -> Boolean) -> a -> b -> c -> d
 const guard3 = f => pred => x => y => z => pred(x) (y) (z) ? f(x) (y) (z) : z;
 
 
