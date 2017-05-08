@@ -527,8 +527,7 @@ in progress...
 
 # Todos
 
-- [ ] replace $x as accessor for box values
-- [ ] box types have usually no run method unless $x contains a function
-- [ ] switch to decentralized type classes!!!
-- [ ] reconsider fundamental approach: throwing or silently returning null
-- [ ] reconsider pattern matching
+- [ ] there is no generic run function because contrainer types may contain a functional value
+- [ ] should I in principle throw or silently return null
+- [ ] revise pattern matching
+- [ ] add abstraction over recursion
