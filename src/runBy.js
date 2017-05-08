@@ -2,8 +2,9 @@
 
 
 /**
- * @name run by context
+ * @name run by
  * @type first order function
+ * @status stable
  * @example
 
    ?
@@ -11,8 +12,8 @@
  */
 
 
-// Object -> a
-const runBy = t => "run" in t ? t.run(t) : t.x;
+// Object -> t a -> a
+const runBy = Rep => t => Rep.run(t);
 
 
 // API
