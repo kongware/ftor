@@ -77,21 +77,23 @@ All functions in ftor are in manually curried form. Currying leads to abstractio
 Since Javascript doesn't know left sections (`(2)sub = y => 2 - y`) in the context of partial application, the parameter order of function definitions is significant. Parameter lists are linear, hence there are two different orders:
 
 ```Javascript
+const B = (...fs) => g => x => fs.reduceRight((acc, f) => f(acc), g(x));
+
+const concat = s => t => s + t;
+const concat_ = t => s => s + t;
+
 const sub = x => y => x - y;
 const sub_ = y => x => x - y;
 
-const sub2 = sub(2);
-const sub2_ = sub_(2);
-
 // partial application
 
-sub2(4); // -2, ouch
-sub2_(4); // 2
+B(concat(" - ouch!")) (sub(2)) (3); // " - ouch!-1"
+B(concat_(" - OK!")) (sub_(2)) (3); // "1 - OK!"
 
 // full application
 
-sub(2) (4); // -2
-sub_(2) (4); // 2, ouch
+sub(2) (4); // -2 - OK!
+sub_(2) (4); // 2 - ouch!
 ```
 That means, whenever a function is partially applied, the dual version (the one with swapped parameters) should be used, otherwise the default one. This rule applies to all combining operations (semigroup) that are non-commutative.
 
@@ -119,7 +121,7 @@ Please note that some of these names differ from those in the literature.
 
 ## Type representatives
 
-ftor doesn't rely on the prototype system but on type representatives. Type reps are plain old Javascript `Object`s with some static methods that don't depend on `this`. The abandonment of prototypes goes hand in hand with the necessity of passing types explicitly. This is the major drawback of this approach, the advantages outweigh though. More on this later. Here is an extract of the `Ident` type along with the functor type class:
+ftor doesn't rely on the prototype system but on type representatives. Type reps are plain old Javascript `Object`s with some static methods that don't depend on `this`. As a result we have to pass around types explicitly. This is the drawback of this approach, the advantages outweigh though. More on this later. Here is an extract of the `Ident` type along with the functor type class:
 
 ```Javascript
 // interop
@@ -142,9 +144,11 @@ const x = Ident(5);
 
 Ident.map(sqr) (x); // Ident(25)
 ```
-Every instance of an ftor specific type includes two properties, which are accessable via `Symbol`s. This is essentially done to preclude name conflicts with third party libraries. `$tag` is used to enable a primitive form of pattern matching. ftor offers other sum types with several value constructors, which benefit more form this approach. `$x` provides access to the actual boxed value.
+Every instance of an ftor specific type includes two properties, which are accessable via `Symbol`s. This is essentially done to preclude name conflicts with third party libraries. `$tag` is used to enable a primitive form of pattern matching. ftor offers other sum types with several value constructors, which benefit more form this approach.
 
-Nice, but why symbols? Well, instead of using strings like "ftor/map" for instance, which inavitably are going to be accessed via a variable in order to avoid typing, I prefer `Symbol`s, which were designed to fulfill exactly this task. There is a name convention in ftor that every `Symbol` has a leading `$` sign in its name, so that no names are blocked for regular variables.
+`$x` provides access to the actual boxed value. Please note that there are other types like `Option` that carry out effects which make it useless to retrieve their value, unless you are willing to lose the abstraction. Such types have a private accessor `Symbol` only known within the type class. As you know there is no real privacy in Javascript, not even with `Symbol`s, but it is strongly recommended in theses cases to access boxed values only through the corresponding type class.
+
+Why does ftor use `Symbol`s instead of just strings? Well, in order to avoid name conflicts strings lead quickly to names like "ftor/map", for instance. Such properties are eventually accessed via variables to safe some key strokes. `Symbol`s were designed to circumvent name clashes in the first place. There is a naming convention in ftor that every `Symbol` has a leading `$` sign in its name, so that they are not blocked for regular variables.
 
 While it is somewhat laborious to pass type reps explicitly, they offer the following advantages:
 
@@ -199,7 +203,7 @@ Lenses treat `Object`s as immutable and merely clone the necessary portions of t
 
 ## Debugging
 
-The use of pre-curried arrow functions in ftor results in obfustacted debug information full of anonymous functions. I'd call it rather lambda hell. Since ftor pursues manual currying there is no way to simply add corresponding names during the currying process. However, a proper functional solution must provide means to solve this issue. Hence, ftor ships with a couple of helpers of which the intercepting applicators (`_$_`, `_$$_` etc.) are the most important. Intercepting applicators leave both the input and result of a function untouched but intercept their type information. Their uncommon denotements help to search and replace them in the codebase. You can either apply them at import or simply in-place at the calling code:
+The use of pre-curried arrow functions in ftor results in obfustacted debug information full of anonymous functions. I'd call it rather lambda hell. Since ftor pursues manual currying there is no way to simply add corresponding names during the currying process. However, a proper functional solution must provide means to solve this issue. Hence, ftor ships with a couple of helpers of which the intercepting applicators (`_$_`, `_$$_` etc.) are the most important. Intercepting applicators leave both the input and result of a function untouched but intercept their type information. Their uncommon designation help to search and replace them in the codebase. You can either apply them at import or simply in-place at the calling code:
 
 ```Javascript
 const inc = _$_(x => x + 1, "inc");
