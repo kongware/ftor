@@ -148,6 +148,8 @@ Every instance of an ftor specific type includes two properties, which are acces
 
 `$x` provides access to the actual boxed value. Please note that there are other types like `Option` that carry out effects which make it useless to retrieve their value, unless you are willing to lose the abstraction. Such types have a private accessor `Symbol` only known within the type class. As you know there is no real privacy in Javascript, not even with `Symbol`s, but it is strongly recommended in theses cases to access boxed values only through the corresponding type class.
 
+There is another good reason to restrict the access of certain boxed values. As soon as we do without prototypes we lose the implicit link between values and types, but have to infer types mentally. This approach is prone to errors, because it is easy to confuse the type of a value and apply the wrong type class. With restricted values only the appropriate type class obtains access.
+
 Why does ftor use `Symbol`s instead of just strings? Well, in order to avoid name conflicts strings lead quickly to names like "ftor/map", for instance. Such properties are eventually accessed via variables to safe some key strokes. `Symbol`s were designed to circumvent name clashes in the first place. There is a naming convention in ftor that every `Symbol` has a leading `$` sign in its name, so that they are not blocked for regular variables.
 
 While it is somewhat laborious to pass type reps explicitly, they offer the following advantages:
