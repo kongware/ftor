@@ -150,7 +150,7 @@ Every instance of an ftor specific type includes two properties, which are acces
 
 There is another good reason to restrict the access of certain boxed values. As soon as we do without prototypes we lose the implicit link between values and types, but have to infer types mentally. This approach is prone to errors, because it is easy to confuse the type of a value and apply the wrong type class. With restricted values only the appropriate type class obtains access.
 
-Why does ftor use `Symbol`s instead of just strings? Well, in order to avoid name conflicts strings lead quickly to names like "ftor/map", for instance. Such properties are eventually accessed via variables to safe some key strokes. `Symbol`s were designed to circumvent name clashes in the first place. There is a naming convention in ftor that every `Symbol` has a leading `$` sign in its name, so that they are not blocked for regular variables.
+Why does ftor use `Symbol`s instead of just strings? Well, in order to avoid name conflicts strings lead quickly to names like "ftor/map", for instance. Such properties are eventually accessed via variables to save some key strokes. `Symbol`s were designed to circumvent name clashes in the first place. There is a naming convention in ftor that every `Symbol` has a leading `$` sign in its name, so that they are not blocked for regular variables.
 
 While it is somewhat laborious to pass type reps explicitly, they offer the following advantages:
 
@@ -160,7 +160,7 @@ While it is somewhat laborious to pass type reps explicitly, they offer the foll
 * they lead to more readable code, since types are always explicit
 * they avoid confusing `Function.prototype.bind` and `this` constructs
 
-Please note that there are sometimes several type classes for a type and as a result of this several type representatives. However, since type reps are just plain old Javascript `Object`s it is easy to merge them in-place while passing them to a function, so that they meet the corresponding requirements.
+Please note that there are sometimes several alternative type classes for a type and as a result of this several type representatives. However, since type reps are just plain old Javascript `Object`s it is easy to merge them in-place while passing them to a function, so that they meet the corresponding requirements.
 
 ## Immutability
 
