@@ -92,53 +92,83 @@ const typeCheck = (x, depth) => {
 
 
 // ?
-const _$_ = (f, tag = f.name) => (...args) => {
-  let r = f(...args);
+const _$_ = (f, tag = f.name) => {
+  const a = (...args) => {
+    let r = f(...args);
 
-  args = args.map(typeCheck, 1);
-  console.log(tag + "(" + args.join(", ") + ")", "==>", typeCheck(r, 1));
-  return r;
-};
-
-
-// ?
-const _$$_ = (f, tag = f.name) => (...args1) => {
-  let g = f(...args1);
-
-  args1 = args1.map(typeCheck, 1);
-  console.log(tag + "(" + args1.join(", ") + ") ...");
-
-  return (...args2) => {
-    let r = g(...args2);
-
-    args2 = args2.map(typeCheck, 1);
-    console.log(tag + "(" + args1.join(", ") + ")", "(" + args2.join(", ") + ")", "==>", typeCheck(r, 1));
+    args = args.map(typeCheck, 1);
+    console.log(tag + "(" + args.join(", ") + ")", "==>", typeCheck(r, 1));
     return r;
   };
+
+  Object.defineProperty(a, "name", {value: tag, writable: true});
+  Object.defineProperty(a, "length", {value: f.length, writable: true});
+  return a;  
 };
 
 
 // ?
-const _$$$_ = (f, tag = f.name) => (...args1) => {
-  let g = f(...args1);
+const _$$_ = (f, tag = f.name) => {
+  const a = (...args1) => {
+    let g = f(...args1);
 
-  args1 = args1.map(typeCheck, 1);
-  console.log(tag + "(" + args1.join(", ") + ") ...");
+    args1 = args1.map(typeCheck, 1);
+    console.log(tag + "(" + args1.join(", ") + ") ...");
 
-  return (...args2) => {
-    let h = g(...args2);
+    const b = (...args2) => {
+      let r = g(...args2);
 
-    args2 = args2.map(typeCheck, 1);
-    console.log(tag + "(" + args2.join(", ") + ") ...");
-
-    return (...args3) => {
-      let r = h(...args3);
-
-      args3 = args3.map(typeCheck, 1);
-      console.log(tag + "(" + args1.join(", ") + ")", "(" + args2.join(", ") + ")", "(" + args3.join(", ") + ")", "==>", typeCheck(r, 1));
+      args2 = args2.map(typeCheck, 1);
+      console.log(tag + "(" + args1.join(", ") + ")", "(" + args2.join(", ") + ")", "==>", typeCheck(r, 1));
       return r;
     };
+
+    Object.defineProperty(b, "name", {value: tag, writable: true});
+    Object.defineProperty(b, "length", {value: g.length, writable: true});
+    return b;
   };
+
+  Object.defineProperty(a, "name", {value: tag, writable: true});
+  Object.defineProperty(a, "length", {value: f.length, writable: true});
+  return a;
+};
+
+
+// ?
+const _$$$_ = (f, tag = f.name) => {
+  const a = (...args1) => {
+    let g = f(...args1);
+
+    args1 = args1.map(typeCheck, 1);
+    console.log(tag + "(" + args1.join(", ") + ") ...");
+
+    const b = (...args2) => {
+      let h = g(...args2);
+
+      args2 = args2.map(typeCheck, 1);
+      console.log(tag + "(" + args1.join(", ") + ")", "(" + args2.join(", ") + ") ...");
+
+      const c = (...args3) => {
+        let r = h(...args3);
+
+        args3 = args3.map(typeCheck, 1);
+        console.log(tag + "(" + args1.join(", ") + ")", "(" + args2.join(", ") + ")", "(" + args3.join(", ") + ")", "==>", typeCheck(r, 1));
+        return r;
+      };
+
+      Object.defineProperty(c, "name", {value: tag, writable: true});
+      Object.defineProperty(c, "length", {value: h.length, writable: true});
+      return c;
+    };
+
+    Object.defineProperty(b, "name", {value: tag, writable: true});
+    Object.defineProperty(b, "length", {value: g.length, writable: true});
+    return b;
+  };
+
+  Object.defineProperty(a, "name", {value: tag, writable: true});
+  Object.defineProperty(a, "length", {value: f.length, writable: true});
+  return a;
 };
 
 
