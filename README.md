@@ -225,8 +225,8 @@ concat(["foo"]) (["bar"]);
 
 // logs the sequence
 
-// concat(Array[String<foo>]) ...
-// concat(Array[String<foo>]) (Array[String<bar>]) ==> Array[String<foo>, String<bar>]
+// concat([String<foo>]) ...
+// concat([String<foo>]) ([String<bar>]) ==> [String<foo>, String<bar>]
 ```
 With the intercepting applicators you can visualize the control flow of arbitrarily composed functions. They work with multi argument functions as well as with variadic ones and particularly well with ftor specific types.
 
@@ -531,3 +531,4 @@ in progress...
 - [ ] should I in principle throw or silently return null
 - [ ] revise pattern matching
 - [ ] add abstraction over recursion
+- [ ] there is neither `toString` nor `toJSON` because there isn't a prototype

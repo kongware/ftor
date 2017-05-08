@@ -4,14 +4,14 @@
 // dependencies
 
 
-const $tag = require("./interop/props");
+const $tag = require("./global/interop");
 
 
 /**
  * @name _$_
  * @note intercepting applicator; impure
  * @type higher order function
- * @status stable
+ * @status unstable
  * @example
 
    const add = _$$_(x => y => x + y, "add");
@@ -41,10 +41,10 @@ const typeCheck = (x, depth) => {
       
       if (Array.isArray(x)) {
         if (depth > 1 || x.length > 5) return "Array<" + x.length + ">";
-        return "Array[" + x.map(x => typeCheck(x, 2)).join(", ") + "]";
+        return "[" + x.map(x => typeCheck(x, 2)).join(", ") + "]";
       }
       
-      if ($tag in x) return x.toString();
+      if ($tag in x) return x[$tag] + "{" + typeCheck(x, 2) + "}";
 
       if (x instanceof Map) {
         if (depth > 1 || x.size > 5) return "Map{" + x.size + "}";
@@ -76,7 +76,7 @@ const typeCheck = (x, depth) => {
 
       let len = Object.keys(x).length;
       if (depth > 1 || len > 5) return "Object{" + len + "}";
-      return "Object{" + Object.entries(x)
+      return "{" + Object.entries(x)
        .reduce((acc, x) => acc.concat(x), [])
        .map((x, i, xs) => i % 2 === 0 ? x : typeCheck(x, 2))
        .reduce((acc, x, i, xs) => i % 2 === 0 ? acc.concat([x + ":" + xs[i + 1]]) : acc, [])

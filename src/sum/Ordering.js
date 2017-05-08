@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {$tag, $Ordering} = require("../interop/props");
+const {$tag, $Ordering} = require("../global/interop");
 
 
 /**
