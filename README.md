@@ -238,7 +238,7 @@ concat(["foo"]) (["bar"]);
 // concat([String<foo>]) ...
 // concat([String<foo>]) ([String<bar>]) ==> [String<foo>, String<bar>]
 ```
-Here is an deliberately obfuscated, far more complex example:
+Here is a deliberately obfuscated, far more complex example:
 
 ```Javascript
 const {_$_, _$$_, _$$$_} = require("./debug/_$_");
