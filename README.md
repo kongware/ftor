@@ -274,6 +274,25 @@ ap(ap(*)) (sqr(*)) (Number<10>) ==> [Number<11>, Number<20>, Number<100>]
 
 */
 ```
+Legend:
+
+* `NaN`, `Infinite`, `-Infinite`, `null` and `undefined` stay unchanged
+* Number<#> denotes a primitive number
+* String<#> denotes a primitive string
+* Boolean<#> denotes a primitive boolean
+* `Symbol(...)` denotes a `Symbol`
+* `name(_)` denotes either a nullary or a variadic function
+* `name(*)` denotes an unary function
+* `name(**)` denotes a binary function etc.
+* `[...]` denotes an `Array` with listed elements
+* `[*n]` denotes an `Array` with n elements
+* `{...}` denotes an `Object` with listed properties
+* `{*n}` denotes an `Object` with n properties
+* Cons{...} same as `{...}` but with specific constructor
+* Cons{*n} same as `{*n}` but with specific constructor
+* `Iterator` denotes an iterator `Object`
+* `Host` denotes a host `Object`
+
 It takes some time to comprehend the syntax, but intercepting applicators can help you visualize the control flow of arbitrarily composed functions. They work with multi argument functions as well as with variadic ones and particularly well with ftor specific types.
 
 ## Lazy evaluation

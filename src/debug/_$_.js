@@ -40,7 +40,7 @@ const typeCheck = (x, depth) => {
       if (x === null) return "null";
       
       if (Array.isArray(x)) {
-        if (depth > 1 || x.length > 5) return "Array<" + x.length + ">";
+        if (depth > 1 || x.length > 5) return "[*" + x.length + "]";
         return "[" + x.map(x => typeCheck(x, 2)).join(", ") + "]";
       }
       
@@ -66,7 +66,7 @@ const typeCheck = (x, depth) => {
       
       if (constructor in x) {
         let len = Object.keys(x).length;
-        if (depth > 1 || len > 5) return x.constructor.name + "{" + len + "}";
+        if (depth > 1 || len > 5) return x.constructor.name + "{*" + len + "}";
         return x.constructor.name + "{" + Object.entries(x)
          .reduce((acc, x) => acc.concat(x), [])
          .map((x, i, xs) => i % 2 === 0 ? x : typeCheck(x, 2))
@@ -75,7 +75,7 @@ const typeCheck = (x, depth) => {
       }
 
       let len = Object.keys(x).length;
-      if (depth > 1 || len > 5) return "Object{" + len + "}";
+      if (depth > 1 || len > 5) return "{*" + len + "}";
       return "{" + Object.entries(x)
        .reduce((acc, x) => acc.concat(x), [])
        .map((x, i, xs) => i % 2 === 0 ? x : typeCheck(x, 2))
