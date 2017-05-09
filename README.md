@@ -119,6 +119,26 @@ There are a couple of combinators which are regularly encountered when working w
 
 Please note that some of these names differ from those in the literature.
 
+## Recursion
+
+In functional programming we usually abstract over recursion with iterative functions like `fold` and its derivates. Recursion is only used for special cases, for instance, if we need to exit an recursive algorithm prematurely. ftor provides another variant of the `fold` family, that provides a kind of mutual continuation to cover most of these cases:
+
+```Javascript
+const foldlk = f => acc => xs => {
+  const aux = (acc, i) => xs.length === i
+   ? acc
+   : f(acc) (xs[i], i) (acc => aux(acc, i + 1));
+
+  return aux(acc, 0);
+};
+
+const all = f => foldlk(acc => x => k => f(x) && k(true)) (true);
+const odd = x => Math.floor(x) === x && x & 1 === 1;
+
+all(odd) ([1, 3, 5, 7, 9]); // true
+```
+As soon as you are accustomed to these style it works like a charm.
+
 ## Type representatives
 
 ftor doesn't rely on the prototype system but on type representatives. Type reps are plain old Javascript `Object`s with some static methods that don't depend on `this`. As a result we have to pass around types explicitly. This is the drawback of this approach, the advantages outweigh though. More on this later. Here is an extract of the `Ident` type along with the functor type class:
@@ -208,17 +228,7 @@ Lenses treat `Object`s as immutable and merely clone the necessary portions of t
 The use of pre-curried arrow functions in ftor results in obfustacted debug information full of anonymous functions. I'd call it rather lambda hell. Since ftor pursues manual currying there is no way to simply add corresponding names during the currying process. However, a proper functional solution must provide means to solve this issue. Hence, ftor ships with a couple of helpers of which the intercepting applicators (`_$_`, `_$$_` etc.) are the most important. Intercepting applicators leave both the input and result of a function untouched but intercept their type information. Their uncommon designation help to search and replace them in the codebase. You can either apply them at import or simply in-place at the calling code:
 
 ```Javascript
-const inc = _$_(x => x + 1, "inc");
-
-inc(2); // inc(Number<2>) ==> Number<3>
-
-// or inline
-
-_$_(x => x + 1, "inc") (2); // inc(Number<2>) ==> Number<3>
-```
-More complex functions can be intercepted too:
-
-```Javascript
+const {_$$_} = require("./debug/_$_");
 const concat = _$$_(xs => ys => xs.concat(ys), "concat");
 
 concat(["foo"]) (["bar"]);
@@ -228,7 +238,43 @@ concat(["foo"]) (["bar"]);
 // concat([String<foo>]) ...
 // concat([String<foo>]) ([String<bar>]) ==> [String<foo>, String<bar>]
 ```
-With the intercepting applicators you can visualize the control flow of arbitrarily composed functions. They work with multi argument functions as well as with variadic ones and particularly well with ftor specific types.
+Here is an deliberately obfuscated, far more complex example:
+
+```Javascript
+const {_$_, _$$_, _$$$_} = require("./debug/_$_");
+
+const A = _$$_(f => x => f(x), "A");
+const B_ = _$$_((...fs) => x => fs.reduceRight((acc, f) => f(acc), x), "B_");
+const ap = _$$$_(f => g => x => f(x) (g(x)), "ap");
+
+const inc = _$_(x => x + 1, "inc");
+const dbl = _$_(x => x * 2, "dbl");
+const sqr = _$_(x => x * x, "sqr");
+
+const triple = _$$$_(x => y => z => [x, y, z], "triple");
+
+ap(ap(B_(triple, inc)) (dbl)) (sqr) (10); // [11, 20, 100]
+
+/* logs the following sequence
+
+B_(triple:1, inc:1) ...
+ap(B_:1) ...
+ap(B_:1) (dbl:1) ...
+ap(ap:1) ...
+ap(ap:1) (sqr:1) ...
+inc(Number<10>) ==> Number<11>
+triple(Number<11>) ...
+B_(triple:1, inc:1) (Number<10>) ==> triple:1
+dbl(Number<10>) ==> Number<20>
+triple(Number<11>) (Number<20>) ...
+ap(B_:1) (dbl:1) (Number<10>) ==> triple:1
+sqr(Number<10>) ==> Number<100>
+triple(Number<11>) (Number<20>) (Number<100>) ==> [Number<11>, Number<20>, Number<100>]
+ap(ap:1) (sqr:1) (Number<10>) ==> [Number<11>, Number<20>, Number<100>]
+
+ */
+```
+It takes some time to comprehend the syntax, but intercepting applicators can help you visualize the control flow of arbitrarily composed functions. They work with multi argument functions as well as with variadic ones and particularly well with ftor specific types.
 
 ## Lazy evaluation
 

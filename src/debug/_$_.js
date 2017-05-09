@@ -29,7 +29,7 @@ const $tag = require("./global/interop");
 const typeCheck = (x, depth) => {
   switch (typeof x) {
     case "boolean": return "Boolean<" + x + ">";
-    case "function": return (x.name || "λ") + "(" + x.length + ")";
+    case "function": return (x.name || "λ") + ":" + x.length;
 
     case "number": {
       if (isNaN(x) || !isFinite) return x.toSting();
