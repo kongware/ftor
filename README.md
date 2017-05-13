@@ -34,8 +34,8 @@ ftor maneuvers between the following opposites with the objective of optimal bal
 ## Terminology
 
 * composable function: A pure function that is partially applicable in its last argument
-* first order function: A function that neither accepts other functions as arguments nor returns them
-* higher order function: A function that accepts other functions as arguments and/or returns them
+* first order function: A function that neither accepts function types as arguments nor returns them
+* higher order function: A function that accepts function types as arguments and/or returns them
 * action: An impure and regularly nullary function that performs side effects
 * Church encoding: Data types that are encoded by higher order functions
 * Arrows: The type class that abstracts over function types (not ES2015 arrow functions)
@@ -48,8 +48,7 @@ The following conventions for name bindings are used:
 * `vs, ws, xs, ys, zs` represent collection types
 * `o, p, q, r, s` represent `Object` types
 * `f, g, h, i, j` represent function types
-* `t a, t1 a, t2 a` represent a value wrapped in a sum type
-* `t a b, t1 a b, t2 a b` represent alternative values wrapped in a sum type
+* `tx, ty, tz` represent a value wrapped in a sum type
 * `name_` or `_name` indicates a slightly modified variant of an existing function `name`
 * `nameBy` or `nameWith` indicates a more general version of an existing function `name`
 
