@@ -19,7 +19,7 @@ ftor attempts to facilitate the work with pure functions, function composition a
 * arrow functions
 * generator functions (impure)
 
-ftor uses higher order functions to define new types (Church encoding) and instances of `Arrow`s to model control flows. It avoids globally visible mutations, reifies effects to first classe values or shifts them to the edges of an application.
+It uses higher order functions to define new types (Church encoding) and instances of the `Arrow` type class to model control flows. It avoids globally visible mutations, reifies effects to first classe values or shifts them to the edges of an application.
 
 # Principles
 
