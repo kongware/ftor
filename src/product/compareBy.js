@@ -3,7 +3,7 @@
 
 /**
  * @name compare by
- * @type first order function
+ * @type higher order function
  * @status stable
  * @example
 
@@ -26,7 +26,7 @@
  */
 
 
-// Ord a => (a -> a -> Boolean) -> a -> a -> Ordering
+// (a -> b -> Boolean) -> a -> b -> Ordering
 const compareBy = f => ix => iy => {
   const {value: x} = ix.next(), {value: y} = iy.next();
 

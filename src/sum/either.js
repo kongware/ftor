@@ -5,9 +5,11 @@
 
 
 const {$tag} = require("../interop");
+const {compare, compare_} = require("../primitive/compare");
+const False = require("../False");
 const I = require("../I");
 const {K} = require("../K");
-const False = require("../False");
+const {throw_} = require("../debug/throw_");
 
 
 /**
@@ -217,11 +219,54 @@ Either.eqBy = p => q => tx => ty => tx(x => ty(y => p(x) (y)) (False)) (x => ty(
 // Ord
 
 
-Either.compare = tx => ty => tx(
-  x => ty(y => compare(x) (y)) (throw_("Either Left or Right expected"))
-) (
-  x => ty(y => compare(x) (y)) (throw_("Either Left or Right expected"))
-);
+/**
+ * @name compare
+ * @type first order function
+ * @status stable
+ * @example
+
+   const $tag = Symbol.for("ftor/tag");
+   const Either = {};
+
+   const Left = x => {
+     const Left = f => {
+       const Left = g => f(x);
+       return (Left[$tag] = "left", Left);
+     };
+
+     return (Left[$tag] = "left", Left);
+   };
+
+   const Right = x => {
+     const Right = f => {
+       const Right = g => g(x);
+       return (Right[$tag] = "right", Right);
+     };
+
+     return (Right[$tag] = "right", Right);
+   };
+
+   Either.compare = tx => ty => tx(x => ty(y => compare(x) (y)) (throw_(TypeError) ("Left expected") (I)))
+    (x => ty(throw_(TypeError) ("Right expected") (I)) (y => compare(x) (y)));
+
+   const compare = x => y => x < y ? -1 : y < x ? 1 : 0;
+   const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
+
+   const throw_ = cons => template => f => x => {
+     throw new cons(render(template) (f(x)));
+   };
+
+   const I = x => x;
+
+   Either.compare(Right(2)) (Right(3)); // -1
+   Either.compare(Right("foo")) (Right("foo")); // 0
+   Either.compare(Right("foo")) (Left("foo")); // TypeError: Right expected
+
+ */
+
+
+Either.compare = tx => ty => tx(x => ty(y => compare(x) (y)) (throw_(TypeError) ("Left expected") (I)))
+ (x => ty(throw_(TypeError) ("Right expected") (I)) (y => compare(x) (y)));
 
 
 // Foldable

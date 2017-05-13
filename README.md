@@ -46,6 +46,7 @@ The following conventions for name bindings are used:
 
 * `v`, `w`, `x`, `y`, `z` represent arbitrary types
 * `vs`, `ws`, `xs`, `ys`, `zs` represent collection types
+* `iv`, `iw`, `ix`, `iy`, `iz` represent iterators
 * `o`, `p`, `q`, `r`, `s` represent `Object` types
 * `f, g, h, i, j` represent function types
 * `ft`, `gt`, `ht` represent Kleisli arrows, i.e. functions that return monads
@@ -57,6 +58,4 @@ Please note that names are a quite good indicator of how generic your code is. G
 
 # Todos
 
-- [ ] add `compareBy` for all product types
-- [ ] add `compare` for all product types that solely include setoids
 - [ ] throw an error if `Either.compare` is applied to a `Left` and a `Right` type
