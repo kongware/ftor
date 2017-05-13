@@ -57,4 +57,6 @@ Please note that names are a quite good indicator of how generic your code is. G
 
 # Todos
 
-a lot.
+- [ ] add `compareBy` for all product types
+- [ ] add `compare` for all product types that solely include setoids
+- [ ] throw an error if `Either.compare` is applied to a `Left` and a `Right` type
