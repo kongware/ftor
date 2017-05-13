@@ -1,0 +1,42 @@
+"use strict";
+
+
+/**
+ * @name compare by
+ * @type first order function
+ * @status stable
+ * @example
+
+   const compareBy = f => ix => iy => {
+     const {value: x} = ix.next(), {value: y} = iy.next();
+
+     if (x === undefined && y === undefined) return true;
+     else if (!f(x) (y)) return false;
+     else return compareBy(f) (ix) (iy);
+   };
+
+   const eq = x => y => x === y;
+   const looseEq = x => y => x == y;
+
+   const xs = [1, 2, 3], ys = ["1" , "2", "3"];
+
+   compareBy(eq) (xs[Symbol.iterator]()) (ys[Symbol.iterator]()); // false
+   compareBy(looseEq) (xs[Symbol.iterator]()) (ys[Symbol.iterator]()); // true
+
+ */
+
+
+// Ord a => (a -> a -> Boolean) -> a -> a -> Ordering
+const compareBy = f => ix => iy => {
+  const {value: x} = ix.next(), {value: y} = iy.next();
+
+  if (x === undefined && y === undefined) return true;
+  else if (!f(x) (y)) return false;
+  else return compareBy(f) (ix) (iy);
+};
+
+
+// API
+
+
+module.exports = compareBy;
