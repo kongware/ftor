@@ -44,11 +44,12 @@ ftor maneuvers between the following opposites with the objective of optimal bal
 
 The following conventions for name bindings are used:
 
-* `v, w, x, y, z` represent arbitrary types
-* `vs, ws, xs, ys, zs` represent collection types
-* `o, p, q, r, s` represent `Object` types
+* `v`, `w`, `x`, `y`, `z` represent arbitrary types
+* `vs, `ws, `xs, `ys, `zs` represent collection types
+* `o`, `p`, `q`, `r`, `s` represent `Object` types
 * `f, g, h, i, j` represent function types
-* `tx, ty, tz` represent a value wrapped in a sum type
+* `ft`, `gt`, `ht` represent Kleisli arrows, i.e. functions that return monads
+* `tv`, `tw`, `tx`, `ty`, `tz` represent a value wrapped in a sum type
 * `name_` or `_name` indicates a slightly modified variant of an existing function `name`
 * `nameBy` or `nameWith` indicates a more general version of an existing function `name`
 
