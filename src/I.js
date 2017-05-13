@@ -3,10 +3,12 @@
 
 /**
  * @name identity
- * @type higher order function
+ * @type first order function
+ * @status stable
  * @example
 
-   ?
+   const I = x => x;
+   I("foo"); // foo
 
  */
 

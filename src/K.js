@@ -4,10 +4,14 @@
 /**
  * @name constant
  * @note monadic "of" of the function instance
- * @type higher order function
+ * @type first order function
+ * @status stable
  * @example
 
-   ?
+   const K = x => _ => x;
+   const True = K(true);
+
+   True(false); // true
 
  */
 
