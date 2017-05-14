@@ -21,7 +21,7 @@ const render = require("../primitive/string/render");
  */
 
 
-// String -> (*) -> IO
+// String -> [*] -> IO
 const log = template => (...args) => (console.log(render(template, ...args)), args[args.length - 1]);
 
 
