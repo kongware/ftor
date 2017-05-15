@@ -13,10 +13,9 @@ const {throw_} = require("../debug/throw_");
 
 
 /**
- * @name either
- * @note Church encoded sum type
- * @type data type
- * @kind * -> * -> *
+ * @name Either
+ * @note Church encoded
+ * @type sum type
  * @status stable
  */
 
@@ -620,4 +619,4 @@ Either.chain = ft => tx => Either.join(Either.map(x => ft(x)) (tx));
 // API
 
 
-module.exports = Either;
+module.exports = {Either, Left, Right};

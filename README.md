@@ -59,3 +59,4 @@ Please note that names are a quite good indicator of how generic your code is. G
 # Todos
 
 - [ ] throw an error if `Either.compare` is applied to a `Left` and a `Right` type
+- [ ] add safe `head` that returns an Option
