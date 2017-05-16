@@ -19,6 +19,46 @@ const Arr = Array.of;
 
 
 /**
+ * @name all
+ * @note short circuiting
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Arr = Array.of;
+  Arr.all = pred => xs => xs.every(x => pred(x));
+  const even = x => Math.floor(x) === x && (x & 1) === 0;
+
+  Arr.all(even) ([2, 4, 6, 8, 10]); // true
+ 
+ */
+
+
+// (a -> Boolean) -> [a] -> Boolean
+Arr.all = pred => xs => xs.every(x => pred(x));
+
+
+/**
+ * @name any
+ * @note short circuiting
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Arr = Array.of;
+  Arr.any = pred => xs => xs.some(x => pred(x));
+  const even = x => Math.floor(x) === x && (x & 1) === 0;
+
+  Arr.any(even) ([1, 3, 6, 9, 11]); // true
+ 
+ */
+
+
+// (a -> Boolean) -> [a] -> Boolean
+Arr.any = pred => xs => xs.some(x => pred(x));
+
+
+/**
  * @name append
  * @type first order function
  * @status stable

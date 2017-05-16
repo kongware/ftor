@@ -2,6 +2,17 @@
 
 
 /**
+ * @name String
+ * @note combined namespace/constructor
+ * @type primitive type
+ * @status stable
+ */
+
+
+const Str = String;
+
+
+/**
  * @name render
  * @note variadic
  * @type first order function
@@ -17,10 +28,10 @@
 
 
 // String -> [*] -> String
-const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
+Str.render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
 
 
 // API
 
 
-module.exports = render;
+module.exports = Str;

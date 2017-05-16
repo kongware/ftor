@@ -6,7 +6,7 @@
 
 const {$tag} = require("../interop");
 const {compare, compare_} = require("../primitive/compare");
-const False = require("../False");
+const {False} = require("../primitive/boo");
 const I = require("../I");
 const {K} = require("../K");
 const {throw_} = require("../debug/throw_");
