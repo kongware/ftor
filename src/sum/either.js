@@ -250,16 +250,21 @@ Either.eqBy = p => q => tx => ty => tx(x => ty(y => p(x) (y)) (False)) (x => ty(
 
   const compare = x => y => x < y ? -1 : y < x ? 1 : 0;
   const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
-  const sort = f => xs => xs.sort((x, y) => f(x) (y));
   const append = xs => x => xs.append([x]);
+  const clone = xs => [].concat(xs);
   const I = x => x;
+
+  const sort = f => xs => {
+    const ys = clone(xs);
+    return ys.sort((x, y) => f(x) (y));
+  };
 
   const throw_ = cons => template => f => x => {
    throw new cons(render(template) (f(x)));
   };
 
   const xs = [Right(5), Right(3), Right(1), Right(4), Right(2)],
-  ys = [Right(5), Right(3), Left(1), Right(4), Right(2)],
+  ys = [Right(5), Right(3), Left(1), Right(4), Right(2)];
 
   sort(Either.compare) (xs); // [Right(1), Right(2), Right(3), Right(4), Right(5)]
   sort(Either.compare) (ys); // TypeError: "Right expected"
