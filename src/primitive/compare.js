@@ -7,8 +7,8 @@
  * @status stable
  * @example
 
-   const compare = x => y => x < y ? -1 : y < x ? 1 : 0;
-   compare(2) (3); // -1
+  const compare = x => y => x < y ? -1 : y < x ? 1 : 0;
+  compare(2) (3); // -1
 
  */
 

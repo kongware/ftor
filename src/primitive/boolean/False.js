@@ -13,10 +13,10 @@ const {K} = require("../../K");
  * @status stable
  * @example
 
-   const K = x => _ => x;
-   const False = K(false);
+  const K = x => _ => x;
+  const False = K(false);
 
-   False(true); // false
+  False(true); // false
 
  */
 

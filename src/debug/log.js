@@ -13,10 +13,10 @@ const render = require("../primitive/string/render");
  * @status stable
  * @example
 
-   const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
-   const log = template => (...args) => (console.log(render(template) (...args)), args[args.length - 1]);
+  const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
+  const log = template => (...args) => (console.log(render(template) (...args)), args[args.length - 1]);
 
-   log("invalid type: ${0}") (null); // invalid type: null
+  log("invalid type: ${0}") (null); // invalid type: null
 
  */
 

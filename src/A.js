@@ -7,21 +7,21 @@
  * @status stable
  * @example
 
-   const A = f => x => f(x);
+  const A = f => x => f(x);
 
-   const writeOut = A(({foo}) => {
-     switch (foo) {
-       case 1: return "one";
-       case 2: return "two";
-       case 3: return "three";
-       default: return "out of range";
-     }
-   });
+  const writeOut = A(({foo}) => {
+    switch (foo) {
+      case 1: return "one";
+      case 2: return "two";
+      case 3: return "three";
+      default: return "out of range";
+    }
+  });
 
-   const o = {foo: 2}, p = {foo: 5};
+  const o = {foo: 2}, p = {foo: 5};
 
-   writeOut(o); // "two"
-   writeOut(p); // "out of range"
+  writeOut(o); // "two"
+  writeOut(p); // "out of range"
 
  */
 

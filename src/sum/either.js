@@ -32,22 +32,22 @@ const {throw_} = require("../debug/throw_");
  * @status stable
  * @example
 
-   const $tag = Symbol.for("ftor/tag");
-   const Either = {};
+  const $tag = Symbol.for("ftor/tag");
+  const Either = {};
 
-   const Left = x => {
-     const Left = f => {
-       const Left = g => f(x);
-       return (Left[$tag] = "left", Left);
-     };
+  const Left = x => {
+    const Left = f => {
+      const Left = g => f(x);
+      return (Left[$tag] = "left", Left);
+    };
 
-     return (Left[$tag] = "left", Left);
-   };
+    return (Left[$tag] = "left", Left);
+  };
 
-   const I = x => x;
-   const uc = x => x.toUpperCase();
+  const I = x => x;
+  const uc = x => x.toUpperCase();
 
-   Left("foo") (I) (uc); // "foo"
+  Left("foo") (I) (uc); // "foo"
 
  */
 
@@ -71,22 +71,22 @@ Either.Left = Left;
  * @status stable
  * @example
 
-   const $tag = Symbol.for("ftor/tag");
-   const Either = {};
+  const $tag = Symbol.for("ftor/tag");
+  const Either = {};
 
-   const Right = x => {
-     const Right = f => {
-       const Right = g => g(x);
-       return (Right[$tag] = "right", Right);
-     };
+  const Right = x => {
+    const Right = f => {
+      const Right = g => g(x);
+      return (Right[$tag] = "right", Right);
+    };
 
-     return (Right[$tag] = "right", Right);
-   };
+    return (Right[$tag] = "right", Right);
+  };
 
-   const I = x => x;
-   const uc = x => x.toUpperCase();
+  const I = x => x;
+  const uc = x => x.toUpperCase();
 
-   Right("foo") (I) (uc); // "FOO"
+  Right("foo") (I) (uc); // "FOO"
 
  */
 
@@ -130,35 +130,35 @@ Either.either = f => g => tx => tx(f) (g);
  * @status stable
  * @example
 
-   const $tag = Symbol.for("ftor/tag");
-   const Either = {};
+  const $tag = Symbol.for("ftor/tag");
+  const Either = {};
 
-   const Left = x => {
-     const Left = f => {
-       const Left = g => f(x);
-       return (Left[$tag] = "left", Left);
-     };
+  const Left = x => {
+    const Left = f => {
+      const Left = g => f(x);
+      return (Left[$tag] = "left", Left);
+    };
 
-     return (Left[$tag] = "left", Left);
-   };
+    return (Left[$tag] = "left", Left);
+  };
 
-   const Right = x => {
-     const Right = f => {
-       const Right = g => g(x);
-       return (Right[$tag] = "right", Right);
-     };
+  const Right = x => {
+    const Right = f => {
+      const Right = g => g(x);
+      return (Right[$tag] = "right", Right);
+    };
 
-     return (Right[$tag] = "right", Right);
-   };
+    return (Right[$tag] = "right", Right);
+  };
 
-   Either.eq = tx => ty => tx(x => ty(y => x === y) (False)) (x => ty(False) (y => x === y));
+  Either.eq = tx => ty => tx(x => ty(y => x === y) (False)) (x => ty(False) (y => x === y));
 
-   const K = x => y => x;
-   const False = K(false);
-   
-   Either.eq(Right("foo")) (Right("foo")); // true
-   Either.eq(Right("foo")) (Right("bar")); // false
-   Either.eq(Left("foo")) (Right("foo")); // false
+  const K = x => y => x;
+  const False = K(false);
+
+  Either.eq(Right("foo")) (Right("foo")); // true
+  Either.eq(Right("foo")) (Right("bar")); // false
+  Either.eq(Left("foo")) (Right("foo")); // false
 
  */
 
@@ -174,40 +174,40 @@ Either.eq = tx => ty => tx(x => ty(y => x === y) (False)) (x => ty(False) (y => 
  * @status stable
  * @example
 
-   const $tag = Symbol.for("ftor/tag");
-   const Either = {};
+  const $tag = Symbol.for("ftor/tag");
+  const Either = {};
 
-   const Left = x => {
-     const Left = f => {
-       const Left = g => f(x);
-       return (Left[$tag] = "left", Left);
-     };
+  const Left = x => {
+    const Left = f => {
+      const Left = g => f(x);
+      return (Left[$tag] = "left", Left);
+    };
 
-     return (Left[$tag] = "left", Left);
-   };
+    return (Left[$tag] = "left", Left);
+  };
 
-   const Right = x => {
-     const Right = f => {
-       const Right = g => g(x);
-       return (Right[$tag] = "right", Right);
-     };
+  const Right = x => {
+    const Right = f => {
+      const Right = g => g(x);
+      return (Right[$tag] = "right", Right);
+    };
 
-     return (Right[$tag] = "right", Right);
-   };
+    return (Right[$tag] = "right", Right);
+  };
 
-   Either.eqBy = p => q => tx => ty => tx(x => ty(y => p(x) (y)) (False)) (x => ty(False) (y => q(x) (y)));
+  Either.eqBy = p => q => tx => ty => tx(x => ty(y => p(x) (y)) (False)) (x => ty(False) (y => q(x) (y)));
 
-   const K = x => y => x;
-   const False = K(false);
-   const get = k => o => o[k];
+  const K = x => y => x;
+  const False = K(false);
+  const get = k => o => o[k];
 
-   const leftEq = xs => ys => xs.length === ys.length && xs[0] === xs[0];
-   const rightEq = k => o => p => o[k] === p[k];
-   
-   Either.eqBy(leftEq) (rightEq("foo")) (Right({foo: "bar"})) (Right({foo: "bar"})); // true
-   Either.eqBy(leftEq) (rightEq("foo")) (Right({foo: "bar"})) (Right({foo: "baz"})); // false
-   Either.eqBy(leftEq) (rightEq("foo")) (Left(["foo"])) (Left(["foo"])); // true
-   Either.eqBy(leftEq) (rightEq("foo")) (Left(["bar"])) (Right({foo: "bar"})); // false
+  const leftEq = xs => ys => xs.length === ys.length && xs[0] === xs[0];
+  const rightEq = k => o => p => o[k] === p[k];
+
+  Either.eqBy(leftEq) (rightEq("foo")) (Right({foo: "bar"})) (Right({foo: "bar"})); // true
+  Either.eqBy(leftEq) (rightEq("foo")) (Right({foo: "bar"})) (Right({foo: "baz"})); // false
+  Either.eqBy(leftEq) (rightEq("foo")) (Left(["foo"])) (Left(["foo"])); // true
+  Either.eqBy(leftEq) (rightEq("foo")) (Left(["bar"])) (Right({foo: "bar"})); // false
 
  */
 
@@ -224,42 +224,45 @@ Either.eqBy = p => q => tx => ty => tx(x => ty(y => p(x) (y)) (False)) (x => ty(
  * @status stable
  * @example
 
-   const $tag = Symbol.for("ftor/tag");
-   const Either = {};
+  const $tag = Symbol.for("ftor/tag");
+  const Either = {};
 
-   const Left = x => {
-     const Left = f => {
-       const Left = g => f(x);
-       return (Left[$tag] = "left", Left);
-     };
+  const Left = x => {
+    const Left = f => {
+      const Left = g => f(x);
+      return (Left[$tag] = "left", Left);
+    };
 
-     return (Left[$tag] = "left", Left);
-   };
+    return (Left[$tag] = "left", Left);
+  };
 
-   const Right = x => {
-     const Right = f => {
-       const Right = g => g(x);
-       return (Right[$tag] = "right", Right);
-     };
+  const Right = x => {
+    const Right = f => {
+      const Right = g => g(x);
+      return (Right[$tag] = "right", Right);
+    };
 
-     return (Right[$tag] = "right", Right);
-   };
+    return (Right[$tag] = "right", Right);
+  };
 
-   Either.compare = tx => ty => tx(x => ty(y => compare(x) (y)) (throw_(TypeError) ("Left expected") (I)))
-    (x => ty(throw_(TypeError) ("Right expected") (I)) (y => compare(x) (y)));
+  Either.compare = tx => ty => tx(x => ty(y => compare(x) (y)) (throw_(TypeError) ("Left expected") (I)))
+  (x => ty(throw_(TypeError) ("Right expected") (I)) (y => compare(x) (y)));
 
-   const compare = x => y => x < y ? -1 : y < x ? 1 : 0;
-   const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
+  const compare = x => y => x < y ? -1 : y < x ? 1 : 0;
+  const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
+  const sort = f => xs => xs.sort((x, y) => f(x) (y));
+  const append = xs => x => xs.append([x]);
+  const I = x => x;
 
-   const throw_ = cons => template => f => x => {
-     throw new cons(render(template) (f(x)));
-   };
+  const throw_ = cons => template => f => x => {
+   throw new cons(render(template) (f(x)));
+  };
 
-   const I = x => x;
+  const xs = [Right(5), Right(3), Right(1), Right(4), Right(2)],
+  ys = [Right(5), Right(3), Left(1), Right(4), Right(2)],
 
-   Either.compare(Right(2)) (Right(3)); // -1
-   Either.compare(Right("foo")) (Right("foo")); // 0
-   Either.compare(Right("foo")) (Left("foo")); // TypeError: Right expected
+  sort(Either.compare) (xs); // [Right(1), Right(2), Right(3), Right(4), Right(5)]
+  sort(Either.compare) (ys); // TypeError: "Right expected"
 
  */
 
@@ -277,34 +280,34 @@ Either.compare = tx => ty => tx(x => ty(y => compare(x) (y)) (throw_(TypeError) 
  * @status stable
  * @example
 
-   const $tag = Symbol.for("ftor/tag");
-   const Either = {};
+  const $tag = Symbol.for("ftor/tag");
+  const Either = {};
 
-   const Left = x => {
-     const Left = f => {
-       const Left = g => f(x);
-       return (Left[$tag] = "left", Left);
-     };
+  const Left = x => {
+    const Left = f => {
+      const Left = g => f(x);
+      return (Left[$tag] = "left", Left);
+    };
 
-     return (Left[$tag] = "left", Left);
-   };
+    return (Left[$tag] = "left", Left);
+  };
 
-   const Right = x => {
-     const Right = f => {
-       const Right = g => g(x);
-       return (Right[$tag] = "right", Right);
-     };
+  const Right = x => {
+    const Right = f => {
+      const Right = g => g(x);
+      return (Right[$tag] = "right", Right);
+    };
 
-     return (Right[$tag] = "right", Right);
-   };
+    return (Right[$tag] = "right", Right);
+  };
 
-   Either.foldl = f => acc => tx => f(acc) (tx(I) (I));
+  Either.foldl = f => acc => tx => f(acc) (tx(I) (I));
 
-   const I = x => x;
-   const sub = x => y => x - y;
+  const I = x => x;
+  const sub = x => y => x - y;
 
-   Either.foldl(sub) (10) (Left(2)); // 8
-   Either.foldl(sub) (10) (Right(2)); // 8
+  Either.foldl(sub) (10) (Left(2)); // 8
+  Either.foldl(sub) (10) (Right(2)); // 8
 
  */
 
@@ -319,34 +322,34 @@ Either.foldl = f => acc => tx => f(acc) (tx(I) (I));
  * @status stable
  * @example
 
-   const $tag = Symbol.for("ftor/tag");
-   const Either = {};
+  const $tag = Symbol.for("ftor/tag");
+  const Either = {};
 
-   const Left = x => {
-     const Left = f => {
-       const Left = g => f(x);
-       return (Left[$tag] = "left", Left);
-     };
+  const Left = x => {
+    const Left = f => {
+      const Left = g => f(x);
+      return (Left[$tag] = "left", Left);
+    };
 
-     return (Left[$tag] = "left", Left);
-   };
+    return (Left[$tag] = "left", Left);
+  };
 
-   const Right = x => {
-     const Right = f => {
-       const Right = g => g(x);
-       return (Right[$tag] = "right", Right);
-     };
+  const Right = x => {
+    const Right = f => {
+      const Right = g => g(x);
+      return (Right[$tag] = "right", Right);
+    };
 
-     return (Right[$tag] = "right", Right);
-   };
+    return (Right[$tag] = "right", Right);
+  };
 
-   Either.foldr = f => acc => tx => f(tx(I) (I)) (acc);
+  Either.foldr = f => acc => tx => f(tx(I) (I)) (acc);
 
-   const I = x => x;
-   const sub = x => y => x - y;
+  const I = x => x;
+  const sub = x => y => x - y;
 
-   Either.foldr(sub) (10) (Left(2)); // -8
-   Either.foldr(sub) (10) (Right(2)); // -8
+  Either.foldr(sub) (10) (Left(2)); // -8
+  Either.foldr(sub) (10) (Right(2)); // -8
 
  */
 
@@ -364,40 +367,40 @@ Either.foldr = f => acc => tx => f(tx(I) (I)) (acc);
  * @status stable
  * @example
 
-   const $tag = Symbol.for("ftor/tag");
-   const Either = {};
+  const $tag = Symbol.for("ftor/tag");
+  const Either = {};
 
-   const Left = x => {
-     const Left = f => {
-       const Left = g => f(x);
-       return (Left[$tag] = "left", Left);
-     };
+  const Left = x => {
+    const Left = f => {
+      const Left = g => f(x);
+      return (Left[$tag] = "left", Left);
+    };
 
-     return (Left[$tag] = "left", Left);
-   };
+    return (Left[$tag] = "left", Left);
+  };
 
-   const Right = x => {
-     const Right = f => {
-       const Right = g => g(x);
-       return (Right[$tag] = "right", Right);
-     };
+  const Right = x => {
+    const Right = f => {
+      const Right = g => g(x);
+      return (Right[$tag] = "right", Right);
+    };
 
-     return (Right[$tag] = "right", Right);
-   };
+   return (Right[$tag] = "right", Right);
+  };
 
-   Either.map = f => tx => {
-     switch (tx[$tag]) {
-       case "left": return tx;
-       case "right": return Right(tx(I) (f));
-       default: throw new TypeError("Either expected");
-     }
-   };
+  Either.map = f => tx => {
+    switch (tx[$tag]) {
+      case "left": return tx;
+      case "right": return Right(tx(I) (f));
+      default: throw new TypeError("Either expected");
+    }
+  };
 
-   const I = x => x;
-   const sqr = x => x * x;
+  const I = x => x;
+  const sqr = x => x * x;
 
-   Either.map(sqr) (Left("error")); // Left "error"
-   Either.map(sqr) (Right(5)); // Right 25
+  Either.map(sqr) (Left("error")); // Left "error"
+  Either.map(sqr) (Right(5)); // Right 25
 
  */
 
@@ -421,21 +424,21 @@ Either.map = f => tx => {
  * @status stable
  * @example
 
-   const $tag = Symbol.for("ftor/tag");
-   const Either = {};
+  const $tag = Symbol.for("ftor/tag");
+  const Either = {};
 
-   Right = x => {
-     const Right = f => {
-       const Right = g => g(x);
-       return (Right[$tag] = "right", Right);
-     };
+  Right = x => {
+    const Right = f => {
+      const Right = g => g(x);
+      return (Right[$tag] = "right", Right);
+    };
 
-     return (Right[$tag] = "right", Right);
-   };
+    return (Right[$tag] = "right", Right);
+  };
 
-   Either.of = x => Right(x);
+  Either.of = x => Right(x);
 
-   Either.of("foo"); // Right "foo"
+  Either.of("foo"); // Right "foo"
 
  */
 
@@ -450,45 +453,45 @@ Either.of = x => Right(x);
  * @status stable
  * @example
 
-   const $tag = Symbol.for("ftor/tag");
-   const Either = {};
+  const $tag = Symbol.for("ftor/tag");
+  const Either = {};
 
-   Left = x => {
-     const Left = f => {
-       const Left = g => f(x);
-       return (Left[$tag] = "left", Left);
-     };
+  Left = x => {
+    const Left = f => {
+      const Left = g => f(x);
+      return (Left[$tag] = "left", Left);
+    };
 
-     return (Left[$tag] = "left", Left);
-   };
+    return (Left[$tag] = "left", Left);
+  };
 
-   Right = x => {
-     const Right = f => {
-       const Right = g => g(x);
-       return (Right[$tag] = "right", Right);
-     };
+  Right = x => {
+    const Right = f => {
+      const Right = g => g(x);
+      return (Right[$tag] = "right", Right);
+    };
 
-     return (Right[$tag] = "right", Right);
-   };
+    return (Right[$tag] = "right", Right);
+  };
 
-   Either.map = f => tx => {
-     switch (tx[$tag]) {
-       case "left": return tx;
-       case "right": return Right(tx(I) (f));
-       default: throw new TypeError("Either expected");
-     }
-   };
+  Either.map = f => tx => {
+    switch (tx[$tag]) {
+      case "left": return tx;
+      case "right": return Right(tx(I) (f));
+      default: throw new TypeError("Either expected");
+    }
+  };
 
-   Either.ap = tf => tx => tf(K(tf)) (f => Either.map(f) (tx));
+  Either.ap = tf => tx => tf(K(tf)) (f => Either.map(f) (tx));
 
-   const I = x => x;
-   const K = x => y => x;
-   const add = x => y => x + y;
+  const I = x => x;
+  const K = x => y => x;
+  const add = x => y => x + y;
 
-   Either.ap(Either.map(add) (Left("error"))) (Right(5)); // Left "error"
-   Either.ap(Either.map(add) (Right(5))) (Left("error")); // Left "error"
-   Either.ap(Either.map(add) (Left("error1"))) (Left("error2")); // Left "error1"
-   Either.ap(Either.map(add) (Right(5))) (Right(5)); // Right 10
+  Either.ap(Either.map(add) (Left("error"))) (Right(5)); // Left "error"
+  Either.ap(Either.map(add) (Right(5))) (Left("error")); // Left "error"
+  Either.ap(Either.map(add) (Left("error1"))) (Left("error2")); // Left "error1"
+  Either.ap(Either.map(add) (Right(5))) (Right(5)); // Right 10
 
  */
 
@@ -506,40 +509,40 @@ Either.ap = tf => tx => tf(K(tf)) (f => Either.map(f) (tx));
  * @status stable
  * @example
 
-   const $tag = Symbol.for("ftor/tag");
-   const Either = {};
+  const $tag = Symbol.for("ftor/tag");
+  const Either = {};
 
-   const Left = x => {
-     const Left = f => {
-       const Left = g => f(x);
-       return (Left[$tag] = "left", Left);
-     };
+  const Left = x => {
+    const Left = f => {
+      const Left = g => f(x);
+      return (Left[$tag] = "left", Left);
+    };
 
-     return (Left[$tag] = "left", Left);
-   };
+    return (Left[$tag] = "left", Left);
+  };
 
-   const Right = x => {
-     const Right = f => {
-       const Right = g => g(x);
-       return (Right[$tag] = "right", Right);
-     };
+  const Right = x => {
+    const Right = f => {
+      const Right = g => g(x);
+      return (Right[$tag] = "right", Right);
+    };
 
-     return (Right[$tag] = "right", Right);
-   };
+    return (Right[$tag] = "right", Right);
+  };
 
-   Either.join = ttx => {
-     switch (ttx[$tag]) {
-       case "left": return ttx;
-       case "right": return ttx(I) (I);
-       default: throw new TypeError("Either expected");
-     }
-   };
+  Either.join = ttx => {
+    switch (ttx[$tag]) {
+      case "left": return ttx;
+      case "right": return ttx(I) (I);
+      default: throw new TypeError("Either expected");
+    }
+  };
 
-   const I = x => x;
+  const I = x => x;
 
-   Either.join(Right(Right("foo"))); // Right "foo"
-   Either.join(Right(Left("error"))); // Left "error"
-   Either.join(Left("error")); // Left "error"
+  Either.join(Right(Right("foo"))); // Right "foo"
+  Either.join(Right(Left("error"))); // Left "error"
+  Either.join(Left("error")); // Left "error"
 
  */
 
@@ -560,54 +563,54 @@ Either.join = ttx => {
  * @status stable
  * @example
 
-   const $tag = Symbol.for("ftor/tag");
-   const Either = {};
+  const $tag = Symbol.for("ftor/tag");
+  const Either = {};
 
-   const Left = x => {
-     const Left = f => {
-       const Left = g => f(x);
-       return (Left[$tag] = "left", Left);
-     };
+  const Left = x => {
+    const Left = f => {
+      const Left = g => f(x);
+      return (Left[$tag] = "left", Left);
+    };
 
-     return (Left[$tag] = "left", Left);
-   };
+    return (Left[$tag] = "left", Left);
+  };
 
-   const Right = x => {
-     const Right = f => {
-       const Right = g => g(x);
-       return (Right[$tag] = "right", Right);
-     };
+  const Right = x => {
+    const Right = f => {
+      const Right = g => g(x);
+      return (Right[$tag] = "right", Right);
+    };
 
-     return (Right[$tag] = "right", Right);
-   };
+    return (Right[$tag] = "right", Right);
+  };
 
-   Either.map = f => tx => {
-     switch (tx[$tag]) {
-       case "left": return tx;
-       case "right": return Right(tx(I) (f));
-       default: throw new TypeError("Either expected");
-     }
-   };
+  Either.map = f => tx => {
+    switch (tx[$tag]) {
+      case "left": return tx;
+      case "right": return Right(tx(I) (f));
+      default: throw new TypeError("Either expected");
+    }
+  };
 
-   Either.of = x => Right(x);
+  Either.of = x => Right(x);
 
-   Either.join = ttx => {
-     switch (ttx[$tag]) {
-       case "left": return ttx;
-       case "right": return ttx(I) (I);
-       default: throw new TypeError("Either expected");
-     }
-   };
+  Either.join = ttx => {
+    switch (ttx[$tag]) {
+      case "left": return ttx;
+      case "right": return ttx(I) (I);
+      default: throw new TypeError("Either expected");
+    }
+  };
 
-   Either.chain = ft => tx => Either.join(Either.map(x => ft(x)) (tx));
+  Either.chain = ft => tx => Either.join(Either.map(x => ft(x)) (tx));
 
-   const I = x => x;
-   const sqr = x => x * x;
-   const dbl = x => x * 2;
+  const I = x => x;
+  const sqr = x => x * x;
+  const dbl = x => x * 2;
 
-   Either.chain(x => x >= 10 ? Either.of(dbl(x)) : Either.of(sqr(x))) (Right(5)); // Right 25
-   Either.chain(x => x >= 10 ? Either.of(dbl(x)) : Either.of(sqr(x))) (Right(10)); // Right 20
-   Either.chain(x => x >= 10 ? Either.of(dbl(x)) : Either.of(sqr(x))) (Left("error")); // Left "error"
+  Either.chain(x => x >= 10 ? Either.of(dbl(x)) : Either.of(sqr(x))) (Right(5)); // Right 25
+  Either.chain(x => x >= 10 ? Either.of(dbl(x)) : Either.of(sqr(x))) (Right(10)); // Right 20
+  Either.chain(x => x >= 10 ? Either.of(dbl(x)) : Either.of(sqr(x))) (Left("error")); // Left "error"
 
  */
 

@@ -8,14 +8,14 @@
  * @status stable
  * @example
 
-   const B = (...fs) => g => x => fs.reduceRight((acc, f) => f(acc), g(x));
-   const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+  const B = (...fs) => g => x => fs.reduceRight((acc, f) => f(acc), g(x));
+  const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
 
-   const inc = x => x + 1;
-   const sqr = x => x * x;
-   
-   B(sqr, inc, inc, inc) (inc) (1); // 25
-   B_(sqr, inc, inc, inc, inc) (1); // 25
+  const inc = x => x + 1;
+  const sqr = x => x * x;
+
+  B(sqr, inc, inc, inc) (inc) (1); // 25
+  B_(sqr, inc, inc, inc, inc) (1); // 25
 
  */
 

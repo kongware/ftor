@@ -7,8 +7,8 @@
  * @status stable
  * @example
 
-   const I = x => x;
-   I("foo"); // foo
+  const I = x => x;
+  I("foo"); // foo
 
  */
 

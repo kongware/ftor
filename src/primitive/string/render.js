@@ -8,10 +8,10 @@
  * @status stable
  * @example
 
-   const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
-   const renderTemplate = render("${0} monkeys on ${1} trees");
+  const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
+  const renderTemplate = render("${0} monkeys on ${1} trees");
 
-   renderTemplate(9, 3); // "9 monkeys on 3 trees"
+  renderTemplate(9, 3); // "9 monkeys on 3 trees"
 
  */
 
