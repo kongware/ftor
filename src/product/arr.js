@@ -267,12 +267,10 @@ Arr.lastOr = x => xs => xs.length - 1 in xs ? xs[xs.length - 1] : x;
   const Arr = Array.of;
 
   Arr.sort = f => xs => {
-    const ys = Arr.clone(xs);
+    const ys = [].concat(xs);
     return ys.sort((x, y) => f(x) (y));
   };
 
-  Arr.clone = xs => [].concat(xs);
- 
   const compare = x => y => x < y ? -1 : y < x ? 1 : 0;
   const compare_ = y => x => x < y ? -1 : y < x ? 1 : 0;
 
@@ -288,7 +286,7 @@ Arr.lastOr = x => xs => xs.length - 1 in xs ? xs[xs.length - 1] : x;
 
 // (a -> b) -> [a] -> [a]
 Arr.sort = f => xs => {
-  const ys = Arr.clone(xs);
+  const ys = [].concat(xs);
   return ys.sort((x, y) => f(x) (y));
 };
 
