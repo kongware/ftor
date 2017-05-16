@@ -159,45 +159,221 @@ Arr.drop = n => xs => xs.slice(n);
 
 
 /**
- * @name fold left
+ * @name filter
  * @type higher order function
  * @status stable
  * @example
 
   const Arr = Array.of;
-  Arr.foldl = f => acc => xs => xs.reduce((acc, x) => f(acc) (x), acc);
+  Arr.filter = pred => xs => xs.filter(x => pred(x));
+  const even = x => Math.floor(x) === x && (x & 1) === 0;
+
+  Arr.filter(even) ([1, 2, 3]); // [2]
+ 
+ */
+
+
+// (a -> Boolean) -> [a] -> [a]
+Arr.filter = pred => xs => xs.filter(x => pred(x));
+
+
+/**
+ * @name find
+ * @note short circuiting
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Arr = Array.of;
+  Arr.find = f => xs => xs.find(x => f(x));
+  const even = x => Math.floor(x) === x && (x & 1) === 0;
+
+  Arr.find(even) ([1, 2, 3]); // 2
+  Arr.find(even) ([1, 3, 5]); // undefined
+ 
+ */
+
+
+// (a -> Boolean) -> [a] -> a
+Arr.find = pred => xs => xs.find(x => pred(x));
+
+
+/**
+ * @name findOr
+ * @note short circuiting
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Arr = Array.of;
+  
+  Arr.findOr = x => pred => xs => {
+    const y = xs.find(x => pred(x));
+    return y === undefined ? x : y;
+  };
+  
+  const even = x => Math.floor(x) === x && (x & 1) === 0;
+
+  Arr.findOr(0) (even) ([1, 2, 3]); // 2
+  Arr.findOr(0) (even) ([1, 3, 5]); // 0
+ 
+ */
+
+
+// a -> (a -> Boolean) -> [a] -> a
+Arr.findOr = x => pred => xs => {
+  const y = xs.find(x => pred(x));
+  return y === undefined ? x : y;
+};
+
+
+/**
+ * @name find index
+ * @note short circuiting
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Arr = Array.of;
+  Arr.findIndex = f => xs => xs.findIndex(x => f(x));
+
+  const even = x => Math.floor(x) === x && (x & 1) === 0;
+
+  Arr.findIndex(even) ([1, 2, 3]); // 1
+  Arr.findIndex(even) ([1, 3, 5]); // -1
+
+ */
+
+
+// (a -> Boolean) -> [a] -> Number
+Arr.findIndex = f => xs => xs.findIndex(x => f(x));
+
+
+/**
+ * @name fold
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Arr = Array.of;
+  Arr.fold = f => acc => xs => xs.reduce((acc, x) => f(acc) (x), acc);
   const sub = x => y => x - y;
   const sub_ = y => x => x - y;
 
-  Arr.foldl(sub) (0) ([1, 2, 3, 4, 5]); // -15
-  Arr.foldl(sub_) (0) ([1, 2, 3, 4, 5]); // 3
+  Arr.fold(sub) (0) ([1, 2, 3, 4, 5]); // -15
+  Arr.fold(sub_) (0) ([1, 2, 3, 4, 5]); // 3
  
  */
 
 
 // (a -> b -> a) -> a -> [b] -> a
-Arr.foldl = f => acc => xs => xs.reduce((acc, x) => f(acc) (x), acc);
+Arr.fold = f => acc => xs => xs.reduce((acc, x) => f(acc) (x), acc);
 
 
 /**
- * @name fold right
+ * @name fold without accumulator
+ * @note unsafe with empty list
  * @type higher order function
  * @status stable
  * @example
 
   const Arr = Array.of;
-  Arr.foldr = f => acc => xs => xs.reduceRight((acc, x) => f(x) (acc), acc);
-  const sub = x => y => x - y;
-  const sub_ = y => x => x - y;
+  Arr.fold1 = f => xs => xs.reduce((acc, x) => f(acc) (x));
+  const add = x => y => x + y;
 
-  Arr.foldr(sub) (0) ([1, 2, 3, 4, 5]); // 3
-  Arr.foldr(sub_) (0) ([1, 2, 3, 4, 5]); // -15
+  Arr.fold1(add) ([1, 2, 3]); // 6
+  Arr.fold1(add) ([]); // TypeError
+
+ */
+
+
+// (a -> a -> a) -> [a] -> a
+Arr.fold1 = f => xs => xs.reduce((acc, x) => f(acc) (x));
+
+
+/**
+ * @name fold left continuation
+ * @note mutual recursion; requires the reducer to be in CPS
+ * @type higher order function
+ * @status stable
+ * @todo verify type signature
+ * @example
+
+  ???
+
+ */
+
+
+// (a -> b -> (a -> a) -> a) -> a -> [b] -> a
+Arr.foldlk = f => acc => xs => {
+  const aux = (acc, i) => xs.length === i
+   ? acc
+   : f(acc) (xs[i]) (acc => aux(acc, i + 1));
+
+  return aux(acc, 0);
+};
+
+
+/**
+ * @name fold right continuation
+ * @note mutual recursion; requires the reducer to be in CPS
+ * @type higher order function
+ * @status stable
+ * @todo verify type signature
+ * @example
+
+  ???
+
+ */
+
+
+// (a -> b -> (b -> b) -> b) -> b -> [a] -> b
+Arr.foldrk = f => acc => xs => {
+  const aux = (acc, i) => i < 0
+   ? acc
+   : f(xs[i]) (acc, i) (acc => aux(acc, i - 1));
+
+  return aux(acc, xs.length - 1);
+};
+
+
+/**
+ * @name for each
+ * @note performs side effects
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Arr = Array.of;
+  Arr.forEach = f => xs => xs.forEach(x => f(x));
+
+  Arr.forEach(console.log) ([1, 2, 3]); // 1, 2, 3
  
  */
 
 
-// (a -> b -> b) -> b -> [a] -> b
-Arr.foldr = f => acc => xs => xs.reduceRight((acc, x) => f(x) (acc), acc);
+// ?
+Arr.forEach = f => xs => xs.forEach(x => f(x));
+
+
+/**
+ * @name array from
+ * @type first order function
+ * @status stable
+ * @example
+
+  const Arr = Array.of;
+  Arr.from = x => Array.from(x);
+  const m = new Map();
+
+  m.set(1, "foo");
+  Arr.from(m); [1, "foo"]
+ 
+ */
+
+
+// Iterable a -> [a]
+Arr.from = x => Array.from(x);
 
 
 /**
@@ -238,6 +414,25 @@ Arr.head = xs => xs[0];
 
 // a -> [a] -> a
 Arr.headOr = x => xs => 0 in xs ? xs[0] : x;
+
+
+/**
+ * @name includes
+ * @note short circuiting
+ * @type first order function
+ * @status stable
+ * @example
+
+  const Arr = Array.of;
+  Arr.includes = x => xs => xs.includes(x);
+
+  Arr.includes(2) ([1, 2, 3]); // true
+ 
+ */
+
+
+// a -> [a] -> Boolean
+Arr.includes = x => xs => xs.includes(x);
 
 
 /**
@@ -296,6 +491,114 @@ Arr.last = xs => xs[xs.length - 1];
 
 // [a] -> a
 Arr.lastOr = x => xs => xs.length - 1 in xs ? xs[xs.length - 1] : x;
+
+
+/**
+ * @name paramorphism
+ * @type higher order function
+ * @status stable
+ * @example
+
+  ???
+ 
+ */
+
+
+// (a -> [b] -> b -> a) -> a -> [b] -> a
+Arr.para = f => acc => xs => {
+  const aux = (acc, [head, ...tail]) => head === undefined
+   ? acc
+   : aux(f(acc) (tail) (head), tail);
+
+  return aux(acc, xs);
+};
+
+
+/**
+ * @name left paramorphism continuation
+ * @note requires reducer to be in CPS
+ * @type higher order function
+ * @status stable
+ * @todo verify type signature
+ * @example
+
+  ???
+ 
+ */
+
+
+// (a -> [b] -> b -> (a -> a) -> a) -> a -> [b] -> a
+Arr.paralk = f => acc => xs => {
+  const aux = (acc, [head, ...tail]) => head === undefined
+   ? acc
+   : f(acc) (tail) (head) (acc => aux(acc, tail));
+
+  return aux(acc, xs);
+};
+
+
+/**
+ * @name right paramorphism continuation
+ * @note requires reducer to be in CPS
+ * @type higher order function
+ * @status stable
+ * @todo verify type signature
+ * @example
+
+  ???
+ 
+ */
+
+
+// (a -> [a] -> b -> (b -> b) -> b) -> b -> [a] -> b
+Arr.parark = f => acc => xs => {
+  const aux = (acc, head, tail) => head === undefined
+   ? acc
+   : f(head) (tail) (acc) (acc => aux(acc, tail[tail.length - 1], tail.slice(0, -1)));
+
+  return aux(acc, xs[xs.length - 1], xs.slice(0, -1));
+};
+
+
+/**
+ * @name prepend
+ * @type first order function
+ * @status stable
+ * @example
+
+  const Arr = Array.of;
+  Arr.prepend = xs => x => [x].concat(xs);
+
+  Arr.prepend([1, 2]) (0); // [0, 1, 2]
+  Arr.prepend([1, 2]) ([3]); // [[0], 1, 2]
+
+ */
+
+
+// [a] -> a -> [a]
+Arr.prepend = xs => x => [x].concat(xs);
+
+
+// a -> [a] -> [a]
+Arr.prepend_ = x => xs => [x].concat(xs);
+
+
+/**
+ * @name reverse
+ * @type first order function
+ * @status stable
+ * @example
+
+  const Arr = Array.of;
+  Arr.reverse = xs => xs.reverse();
+
+  Arr.reverse([1, 2, 3]); // [3, 2, 1]
+
+ */
+
+
+// [a] -> [a]
+Arr.reverse = xs => xs.reverse();
 
 
 /**
