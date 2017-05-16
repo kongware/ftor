@@ -61,3 +61,4 @@ Please note that names are a quite good indicator of how generic your code is. G
 - [ ] throw an error if `Either.compare` is applied to a `Left` and a `Right` type
 - [ ] add safe `head` that returns an Option
 - [ ] review foldl/r under consideration of flip binary operation
+- [ ] ftor throws when getting/deleting non-existing `Object` properties

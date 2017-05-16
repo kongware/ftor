@@ -15,13 +15,14 @@
     else return compareBy(f) (ix) (iy);
   };
 
+  const itor = iter => iter[Symbol.iterator]();
   const eq = x => y => x === y;
   const looseEq = x => y => x == y;
 
   const xs = [1, 2, 3], ys = ["1" , "2", "3"];
 
-  compareBy(eq) (xs[Symbol.iterator]()) (ys[Symbol.iterator]()); // false
-  compareBy(looseEq) (xs[Symbol.iterator]()) (ys[Symbol.iterator]()); // true
+  compareBy(eq) (itor(xs)) (itor(ys)); // false
+  compareBy(looseEq) (itor(xs)) (itor(ys)); // true
 
  */
 
