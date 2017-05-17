@@ -561,6 +561,44 @@ Arr.parark = f => acc => xs => {
 
 
 /**
+ * @name pop
+ * @note second version is impure
+ * @type first order function
+ * @status stable
+ * @example
+
+  const Arr = Array.of;
+
+  Arr.pop = xs => {
+    const ys = [].concat(xs);
+    return [ys.pop(), ys];
+  };
+
+
+  Arr.pop_ = xs => [xs.pop(), xs];
+
+  const xs = [1, 2, 3],
+   ys = Arr.pop(xs), // [3, [1, 2]]
+   zs = Arr.pop_(xs); // [3, [1, 2]]
+
+  console.assert(xs !== ys[1]); // passes
+  console.assert(xs === zs[1]); // passes
+
+ */
+
+
+// [a] -> [a, [a]]
+Arr.pop = xs => {
+  const ys = [].concat(xs);
+  return [ys.pop(), ys];
+};
+
+
+// [a] -> [a, [a]]
+Arr.pop_ = xs => [xs.pop(), xs];
+
+
+/**
  * @name prepend
  * @type first order function
  * @status stable
@@ -599,6 +637,43 @@ Arr.prepend_ = x => xs => [x].concat(xs);
 
 // [a] -> [a]
 Arr.reverse = xs => xs.reverse();
+
+
+/**
+ * @name shift
+ * @note second version is impure
+ * @type first order function
+ * @status stable
+ * @example
+
+  const Arr = Array.of;
+
+  Arr.shift = xs => {
+    const ys = [].concat(xs);
+    return [ys.shift(), ys];
+  };
+
+  Arr.shift_ = xs => [xs.shift(), xs];
+
+  const xs = [1, 2, 3],
+   ys = Arr.shift(xs), // [1, [2, 3]]
+   zs = Arr.shift_(xs); // [1, [2, 3]]
+
+  console.assert(xs !== ys[1]); // passes
+  console.assert(xs === zs[1]); // passes
+
+ */
+
+
+// [a] -> [a, [a]]
+Arr.shift = xs => {
+  const ys = [].concat(xs);
+  return [ys.shift(), ys];
+};
+
+
+// [a] -> [a, [a]]
+Arr.shift_ = xs => [xs.shift(), xs];
 
 
 /**
