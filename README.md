@@ -56,10 +56,86 @@ The following conventions for name bindings are used:
 
 Please note that names are a quite good indicator of how generic your code is. Generic names indicate generic code and vice versa.
 
+## Purity and referential transparency
+
+## Currying and abstraction over arity
+
+## Higher order functions and inversion of control
+
+## Common combinators
+
+## Point-free vs. procedural style
+
+## Abstraction over recursion
+
+### Folding
+
+### Folding with mutual recursion
+
+### Transducing
+
+## Church encoding in untyped languages
+
+## Algebraic data types
+
+### Product types
+
+* Records (`Object`s)
+* Lists (`Array`s)
+* Tuples
+
+### Sum types
+
+* first-order types (e.g. enumerations)
+* polymorphic types (e.g. Either)
+
+### Other types
+
+* Recursive types
+* Function types
+* Singleton types
+* Unit types
+
+### Pattern matching
+
+## Immutability and persistant data structures
+
+## Polymorphism in untyped languages
+
+### Ad hoc Polymorphism
+
+### Parametric polymorphism
+
+### Parametricity
+
+## Lazyness in strictly evaluated languages
+
+# Data types
+
+## Primitives
+
+## Product types
+
+## Sum types
+
+## Type classes
+
+# Debugging
+
+# Research
+
+* Arrows/Kleisli arrows
+* Corecursion
+* F-algebra + Cata-/Anamorphisms
+* Hylomorphisms
+* Natural transformations
+* Coyoneda
+* Free applicatives/monads/arrows
+
 # Todos
 
-- [ ] throw an error if `Either.compare` is applied to a `Left` and a `Right` type
 - [ ] add `Option` to function that may return undefined
 - [ ] foldlk/foldrk is distinguished because of prematurely exiting
+- [ ] right folds are derived by applying a flipped binary operation to fold
 - [ ] ftor throws when getting/deleting non-existing `Object` properties
 - [ ] use recursion instead of `xs.map((x, idx) => ...)`
