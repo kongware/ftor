@@ -494,6 +494,25 @@ Arr.lastOr = x => xs => xs.length - 1 in xs ? xs[xs.length - 1] : x;
 
 
 /**
+ * @name lift
+ * @type higher order function
+ * @status experimental
+ * @example
+
+  const Arr = Array.of;
+  Arr.lift = f => args => args.reduce((f, x) => f(x), f);
+  const add = x => y => x + y;
+
+  Arr.lift(add) ([2, 3]); // 5
+
+ */
+
+
+// ?
+Arr.lift = f => args => args.reduce((f, x) => f(x), f);
+
+
+/**
  * @name paramorphism
  * @type higher order function
  * @status stable

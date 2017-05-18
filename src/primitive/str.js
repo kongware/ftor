@@ -27,7 +27,7 @@ const Str = String;
  */
 
 
-// String -> [*] -> String
+// String -> (*) -> String
 Str.render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
 
 

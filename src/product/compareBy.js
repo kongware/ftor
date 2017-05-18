@@ -27,7 +27,7 @@
  */
 
 
-// (a -> b -> Boolean) -> a -> b -> Ordering
+// (a -> b -> Boolean) -> a -> b -> Boolean
 const compareBy = f => ix => iy => {
   const {value: x} = ix.next(), {value: y} = iy.next();
 

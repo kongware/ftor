@@ -25,7 +25,7 @@ const {render} = require("../primitive/str");
  */
 
 
-// (a -> b) -> String -> [*] -> IO
+// (b -> Error) -> String -> (a -> b) -> IO
 const throw_ = cons => template => f => x => {
   throw new cons(render(template) (f(x)));
 };

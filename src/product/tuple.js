@@ -4,7 +4,7 @@
 // dependencies
 
 
-//const {B_} = require("../B");
+const I = require("../I");
 
 
 /**
@@ -15,10 +15,10 @@
  * @example
 
   const Tuple = (...args) => f => f(...args);
-  Tuple.toArray = (...args) => args;
+  Tuple.toArray = tx => tx((...args) => args);
   const triple = Tuple(1, "a", true);
 
-  triple(Tuple.toArray); // [1, "a", true]
+  Tuple.toArray(triple); // [1, "a", true]
 
  */
 
@@ -27,39 +27,152 @@ const Tuple = (...args) => f => f(...args);
 
 
 /**
- * @name curry
+ * @name from Array
  * @type higher order function
  * @status stable
  * @example
 
   const Tuple = (...args) => f => f(...args);
-  Tuple.toArray = (...args) => args;
+  Tuple.fromArray = f => args => f(...args);
 
-  Tuple.curry = tx => f => {
-    const xs = tx(Tuple.toArray);
-    return f(xs[0]) (xs[1]);
-  };
-   
-  const add = y => x => x + y;
-  const pair = Tuple(2, 3);
-   
-  Tuple.curry(pair) (add); // 5
+  Tuple.fromArray((x, y) => x + y) ([2, 3]); // 5
+
+ */
+
+// ((*) -> a) -> [*] -> a
+Tuple.fromArray = f => args => f(...args);
+
+
+/**
+ * @name get
+ * @type first order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.get2 = tx => tx((x, y) => y);
+
+  Tuple.get2(Tuple(1, "a", true)); // "a"
 
  */
 
 
-// ((a, b) -> c) -> (a -> b -> c) -> c
-Tuple.curry = tx => f => {
-  const xs = tx(Tuple.toArray);
-  return f(xs[0]) (xs[1]);
-};
+// ((*) -> a) -> a
+Tuple.get1 = tx => tx(I);
 
 
-// ((a, b, c) -> d) -> (a -> b -> c -> d) -> d
-Tuple.curry3 = tx => f => {
-  const xs = tx(Tuple.toArray);
-  return f(xs[0]) (xs[1]) (xs[2]);
-};
+// ((*) -> a) -> a
+Tuple.get2 = tx => tx((x, y) => y);
+
+
+// ((*) -> a) -> a
+Tuple.get3 = tx => tx((x, y, z) => z);
+
+
+/**
+ * @name get nth
+ * @type first order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.getn = n => tx => tx((...args) => args[n - 1]);
+
+  Tuple.getn(2) (Tuple(1, "a", true)); // "a"
+
+ */
+
+
+// Number -> ((*) -> a) -> a
+Tuple.getn = n => tx => tx((...args) => args[n - 1]);
+
+
+/**
+ * @name has
+ * @type first order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.has = x => tx => tx((...args) => args.includes(x));
+
+  const triple = Tuple(1, "a", true);
+
+  Tuple.has("a") (triple); // true
+  Tuple.has(2) (triple); // false
+
+ */
+
+
+// a -> ((*) -> b) -> Boolean
+Tuple.has = x => tx => tx((...args) => args.includes(x));
+
+
+/**
+ * @name last
+ * @type first order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.last = tx => tx((...args) => args[args.length - 1]);
+
+  const tuple5 = Tuple(1, "a", true, {foo: true}, ["bar"]);
+  Tuple.last(tuple5); // ["bar"]
+
+ */
+
+
+// ((*) -> a) -> a
+Tuple.last = tx => tx((...args) => args[args.length - 1]);
+
+
+/**
+ * @name length
+ * @type first order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.len = tx => tx((...args) => args.length);
+
+  Tuple.len(Tuple(1, "a", true)); // 3
+
+ */
+
+
+// ((*) -> a) -> Number
+Tuple.len = tx => tx((...args) => args.length);
+
+
+/**
+ * @name map
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.toArray = tx => tx((...args) => args);
+  Tuple.map2 = f => tx => tx((x, y, ...args) => Tuple(x, f(y), ...args));
+
+  const toUC = x => x.toUpperCase();
+
+  const triple = Tuple.map2(toUC) (Tuple(1, "a", true));
+  Tuple.toArray(triple); // [1, "A", true]
+
+ */
+
+
+// (a -> b) -> ((*) -> c) -> ((*) -> c)
+Tuple.map1 = f => tx => tx((x, ...args) => Tuple(f(x), ...args));
+
+
+// (a -> b) -> ((*) -> c) -> ((*) -> c)
+Tuple.map2 = f => tx => tx((x, y, ...args) => Tuple(x, f(y), ...args));
+
+
+// (a -> b) -> ((*) -> c) -> ((*) -> c)
+Tuple.map3 = f => tx => tx((x, y, z, ...args) => Tuple(x, y, f(z), ...args));
 
 
 /**
@@ -69,15 +182,40 @@ Tuple.curry3 = tx => f => {
  * @example
 
   const Tuple = (...args) => f => f(...args);
-  Tuple.toArray = (...args) => args;
+  Tuple.toArray = tx => tx((...args) => args);
 
-  Tuple(1, "a", true) (Tuple.toArray); // [1, "a", true]
+  Tuple.toArray(Tuple(1, "a", true)); // [1, "a", true]
 
  */
 
 
-// [*] -> [*]
-Tuple.toArray = (...args) => args;
+// (*) -> [*]
+Tuple.toArray = tx => tx((...args) => args);
+
+
+/**
+ * @name uncurry
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.uncurry = f => tx => tx((...args) => f(args[0]) (args[1]));
+
+  const add = y => x => x + y;
+  const pair = Tuple(2, 3);
+   
+  Tuple.uncurry(add) (pair); // 5
+
+ */
+
+
+// (a -> b -> c) -> ((a, b) -> c) -> c
+Tuple.uncurry = f => tx => tx((...args) => f(args[0]) (args[1]));
+
+
+// (a -> b -> c -> d) -> ((a, b, c) -> d) -> d
+Tuple.uncurry3 = f => tx => tx((...args) => f(args[0]) (args[1]) (args[2]));
 
 
 // API
