@@ -143,6 +143,7 @@ Tuple.empty = Tuple();
  */
 
 
+// ((*) -> Boolean) -> ((*) -> Boolean) -> Boolean
 Tuple.eq = tx => ty => Tuple.len(tx) === Tuple.len(ty)
  && tx((...argsx) => ty((...argsy) => argsx.every((x, i) => x === argsy[i])));
 
@@ -172,14 +173,17 @@ Tuple.eq = tx => ty => Tuple.len(tx) === Tuple.len(ty)
  */
 
 
+// ((a -> Boolean)) -> (a -> Boolean) -> (a -> Boolean) -> Boolean
 Tuple.eqBy = (...types) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
  && tx(x => ty(y => types[0](y) (x)));
 
 
+// ((a -> Boolean), (b -> Boolean)) -> ((a, b) -> Boolean) -> ((a, b) -> Boolean) -> Boolean
 Tuple.eqBy2 = (...types) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
  && tx((x1, y1) => ty((x2, y2) => types[0](x1) (x2) && types[1](y1) (y2)));
 
 
+// ((a -> Boolean), (b -> Boolean), (c -> Boolean)) -> ((a, b, c) -> Boolean) -> ((a, b, c) -> Boolean) -> Boolean
 Tuple.eqBy3 = (...types) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
  && tx((x1, y1, z1) => ty((x2, y2, z2) => types[0](x1) (x2) && types[1](y1) (y2) && types[2](z1) (z2)));
 
