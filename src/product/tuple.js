@@ -98,7 +98,8 @@ Tuple.concatBy2 = concat1 => concat2 => tx => ty => tx((x1, y1) => ty((x2, y2) =
 
 
 // (a -> a -> a) -> (b -> b -> b) -> (c -> c -> c) -> ((a, b, c) -> r) -> ((a, b, c) -> r) -> ((a, b, c) -> r)
-Tuple.concatBy3 = concat1 => concat2 => concat3 => tx => ty => tx((x1, y1, z1) => ty((x2, y2, z2) => Tuple(concat1(x1) (x2), concat2(y1) (y2), concat3(z1) (z2))));
+Tuple.concatBy3 = concat1 => concat2 => concat3 => tx => ty =>
+ tx((x1, y1, z1) => ty((x2, y2, z2) => Tuple(concat1(x1) (x2), concat2(y1) (y2), concat3(z1) (z2))));
 
 
 /**
