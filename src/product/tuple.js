@@ -70,6 +70,10 @@ Tuple.bimap = f => g => tx => tx((x, y) => Tuple(f(x), g(y)));
 Tuple.concat = tx => ty => tx((...argsx) => ty((...argsy) => Tuple(...argsx, ...argsy)));
 
 
+// ((*) -> r) -> ((*) -> r) -> ((*) -> r)
+Tuple.concat_ = ty => tx => tx((...argsx) => ty((...argsy) => Tuple(...argsx, ...argsy)));
+
+
 /**
  * @name concat by
  * @type higher order function
@@ -122,6 +126,65 @@ Tuple.empty = Tuple();
 
 
 /**
+ * @name equal
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.len = tx => tx((...args) => args.length);
+
+  Tuple.eq = tx => ty => Tuple.len(tx) === Tuple.len(ty)
+   && tx((...argsx) => ty((...argsy) => argsx.every((x, i) => x === argsy[i])));
+
+  Tuple.eq(Tuple(1, "a", true)) (Tuple(1, "a", true)); // true
+  Tuple.eq(Tuple(1, "a", true)) (Tuple(1, "b", true)); // false
+
+ */
+
+
+Tuple.eq = tx => ty => Tuple.len(tx) === Tuple.len(ty)
+ && tx((...argsx) => ty((...argsy) => argsx.every((x, i) => x === argsy[i])));
+
+
+/**
+ * @name equal by
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.len = tx => tx((...args) => args.length);
+
+  Tuple.eqBy2 = (...types) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
+   && tx((x1, y1) => ty((x2, y2) => types[0](x1) (x2) && types[1](y1) (y2)));
+
+  const o = {foo: true, bar: 1}, p = {foo: true, bar: 2}, q = {foo: false, bar: 3},
+   xs = [1, 2, 3], ys = [4, 5, 6], zs = [1, 2];
+
+  const fooEq = o => p => o.id === p.id;
+  const lenEq = xs => ys => xs.length === ys.length;
+
+  Tuple.eqBy2(fooEq, lenEq) (Tuple(o, xs)) (Tuple(p, ys)); // true
+  Tuple.eqBy2(fooEq, lenEq) (Tuple(o, xs)) (Tuple(q, ys)); // false
+  Tuple.eqBy2(fooEq, lenEq) (Tuple(o, xs)) (Tuple(p, zs)); // false
+
+ */
+
+
+Tuple.eqBy = (...types) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
+ && tx(x => ty(y => types[0](y) (x)));
+
+
+Tuple.eqBy2 = (...types) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
+ && tx((x1, y1) => ty((x2, y2) => types[0](x1) (x2) && types[1](y1) (y2)));
+
+
+Tuple.eqBy3 = (...types) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
+ && tx((x1, y1, z1) => ty((x2, y2, z2) => types[0](x1) (x2) && types[1](y1) (y2) && types[2](z1) (z2)));
+
+
+/**
  * @name from Array
  * @type higher order function
  * @status stable
@@ -139,6 +202,7 @@ Tuple.empty = Tuple();
   Tuple.get2(pair); // "a"
 
  */
+
 
 // [*] -> ((*) -> r)
 Tuple.fromArray = args => Tuple(...args);
