@@ -70,7 +70,7 @@ Please note that names are a quite good indicator of how generic your code is. G
 
 ### Folding
 
-### Folding with mutual continuation
+### Folding with mutual recursion
 
 ### Transducing
 
