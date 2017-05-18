@@ -86,7 +86,7 @@ Please note that names are a quite good indicator of how generic your code is. G
 
 ### Sum types
 
-* first-order types (e.g. enumerations)
+* monomorphic types (e.g. enumerations)
 * polymorphic types (e.g. Either)
 
 ### Other types
