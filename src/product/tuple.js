@@ -23,7 +23,101 @@ const I = require("../I");
  */
 
 
+// (*) -> ((*) -> r) -> r
 const Tuple = (...args) => f => f(...args);
+
+
+/**
+ * @name bimap
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.toArray = tx => tx((...args) => args);
+  Tuple.bimap = f => g => tx => tx((x, y) => Tuple(f(x), g(y)));
+
+  const inc = x => x + 1
+  const toUC = x => x.toUpperCase();
+  const pair = Tuple.bimap(inc) (toUC) (Tuple(1, "a"));
+
+  Tuple.toArray(pair); // [2, "A"]
+
+ */
+
+
+// (a -> b) -> (c -> d) -> ((a, c) -> r) -> ((b, d) -> r)
+Tuple.bimap = f => g => tx => tx((x, y) => Tuple(f(x), g(y)));
+
+
+/**
+ * @name concat
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.toArray = tx => tx((...args) => args);
+  Tuple.concat = tx => ty => tx((...argsx) => ty((...argsy) => Tuple(...argsx, ...argsy)));
+
+  const tuple = Tuple.concat(Tuple(1, "a")) (Tuple(true));
+  Tuple.toArray(tuple); // [1, "a", true]
+
+ */
+
+
+// ((*) -> r) -> ((*) -> r) -> ((*) -> r)
+Tuple.concat = tx => ty => tx((...argsx) => ty((...argsy) => Tuple(...argsx, ...argsy)));
+
+
+/**
+ * @name concat by
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.toArray = tx => tx((...args) => args);
+  Tuple.concatBy2 = concat1 => concat2 => tx => ty => tx((w, x) => ty((y, z) => Tuple(concat1(w) (y), concat(x) (z))));
+
+  const add = x => y => x + y;
+  const concat = x => y => x.concat(y);
+  const pair = Tuple.concatBy2(add) (concat) (Tuple(1, "a")) (Tuple(2, "b"));
+
+  Tuple.toArray(pair); // [3, "ab"]
+
+ */
+
+
+// (a -> a -> a) -> (a -> r) -> (a -> r) -> (a -> r)
+Tuple.concatBy = concat => tx => ty => tx(x => ty(y => Tuple(concat(x) (y))));
+
+
+// (a -> a -> a) -> (b -> b -> b) -> ((a, b) -> r) -> ((a, b) -> r) -> ((a, b) -> r)
+Tuple.concatBy2 = concat1 => concat2 => tx => ty => tx((x1, y1) => ty((x2, y2) => Tuple(concat1(x1) (x2), concat2(y1) (y2))));
+
+
+// (a -> a -> a) -> (b -> b -> b) -> (c -> c -> c) -> ((a, b, c) -> r) -> ((a, b, c) -> r) -> ((a, b, c) -> r)
+Tuple.concatBy3 = concat1 => concat2 => concat3 => tx => ty => tx((x1, y1, z1) => ty((x2, y2, z2) => Tuple(concat1(x1) (x2), concat2(y1) (y2), concat3(z1) (z2))));
+
+
+/**
+ * @name empty
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.toArray = tx => tx((...args) => args);
+  Tuple.empty = Tuple();
+
+  Tuple.toArray(Tuple.empty); // []
+
+ */
+
+
+// (() -> )
+Tuple.empty = Tuple();
 
 
 /**
@@ -33,19 +127,25 @@ const Tuple = (...args) => f => f(...args);
  * @example
 
   const Tuple = (...args) => f => f(...args);
-  Tuple.fromArray = f => args => f(...args);
+  Tuple.get1 = tx => tx(I);
+  Tuple.get2 = tx => tx((x, y) => y);
+  Tuple.fromArray = args => Tuple(...args);
 
-  Tuple.fromArray((x, y) => x + y) ([2, 3]); // 5
+  const I = x => x;
+  const pair = Tuple.fromArray([1, "a"]);
+
+  Tuple.get1(pair); // 1
+  Tuple.get2(pair); // "a"
 
  */
 
-// ((*) -> a) -> [*] -> a
-Tuple.fromArray = f => args => f(...args);
+// [*] -> ((*) -> r)
+Tuple.fromArray = args => Tuple(...args);
 
 
 /**
  * @name get
- * @type first order function
+ * @type higher order function
  * @status stable
  * @example
 
@@ -57,21 +157,21 @@ Tuple.fromArray = f => args => f(...args);
  */
 
 
-// ((*) -> a) -> a
+// ((*) -> r) -> r
 Tuple.get1 = tx => tx(I);
 
 
-// ((*) -> a) -> a
+// ((*) -> r) -> r
 Tuple.get2 = tx => tx((x, y) => y);
 
 
-// ((*) -> a) -> a
+// ((*) -> r) -> r
 Tuple.get3 = tx => tx((x, y, z) => z);
 
 
 /**
  * @name get nth
- * @type first order function
+ * @type higher order function
  * @status stable
  * @example
 
@@ -83,13 +183,13 @@ Tuple.get3 = tx => tx((x, y, z) => z);
  */
 
 
-// Number -> ((*) -> a) -> a
+// Number -> ((*) -> r) -> r
 Tuple.getn = n => tx => tx((...args) => args[n - 1]);
 
 
 /**
  * @name has
- * @type first order function
+ * @type higher order function
  * @status stable
  * @example
 
@@ -104,13 +204,13 @@ Tuple.getn = n => tx => tx((...args) => args[n - 1]);
  */
 
 
-// a -> ((*) -> b) -> Boolean
+// a -> ((*) -> Boolean) -> Boolean
 Tuple.has = x => tx => tx((...args) => args.includes(x));
 
 
 /**
  * @name last
- * @type first order function
+ * @type higher order function
  * @status stable
  * @example
 
@@ -123,13 +223,13 @@ Tuple.has = x => tx => tx((...args) => args.includes(x));
  */
 
 
-// ((*) -> a) -> a
+// ((*) -> r) -> r
 Tuple.last = tx => tx((...args) => args[args.length - 1]);
 
 
 /**
  * @name length
- * @type first order function
+ * @type higher order function
  * @status stable
  * @example
 
@@ -141,7 +241,7 @@ Tuple.last = tx => tx((...args) => args[args.length - 1]);
  */
 
 
-// ((*) -> a) -> Number
+// ((*) -> Number) -> Number
 Tuple.len = tx => tx((...args) => args.length);
 
 
@@ -163,16 +263,124 @@ Tuple.len = tx => tx((...args) => args.length);
  */
 
 
-// (a -> b) -> ((*) -> c) -> ((*) -> c)
+// (a -> b) -> ((*) -> r) -> ((*) -> r)
 Tuple.map1 = f => tx => tx((x, ...args) => Tuple(f(x), ...args));
 
 
-// (a -> b) -> ((*) -> c) -> ((*) -> c)
+// (a -> b) -> ((*) -> r) -> ((*) -> r)
 Tuple.map2 = f => tx => tx((x, y, ...args) => Tuple(x, f(y), ...args));
 
 
-// (a -> b) -> ((*) -> c) -> ((*) -> c)
+// (a -> b) -> ((*) -> r) -> ((*) -> r)
 Tuple.map3 = f => tx => tx((x, y, z, ...args) => Tuple(x, y, f(z), ...args));
+
+
+/**
+ * @name rotate left
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.toArray = tx => tx((...args) => args);
+  Tuple.rotatel = tx => tx((x, y, z) => Tuple(y, z, x));
+
+  const triple = Tuple.rotatel(Tuple(1, "a", true));
+  Tuple.toArray(triple); // ["a", true, 1]
+
+ */
+
+
+// ((a, b, c) -> r) -> ((b, c, a) -> r)
+Tuple.rotatel = tx => tx((x, y, z) => Tuple(y, z, x));
+
+
+/**
+ * @name rotate right
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.toArray = tx => tx((...args) => args);
+  Tuple.rotater = tx => tx((x, y, z) => Tuple(z, x, y));
+
+  const triple = Tuple.rotater(Tuple(1, "a", true));
+  Tuple.toArray(triple); // [true, 1, "a"]
+
+ */
+
+
+// ((a, b, c) -> r) -> ((c, a, b) -> r)
+Tuple.rotater = tx => tx((x, y, z) => Tuple(z, x, y));
+
+
+/**
+ * @name set
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.toArray = tx => tx((...args) => args);
+  Tuple.set2 = y => tx => tx((x, _, ...args) => Tuple(x, y, ...args));
+
+  const triple = Tuple.set2("b") (Tuple(1, "a", true));
+  Tuple.toArray(triple); // [1, "b", true]
+
+ */
+
+
+// a -> ((*) -> r) -> ((*) -> r)
+Tuple.set1 = x => tx => tx((_, ...args) => Tuple(x, ...args));
+
+
+// a -> ((*) -> r) -> ((*) -> r)
+Tuple.set2 = y => tx => tx((x, _, ...args) => Tuple(x, y, ...args));
+
+
+// a -> ((*) -> r) -> ((*) -> r)
+Tuple.set3 = z => tx => tx((x, y, _, ...args) => Tuple(x, y, z, ...args));
+
+
+/**
+ * @name set nth
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.toArray = tx => tx((...args) => args);
+  Tuple.setn = n => x => tx => tx((...args) => (args[n - 1] = x, Tuple(...args)));
+
+  const triple = Tuple.setn(2) ("b") (Tuple(1, "a", true));
+  Tuple.toArray(triple); // [1, "b", true]
+
+ */
+
+
+// Number -> ((*) -> r) -> r
+Tuple.setn = n => x => tx => tx((...args) => (args[n - 1] = x, Tuple(...args)));
+
+
+/**
+ * @name swap
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => f => f(...args);
+  Tuple.toArray = tx => tx((...args) => args);
+  Tuple.swap = tx => tx((x, y) => Tuple(y, x));
+
+  const pair = Tuple.swap(Tuple(1, "a"));
+  Tuple.toArray(pair); // ["a", 1]
+
+ */
+
+
+// ((a, b) -> r) -> ((b, a) -> r)
+Tuple.swap = tx => tx((x, y) => Tuple(y, x));
 
 
 /**
@@ -189,7 +397,7 @@ Tuple.map3 = f => tx => tx((x, y, z, ...args) => Tuple(x, y, f(z), ...args));
  */
 
 
-// (*) -> [*]
+// ((*) -> r) -> [*]
 Tuple.toArray = tx => tx((...args) => args);
 
 
