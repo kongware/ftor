@@ -82,28 +82,32 @@ Tuple.concat_ = ty => tx => tx((...argsx) => ty((...argsy) => Tuple(...argsx, ..
 
   const Tuple = (...args) => f => f(...args);
   Tuple.toArray = tx => tx((...args) => args);
-  Tuple.concatBy2 = concat1 => concat2 => tx => ty => tx((w, x) => ty((y, z) => Tuple(concat1(w) (y), concat(x) (z))));
+  
+  Tuple.concatBy2 = (...concat) => tx => ty =>
+   tx((x1, y1) => ty((x2, y2) => Tuple(concat[0](x1) (x2), concat[1](y1) (y2))));
 
   const add = x => y => x + y;
   const concat = x => y => x.concat(y);
-  const pair = Tuple.concatBy2(add) (concat) (Tuple(1, "a")) (Tuple(2, "b"));
+  const pair = Tuple.concatBy2(add, concat) (Tuple(1, "a")) (Tuple(2, "b"));
 
   Tuple.toArray(pair); // [3, "ab"]
 
  */
 
 
-// (a -> a -> a) -> (a -> r) -> (a -> r) -> (a -> r)
-Tuple.concatBy = concat => tx => ty => tx(x => ty(y => Tuple(concat(x) (y))));
+// ((a -> a -> a)) -> (a -> r) -> (a -> r) -> (a -> r)
+Tuple.concatBy = (...concat) => tx => ty =>
+ tx(x => ty(y => Tuple(concat[0](x) (y))));
 
 
-// (a -> a -> a) -> (b -> b -> b) -> ((a, b) -> r) -> ((a, b) -> r) -> ((a, b) -> r)
-Tuple.concatBy2 = concat1 => concat2 => tx => ty => tx((x1, y1) => ty((x2, y2) => Tuple(concat1(x1) (x2), concat2(y1) (y2))));
+// ((a -> a -> a) -> (b -> b -> b)) -> ((a, b) -> r) -> ((a, b) -> r) -> ((a, b) -> r)
+Tuple.concatBy2 = (...concat) => tx => ty =>
+ tx((x1, y1) => ty((x2, y2) => Tuple(concat[0](x1) (x2), concat[1](y1) (y2))));
 
 
-// (a -> a -> a) -> (b -> b -> b) -> (c -> c -> c) -> ((a, b, c) -> r) -> ((a, b, c) -> r) -> ((a, b, c) -> r)
-Tuple.concatBy3 = concat1 => concat2 => concat3 => tx => ty =>
- tx((x1, y1, z1) => ty((x2, y2, z2) => Tuple(concat1(x1) (x2), concat2(y1) (y2), concat3(z1) (z2))));
+// ((a -> a -> a) -> (b -> b -> b) -> (c -> c -> c)) -> ((a, b, c) -> r) -> ((a, b, c) -> r) -> ((a, b, c) -> r)
+Tuple.concatBy3 = (...concat) => tx => ty =>
+ tx((x1, y1, z1) => ty((x2, y2, z2) => Tuple(concat[0](x1) (x2), concat[1](y1) (y2), concat[2](z1) (z2))));
 
 
 /**
@@ -157,8 +161,8 @@ Tuple.eq = tx => ty => Tuple.len(tx) === Tuple.len(ty)
   const Tuple = (...args) => f => f(...args);
   Tuple.len = tx => tx((...args) => args.length);
 
-  Tuple.eqBy2 = (...types) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
-   && tx((x1, y1) => ty((x2, y2) => types[0](x1) (x2) && types[1](y1) (y2)));
+  Tuple.eqBy2 = (...eq) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
+   && tx((x1, y1) => ty((x2, y2) => eq[0](x1) (x2) && eq[1](y1) (y2)));
 
   const o = {foo: true, bar: 1}, p = {foo: true, bar: 2}, q = {foo: false, bar: 3},
    xs = [1, 2, 3], ys = [4, 5, 6], zs = [1, 2];
@@ -174,18 +178,18 @@ Tuple.eq = tx => ty => Tuple.len(tx) === Tuple.len(ty)
 
 
 // ((a -> Boolean)) -> (a -> Boolean) -> (a -> Boolean) -> Boolean
-Tuple.eqBy = (...types) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
- && tx(x => ty(y => types[0](y) (x)));
+Tuple.eqBy = (...eq) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
+ && tx(x => ty(y => eq[0](y) (x)));
 
 
 // ((a -> Boolean), (b -> Boolean)) -> ((a, b) -> Boolean) -> ((a, b) -> Boolean) -> Boolean
-Tuple.eqBy2 = (...types) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
- && tx((x1, y1) => ty((x2, y2) => types[0](x1) (x2) && types[1](y1) (y2)));
+Tuple.eqBy2 = (...eq) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
+ && tx((x1, y1) => ty((x2, y2) => eq[0](x1) (x2) && eq[1](y1) (y2)));
 
 
 // ((a -> Boolean), (b -> Boolean), (c -> Boolean)) -> ((a, b, c) -> Boolean) -> ((a, b, c) -> Boolean) -> Boolean
-Tuple.eqBy3 = (...types) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
- && tx((x1, y1, z1) => ty((x2, y2, z2) => types[0](x1) (x2) && types[1](y1) (y2) && types[2](z1) (z2)));
+Tuple.eqBy3 = (...eq) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
+ && tx((x1, y1, z1) => ty((x2, y2, z2) => eq[0](x1) (x2) && eq[1](y1) (y2) && eq[2](z1) (z2)));
 
 
 /**
