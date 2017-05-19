@@ -141,3 +141,6 @@ Please note that names are a quite good indicator of how generic your code is. G
 - [ ] use recursion instead of `xs.map((x, idx) => ...)`
 - [ ] Ordering type is pointless in untyped language
 - [ ] tuple bi/trimap with rest parameter for function arguments?
+- [ ] fold a list of tuples into a single tuple
+- [ ] fold nth element of a list of tuples
+- [ ] fold and bi/trifold two tuples
