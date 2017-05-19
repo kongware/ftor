@@ -46,7 +46,7 @@ The following conventions for name bindings are used:
 
 * `v`, `w`, `x`, `y`, `z` represent arbitrary types
 * `vs`, `ws`, `xs`, `ys`, `zs` represent collection types
-* `iv`, `iw`, `ix`, `iy`, `iz` represent iterators
+* `iv`, `iw`, `ix`, `iy`, `iz` represent either iterables or iterators
 * `o`, `p`, `q`, `r`, `s` represent `Object` types
 * `f, g, h, i, j` represent function types
 * `ft`, `gt`, `ht` represent Kleisli arrows, i.e. functions that return monads

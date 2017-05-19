@@ -4,12 +4,14 @@
 // dependencies
 
 
+const compareBy = require("./compareBy");
+const eq = require("../primitive/eq");
 const I = require("../I");
 
 
 /**
  * @name Tuple
- * @note combined namespace/constructor
+ * @note combined namespace/constructor; iterable
  * @type product type
  * @status stable
  * @example
@@ -24,7 +26,11 @@ const I = require("../I");
 
 
 // (*) -> ((*) -> r) -> r
-const Tuple = (...args) => f => f(...args);
+const Tuple = (...args) => {
+  const Tuple = f => f(...args);
+  Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+  return Tuple;
+}
 
 
 /**
@@ -33,7 +39,12 @@ const Tuple = (...args) => f => f(...args);
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.bimap = f => g => tx => tx((x, y) => Tuple(f(x), g(y)));
 
@@ -56,7 +67,12 @@ Tuple.bimap = f => g => tx => tx((x, y) => Tuple(f(x), g(y)));
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.concat = tx => ty => tx((...argsx) => ty((...argsy) => Tuple(...argsx, ...argsy)));
 
@@ -80,7 +96,12 @@ Tuple.concat_ = ty => tx => tx((...argsx) => ty((...argsy) => Tuple(...argsx, ..
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.toArray = tx => tx((...args) => args);
   
   Tuple.concatBy2 = (...concat) => tx => ty =>
@@ -96,8 +117,8 @@ Tuple.concat_ = ty => tx => tx((...argsx) => ty((...argsy) => Tuple(...argsx, ..
 
 
 // ((a -> a -> a)) -> (a -> r) -> (a -> r) -> (a -> r)
-Tuple.concatBy = (...concat) => tx => ty =>
- tx(x => ty(y => Tuple(concat[0](x) (y))));
+Tuple.concatBy = concat => tx => ty =>
+ tx(x => ty(y => Tuple(concat(x) (y))));
 
 
 // ((a -> a -> a) -> (b -> b -> b)) -> ((a, b) -> r) -> ((a, b) -> r) -> ((a, b) -> r)
@@ -116,7 +137,12 @@ Tuple.concatBy3 = (...concat) => tx => ty =>
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.empty = Tuple();
 
@@ -135,21 +161,40 @@ Tuple.empty = Tuple();
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
-  Tuple.len = tx => tx((...args) => args.length);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
 
-  Tuple.eq = tx => ty => Tuple.len(tx) === Tuple.len(ty)
-   && tx((...argsx) => ty((...argsy) => argsx.every((x, i) => x === argsy[i])));
+  const compareBy = pred => ix => iy => {
+    const aux = (ix, iy) => {
+      const {value: x} = ix.next(), {value: y} = iy.next();
 
-  Tuple.eq(Tuple(1, "a", true)) (Tuple(1, "a", true)); // true
-  Tuple.eq(Tuple(1, "a", true)) (Tuple(1, "b", true)); // false
+      if (x === undefined && y === undefined) return true;
+      else if (!pred(x) (y)) return false;
+      else return aux(ix, iy);
+    };
+
+    return aux(ix[Symbol.iterator](), iy[Symbol.iterator]())
+  };
+
+  const eq = x => y => Object.is(x, y);
+  Tuple.eq = compareBy(eq);
+
+  const tripleA = Tuple(1, "a", true),
+   tripleB = Tuple(1, "a", true),
+   tripleC = Tuple(1, "b", true);
+
+
+  Tuple.eq(tripleA) (tripleB); // true
+  Tuple.eq(tripleA) (tripleC); // false
 
  */
 
 
-// ((*) -> Boolean) -> ((*) -> Boolean) -> Boolean
-Tuple.eq = tx => ty => Tuple.len(tx) === Tuple.len(ty)
- && tx((...argsx) => ty((...argsy) => argsx.every((x, i) => x === argsy[i])));
+// (a -> a -> Boolean) -> Iterable a -> Iterable a -> Boolean
+Tuple.eq = compareBy(eq);
 
 
 /**
@@ -158,7 +203,12 @@ Tuple.eq = tx => ty => Tuple.len(tx) === Tuple.len(ty)
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.len = tx => tx((...args) => args.length);
 
   Tuple.eqBy2 = (...eq) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
@@ -167,7 +217,7 @@ Tuple.eq = tx => ty => Tuple.len(tx) === Tuple.len(ty)
   const o = {foo: true, bar: 1}, p = {foo: true, bar: 2}, q = {foo: false, bar: 3},
    xs = [1, 2, 3], ys = [4, 5, 6], zs = [1, 2];
 
-  const fooEq = o => p => o.id === p.id;
+  const fooEq = o => p => o.foo === p.foo;
   const lenEq = xs => ys => xs.length === ys.length;
 
   Tuple.eqBy2(fooEq, lenEq) (Tuple(o, xs)) (Tuple(p, ys)); // true
@@ -177,8 +227,8 @@ Tuple.eq = tx => ty => Tuple.len(tx) === Tuple.len(ty)
  */
 
 
-// ((a -> Boolean)) -> (a -> Boolean) -> (a -> Boolean) -> Boolean
-Tuple.eqBy = (...eq) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
+// (a -> Boolean) -> (a -> Boolean) -> (a -> Boolean) -> Boolean
+Tuple.eqBy = eq => tx => ty => Tuple.len(tx) === Tuple.len(ty)
  && tx(x => ty(y => eq[0](y) (x)));
 
 
@@ -198,7 +248,12 @@ Tuple.eqBy3 = (...eq) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.get1 = tx => tx(I);
   Tuple.get2 = tx => tx((x, y) => y);
   Tuple.fromArray = args => Tuple(...args);
@@ -222,7 +277,12 @@ Tuple.fromArray = args => Tuple(...args);
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.get2 = tx => tx((x, y) => y);
 
   Tuple.get2(Tuple(1, "a", true)); // "a"
@@ -248,7 +308,12 @@ Tuple.get3 = tx => tx((x, y, z) => z);
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.getn = n => tx => tx((...args) => args[n - 1]);
 
   Tuple.getn(2) (Tuple(1, "a", true)); // "a"
@@ -266,7 +331,12 @@ Tuple.getn = n => tx => tx((...args) => args[n - 1]);
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.has = x => tx => tx((...args) => args.includes(x));
 
   const triple = Tuple(1, "a", true);
@@ -287,7 +357,12 @@ Tuple.has = x => tx => tx((...args) => args.includes(x));
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.last = tx => tx((...args) => args[args.length - 1]);
 
   const tuple5 = Tuple(1, "a", true, {foo: true}, ["bar"]);
@@ -306,7 +381,12 @@ Tuple.last = tx => tx((...args) => args[args.length - 1]);
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.len = tx => tx((...args) => args.length);
 
   Tuple.len(Tuple(1, "a", true)); // 3
@@ -324,7 +404,12 @@ Tuple.len = tx => tx((...args) => args.length);
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.map2 = f => tx => tx((x, y, ...args) => Tuple(x, f(y), ...args));
 
@@ -354,7 +439,12 @@ Tuple.map3 = f => tx => tx((x, y, z, ...args) => Tuple(x, y, f(z), ...args));
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.rotatel = tx => tx((x, y, z) => Tuple(y, z, x));
 
@@ -374,7 +464,12 @@ Tuple.rotatel = tx => tx((x, y, z) => Tuple(y, z, x));
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.rotater = tx => tx((x, y, z) => Tuple(z, x, y));
 
@@ -394,7 +489,12 @@ Tuple.rotater = tx => tx((x, y, z) => Tuple(z, x, y));
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.set2 = y => tx => tx((x, _, ...args) => Tuple(x, y, ...args));
 
@@ -422,7 +522,12 @@ Tuple.set3 = z => tx => tx((x, y, _, ...args) => Tuple(x, y, z, ...args));
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.setn = n => x => tx => tx((...args) => (args[n - 1] = x, Tuple(...args)));
 
@@ -442,7 +547,12 @@ Tuple.setn = n => x => tx => tx((...args) => (args[n - 1] = x, Tuple(...args)));
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.swap = tx => tx((x, y) => Tuple(y, x));
 
@@ -462,7 +572,12 @@ Tuple.swap = tx => tx((x, y) => Tuple(y, x));
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.toArray = tx => tx((...args) => args);
 
   Tuple.toArray(Tuple(1, "a", true)); // [1, "a", true]
@@ -480,7 +595,12 @@ Tuple.toArray = tx => tx((...args) => args);
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
   Tuple.uncurry = f => tx => tx((...args) => f(args[0]) (args[1]));
 
   const add = y => x => x + y;

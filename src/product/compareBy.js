@@ -7,12 +7,16 @@
  * @status stable
  * @example
 
-  const compareBy = f => ix => iy => {
-    const {value: x} = ix.next(), {value: y} = iy.next();
+  const compareBy = pred => ix => iy => {
+    const aux = (ix, iy) => {
+      const {value: x} = ix.next(), {value: y} = iy.next();
 
-    if (x === undefined && y === undefined) return true;
-    else if (!f(x) (y)) return false;
-    else return compareBy(f) (ix) (iy);
+      if (x === undefined && y === undefined) return true;
+      else if (!pred(x) (y)) return false;
+      else return aux(ix, iy);
+    };
+
+    return aux(ix[Symbol.iterator](), iy[Symbol.iterator]())
   };
 
   const itor = iter => iter[Symbol.iterator]();
@@ -27,13 +31,17 @@
  */
 
 
-// (a -> b -> Boolean) -> a -> b -> Boolean
-const compareBy = f => ix => iy => {
-  const {value: x} = ix.next(), {value: y} = iy.next();
+// (a -> a -> Boolean) -> Iterable a -> Iterable a -> Boolean
+const compareBy = pred => ix => iy => {
+  const aux = (ix, iy) => {
+    const {value: x} = ix.next(), {value: y} = iy.next();
 
-  if (x === undefined && y === undefined) return true;
-  else if (!f(x) (y)) return false;
-  else return compareBy(f) (ix) (iy);
+    if (x === undefined && y === undefined) return true;
+    else if (!pred(x) (y)) return false;
+    else return aux(ix, iy);
+  };
+
+  return aux(ix[Symbol.iterator](), iy[Symbol.iterator]())
 };
 
 
