@@ -15,13 +15,15 @@ const GT = require("./GT");
  * @status stable
  * @example
 
-  const compare = x => y => x < y ? -1 : y < x ? 1 : 0;
+  const compare = x => y => x < y ? LT : y < x ? GT : EQ;
+  const compare_ = y => x => x < y ? LT : y < x ? GT : EQ;
   const uncurry = f => (x, y) => f(x) (y);
   const LT = -1;
   const EQ = 0;
   const GT = 1;
 
-  [8, 3, 6, 5, 1, 9, 4, 2, 7].sort(uncurry(compare)); // [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  [4, 1, 5, 3, 2].sort(uncurry(compare)); // [1, 2, 3, 4, 5]
+  [4, 1, 5, 3, 2].sort(uncurry(compare_)); // [1, 2, 3, 4, 5]
   compare("a") ("z"); // LT
   compare(true) (true); // EQ
 

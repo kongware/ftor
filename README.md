@@ -140,3 +140,4 @@ Please note that names are a quite good indicator of how generic your code is. G
 - [ ] ftor throws when getting/deleting non-existing `Object` properties
 - [ ] use recursion instead of `xs.map((x, idx) => ...)`
 - [ ] Ordering type is pointless in untyped language
+- [ ] tuple bi/trimap with rest parameter for function arguments?

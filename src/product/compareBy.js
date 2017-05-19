@@ -19,14 +19,13 @@
     return aux(ix[Symbol.iterator](), iy[Symbol.iterator]())
   };
 
-  const itor = iter => iter[Symbol.iterator]();
   const eq = x => y => x === y;
   const looseEq = x => y => x == y;
 
   const xs = [1, 2, 3], ys = ["1" , "2", "3"];
 
-  compareBy(eq) (itor(xs)) (itor(ys)); // false
-  compareBy(looseEq) (itor(xs)) (itor(ys)); // true
+  compareBy(eq) (xs) (ys); // false
+  compareBy(looseEq) (xs) (ys); // true
 
  */
 

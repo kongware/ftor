@@ -4,9 +4,13 @@
 // dependencies
 
 
+const compare = require("./primitive/compare");
 const compareBy = require("./compareBy");
 const eq = require("../primitive/eq");
+const EQ = require("./EQ");
 const I = require("../I");
+const LT = require("./LT");
+const GT = require("./GT");
 
 
 /**
@@ -59,6 +63,89 @@ const Tuple = (...args) => {
 
 // (a -> b) -> (c -> d) -> ((a, c) -> r) -> ((b, d) -> r)
 Tuple.bimap = f => g => tx => tx((x, y) => Tuple(f(x), g(y)));
+
+
+/**
+ * @name compare
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
+  Tuple.toArray = tx => tx((...args) => args);
+
+  Tuple.compare2 = tx => ty => tx((x1, y1) => ty((x2, y2) => {
+    switch (compare(x1) (x2)) {
+      case LT: return LT;
+      case GT: return GT;
+      case EQ: {
+        switch (compare(y1) (y2)) {
+          case LT: return LT;
+          case GT: return GT;
+          case EQ: return EQ;
+        }
+      }
+    }
+  }));
+
+  const compare = x => y => x < y ? LT : y < x ? GT : EQ;
+
+  const LT = -1;
+  const EQ = 0;
+  const GT = 1;
+
+  Tuple.compare2(Tuple(1, "a")) (Tuple(1, "a")); // EQ
+  Tuple.compare2(Tuple(1, "a")) (Tuple(1, "b")); // LT
+  Tuple.compare2(Tuple(2, "a")) (Tuple(1, "b")); // GT
+
+ */
+
+
+// (a -> r) -> (a -> r) -> Number
+Tuple.compare = tx => ty => tx(x => ty(y => compare(x) (y)));
+
+
+// ((a, b) -> r) -> ((a, b) -> r) -> Number
+Tuple.compare2 = tx => ty => tx((x1, y1) => ty((x2, y2) => {
+  switch (compare(x1) (x2)) {
+    case LT: return LT;
+    case GT: return GT;
+    case EQ: {
+      switch (compare(y1) (y2)) {
+        case LT: return LT;
+        case GT: return GT;
+        case EQ: return EQ;
+      }
+    }
+  }
+}));
+
+
+// ((a, b, c) -> r) -> ((a, b, c) -> r) -> Number
+Tuple.compare3 = tx => ty => tx((x1, y1, z1) => ty((x2, y2, z2) => {
+  switch (compare(x1) (x2)) {
+    case LT: return LT;
+    case GT: return GT;
+    case EQ: {
+      switch (compare(y1) (y2)) {
+        case LT: return LT;
+        case GT: return GT;
+        case EQ: {
+          switch (compare(z1) (z2)) {
+            case LT: return LT;
+            case GT: return GT;
+            case EQ: return EQ;
+          }
+        }
+      }
+    }
+  }
+}));
 
 
 /**
@@ -325,6 +412,136 @@ Tuple.getn = n => tx => tx((...args) => args[n - 1]);
 
 
 /**
+ * @name greater than
+ * @note use lte as flipped version
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
+  Tuple.compare2 = tx => ty => tx((x1, y1) => ty((x2, y2) => {
+    switch (compare(x1) (x2)) {
+      case LT: return LT;
+      case GT: return GT;
+      case EQ: {
+        switch (compare(y1) (y2)) {
+          case LT: return LT;
+          case GT: return GT;
+          case EQ: return EQ;
+        }
+      }
+    }
+  }));
+
+  Tuple.gt2 = tx => ty => Tuple.compare2(tx) (ty) === GT;
+  const compare = x => y => x < y ? LT : y < x ? GT : EQ;
+
+  const LT = -1;
+  const EQ = 0;
+  const GT = 1;
+
+  Tuple.gt2(Tuple(2, "a")) (Tuple(1, "b")); // true
+  Tuple.gt2(Tuple(1, "a")) (Tuple(1, "b")); // false
+
+ */
+
+
+// (a -> r) -> (a -> r) -> Boolean
+Tuple.gt = tx => ty => Tuple.compare(tx) (ty) === GT;
+
+
+// ((a, b) -> r) -> ((a, b) -> r) -> Boolean
+Tuple.gt2 = tx => ty => Tuple.compare2(tx) (ty) === GT;
+
+
+// ((a, b, c) -> r) -> ((a, b, c) -> r) -> Boolean
+Tuple.gt3 = tx => ty => Tuple.compare3(tx) (ty) === GT;
+
+
+/**
+ * @name greater than or equal
+ * @note use lt as flipped version
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
+  Tuple.compare2 = tx => ty => tx((x1, y1) => ty((x2, y2) => {
+    switch (compare(x1) (x2)) {
+      case LT: return LT;
+      case GT: return GT;
+      case EQ: {
+        switch (compare(y1) (y2)) {
+          case LT: return LT;
+          case GT: return GT;
+          case EQ: return EQ;
+        }
+      }
+    }
+  }));
+
+  Tuple.gte2 = tx => ty => {
+    switch (Tuple.compare2(tx) (ty)) {
+      case LT: return false;
+      case EQ:
+      case GT: return true;
+    }
+  };
+
+  const compare = x => y => x < y ? LT : y < x ? GT : EQ;
+
+  const LT = -1;
+  const EQ = 0;
+  const GT = 1;
+
+  Tuple.gte2(Tuple(1, "a")) (Tuple(1, "a")); // true
+  Tuple.gte2(Tuple(2, "a")) (Tuple(1, "b")); // true
+  Tuple.gte2(Tuple(1, "a")) (Tuple(1, "b")); // false
+
+ */
+
+
+// (a -> r) -> (a -> r) -> Boolean
+Tuple.gte = tx => ty => {
+  switch (Tuple.compare(tx) (ty)) {
+    case LT: return false;
+    case EQ:
+    case GT: return true;
+  }
+};
+
+
+// ((a, b) -> r) -> ((a, b) -> r) -> Boolean
+Tuple.gte2 = tx => ty => {
+  switch (Tuple.compare2(tx) (ty)) {
+    case LT: return false;
+    case EQ:
+    case GT: return true;
+  }
+};
+
+
+// ((a, b, c) -> r) -> ((a, b, c) -> r) -> Boolean
+Tuple.gte3 = tx => ty => {
+  switch (Tuple.compare3(tx) (ty)) {
+    case LT: return false;
+    case EQ:
+    case GT: return true;
+  }
+};
+
+
+/**
  * @name has
  * @type higher order function
  * @status stable
@@ -398,6 +615,72 @@ Tuple.len = tx => tx((...args) => args.length);
 
 
 /**
+ * @name lower than
+ * @note use gte as flipped version
+ * @type higher order function
+ * @status stable
+ * @example
+
+  @see Tuple.gt
+
+ */
+
+
+// (a -> r) -> (a -> r) -> Boolean
+Tuple.lt = tx => ty => Tuple.compare(tx) (ty) === LT;
+
+
+// ((a, b) -> r) -> ((a, b) -> r) -> Boolean
+Tuple.lt2 = tx => ty => Tuple.compare2(tx) (ty) === LT;
+
+
+// ((a, b, c) -> r) -> ((a, b, c) -> r) -> Boolean
+Tuple.lt3 = tx => ty => Tuple.compare3(tx) (ty) === LT;
+
+
+/**
+ * @name lower than or equal
+ * @note use gt as flipped version
+ * @type higher order function
+ * @status stable
+ * @example
+
+  @see Tuple.gte
+
+ */
+
+
+// (a -> r) -> (a -> r) -> Boolean
+Tuple.lte = tx => ty => {
+  switch (Tuple.compare(tx) (ty)) {
+    case LT:
+    case EQ: return true;
+    case GT: return false;
+  }
+};
+
+
+// ((a, b) -> r) -> ((a, b) -> r) -> Boolean
+Tuple.lte2 = tx => ty => {
+  switch (Tuple.compare2(tx) (ty)) {
+    case LT:
+    case EQ: return true;
+    case GT: return false;
+  }
+};
+
+
+// ((a, b, c) -> r) -> ((a, b, c) -> r) -> Boolean
+Tuple.lte3 = tx => ty => {
+  switch (Tuple.compare3(tx) (ty)) {
+    case LT:
+    case EQ: return true;
+    case GT: return false;
+  }
+};
+
+
+/**
  * @name map
  * @type higher order function
  * @status stable
@@ -430,6 +713,118 @@ Tuple.map2 = f => tx => tx((x, y, ...args) => Tuple(x, f(y), ...args));
 
 // (a -> b) -> ((*) -> r) -> ((*) -> r)
 Tuple.map3 = f => tx => tx((x, y, z, ...args) => Tuple(x, y, f(z), ...args));
+
+
+/**
+ * @name max
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
+  Tuple.toArray = tx => tx((...args) => args);
+
+  Tuple.compare2 = tx => ty => tx((x1, y1) => ty((x2, y2) => {
+    switch (compare(x1) (x2)) {
+      case LT: return LT;
+      case GT: return GT;
+      case EQ: {
+        switch (compare(y1) (y2)) {
+          case LT: return LT;
+          case GT: return GT;
+          case EQ: return EQ;
+        }
+      }
+    }
+  }));
+
+  Tuple.max2 = tx => ty => {
+    switch (Tuple.compare2(tx) (ty)) {
+      case LT: return ty;
+      default: return tx;
+    }
+  };
+
+  const compare = x => y => x < y ? LT : y < x ? GT : EQ;
+
+  const LT = -1;
+  const EQ = 0;
+  const GT = 1;
+
+  const pair = Tuple.max2(Tuple(1, "a")) (Tuple(1, "b"));
+  Tuple.toArray(pair); // [1, "b"]
+
+ */
+
+
+// (a -> r) -> (a -> r) -> (a -> r)
+Tuple.max = tx => ty => {
+  switch (Tuple.compare(tx) (ty)) {
+    case LT: return ty;
+    default: return tx;
+  }
+};
+
+
+// ((a, b) -> r) -> ((a, b) -> r) -> ((a, b) -> r)
+Tuple.max2 = tx => ty => {
+  switch (Tuple.compare2(tx) (ty)) {
+    case LT: return ty;
+    default: return tx;
+  }
+};
+
+
+// ((a, b, c) -> r) -> ((a, b, c) -> r) -> ((a, b, c) -> r)
+Tuple.max3 = tx => ty => {
+  switch (Tuple.compare3(tx) (ty)) {
+    case LT: return ty;
+    default: return tx;
+  }
+};
+
+
+/**
+ * @name min
+ * @type higher order function
+ * @status stable
+ * @example
+
+  @see Tuple.max
+
+ */
+
+
+// (a -> r) -> (a -> r) -> (a -> r)
+Tuple.min = tx => ty => {
+  switch (Tuple.compare(tx) (ty)) {
+    case GT: return ty;
+    default: return tx;
+  }
+};
+
+
+// ((a, b) -> r) -> ((a, b) -> r) -> ((a, b) -> r)
+Tuple.min2 = tx => ty => {
+  switch (Tuple.compare2(tx) (ty)) {
+    case GT: return ty;
+    default: return tx;
+  }
+};
+
+
+// ((a, b, c) -> r) -> ((a, b, c) -> r) -> ((a, b, c) -> r)
+Tuple.min3 = tx => ty => {
+  switch (Tuple.compare3(tx) (ty)) {
+    case GT: return ty;
+    default: return tx;
+  }
+};
 
 
 /**
@@ -563,6 +958,21 @@ Tuple.setn = n => x => tx => tx((...args) => (args[n - 1] = x, Tuple(...args)));
 
 // ((a, b) -> r) -> ((b, a) -> r)
 Tuple.swap = tx => tx((x, y) => Tuple(y, x));
+
+
+/**
+ * @name trimap
+ * @type higher order function
+ * @status stable
+ * @example
+
+   @see Tuple.bimap
+   
+ */
+
+
+// (a -> b) -> (c -> d) -> (e -> f) -> ((a, c, e) -> r) -> ((b, d, f) -> r)
+Tuple.trimap = f => g => h => tx => tx((x, y, z) => Tuple(f(x), g(y), h(z)));
 
 
 /**
