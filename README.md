@@ -139,3 +139,4 @@ Please note that names are a quite good indicator of how generic your code is. G
 - [ ] right folds are derived by applying a flipped binary operation to fold
 - [ ] ftor throws when getting/deleting non-existing `Object` properties
 - [ ] use recursion instead of `xs.map((x, idx) => ...)`
+- [ ] Ordering type is pointless in untyped language

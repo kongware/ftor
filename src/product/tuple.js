@@ -116,7 +116,7 @@ Tuple.concat_ = ty => tx => tx((...argsx) => ty((...argsy) => Tuple(...argsx, ..
  */
 
 
-// ((a -> a -> a)) -> (a -> r) -> (a -> r) -> (a -> r)
+// (a -> a -> a) -> (a -> r) -> (a -> r) -> (a -> r)
 Tuple.concatBy = concat => tx => ty =>
  tx(x => ty(y => Tuple(concat(x) (y))));
 
@@ -185,7 +185,6 @@ Tuple.empty = Tuple();
   const tripleA = Tuple(1, "a", true),
    tripleB = Tuple(1, "a", true),
    tripleC = Tuple(1, "b", true);
-
 
   Tuple.eq(tripleA) (tripleB); // true
   Tuple.eq(tripleA) (tripleC); // false
