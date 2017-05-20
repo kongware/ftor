@@ -4,13 +4,13 @@
 // dependencies
 
 
-const compare = require("./primitive/compare");
+const compare = require("../primitive/compare");
 const compareBy = require("./compareBy");
 const eq = require("../primitive/eq");
-const EQ = require("./EQ");
+const EQ = require("../primitive/EQ");
 const I = require("../I");
-const LT = require("./LT");
-const GT = require("./GT");
+const LT = require("../primitive/LT");
+const GT = require("../primitive/GT");
 
 
 /**
@@ -34,7 +34,7 @@ const Tuple = (...args) => {
   const Tuple = f => f(...args);
   Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
   return Tuple;
-}
+};
 
 
 /**
@@ -326,6 +326,38 @@ Tuple.eqBy2 = (...eq) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
 // ((a -> Boolean), (b -> Boolean), (c -> Boolean)) -> ((a, b, c) -> Boolean) -> ((a, b, c) -> Boolean) -> Boolean
 Tuple.eqBy3 = (...eq) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
  && tx((x1, y1, z1) => ty((x2, y2, z2) => eq[0](x1) (x2) && eq[1](y1) (y2) && eq[2](z1) (z2)));
+
+
+/**
+ * @name fold
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  }
+
+  Tuple.fold1 = f => tx => ty => tx(x => ty(y => f(x) (y)));
+  const add = x => y => x + y;
+
+  Tuple.fold1(add) (Tuple(1, "a", true)) (Tuple(2, "a", true)); // 3
+
+ */
+
+
+// (a -> b -> a) -> ((*) -> a) -> ((*) -> b) -> a
+Tuple.fold1 = f => tx => ty => tx(x => ty(y => f(x) (y)));
+
+
+// (a -> b -> a) -> ((*) -> a) -> ((*) -> b) -> a
+Tuple.fold2 = f => tx => ty => tx((x1, y1) => ty((x2, y2) => f(y1) (y2)));
+
+
+// (a -> b -> a) -> ((*) -> a) -> ((*) -> b) -> a
+Tuple.fold3 = f => tx => ty => tx((x1, y1, z1) => ty((x2, y2, z2) => f(z1) (z2)));
 
 
 /**
