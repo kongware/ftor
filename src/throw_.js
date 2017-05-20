@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {render} = require("../primitive/str");
+const {render} = require("./primitive/str");
 
 
 /**

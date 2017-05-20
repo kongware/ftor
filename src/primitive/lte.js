@@ -7,8 +7,8 @@
  * @status stable
  * @example
 
-   const lte = x => y => x <= y;
-   lte(3) (3); // true
+  const lte = x => y => x <= y;
+  lte(3) (3); // true
 
  */
 

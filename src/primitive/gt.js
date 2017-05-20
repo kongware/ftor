@@ -7,8 +7,8 @@
  * @status stable
  * @example
 
-   const gt = x => y => x > y;
-   gt(3) (2); // true
+  const gt = x => y => x > y;
+  gt(3) (2); // true
 
  */
 

@@ -7,8 +7,8 @@
  * @status stable
  * @example
 
-   const gte = x => y => x >= y;
-   gte(3) (3); // true
+  const gte = x => y => x >= y;
+  gte(3) (3); // true
 
  */
 

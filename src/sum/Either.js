@@ -9,7 +9,7 @@ const {compare, compare_} = require("../primitive/compare");
 const {False} = require("../primitive/boo");
 const I = require("../I");
 const {K} = require("../K");
-const {throw_} = require("../debug/throw_");
+const {throw_} = require("../throw_");
 
 
 /**

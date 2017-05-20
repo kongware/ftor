@@ -24,31 +24,6 @@ const Boo = x => Boolean(x);
 
 
 /**
- * @name and
- * @note short circuiting
- * @type first order function
- * @status stable
- * @example
-
-  const Boo = x => Boolean(x);
-  Boo.and = x => y => x && y;
-
-  and(true) (true); // true
-  and(1) (2); // 2
-  and(0) (2); // 0
-
- */
-
-
-// a -> a -> a
-Boo.and = x => y => x && y;
-
-
-// a -> a -> a
-Boo.and_ = y => x => x && y;
-
-
-/**
  * @name compare
  * @note performs an explicit type cast
  * @type first order function
@@ -78,6 +53,30 @@ Boo.compare = x => y => (x = !!x, y = !!y, compare(x) (y));
 
 // a -> a -> Number
 Boo.compare_ = x => y => (x = !!x, y = !!y, compare_(x) (y));
+
+
+/**
+ * @name empty all
+ * @note boolean monoid under conjunction
+ * @type constant
+ * @status stable
+ */
+
+
+// Boolean
+Boo.emptyAll = true;
+
+
+/**
+ * @name empty any
+ * @note boolean monoid under disjunction
+ * @type constant
+ * @status stable
+ */
+
+
+// Boolean
+Boo.emptyAny = false;
 
 
 /**
@@ -341,8 +340,8 @@ Boo.minBound = false
   const Boo = x => Boolean(x);
   Boo.not = x => !x;
 
-  not(true); // false
-  not(""); // true
+  Boo.not(true); // false
+  Boo.not(""); // true
 
  */
 
@@ -376,31 +375,6 @@ Boo.notp2 = pred => x => y => !pred(x) (y);
 
 // (a -> b -> c -> Boolean) -> a -> b -> c -> Boolean
 Boo.notp3 = pred => x => y => z => !pred(x) (y) (z);
-
-
-/**
- * @name or
- * @note short circuiting
- * @type first order function
- * @status stable
- * @example
-
-  const Boo = x => Boolean(x);
-  Boo.or = x => y => x || y;
-
-  or(false) (true); // true
-  or(0) (2); // 2
-  or(1) (2); // 1
-
- */
-
-
-// a -> a -> a
-Boo.or = x => y => x || y;
-
-
-// a -> a -> a
-Boo.or_ = y => x => x || y;
 
 
 /**

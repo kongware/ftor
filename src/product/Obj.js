@@ -5,7 +5,7 @@
 
 
 const I = require("../I");
-const throw_ = require("../debug/throw_");
+const throw_ = require("../throw_");
 
 
 /**
