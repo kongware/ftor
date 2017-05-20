@@ -20,11 +20,14 @@ const GT = require("../primitive/GT");
  * @status stable
  * @example
 
-  const Tuple = (...args) => f => f(...args);
-  Tuple.toArray = tx => tx((...args) => args);
-  const triple = Tuple(1, "a", true);
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
+    return Tuple;
+  };
 
-  Tuple.toArray(triple); // [1, "a", true]
+  const triple = Tuple(1, "a", true);
+  Array.from(triple); // [1, "a", true]
 
  */
 
