@@ -2,8 +2,8 @@
 
 
 /**
- * @name composition
- * @note functorial; variadic
+ * @name composition (bluebird et al.)
+ * @note functorial
  * @type higher order function
  * @status stable
  * @example

@@ -143,4 +143,7 @@ Please note that names are a quite good indicator of how generic your code is. G
 - [ ] tuple bi/trimap with rest parameter for function arguments?
 - [ ] fold a list of tuples into a single tuple
 - [ ] fold nth element of a list of tuples
-- [ ] fold and bi/trifold two tuples
+- [ ] replace foldl/r with fold inside Either
+- [ ] concat means `[a] -> [a] -> [a]` in ftor whereas `[[a]] -> [a]` is join
+- [ ] append/prepend for tuples?
+- [ ] add flatten example for `foldMap`

@@ -17,11 +17,11 @@
 
 
 // a -> b => a
-const K = x => _ => x;
+const K = x => y => x;
 
 
 // a -> b -> b
-const K_ = _ => y => y;
+const K_ = x => y => y;
 
 
 // API

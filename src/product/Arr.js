@@ -90,8 +90,7 @@ Arr.append_ = x => xs => xs.concat([x]);
   const Arr = Array.of;
   Arr.concat = xs => ys => xs.concat(ys);
 
-  Arr.concat([1, 2]) (3); // [1, 2, 3]
-  Arr.concat([1, 2]) ([3]); // [1, 2, 3]
+  Arr.concat([1, 2]) ([3, 4]); // [1, 2, 3, 4]
 
  */
 
@@ -131,13 +130,13 @@ Arr.clone = xs => [].concat(xs);
  * @status stable
  * @example
 
-  @see ../concatMapBy
+  @see ../foldmap
 
  */
 
 
-// (a -> b -> a) -> (a -> [b]) -> [a] -> [b]
-Arr.concatMap = f => Arr.foldl(B_(Arr.concat, f)) ([]);
+// (a -> [b]) -> [a] -> [b]
+Arr.concatMap = f => Arr.fold(B_(Arr.append, f)) ([]);
 
 
 /**
@@ -156,6 +155,16 @@ Arr.concatMap = f => Arr.foldl(B_(Arr.concat, f)) ([]);
 
 // Number -> [a] -> [a]
 Arr.drop = n => xs => xs.slice(n);
+
+
+/**
+ * @name empty
+ * @type constant
+ * @status stable
+ */
+
+
+Arr.empty = [];
 
 
 /**
@@ -251,6 +260,7 @@ Arr.findIndex = f => xs => xs.findIndex(x => f(x));
 
 /**
  * @name fold
+ * @note fold right by flipped reducer
  * @type higher order function
  * @status stable
  * @example
@@ -299,7 +309,7 @@ Arr.fold1 = f => xs => xs.reduce((acc, x) => f(acc) (x));
  * @todo verify type signature
  * @example
 
-  ???
+  ??
 
  */
 
@@ -322,7 +332,7 @@ Arr.foldlk = f => acc => xs => {
  * @todo verify type signature
  * @example
 
-  ???
+  ??
 
  */
 
@@ -518,7 +528,7 @@ Arr.lift = f => args => args.reduce((f, x) => f(x), f);
  * @status stable
  * @example
 
-  ???
+  ??
  
  */
 
@@ -541,7 +551,7 @@ Arr.para = f => acc => xs => {
  * @todo verify type signature
  * @example
 
-  ???
+  ??
  
  */
 
@@ -564,7 +574,7 @@ Arr.paralk = f => acc => xs => {
  * @todo verify type signature
  * @example
 
-  ???
+  ??
  
  */
 
