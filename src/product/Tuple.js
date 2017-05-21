@@ -8,7 +8,6 @@ const compare = require("../primitive/compare");
 const compareBy = require("./compareBy");
 const eq = require("../primitive/eq");
 const EQ = require("../primitive/EQ");
-const I = require("../I");
 const LT = require("../primitive/LT");
 const GT = require("../primitive/GT");
 
@@ -375,11 +374,10 @@ Tuple.fold3 = f => tx => ty => tx((x1, y1, z1) => ty((x2, y2, z2) => f(z1) (z2))
     return Tuple;
   }
 
-  Tuple.get1 = tx => tx(I);
+  Tuple.get1 = tx => tx((x, y) => x);
   Tuple.get2 = tx => tx((x, y) => y);
   Tuple.fromArray = args => Tuple(...args);
 
-  const I = x => x;
   const pair = Tuple.fromArray([1, "a"]);
 
   Tuple.get1(pair); // 1
@@ -412,7 +410,7 @@ Tuple.fromArray = args => Tuple(...args);
 
 
 // ((*) -> r) -> r
-Tuple.get1 = tx => tx(I);
+Tuple.get1 = tx => tx((x, y) => x);
 
 
 // ((*) -> r) -> r
