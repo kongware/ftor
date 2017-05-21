@@ -140,10 +140,11 @@ Please note that names are a quite good indicator of how generic your code is. G
 - [ ] ftor throws when getting/deleting non-existing `Object` properties
 - [ ] use recursion instead of `xs.map((x, idx) => ...)`
 - [ ] Ordering type is pointless in untyped language
-- [ ] tuple bi/trimap with rest parameter for function arguments?
 - [ ] fold a list of tuples into a single tuple
 - [ ] fold nth element of a list of tuples
 - [ ] replace foldl/r with fold inside Either
 - [ ] concat means `[a] -> [a] -> [a]` in ftor whereas `[[a]] -> [a]` is join
 - [ ] append/prepend for tuples?
 - [ ] add flatten example for `foldMap`
+- [ ] type class functions are passed to functions in Javascript's tuple-like syntax
+- [ ] replace `[a, b]` array misuses with pair tuples

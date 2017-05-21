@@ -8,7 +8,7 @@ const {B_} = require("./B");
 
 
 /**
- * @name fold map
+ * @name fold map by
  * @note generic concat map
  * @type higher order function
  * @status stable
@@ -20,10 +20,10 @@ const {B_} = require("./B");
 
 
 // (Foldable t, Monoid m) => (a -> m) -> t a -> m
-const foldMap = (fold, append, empty) => f => fold(B_(append, f)) (empty);
+const foldMapBy = (fold, append, empty) => f => fold(B_(append, f)) (empty);
 
 
 // API
 
 
-module.exports = foldMap;
+module.exports = foldMapBy;

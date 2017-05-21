@@ -240,30 +240,29 @@ Obj.len = o => Object.keys(o).length;
  * @name lift
  * @type higher order function
  * @status stable
- * @todo use a pair tuple?
  * @example
 
   const Obj = props => props.reduce((acc, [k, v]) => (acc[k] = v, acc), {});
-  Obj.lift2 = f => ([x, y]) => ({[x]: a, [y]: b}) => f(a) (b);
+  Obj.lift2 = f => k => l => o => f(o[k]) (o[l]);
 
   const add = x => y => x + y;
   const o = {x: 1, y: 2, z: 3};
 
-  Obj.lift2(add) (["x", "z"]) (o); // 4
+  Obj.lift2(add) ("x") ("z") (o); // 4
 
  */
 
 
 // (a -> b) -> String -> Object -> b
-Obj.lift = f => x => ({[x]: a}) => f(a);
+Obj.lift = f => k => o => f(o[k]);
 
 
 // (a -> b -> c) -> [String] -> Object -> c
-Obj.lift2 = f => ([x, y]) => ({[x]: a, [y]: b}) => f(a) (b);
+Obj.lift2 = f => k => l => o => f(o[k]) (o[l]);
 
 
 // (a -> b -> c -> d) -> [String] -> Object -> d
-Obj.lift3 = f => ([x, y, z]) => ({[x]: a, [y]: b, [z]: c}) => f(a) (b) (c);
+Obj.lift3 = f => k => l => m => o => f(o[k]) (o[l]) (o[m]);
 
 
 /**
