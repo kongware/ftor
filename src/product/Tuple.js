@@ -14,15 +14,14 @@ const GT = require("../primitive/GT");
 
 /**
  * @name Tuple
- * @note combined namespace/constructor; iterable
+ * @note combined namespace/constructor; assignment is necessary to allow tuples within map constructor
  * @type product type
  * @status stable
  * @example
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
+    return Object.freeze(Object.assign(Tuple, args));
   };
 
   const triple = Tuple(1, "a", true);
@@ -34,8 +33,7 @@ const GT = require("../primitive/GT");
 // (*) -> ((*) -> r) -> r
 const Tuple = (...args) => {
   const Tuple = f => f(...args);
-  Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-  return Tuple;
+  return Object.freeze(Object.assign(Tuple, args));
 };
 
 
@@ -47,9 +45,8 @@ const Tuple = (...args) => {
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.bimap = f => g => tx => tx((x, y) => Tuple(f(x), g(y)));
@@ -75,9 +72,8 @@ Tuple.bimap = f => g => tx => tx((x, y) => Tuple(f(x), g(y)));
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.toArray = tx => tx((...args) => args);
 
@@ -158,9 +154,8 @@ Tuple.compare3 = tx => ty => tx((x1, y1, z1) => ty((x2, y2, z2) => {
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.concat = tx => ty => tx((...argsx) => ty((...argsy) => Tuple(...argsx, ...argsy)));
@@ -187,9 +182,8 @@ Tuple.concat_ = ty => tx => tx((...argsx) => ty((...argsy) => Tuple(...argsx, ..
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.toArray = tx => tx((...args) => args);
   
@@ -228,9 +222,8 @@ Tuple.concatBy3 = (concat1, concat2, concat3) => tx => ty =>
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.empty = Tuple();
@@ -252,9 +245,8 @@ Tuple.empty = Tuple();
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   const compareBy = pred => ix => iy => {
     const aux = (ix, iy) => {
@@ -293,9 +285,8 @@ Tuple.eq = compareBy(eq);
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.len = tx => tx((...args) => args.length);
 
@@ -338,9 +329,8 @@ Tuple.eqBy3 = (eq1, eq2, eq3) => tx => ty => Tuple.len(tx) === Tuple.len(ty)
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.fold1 = f => tx => ty => tx(x => ty(y => f(x) (y)));
   const add = x => y => x + y;
@@ -370,9 +360,8 @@ Tuple.fold3 = f => tx => ty => tx((x1, y1, z1) => ty((x2, y2, z2) => f(z1) (z2))
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.get1 = tx => tx((x, y) => x);
   Tuple.get2 = tx => tx((x, y) => y);
@@ -398,9 +387,8 @@ Tuple.fromArray = args => Tuple(...args);
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.get2 = tx => tx((x, y) => y);
 
@@ -429,9 +417,8 @@ Tuple.get3 = tx => tx((x, y, z) => z);
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.getn = n => tx => tx((...args) => args[n - 1]);
 
@@ -453,9 +440,8 @@ Tuple.getn = n => tx => tx((...args) => args[n - 1]);
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.compare2 = tx => ty => tx((x1, y1) => ty((x2, y2) => {
     switch (compare(x1) (x2)) {
@@ -505,9 +491,8 @@ Tuple.gt3 = tx => ty => Tuple.compare3(tx) (ty) === GT;
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.compare2 = tx => ty => tx((x1, y1) => ty((x2, y2) => {
     switch (compare(x1) (x2)) {
@@ -582,9 +567,8 @@ Tuple.gte3 = tx => ty => {
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.has = x => tx => tx((...args) => args.includes(x));
 
@@ -608,9 +592,8 @@ Tuple.has = x => tx => tx((...args) => args.includes(x));
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.last = tx => tx((...args) => args[args.length - 1]);
 
@@ -632,9 +615,8 @@ Tuple.last = tx => tx((...args) => args[args.length - 1]);
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.len = tx => tx((...args) => args.length);
 
@@ -721,9 +703,8 @@ Tuple.lte3 = tx => ty => {
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.map2 = f => tx => tx((x, y, ...args) => Tuple(x, f(y), ...args));
@@ -756,9 +737,8 @@ Tuple.map3 = f => tx => tx((x, y, z, ...args) => Tuple(x, y, f(z), ...args));
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.toArray = tx => tx((...args) => args);
 
@@ -868,9 +848,8 @@ Tuple.min3 = tx => ty => {
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.rotatel = tx => tx((x, y, z) => Tuple(y, z, x));
@@ -893,9 +872,8 @@ Tuple.rotatel = tx => tx((x, y, z) => Tuple(y, z, x));
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.rotater = tx => tx((x, y, z) => Tuple(z, x, y));
@@ -918,9 +896,8 @@ Tuple.rotater = tx => tx((x, y, z) => Tuple(z, x, y));
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.set2 = y => tx => tx((x, _, ...args) => Tuple(x, y, ...args));
@@ -951,9 +928,8 @@ Tuple.set3 = z => tx => tx((x, y, _, ...args) => Tuple(x, y, z, ...args));
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.setn = n => x => tx => tx((...args) => (args[n - 1] = x, Tuple(...args)));
@@ -976,9 +952,8 @@ Tuple.setn = n => x => tx => tx((...args) => (args[n - 1] = x, Tuple(...args)));
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.toArray = tx => tx((...args) => args);
   Tuple.swap = tx => tx((x, y) => Tuple(y, x));
@@ -1016,9 +991,8 @@ Tuple.trimap = f => g => h => tx => tx((x, y, z) => Tuple(f(x), g(y), h(z)));
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.toArray = tx => tx((...args) => args);
 
@@ -1039,9 +1013,8 @@ Tuple.toArray = tx => tx((...args) => args);
 
   const Tuple = (...args) => {
     const Tuple = f => f(...args);
-    Tuple[Symbol.iterator] = () => args[Symbol.iterator]();
-    return Tuple;
-  }
+    return Object.freeze(Object.assign(Tuple, args));
+  };
 
   Tuple.uncurry = f => tx => tx((...args) => f(args[0]) (args[1]));
 
