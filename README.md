@@ -134,7 +134,6 @@ Please note that names are a quite good indicator of how generic your code is. G
 
 # Todos
 
-- [ ] revise tuples: how can tuples work with Map and for/of?
 - [ ] add `Option` to function that may return undefined
 - [ ] foldlk/foldrk is distinguished because of prematurely exiting
 - [ ] right folds are derived by applying a flipped binary operation to fold
@@ -145,7 +144,6 @@ Please note that names are a quite good indicator of how generic your code is. G
 - [ ] fold nth element of a list of tuples
 - [ ] replace foldl/r with fold inside Either
 - [ ] concat means `[a] -> [a] -> [a]` in ftor whereas `[[a]] -> [a]` is join
-- [ ] append/prepend for tuples?
 - [ ] add flatten example for `foldMap`
 - [ ] type class functions are passed to functions in Javascript's tuple-like syntax
 - [ ] replace `[a, b]` array usage with pair tuples

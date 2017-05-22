@@ -38,6 +38,34 @@ const Tuple = (...args) => {
 
 
 /**
+ * @name append
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    return Object.freeze(Object.assign(Tuple, args));
+  };
+
+  Tuple.toArray = tx => tx((...args) => args);
+  Tuple.append = x => tx => tx((...argsx) => Tuple(...argsx, x));
+
+  const tuple = Tuple.append(true) (Tuple(1, "a"));
+  Tuple.toArray(tuple); // [1, "a", true]
+
+ */
+
+
+// ((*) -> r) -> a -> ((*) -> r)
+Tuple.append = x => tx => tx((...argsx) => Tuple(...argsx, x));
+
+
+// a -> ((*) -> r) -> ((*) -> r)
+Tuple.append_ = tx => x => tx((...argsx) => Tuple(...argsx, x));
+
+
+/**
  * @name bimap
  * @type higher order function
  * @status stable
@@ -838,6 +866,34 @@ Tuple.min3 = tx => ty => {
     default: return tx;
   }
 };
+
+
+/**
+ * @name prepend
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const Tuple = (...args) => {
+    const Tuple = f => f(...args);
+    return Object.freeze(Object.assign(Tuple, args));
+  };
+
+  Tuple.toArray = tx => tx((...args) => args);
+  Tuple.prepend = x => tx => tx((...argsx) => Tuple(x, ...argsx));
+
+  const tuple = Tuple.prepend(true) (Tuple(1, "a"));
+  Tuple.toArray(tuple); // [true, 1, "a"]
+
+ */
+
+
+// ((*) -> r) -> a -> ((*) -> r)
+Tuple.prepend = x => tx => tx((...argsx) => Tuple(x, ...argsx));
+
+
+// a -> ((*) -> r) -> ((*) -> r)
+Tuple.prepend_ = tx => x => tx((...argsx) => Tuple(x, ...argsx));
 
 
 /**
