@@ -68,6 +68,8 @@ Please note that names are a quite good indicator of how generic your code is. G
 
 ## Abstraction over recursion
 
+## Defensive programming
+
 ### Folding
 
 ### Folding with mutual recursion
@@ -119,6 +121,8 @@ Please note that names are a quite good indicator of how generic your code is. G
 ## Sum types
 
 ## Type classes
+
+## Modeling domains with GADTs
 
 # Debugging
 

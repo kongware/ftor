@@ -17,6 +17,7 @@ const throw_ = require("../throw_");
  */
 
 
+// [a, b] -> Object
 const Obj = pairs => pairs.reduce((acc, [k, v]) => (acc[k] = v, acc), {});
 
 

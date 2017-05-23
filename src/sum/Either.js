@@ -20,7 +20,7 @@ const {throw_} = require("../throw_");
  */
 
 
- const Either = {};
+const Either = {};
 
 
 // constructors
@@ -280,7 +280,8 @@ Either.compare = tx => ty => tx(x => ty(y => compare(x) (y)) (throw_(TypeError) 
 
 
 /**
- * @name fold Left
+ * @name fold
+ * @note left fold; right fold by flipped reducer
  * @type higher order function
  * @status stable
  * @example
@@ -306,7 +307,7 @@ Either.compare = tx => ty => tx(x => ty(y => compare(x) (y)) (throw_(TypeError) 
     return (Right[$tag] = "right", Right);
   };
 
-  Either.foldl = f => acc => tx => f(acc) (tx(I) (I));
+  Either.fold = f => acc => tx => f(acc) (tx(I) (I));
 
   const I = x => x;
   const sub = x => y => x - y;
@@ -318,49 +319,7 @@ Either.compare = tx => ty => tx(x => ty(y => compare(x) (y)) (throw_(TypeError) 
 
 
 // (b -> a -> b) -> b -> Either a a -> b
-Either.foldl = f => acc => tx => f(acc) (tx(I) (I));
-
-
-/**
- * @name fold Right
- * @type higher order function
- * @status stable
- * @example
-
-  const $tag = Symbol.for("ftor/tag");
-  const Either = {};
-
-  const Left = x => {
-    const Left = f => {
-      const Left = g => f(x);
-      return (Left[$tag] = "left", Left);
-    };
-
-    return (Left[$tag] = "left", Left);
-  };
-
-  const Right = x => {
-    const Right = f => {
-      const Right = g => g(x);
-      return (Right[$tag] = "right", Right);
-    };
-
-    return (Right[$tag] = "right", Right);
-  };
-
-  Either.foldr = f => acc => tx => f(tx(I) (I)) (acc);
-
-  const I = x => x;
-  const sub = x => y => x - y;
-
-  Either.foldr(sub) (10) (Left(2)); // -8
-  Either.foldr(sub) (10) (Right(2)); // -8
-
- */
-
-
-// (a -> b -> b) -> b -> Either a a -> b
-Either.foldr = f => acc => tx => f(tx(I) (I)) (acc);
+Either.fold = f => acc => tx => f(acc) (tx(I) (I));
 
 
 // Functor

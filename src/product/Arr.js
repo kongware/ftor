@@ -260,7 +260,7 @@ Arr.findIndex = f => xs => xs.findIndex(x => f(x));
 
 /**
  * @name fold
- * @note fold right by flipped reducer
+ * @note left fold; right fold by flipped reducer
  * @type higher order function
  * @status stable
  * @example
