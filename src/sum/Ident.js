@@ -65,12 +65,14 @@ const Ident = x => {
 
   Ident.map = f => tx => tx[$Ident] && Ident(tx(x => f(x)));
 
+  const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
   const I = x => x;
   const sqr = x => x * x;
   const dbl = x => x * 2;
+
   const x = Ident(5);
 
-  Ident.map(sqr) (Ident.map(dbl) (x)) (I); // 100
+  B_(Ident.map(sqr), Ident.map(dbl)) (x) (I); // 100
 
  */
 
