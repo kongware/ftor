@@ -80,6 +80,15 @@ const Ident = x => {
 Ident.map = f => tx => tx[$Ident] && Ident(tx(x => f(x)));
 
 
+Ident.ap = tf => tx => tf[$Ident] && tf(f => Ident.map(f) (tx));
+
+
+Ident.chain = ft => tx => tx[$Ident] && tx(x => {
+  const r = ft(x);
+  return r[$Ident] && r;
+});
+
+
 // API
 
 
