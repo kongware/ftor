@@ -5,7 +5,6 @@
 
 
 const {$Ident, $tag} = require("../interop");
-const {T} = require("../T");
 
 
 /**
