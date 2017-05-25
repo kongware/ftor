@@ -1,10 +1,16 @@
 "use strict";
 
 
+const $Const = Symbol.for("ftor/Const");
+
+
 const $Either = Symbol.for("ftor/Either");
 
 
 const $Ident = Symbol.for("ftor/Ident");
+
+
+const $Option = Symbol.for("ftor/Option");
 
 
 const $tag = Symbol.for("ftor/tag");
@@ -16,4 +22,4 @@ const $thunk = Symbol.for("ftor/thunk");
 // API
 
 
-module.exports = {$Either, $Ident, $tag, $thunk};
+module.exports = {$Const, $Either, $Ident, $Option, $tag, $thunk};

@@ -11,7 +11,7 @@ const {$Ident, $tag} = require("../interop");
  * @name Identity
  * @note Church encoded; combined namespace/constructor
  * @type sum type
- * @status unstable
+ * @status stable
  * @example
 
   const $tag = Symbol.for("ftor/tag");
@@ -52,6 +52,7 @@ const Ident = x => {
 /**
  * @name fold
  * @type higher order function
+ * @class Foldable
  * @status stable
  * @example
 
@@ -66,18 +67,19 @@ const Ident = x => {
   Ident.fold = f => acc => tx => tx[$Ident] && tx(x => f(acc) (x));
   const add = x => y => x + y;
 
-  Ident.fold(add) (5) (Ident(5)); // 10
+  Ident.fold(add) (2) (Ident(3)); // 5
 
  */
 
 
-// (a -> b -> a) -> a -> Ident b -> a
+// (b -> a -> b) -> b -> Ident a -> b
 Ident.fold = f => acc => tx => tx[$Ident] && tx(x => f(acc) (x));
 
 
 /**
  * @name map
  * @type higher order function
+ * @class Functor
  * @status stable
  * @example
 
@@ -108,76 +110,9 @@ Ident.map = f => tx => tx[$Ident] && Ident(tx(x => f(x)));
 
 
 /**
- * @name apply
- * @type higher order function
- * @status stable
- * @example
-
-  const $tag = Symbol.for("ftor/tag");
-  const $Ident = Symbol.for("ftor/Ident");
-
-  const Ident = x => {
-    const Ident = f => f(x);
-    return (Ident[$tag] = "Ident", Ident[$Ident] = true, Ident);
-  };
-
-  Ident.map = f => tx => tx[$Ident] && Ident(tx(x => f(x)));
-  Ident.ap = tf => tx => tf[$Ident] && tf(f => Ident.map(f) (tx));
-
-  const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
-  const I = x => x;
-  const add = x => y => x + y;
-
-  B_(Ident.ap, Ident.map(add)) (Ident(5)) (Ident(5)) (I); // 10
-
- */
-
-
-// Ident (a -> b) -> Ident a -> Ident b
-Ident.ap = tf => tx => tf[$Ident] && tf(f => Ident.map(f) (tx));
-
-
-/**
- * @name chain
- * @type higher order function
- * @status stable
- * @example
-
-  const $tag = Symbol.for("ftor/tag");
-  const $Ident = Symbol.for("ftor/Ident");
-
-  const Ident = x => {
-    const Ident = f => f(x);
-    return (Ident[$tag] = "Ident", Ident[$Ident] = true, Ident);
-  };
-
-  Ident.map = f => tx => tx[$Ident] && Ident(tx(x => f(x)));
-
-  Ident.chain = ft => tx => tx[$Ident] && tx(x => {
-    const r = ft(x);
-    return r[$Ident] && r;
-  });
-
-  const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
-  const I = x => x;
-  const add = x => y => x + y;
-
-  Ident.chain(x => Ident.chain(y => Ident(add(x) (y))) (Ident(5))) (Ident(5)) (I); // 10
-  Ident.chain(x => Ident.chain(y => Ident(add(x) (y))) (Ident(5))) (Ident(5)) (I); // TypeError
-
- */
-
-
-// (a -> Ident(b)) -> Ident a -> Ident b
-Ident.chain = ft => tx => tx[$Ident] && tx(x => {
-  const r = ft(x);
-  return r[$Ident] && r;
-});
-
-
-/**
  * @name traverse
  * @type higher order function
+ * @class Traversable
  * @status stable
  * @example
 
@@ -203,11 +138,79 @@ Ident.chain = ft => tx => tx[$Ident] && tx(x => {
  */
 
 
-// (Functor t, Foldable t, Applicative f) => (a -> f b) -> t a -> f (t b)
-Ident.traverse = map => ft => tx => map(y => Ident(y)) (tx(x => ft(x)));
-
-
+// Applicative f => (a -> f b) -> Ident a -> f (Ident b)
 Ident.traverse = map => ft => tx => tx(x => map(Ident) (ft(x)));
+
+
+/**
+ * @name apply
+ * @type higher order function
+ * @class Applicative
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Ident = Symbol.for("ftor/Ident");
+
+  const Ident = x => {
+    const Ident = f => f(x);
+    return (Ident[$tag] = "Ident", Ident[$Ident] = true, Ident);
+  };
+
+  Ident.map = f => tx => tx[$Ident] && Ident(tx(x => f(x)));
+  Ident.ap = tf => tx => tf[$Ident] && tx[$Ident] && tf(f => Ident.map(f) (tx));
+
+  const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+  const I = x => x;
+  const add = x => y => x + y;
+
+  B_(Ident.ap, Ident.map(add)) (Ident(2)) (Ident(3)) (I); // 5
+  B_(Ident.ap, add) (Ident(2)) (Ident(3)) (I); // TypeError
+
+ */
+
+
+// Ident (a -> b) -> Ident a -> Ident b
+Ident.ap = tf => tx => tf[$Ident] && tx[$Ident] && tf(f => Ident.map(f) (tx));
+
+
+/**
+ * @name chain
+ * @type higher order function
+ * @class Monad
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Ident = Symbol.for("ftor/Ident");
+
+  const Ident = x => {
+    const Ident = f => f(x);
+    return (Ident[$tag] = "Ident", Ident[$Ident] = true, Ident);
+  };
+
+  Ident.map = f => tx => tx[$Ident] && Ident(tx(x => f(x)));
+
+  Ident.chain = ft => tx => tx[$Ident] && tx(x => {
+    const r = ft(x);
+    return r[$Ident] && r;
+  });
+
+  const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+  const I = x => x;
+  const sqr = x => x * x;
+
+  Ident.chain(B_(Ident, sqr)) (Ident(5)) (I); // 25
+  Ident.chain(sqr) (Ident(5)) (I); // TypeError
+
+ */
+
+
+// (a -> Ident(b)) -> Ident a -> Ident b
+Ident.chain = ft => tx => tx[$Ident] && tx(x => {
+  const r = ft(x);
+  return r[$Ident] && r;
+});
 
 
 // API
