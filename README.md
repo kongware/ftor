@@ -151,3 +151,9 @@ Please note that names are a quite good indicator of how generic your code is. G
 - [ ] add flatten example for `foldMap`
 - [ ] type class functions are passed to functions in Javascript's tuple-like syntax
 - [ ] replace `[a, b]` array usage with pair tuples
+- [ ] kleisli composition only for arrows (not for `m a`)
+- [ ] `(a -> m b) -> m a -> m b` works well with function composition
+- [ ] what is `m a -> (a -> m b) -> m b` good for?
+- [ ] lift is both applicative and monadic in ftor
+- [ ] use lift# to apply a multi argument function to a monad
+- [ ] use `join` and `lift2` or `join $ a <$> b <*> c` to apply `a -> b -> m c` to two monads

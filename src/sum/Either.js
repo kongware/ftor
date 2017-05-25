@@ -16,7 +16,7 @@ const {throw_} = require("../throw_");
  * @name Either
  * @note Church encoded
  * @type sum type
- * @status stable
+ * @status unstable
  */
 
 

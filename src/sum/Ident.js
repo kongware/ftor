@@ -11,7 +11,7 @@ const {$Ident, $tag} = require("../interop");
  * @name Identity
  * @note Church encoded; combined namespace/constructor
  * @type sum type
- * @status stable
+ * @status unstable
  * @example
 
   const $tag = Symbol.for("ftor/tag");
@@ -24,7 +24,7 @@ const {$Ident, $tag} = require("../interop");
   };
 
   const Const = x => {
-    const Const = f => f(x);
+    const Const = f => x;
     return (Const[$tag] = "Const", Const[$Const] = true, Const);
   };
 
@@ -151,6 +151,8 @@ Ident.ap = tf => tx => tf[$Ident] && tf(f => Ident.map(f) (tx));
     return (Ident[$tag] = "Ident", Ident[$Ident] = true, Ident);
   };
 
+  Ident.map = f => tx => tx[$Ident] && Ident(tx(x => f(x)));
+
   Ident.chain = ft => tx => tx[$Ident] && tx(x => {
     const r = ft(x);
     return r[$Ident] && r;
@@ -161,7 +163,7 @@ Ident.ap = tf => tx => tf[$Ident] && tf(f => Ident.map(f) (tx));
   const add = x => y => x + y;
 
   Ident.chain(x => Ident.chain(y => Ident(add(x) (y))) (Ident(5))) (Ident(5)) (I); // 10
-  Ident.chain(x => Ident.chain(y => add(x) (y)) (Ident(5))) (Ident(5)) (I); // TypeError
+  Ident.chain(x => Ident.chain(y => Ident(add(x) (y))) (Ident(5))) (Ident(5)) (I); // TypeError
 
  */
 
@@ -187,7 +189,7 @@ Ident.chain = ft => tx => tx[$Ident] && tx(x => {
     return (Ident[$tag] = "Ident", Ident[$Ident] = true, Ident);
   };
 
-  Ident.traverse = map => ft => tx => map(y => Ident(y)) (tx(x => ft(x)));
+  Ident.traverse = map => ft => tx => tx(x => map(Ident) (ft(x)));
 
   const map = f => xs => xs.map(f);
   const I = x => x;
@@ -203,6 +205,9 @@ Ident.chain = ft => tx => tx[$Ident] && tx(x => {
 
 // (Functor t, Foldable t, Applicative f) => (a -> f b) -> t a -> f (t b)
 Ident.traverse = map => ft => tx => map(y => Ident(y)) (tx(x => ft(x)));
+
+
+Ident.traverse = map => ft => tx => tx(x => map(Ident) (ft(x)));
 
 
 // API
