@@ -5,6 +5,7 @@
 
 
 const {$Const, $tag} = require("../interop");
+const noop = require("../noop");
 
 
 /**
@@ -74,6 +75,106 @@ const Const = x => {
 
 // (b -> a -> b) -> b -> Const a -> b
 Const.fold = f => acc => tx => tx[$Const] && acc;
+
+
+/**
+ * @name map
+ * @type higher order function
+ * @class Functor
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Const = Symbol.for("ftor/Const");
+
+  const Const = x => {
+    const Const = f => x;
+    return (Const[$tag] = "Const", Const[$Const] = true, Const);
+  };
+
+  Const.map = f => tx => tx[$Const] && tx;
+
+  const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+  const I = x => x;
+  const sqr = x => x * x;
+  const dbl = x => x * 2;
+
+  const x = Const(5);
+
+  B_(Const.map(sqr), Const.map(dbl)) (x) (I); // 5
+
+ */
+
+
+// (a -> b) -> Const a -> Const a
+Const.map = f => tx => tx[$Const] && tx;
+
+
+/**
+ * @name traverse
+ * @type higher order function
+ * @class Traversable
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Const = Symbol.for("ftor/Const");
+
+  const Const = x => {
+    const Const = f => x;
+    return (Const[$tag] = "Const", Const[$Const] = true, Const);
+  };
+
+  Const.traverse = (of, map) => ft => tx => tx[$Const] && map(Const) (of(tx(noop)));
+
+  const map = f => xs => xs.map(f);
+  const of = x => [x];
+  const I = x => x;
+  const noop = () => null;
+
+  const r1 = Const.traverse(of, map) (x => x === null ? [] : [x]) (Const(1)); // [Const(1)]
+  const r2 = Const.traverse(of, map) (x => x === null ? [] : [x]) (Const(null)); // [Const(null)]
+
+  r1 [0] (I); // 1
+  r2 [0] (I); // null
+
+ */
+
+
+// Applicative f => (a -> f b) -> Const a -> f (Const a)
+Const.traverse = (of, map) => ft => tx => tx[$Const] && map(Const) (of(tx(noop)));
+
+
+/**
+ * @name of
+ * @type higher order function
+ * @class Applicative
+ * @status stable
+ * @example
+
+  @see ap
+
+ */
+
+
+// Monoid m => a -> Const m a
+Const.of = empty => x => empty;
+
+
+/**
+ * @name apply
+ * @type higher order function
+ * @class Applicative
+ * @status unstable
+ * @example
+
+  ???
+
+ */
+
+
+// Monoid m => Const m (a -> b) -> Const m a -> Const m b
+Const.ap = concat => tf => tx => ty => tf[$Const] && tx[$Const] && tf(f => Const.map(concat) (tx));
 
 
 // API

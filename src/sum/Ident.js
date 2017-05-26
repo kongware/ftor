@@ -124,7 +124,7 @@ Ident.map = f => tx => tx[$Ident] && Ident(tx(x => f(x)));
     return (Ident[$tag] = "Ident", Ident[$Ident] = true, Ident);
   };
 
-  Ident.traverse = map => ft => tx => tx(x => map(Ident) (ft(x)));
+  Ident.traverse = map => ft => tx => tx[$Ident] && tx(x => map(Ident) (ft(x)));
 
   const map = f => xs => xs.map(f);
   const I = x => x;
@@ -139,7 +139,18 @@ Ident.map = f => tx => tx[$Ident] && Ident(tx(x => f(x)));
 
 
 // Applicative f => (a -> f b) -> Ident a -> f (Ident b)
-Ident.traverse = map => ft => tx => tx(x => map(Ident) (ft(x)));
+Ident.traverse = map => ft => tx => tx[$Ident] && tx(x => map(Ident) (ft(x)));
+
+
+/**
+ * @name of
+ * @type higher order function
+ * @class Applicative
+ * @status stable
+ */
+
+
+Ident.of = x => Ident(x);
 
 
 /**
