@@ -150,6 +150,7 @@ Ident.traverse = map => ft => tx => tx[$Ident] && tx(x => map(Ident) (ft(x)));
  */
 
 
+// a -> Ident a
 Ident.of = x => Ident(x);
 
 
@@ -183,6 +184,10 @@ Ident.of = x => Ident(x);
 
 // Ident (a -> b) -> Ident a -> Ident b
 Ident.ap = tf => tx => tf[$Ident] && tx[$Ident] && tf(f => Ident.map(f) (tx));
+
+
+// Ident a -> Ident (a -> b) -> Ident b
+Ident.ap_ = tx => tf => tf[$Ident] && tx[$Ident] && tf(f => Ident.map(f) (tx));
 
 
 /**
@@ -219,6 +224,13 @@ Ident.ap = tf => tx => tf[$Ident] && tx[$Ident] && tf(f => Ident.map(f) (tx));
 
 // (a -> Ident(b)) -> Ident a -> Ident b
 Ident.chain = ft => tx => tx[$Ident] && tx(x => {
+  const r = ft(x);
+  return r[$Ident] && r;
+});
+
+
+// Ident a -> (a -> Ident(b)) -> Ident b
+Ident.chain_ = tx => ft => tx[$Ident] && tx(x => {
   const r = ft(x);
   return r[$Ident] && r;
 });

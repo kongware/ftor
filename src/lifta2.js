@@ -14,7 +14,7 @@
 
 
 // Applicative f => (a -> b -> c) -> f a -> f b -> f c
-const lift2 = (map, ap) => f => tx => ty => ap(map(f) (tx)) (ty);
+const lifta2 = (map, ap) => f => tx => ty => ap(map(f) (tx)) (ty);
 
 
 // API

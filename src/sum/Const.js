@@ -145,38 +145,6 @@ Const.map = f => tx => tx[$Const] && tx;
 Const.traverse = (of, map) => ft => tx => tx[$Const] && map(Const) (of(tx(noop)));
 
 
-/**
- * @name of
- * @type higher order function
- * @class Applicative
- * @status stable
- * @example
-
-  @see ap
-
- */
-
-
-// Monoid m => a -> Const m a
-Const.of = empty => x => empty;
-
-
-/**
- * @name apply
- * @type higher order function
- * @class Applicative
- * @status unstable
- * @example
-
-  ???
-
- */
-
-
-// Monoid m => Const m (a -> b) -> Const m a -> Const m b
-Const.ap = concat => tf => tx => ty => tf[$Const] && tx[$Const] && tf(f => Const.map(concat) (tx));
-
-
 // API
 
 
