@@ -157,3 +157,4 @@ Please note that names are a quite good indicator of how generic your code is. G
 - [ ] lift is both applicative and monadic in ftor
 - [ ] use lift# to apply a multi argument function to a monad
 - [ ] use `join` and `lift2` or `join $ a <$> b <*> c` to apply `a -> b -> m c` to two monads
+- [ ] improve chain example where the next computation depends on the result of the previous one

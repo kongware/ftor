@@ -75,6 +75,9 @@ Option.Some = Some;
     return None[$tag] = "None", None[$Option] = true, None;
   };
 
+  None[$tag] = "None";
+  None[$Option] = true;
+
   const I = x => x;
 
   None(null) (I); // null
@@ -94,8 +97,63 @@ Option.None = None;
 
 
 /**
+ * @name isSome
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.isSome = tx => tx[$tag] === "Some";
+
+  Option.isSome(Some(2)); // true
+  Option.isSome(None); // false
+
+ */
+
+
+// Option a -> Boolean
+Option.isSome = tx => tx[$tag] === "Some";
+
+
+/**
+ * @name isNone
+ * @type higher order function
+ * @status stable
+ * @example
+
+  @see Option.isSome
+  
+ */ 
+
+
+// Option a -> Boolean
+Option.isNone = tx => tx[$tag] === "None";
+
+
+/**
  * @name empty
  * @type higher order function
+ * @class Monoid
  * @status stable
  * @example
 
@@ -111,6 +169,7 @@ Option.empty = None;
 /**
  * @name fold
  * @type higher order function
+ * @class Foldable
  * @status stable
  * @example
 
@@ -152,6 +211,7 @@ Option.fold = f => acc => tx => tx[$Option] && tx(acc) (x => f(acc) (x));
 /**
  * @name traverse
  * @type higher order function
+ * @class Traversable
  * @status stable
  * @example
 
@@ -195,6 +255,7 @@ Option.traverse = (of, map) => ft => tx => tx[$Option] && tx(of(None)) (x => map
 /**
  * @name sequence
  * @type higher order function
+ * @class Traversable
  * @status stable
  * @example
 
@@ -239,6 +300,7 @@ Option.sequence = (of, chain) => tx => tx(of(None)) (ty => chain(ty) (y => of(So
 /**
  * @name alt
  * @type higher order function
+ * @class Alternative
  * @status stable
  * @example
 
@@ -280,6 +342,7 @@ Option.alt = tx => ty => tx(ty) (() => tx);
 /**
  * @name map
  * @type higher order function
+ * @class Functor
  * @status stable
  * @example
 
@@ -321,6 +384,7 @@ Option.map = f => tx => tx[$Option] && tx(None) (x => Some(f(x)));
 /**
  * @name of
  * @type higher order function
+ * @class Applicative
  * @status stable
  * @example
 
@@ -334,8 +398,9 @@ Option.of = Some;
 
 
 /**
- * @name ap
+ * @name apply
  * @type higher order function
+ * @class Applicative
  * @status stable
  * @example
 
@@ -378,8 +443,50 @@ Option.ap = tf => tx => tf[$Option] && tx[$Option] && tf(None) (f => tx(None) (x
 
 
 /**
+ * @name join
+ * @type higher order function
+ * @class Monoid
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+  
+  Option.join = ttx => ttx[$Option] && ttx(None) (tx => tx[$Option] && tx);
+
+  Option.join(Some(Some(2))); // Some(2)
+  Option.join(Some(None)); // None
+  Option.join(None); // None
+
+ */
+
+
+// Option (Option a) -> Option a
+Option.join = ttx => ttx[$Option] && ttx(None) (tx => tx[$Option] && tx);
+
+
+/**
  * @name chain
  * @type higher order function
+ * @class Monad
  * @status stable
  * @example
 
