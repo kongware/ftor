@@ -5,6 +5,8 @@
 
 
 const {$tag, $Option} = require("../interop");
+const {compare} = require("../primitive/compare");
+const {compareBy} = require("../compareBy");
 
 
 /**
@@ -18,7 +20,7 @@ const {$tag, $Option} = require("../interop");
 const Option = {};
 
 
-// constructors
+// CONSTRUCTORS
 
 
 /**
@@ -96,6 +98,480 @@ None[$Option] = true;
 Option.None = None;
 
 
+// SETOID
+
+
+Option.eq = tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(false) (y => x === y));
+
+
+Option.eqBy = eq => tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(false) (y => eq(x) (y)));
+
+
+// ORD
+
+
+Option.compare = tx => ty => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compare(x) (y)));
+
+
+Option.compare_ = ty => tx => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compare(x) (y)));
+
+
+Option.compareBy = pred => tx => ty => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compareBy(pred) (x) (y)));
+
+
+Option.compareBy_ = pred => ty => tx => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compareBy(pred) (x) (y)));
+
+
+Option.lt = tx => ty => tx[$Option] && ty[$Option] && tx(ty(false) (_ => true)) (x => ty(false) (y => x < y));
+
+
+Option.lte = tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => true)) (x => ty(false) (y => x <= y));
+
+
+Option.gt = tx => ty => tx[$Option] && ty[$Option] && tx(ty(false) (_ => false)) (x => ty(true) (y => x > y));
+
+
+Option.gte = tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(true) (y => x >= y));
+
+
+Option.min = tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => tx)) (x => ty(ty) (y => x < y ? tx : ty));
+
+
+Option.max = tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => ty)) (x => ty(tx) (y => x > y ? tx : ty));
+
+
+// SEMIGROUP
+
+
+Option.concat = tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => x + y));
+
+
+Option.concat_ = ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => x + y));
+
+
+Option.concatBy = concat => tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => concat(x) (y)));
+
+
+Option.concatBy_ = concat => ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => concat(x) (y)));
+
+
+// MONOID
+
+
+/**
+ * @name empty
+ * @type first order function
+ * @status stable
+ * @example
+
+   @see None
+
+ */
+
+
+// a -> Option a
+Option.empty = None;
+
+
+// FOLDABLE
+
+
+/**
+ * @name fold
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.fold = f => acc => tx => tx[$Option] && tx(acc) (x => f(acc) (x));
+  const add = x => y => x + y;
+  const I = x => x;
+
+  Option.fold(add) (2) (Some(3)); // 5
+  Option.fold(add) (2) (None); // 2
+
+ */
+
+
+// (b -> a -> b) -> b -> Option a -> b
+Option.fold = f => acc => tx => tx[$Option] && tx(acc) (x => f(acc) (x));
+
+
+// TRAVERSABLE
+
+
+/**
+ * @name traverse
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.traverse = (of, map) => ft => tx => tx[$Option] && tx(of(None)) (x => map(Some) (ft(x)));
+  const I = x => x;
+
+  const map = f => xs => xs.map(f);
+  const of = x => [x];
+
+  Option.traverse(of, map) (sqr = x => [x * x]) (Some(5)) [0] (0) (I); // 25
+  Option.traverse(of, map) (sqr = x => [x * x]) (None) [0] (0) (I); // 0
+
+ */
+
+
+// Applicative f => (a -> f b) -> Option a -> f (Option b)
+Option.traverse = (of, map) => ft => tx => tx[$Option] && tx(of(None)) (x => map(Some) (ft(x)));
+
+
+/**
+ * @name sequence
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.sequence = (of, chain) => tx => tx(of(None)) (ty => chain(ty) (y => of(Some(y))));
+  const I = x => x;
+
+  const chain = tx => ft => tx.map(x => join(ft(x)));
+  const join = ttx => ttx[0];
+  const of = x => [x];
+
+  Option.sequence(of, chain) (Some([1, 2, 3])); [Some(1), Some(2), Some(3)]
+  Option.sequence(of, chain) (None); // [None]
+
+ */
+
+
+// Monad m => Option (m a) -> m (Option a)
+Option.sequence = (of, chain) => tx => tx(of(None)) (ty => chain(ty) (y => of(Some(y))));
+
+
+// FUNCTOR
+
+
+/**
+ * @name map
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.map = f => tx => tx[$Option] && tx(None) (x => Some(f(x)));
+  const sqr = x => x * x;
+  const I = x => x;
+
+  Option.map(sqr) (Some(5)) (0) (I); // 25
+  Option.map(sqr) (None) (0) (I); // 0
+
+ */
+
+
+// (a -> b) -> Option a -> Option b
+Option.map = f => tx => tx[$Option] && tx(None) (x => Some(f(x)));
+
+
+// APPLY
+
+
+/**
+ * @name apply
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.map = f => tx => tx[$Option] && tx(None) (x => Some(f(x)));
+  Option.ap = tf => tx => tf[$Option] && tx[$Option] && tf(None) (f => tx(None) (x => Some(f(x))));
+
+  const add = x => y => x + y;
+  const I = x => x;
+
+  Option.ap(Option.map(add) (Some(2))) (Some(3)) (0) (I); // 5
+  Option.ap(Option.map(add) (None)) (Some(3)) (0) (I); // 0
+  Option.ap(Option.map(add) (Some(2))) (None) (0) (I); // 0
+
+ */
+
+
+// Option (a -> b) -> Option a -> Option b
+Option.ap = tf => tx => tf[$Option] && tx[$Option] && tf(None) (f => tx(None) (x => Some(f(x))));
+
+
+// APPLICATIVE
+
+
+/**
+ * @name of
+ * @type first order function
+ * @status stable
+ * @example
+
+   @see Some
+
+ */
+
+
+// a -> Option a
+Option.of = Some;
+
+
+// MONAD
+
+
+/**
+ * @name join
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+  
+  Option.join = ttx => ttx[$Option] && ttx(None) (tx => tx[$Option] && tx);
+
+  Option.join(Some(Some(2))); // Some(2)
+  Option.join(Some(None)); // None
+  Option.join(None); // None
+
+ */
+
+
+// Option (Option a) -> Option a
+Option.join = ttx => ttx[$Option] && ttx(None) (tx => tx[$Option] && tx);
+
+
+/**
+ * @name chain
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.map = f => tx => tx[$Option] && tx(None) (x => Some(f(x)));
+
+  Option.chain = tx => ft => tx[$Option] && tx(None) (x => {
+    const r = ft(x);
+    return r[$Option] && r;
+  });
+
+  const sqr = x => Some(x * x);
+
+  const I = x => x;
+
+  Option.chain(Some(5)) (sqr) (0) (I); // 25
+  Option.chain(None) (sqr) (0) (I); // 0
+
+ */
+
+
+// Option a -> (a -> Option b) -> Option b
+Option.chain = tx => ft => tx[$Option] && tx(None) (x => {
+  const r = ft(x);
+  return r[$Option] && r;
+});
+
+
+// ALTERNATIVE
+
+
+/**
+ * @name alt
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.alt = tx => ty => tx(ty) (() => tx);
+  const I = x => x;
+
+  Option.alt(None) (Some(2)) (0) (I); // 2
+  Option.alt(Some(1)) (None) (0) (I); // 1
+  Option.alt(Some(1)) (Some(2)) (0) (I); // 1
+  Option.alt(None) (None) (0) (I); // 0
+
+ */
+
+
+Option.alt = tx => ty => tx(ty) (() => tx);
+
+
+/**
+ * @name plus
+ * @type first order function
+ * @status stable
+ * @example
+
+   @see None
+
+ */
+
+
+// a -> Option a
+Option.plus = None;
+
+
+// SPECIFIC
+
+
 /**
  * @name isSome
  * @type higher order function
@@ -151,25 +627,8 @@ Option.isNone = tx => tx[$tag] === "None";
 
 
 /**
- * @name empty
+ * @name fromOption
  * @type higher order function
- * @class Monoid
- * @status stable
- * @example
-
-   @see None
-
- */
-
-
-// a -> Option a
-Option.empty = None;
-
-
-/**
- * @name fold
- * @type higher order function
- * @class Foldable
  * @status stable
  * @example
 
@@ -194,345 +653,16 @@ Option.empty = None;
   None[$tag] = "None";
   None[$Option] = true;
 
-  Option.fold = f => acc => tx => tx[$Option] && tx(acc) (x => f(acc) (x));
-  const add = x => y => x + y;
-  const I = x => x;
+  Option.fromOption = x => tx => tx(x) (x => x);
 
-  Option.fold(add) (2) (Some(3)); // 5
-  Option.fold(add) (2) (None); // 2
+  Option.fromOption(0) (Some(2)); // 2
+  Option.fromOption(0) (None); // 0
 
- */
+ */ 
 
 
-// (b -> a -> b) -> b -> Option a -> b
-Option.fold = f => acc => tx => tx[$Option] && tx(acc) (x => f(acc) (x));
-
-
-/**
- * @name traverse
- * @type higher order function
- * @class Traversable
- * @status stable
- * @example
-
-  const $tag = Symbol.for("ftor/tag");
-  const $Option = Symbol.for("ftor/Option");
-  const Option = {};
-
-  const Some = x => {
-    const Some = r => {
-      const Some = f => f(x);
-      return Some[$tag] = "Some", Some[$Option] = true, Some;
-    };
-
-    return Some[$tag] = "Some", Some[$Option] = true, Some;
-  };
-
-  const None = r => {
-    const None = f => r;
-    return None[$tag] = "None", None[$Option] = true, None;
-  };
-
-  None[$tag] = "None";
-  None[$Option] = true;
-
-  Option.traverse = (of, map) => ft => tx => tx[$Option] && tx(of(None)) (x => map(Some) (ft(x)));
-  const I = x => x;
-
-  const map = f => xs => xs.map(f);
-  const of = x => [x];
-
-  Option.traverse(of, map) (sqr = x => [x * x]) (Some(5)) [0] (0) (I); // 25
-  Option.traverse(of, map) (sqr = x => [x * x]) (None) [0] (0) (I); // 0
-
- */
-
-
-// Applicative f => (a -> f b) -> Option a -> f (Option b)
-Option.traverse = (of, map) => ft => tx => tx[$Option] && tx(of(None)) (x => map(Some) (ft(x)));
-
-
-/**
- * @name sequence
- * @type higher order function
- * @class Traversable
- * @status stable
- * @example
-
-  const $tag = Symbol.for("ftor/tag");
-  const $Option = Symbol.for("ftor/Option");
-  const Option = {};
-
-  const Some = x => {
-    const Some = r => {
-      const Some = f => f(x);
-      return Some[$tag] = "Some", Some[$Option] = true, Some;
-    };
-
-    return Some[$tag] = "Some", Some[$Option] = true, Some;
-  };
-
-  const None = r => {
-    const None = f => r;
-    return None[$tag] = "None", None[$Option] = true, None;
-  };
-
-  None[$tag] = "None";
-  None[$Option] = true;
-
-  Option.sequence = (of, chain) => tx => tx(of(None)) (ty => chain(ty) (y => of(Some(y))));
-  const I = x => x;
-
-  const chain = tx => ft => tx.map(x => join(ft(x)));
-  const join = ttx => ttx[0];
-  const of = x => [x];
-
-  Option.sequence(of, chain) (Some([1, 2, 3])); [Some(1), Some(2), Some(3)]
-  Option.sequence(of, chain) (None); // [None]
-
- */
-
-
-// Monad m => Option (m a) -> m (Option a)
-Option.sequence = (of, chain) => tx => tx(of(None)) (ty => chain(ty) (y => of(Some(y))));
-
-
-/**
- * @name alt
- * @type higher order function
- * @class Alternative
- * @status stable
- * @example
-
-  const $tag = Symbol.for("ftor/tag");
-  const $Option = Symbol.for("ftor/Option");
-  const Option = {};
-
-  const Some = x => {
-    const Some = r => {
-      const Some = f => f(x);
-      return Some[$tag] = "Some", Some[$Option] = true, Some;
-    };
-
-    return Some[$tag] = "Some", Some[$Option] = true, Some;
-  };
-
-  const None = r => {
-    const None = f => r;
-    return None[$tag] = "None", None[$Option] = true, None;
-  };
-
-  None[$tag] = "None";
-  None[$Option] = true;
-
-  Option.alt = tx => ty => tx(ty) (() => tx);
-  const I = x => x;
-
-  Option.alt(None) (Some(2)) (0) (I); // 2
-  Option.alt(Some(1)) (None) (0) (I); // 1
-  Option.alt(Some(1)) (Some(2)) (0) (I); // 1
-  Option.alt(None) (None) (0) (I); // 0
-
- */
-
-
-Option.alt = tx => ty => tx(ty) (() => tx);
-
-
-/**
- * @name map
- * @type higher order function
- * @class Functor
- * @status stable
- * @example
-
-  const $tag = Symbol.for("ftor/tag");
-  const $Option = Symbol.for("ftor/Option");
-  const Option = {};
-
-  const Some = x => {
-    const Some = r => {
-      const Some = f => f(x);
-      return Some[$tag] = "Some", Some[$Option] = true, Some;
-    };
-
-    return Some[$tag] = "Some", Some[$Option] = true, Some;
-  };
-
-  const None = r => {
-    const None = f => r;
-    return None[$tag] = "None", None[$Option] = true, None;
-  };
-
-  None[$tag] = "None";
-  None[$Option] = true;
-
-  Option.map = f => tx => tx[$Option] && tx(None) (x => Some(f(x)));
-  const sqr = x => x * x;
-  const I = x => x;
-
-  Option.map(sqr) (Some(5)) (0) (I); // 25
-  Option.map(sqr) (None) (0) (I); // 0
-
- */
-
-
-// (a -> b) -> Option a -> Option b
-Option.map = f => tx => tx[$Option] && tx(None) (x => Some(f(x)));
-
-
-/**
- * @name of
- * @type higher order function
- * @class Applicative
- * @status stable
- * @example
-
-   @see Some
-
- */
-
-
-// a -> Option a
-Option.of = Some;
-
-
-/**
- * @name apply
- * @type higher order function
- * @class Applicative
- * @status stable
- * @example
-
-  const $tag = Symbol.for("ftor/tag");
-  const $Option = Symbol.for("ftor/Option");
-  const Option = {};
-
-  const Some = x => {
-    const Some = r => {
-      const Some = f => f(x);
-      return Some[$tag] = "Some", Some[$Option] = true, Some;
-    };
-
-    return Some[$tag] = "Some", Some[$Option] = true, Some;
-  };
-
-  const None = r => {
-    const None = f => r;
-    return None[$tag] = "None", None[$Option] = true, None;
-  };
-
-  None[$tag] = "None";
-  None[$Option] = true;
-
-  Option.map = f => tx => tx[$Option] && tx(None) (x => Some(f(x)));
-  Option.ap = tf => tx => tf[$Option] && tx[$Option] && tf(None) (f => tx(None) (x => Some(f(x))));
-
-  const add = x => y => x + y;
-  const I = x => x;
-
-  Option.ap(Option.map(add) (Some(2))) (Some(3)) (0) (I); // 5
-  Option.ap(Option.map(add) (None)) (Some(3)) (0) (I); // 0
-  Option.ap(Option.map(add) (Some(2))) (None) (0) (I); // 0
-
- */
-
-
-// Option (a -> b) -> Option a -> Option b
-Option.ap = tf => tx => tf[$Option] && tx[$Option] && tf(None) (f => tx(None) (x => Some(f(x))));
-
-
-/**
- * @name join
- * @type higher order function
- * @class Monoid
- * @status stable
- * @example
-
-  const $tag = Symbol.for("ftor/tag");
-  const $Option = Symbol.for("ftor/Option");
-  const Option = {};
-
-  const Some = x => {
-    const Some = r => {
-      const Some = f => f(x);
-      return Some[$tag] = "Some", Some[$Option] = true, Some;
-    };
-
-    return Some[$tag] = "Some", Some[$Option] = true, Some;
-  };
-
-  const None = r => {
-    const None = f => r;
-    return None[$tag] = "None", None[$Option] = true, None;
-  };
-
-  None[$tag] = "None";
-  None[$Option] = true;
-  
-  Option.join = ttx => ttx[$Option] && ttx(None) (tx => tx[$Option] && tx);
-
-  Option.join(Some(Some(2))); // Some(2)
-  Option.join(Some(None)); // None
-  Option.join(None); // None
-
- */
-
-
-// Option (Option a) -> Option a
-Option.join = ttx => ttx[$Option] && ttx(None) (tx => tx[$Option] && tx);
-
-
-/**
- * @name chain
- * @type higher order function
- * @class Monad
- * @status stable
- * @example
-
-  const $tag = Symbol.for("ftor/tag");
-  const $Option = Symbol.for("ftor/Option");
-  const Option = {};
-
-  const Some = x => {
-    const Some = r => {
-      const Some = f => f(x);
-      return Some[$tag] = "Some", Some[$Option] = true, Some;
-    };
-
-    return Some[$tag] = "Some", Some[$Option] = true, Some;
-  };
-
-  const None = r => {
-    const None = f => r;
-    return None[$tag] = "None", None[$Option] = true, None;
-  };
-
-  None[$tag] = "None";
-  None[$Option] = true;
-
-  Option.map = f => tx => tx[$Option] && tx(None) (x => Some(f(x)));
-
-  Option.chain = tx => ft => tx[$Option] && tx(None) (x => {
-    const r = ft(x);
-    return r[$Option] && r;
-  });
-
-  const sqr = x => Some(x * x);
-
-  const I = x => x;
-
-  Option.chain(Some(5)) (sqr) (0) (I); // 25
-  Option.chain(None) (sqr) (0) (I); // 0
-
- */
-
-
-// Option a -> (a -> Option b) -> Option b
-Option.chain = tx => ft => tx[$Option] && tx(None) (x => {
-  const r = ft(x);
-  return r[$Option] && r;
-});
+// a -> Option a -> a
+Option.fromOption = x => tx => tx(x) (x => x);
 
 
 // API
