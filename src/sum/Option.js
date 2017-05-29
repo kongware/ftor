@@ -101,12 +101,119 @@ Option.None = None;
 // SETOID
 
 
+/**
+ * @name equal
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.eq = tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(false) (y => x === y));
+  const I = x => x;
+
+  Option.eq(Some("foo")) (Some("foo")); // true
+  Option.eq(Some("foo")) (Some("bar")); // false
+  Option.eq(Some("foo")) (None); // false
+  Option.eq(None) (None); // true
+
+ */
+
+
 // Setoid a => Option a -> Option a -> Boolean
 Option.eq = tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(false) (y => x === y));
 
 
+/**
+ * @name not equal
+ * @type higher order function
+ * @status stable
+ * @example
+
+  @see Option.eq
+
+ */
+
+
+// Setoid a => Option a -> Option a -> Boolean
+Option.neq = tx => ty => tx[$Option] && ty[$Option] && tx(ty(false) (_ => true)) (x => ty(true) (y => x !== y));
+
+
+/**
+ * @name equal by
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.eqBy = eq => tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(false) (y => eq(x) (y)));
+  const eqId = o => p => o.id === p.id;
+  const I = x => x;
+
+  Option.eqBy(eqId) (Some({id: "foo"})) (Some({id: "foo"})); // true
+  Option.eqBy(eqId) (Some({id: "foo"})) (Some({id: "bar"})); // false
+  Option.eqBy(eqId) (Some({id: "foo"})) (None); // false
+  Option.eqBy(eqId) (None) (None); // true
+
+ */
+
+
 // Setoid a => (a -> a -> Boolean) -> Option a -> Option a -> Boolean
 Option.eqBy = eq => tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(false) (y => eq(x) (y)));
+
+
+/**
+ * @name not equal by
+ * @type higher order function
+ * @status stable
+ * @example
+
+  @see Option.eqBy
+
+ */
+
+
+// Setoid a => (a -> a -> Boolean) -> Option a -> Option a -> Boolean
+Option.neqBy = neq => tx => ty => tx[$Option] && ty[$Option] && tx(ty(false) (_ => true)) (x => ty(true) (y => neq(x) (y)));
 
 
 // ORD
