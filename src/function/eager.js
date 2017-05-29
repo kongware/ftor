@@ -1,6 +1,12 @@
 "use strict";
 
 
+// dependencies
+
+
+const {$thunk} = require("./interop");
+
+
 /**
  * @name eager
  * @type higher order function
