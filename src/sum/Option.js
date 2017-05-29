@@ -101,57 +101,73 @@ Option.None = None;
 // SETOID
 
 
+// Setoid a => Option a -> Option a -> Boolean
 Option.eq = tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(false) (y => x === y));
 
 
+// Setoid a => (a -> a -> Boolean) -> Option a -> Option a -> Boolean
 Option.eqBy = eq => tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(false) (y => eq(x) (y)));
 
 
 // ORD
 
 
+// (Ord a, Number ordering) => Option a -> Option a -> ordering
 Option.compare = tx => ty => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compare(x) (y)));
 
 
+// (Ord a, Number ordering) => Option a -> Option a -> ordering
 Option.compare_ = ty => tx => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compare(x) (y)));
 
 
+// (Ord a, Number ordering) => (a -> a -> Boolean) -> Option a -> Option a -> ordering
 Option.compareBy = pred => tx => ty => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compareBy(pred) (x) (y)));
 
 
+// (Ord a, Number ordering) => (a -> a -> Boolean) -> Option a -> Option a -> ordering
 Option.compareBy_ = pred => ty => tx => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compareBy(pred) (x) (y)));
 
 
+// Ord a => Option a -> Option a -> Boolean
 Option.lt = tx => ty => tx[$Option] && ty[$Option] && tx(ty(false) (_ => true)) (x => ty(false) (y => x < y));
 
 
+// Ord a => Option a -> Option a -> Boolean
 Option.lte = tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => true)) (x => ty(false) (y => x <= y));
 
 
+// Ord a => Option a -> Option a -> Boolean
 Option.gt = tx => ty => tx[$Option] && ty[$Option] && tx(ty(false) (_ => false)) (x => ty(true) (y => x > y));
 
 
+// Ord a => Option a -> Option a -> Boolean
 Option.gte = tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(true) (y => x >= y));
 
 
+// Ord a => Option a -> Option a -> Option a
 Option.min = tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => tx)) (x => ty(ty) (y => x < y ? tx : ty));
 
 
+// Ord a => Option a -> Option a -> Option a
 Option.max = tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => ty)) (x => ty(tx) (y => x > y ? tx : ty));
 
 
 // SEMIGROUP
 
 
+// Monoid a => Option a -> Option a -> Option a
 Option.concat = tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => x + y));
 
 
+// Monoid a => Option a -> Option a -> Option a
 Option.concat_ = ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => x + y));
 
 
+// Monoid a => (a -> a -> a) -> Option a -> Option a -> Option a
 Option.concatBy = concat => tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => concat(x) (y)));
 
 
+// Monoid a => (a -> a -> a) -> Option a -> Option a -> Option a
 Option.concatBy_ = concat => ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => concat(x) (y)));
 
 

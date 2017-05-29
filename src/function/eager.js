@@ -2,17 +2,16 @@
 
 
 /**
- * @name evaluate
+ * @name eager
  * @type higher order function
- * @status experimental
+ * @status stable
  * @example
 
   $thunk = Symbol.for("ftor/thunk");
 
-  const evaluate = f => (...args) => {
+  const eager = f => (...args) => {
     let g = f(...args);
-    
-    while (typeof g === "function" && $thunk in g) g = g();
+    while (g && g[$thunk]) g = g();
     return g;
   };
 
@@ -22,10 +21,8 @@
   };
 
   const repeat = n => f => x => {
-    const aux = (x, n) => n === 0 ? x : thunk(f(x), n - 1),
-     thunk = lazy2_(aux);
-
-    return evaluate(aux) (x, n);
+    const aux = lazy2_((n, x) => n === 0 ? x : aux(n - 1, f(x)));
+    return eager(lazy2_(aux)) (n, x);
   };
 
   const inc = x => x + 1;
@@ -36,10 +33,9 @@
 
 
 // ((*) -> () -> a) -> (*) -> a
-const evaluate = f => (...args) => {
+const eager = f => (...args) => {
   let g = f(...args);
-  
-  while (typeof g === "function" && $thunk in g) g = g();
+  while (g && g[$thunk]) g = g();
   return g;
 };
 
