@@ -7,6 +7,9 @@
 const {$tag, $Option} = require("../interop");
 const {compare} = require("../primitive/compare");
 const {compareBy} = require("../compareBy");
+const EQ = require("../primitive/EQ");
+const LT = require("../primitive/LT");
+const GT = require("../primitive/GT");
 
 
 /**
@@ -219,6 +222,49 @@ Option.neqBy = neq => tx => ty => tx[$Option] && ty[$Option] && tx(ty(false) (_ 
 // ORD
 
 
+/**
+ * @name compare
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.compare = tx => ty => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compare(x) (y)));
+  const compare = x => y => x < y ? LT : y < x ? GT : EQ;
+
+  const LT = -1;
+  const EQ = 0;
+  const GT = 1;
+
+  Option.compare(Some(2)) (Some(3)); // LT
+  Option.compare(Some(3)) (Some(2)); // GT
+  Option.compare(Some(2)) (Some(2)); // EQ
+  Option.compare(Some(2)) (None); // GT
+  Option.compare(None) (None); // EQ
+
+ */
+
+
 // (Ord a, Number ordering) => Option a -> Option a -> ordering
 Option.compare = tx => ty => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compare(x) (y)));
 
@@ -227,32 +273,143 @@ Option.compare = tx => ty => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) 
 Option.compare_ = ty => tx => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compare(x) (y)));
 
 
-// (Ord a, Number ordering) => (a -> a -> Boolean) -> Option a -> Option a -> ordering
-Option.compareBy = pred => tx => ty => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compareBy(pred) (x) (y)));
+/**
+ * @name compare by
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.compareBy = compare => tx => ty => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compare(x) (y)));
+  const comparek = k => o => p => o[k] < p[k] ? LT : p[k] < o[k] ? GT : EQ;
+
+  const LT = -1;
+  const EQ = 0;
+  const GT = 1;
+
+  const o = {id: 2}, p = {id: 3}, q = {id: 2};
+
+  Option.compareBy(comparek("id")) (Some(o)) (Some(p)); // LT
+  Option.compareBy(comparek("id")) (Some(p)) (Some(o)); // GT
+  Option.compareBy(comparek("id")) (Some(o)) (Some(q)); // EQ
+  Option.compareBy(comparek("id")) (Some(o)) (None); // GT
+  Option.compareBy(comparek("id")) (None) (None); // EQ
+
+ */
 
 
 // (Ord a, Number ordering) => (a -> a -> Boolean) -> Option a -> Option a -> ordering
-Option.compareBy_ = pred => ty => tx => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compareBy(pred) (x) (y)));
+Option.compareBy = compare => tx => ty => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compare(x) (y)));
+
+
+// (Ord a, Number ordering) => (a -> a -> Boolean) -> Option a -> Option a -> ordering
+Option.compareBy_ = compare => ty => tx => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compare(x) (y)));
+
+
+/**
+ * @name lower than
+ * @type higher order function
+ * @status stable
+ * @example
+
+  ???
+
+ */
 
 
 // Ord a => Option a -> Option a -> Boolean
 Option.lt = tx => ty => tx[$Option] && ty[$Option] && tx(ty(false) (_ => true)) (x => ty(false) (y => x < y));
 
 
+/**
+ * @name lower than or equal
+ * @type higher order function
+ * @status stable
+ * @example
+
+  ???
+
+ */
+
+
 // Ord a => Option a -> Option a -> Boolean
 Option.lte = tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => true)) (x => ty(false) (y => x <= y));
+
+
+/**
+ * @name greater than
+ * @type higher order function
+ * @status stable
+ * @example
+
+  @see Option.lt
+
+ */
 
 
 // Ord a => Option a -> Option a -> Boolean
 Option.gt = tx => ty => tx[$Option] && ty[$Option] && tx(ty(false) (_ => false)) (x => ty(true) (y => x > y));
 
 
+/**
+ * @name greater than or equal
+ * @type higher order function
+ * @status stable
+ * @example
+
+  @see Option.lte
+
+ */
+
+
 // Ord a => Option a -> Option a -> Boolean
 Option.gte = tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(true) (y => x >= y));
 
 
+/**
+ * @name minimum
+ * @type higher order function
+ * @status stable
+ * @example
+
+  ???
+
+ */
+
+
 // Ord a => Option a -> Option a -> Option a
 Option.min = tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => tx)) (x => ty(ty) (y => x < y ? tx : ty));
+
+
+/**
+ * @name maximum
+ * @type higher order function
+ * @status stable
+ * @example
+
+  @see Option.minimum
+
+ */
 
 
 // Ord a => Option a -> Option a -> Option a
@@ -262,12 +419,34 @@ Option.max = tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => ty)) (x =
 // SEMIGROUP
 
 
+/**
+ * @name concat
+ * @type higher order function
+ * @status stable
+ * @example
+
+  ???
+
+ */
+
+
 // Monoid a => Option a -> Option a -> Option a
 Option.concat = tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => x + y));
 
 
 // Monoid a => Option a -> Option a -> Option a
 Option.concat_ = ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => x + y));
+
+
+/**
+ * @name concat by
+ * @type higher order function
+ * @status stable
+ * @example
+
+  ???
+
+ */
 
 
 // Monoid a => (a -> a -> a) -> Option a -> Option a -> Option a
