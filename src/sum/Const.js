@@ -50,10 +50,12 @@ const Const = x => {
 };
 
 
+// FOLDABLE
+
+
 /**
  * @name fold
  * @type higher order function
- * @class Foldable
  * @status stable
  * @example
 
@@ -73,41 +75,8 @@ const Const = x => {
  */
 
 
-// (b -> a -> b) -> b -> Const a -> b
+// (b -> a -> b) -> b -> Const m a -> b
 Const.fold = f => acc => tx => tx[$Const] && acc;
-
-
-/**
- * @name map
- * @type higher order function
- * @class Functor
- * @status stable
- * @example
-
-  const $tag = Symbol.for("ftor/tag");
-  const $Const = Symbol.for("ftor/Const");
-
-  const Const = x => {
-    const Const = f => x;
-    return (Const[$tag] = "Const", Const[$Const] = true, Const);
-  };
-
-  Const.map = f => tx => tx[$Const] && tx;
-
-  const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
-  const I = x => x;
-  const sqr = x => x * x;
-  const dbl = x => x * 2;
-
-  const x = Const(5);
-
-  B_(Const.map(sqr), Const.map(dbl)) (x) (I); // 5
-
- */
-
-
-// (a -> b) -> Const a -> Const a
-Const.map = f => tx => tx[$Const] && tx;
 
 
 /**
@@ -141,8 +110,77 @@ Const.map = f => tx => tx[$Const] && tx;
  */
 
 
-// Applicative f => (a -> f b) -> Const a -> f (Const a)
+// Applicative f => (a -> f b) -> Const m a -> f (Const m b)
 Const.traverse = (of, map) => ft => tx => tx[$Const] && map(Const) (of(tx(noop)));
+
+
+// FUNCTOR
+
+
+/**
+ * @name map
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Const = Symbol.for("ftor/Const");
+
+  const Const = x => {
+    const Const = f => x;
+    return (Const[$tag] = "Const", Const[$Const] = true, Const);
+  };
+
+  Const.map = f => tx => tx[$Const] && tx;
+
+  const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+  const I = x => x;
+  const sqr = x => x * x;
+  const dbl = x => x * 2;
+
+  const x = Const(5);
+
+  B_(Const.map(sqr), Const.map(dbl)) (x) (I); // 5
+
+ */
+
+
+// (a -> b) -> Const m a -> Const m b
+Const.map = f => tx => tx[$Const] && tx;
+
+
+// APPLICATIVE
+
+
+/**
+ * @name apply
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Const = Symbol.for("ftor/Const");
+
+  const Const = x => {
+    const Const = f => x;
+    return (Const[$tag] = "Const", Const[$Const] = true, Const);
+  };
+
+  Const.ap = concat => tx => ty => tx(x => ty(y => concat(tx) (ty)))
+
+  const concat = x => y => x.concat(y);
+  const I = x => x;
+
+  Const.ap(Const("foo")) (Const("bar"));
+
+ */
+
+
+// Const m (a -> b) -> Const m a -> Const m b
+Const.ap = concat => tx => ty => tx(x => ty(y => Const.of(concat(tx) (ty))));
+
+
+Const.of = empty => x => empty;
 
 
 // API

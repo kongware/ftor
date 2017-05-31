@@ -130,7 +130,7 @@ Arr.clone = xs => [].concat(xs);
  * @status stable
  * @example
 
-  @see ../foldmap
+  @see ../foldMap
 
  */
 
