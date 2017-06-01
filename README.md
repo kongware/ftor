@@ -139,22 +139,22 @@ Please note that names are a quite good indicator of how generic your code is. G
 # Todos
 
 - [ ] add `Option` to function that may return undefined
-- [ ] foldlk/foldrk is distinguished because of prematurely exiting
+- [ ] replace `[a, b]` array usage with pair tuples
+- [ ] nullary functions (e.g. `empty`) are defined as values in ftor, unless lazyness is required
+- [ ] nullary constructors (e.g. `None`) are defined as single values in Church encoding
 - [ ] right folds are derived by applying a flipped binary operation to fold
+- [ ] foldlk/foldrk is distinguished because of prematurely exiting
 - [ ] ftor throws when getting/deleting non-existing `Object` properties
 - [ ] use recursion instead of `xs.map((x, idx) => ...)`
-- [ ] Ordering type is pointless in untyped language
+- [ ] add an `Ix` type
+- [ ] do we need an `Ordering` enumaration type?
 - [ ] fold a list of tuples into a single tuple
 - [ ] fold nth element of a list of tuples
-- [ ] replace foldl/r with fold inside Either
-- [ ] concat means `[a] -> [a] -> [a]` in ftor whereas `[[a]] -> [a]` is join
-- [ ] add flatten example for `foldMap`
-- [ ] type class functions are passed to functions in Javascript's tuple-like syntax
-- [ ] replace `[a, b]` array usage with pair tuples
-- [ ] kleisli composition only for arrows (not for `m a`)
-- [ ] `(a -> m b) -> m a -> m b` works well with function composition
-- [ ] what is `m a -> (a -> m b) -> m b` good for?
-- [ ] lift is both applicative and monadic in ftor
-- [ ] use lift# to apply a multi argument function to a monad
-- [ ] use `join` and `lift2` or `join $ a <$> b <*> c` to apply `a -> b -> m c` to two monads
+- [ ] concat means `[Monoid a] -> Monoid a` and join is `[[a]] -> [a]`
+- [ ] fantasy land concat is append (and prepend for non-commutative operations)
+- [ ] the lack of type inference is solved with explicitly passed "type class functions"
+- [ ] several type class functions are passed in tuple-like syntac (JS multi argument functions)
+- [ ] flipped version of bind `(a -> m b) -> m a -> m b` works well with function composition
+- [ ] what is `m a -> (a -> m b) -> m b` good for in Haskell, do-notation?
+- [ ] use `join` and `lift2` or `join $ a <$> b <*> c` to apply a multi argument Kleisli arrow `a -> b -> m c`
 - [ ] improve chain example where the next computation depends on the result of the previous one

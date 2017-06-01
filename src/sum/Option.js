@@ -420,7 +420,7 @@ Option.max = tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => ty)) (x =
 
 
 /**
- * @name concat
+ * @name append
  * @type higher order function
  * @status stable
  * @example
@@ -431,11 +431,85 @@ Option.max = tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => ty)) (x =
 
 
 // Monoid a => Option a -> Option a -> Option a
-Option.concat = tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => x + y));
+Option.append = tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => x + y));
+
+
+/**
+ * @name prepend
+ * @type higher order function
+ * @status stable
+ * @example
+
+  ???
+
+ */
 
 
 // Monoid a => Option a -> Option a -> Option a
-Option.concat_ = ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => x + y));
+Option.prepend = ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => x + y));
+
+
+/**
+ * @name append by
+ * @type higher order function
+ * @status stable
+ * @example
+
+  ???
+
+ */
+
+
+// Monoid a => (a -> a -> a) -> Option a -> Option a -> Option a
+Option.appendBy = append => tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => append(x) (y)));
+
+
+/**
+ * @name prepend by
+ * @type higher order function
+ * @status stable
+ * @example
+
+  ???
+
+ */
+
+
+// Monoid a => (a -> a -> a) -> Option a -> Option a -> Option a
+Option.prependBy = prepend => ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => prepend(x) (y)));
+
+
+// MONOID
+
+
+/**
+ * @name empty
+ * @type first order function
+ * @status stable
+ * @example
+
+  @see None
+
+ */
+
+
+// a -> Option a
+Option.empty = None;
+
+
+/**
+ * @name concat
+ * @type higher order function
+ * @status stable
+ * @example
+
+  ???
+
+ */
+
+
+// Monoid a => [Option a] -> Option a
+Option.concat = (append, empty) => xs => Some(xs.reduce((acc, x) => append(acc) (x), empty));
 
 
 /**
@@ -449,30 +523,8 @@ Option.concat_ = ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty)
  */
 
 
-// Monoid a => (a -> a -> a) -> Option a -> Option a -> Option a
-Option.concatBy = concat => tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => concat(x) (y)));
-
-
-// Monoid a => (a -> a -> a) -> Option a -> Option a -> Option a
-Option.concatBy_ = concat => ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => concat(x) (y)));
-
-
-// MONOID
-
-
-/**
- * @name empty
- * @type first order function
- * @status stable
- * @example
-
-   @see None
-
- */
-
-
-// a -> Option a
-Option.empty = None;
+// (Foldable t, Monoid a) => t (Option a) -> Option a
+Option.concatBy = (fold, append, empty) => tx => Some(fold(append) (empty) (tx));
 
 
 // FOLDABLE
@@ -517,6 +569,84 @@ Option.empty = None;
 
 // (b -> a -> b) -> b -> Option a -> b
 Option.fold = f => acc => tx => tx[$Option] && tx(acc) (x => f(acc) (x));
+
+
+/**
+ * @name length
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.len = tx => tx(0) (_ => 1);
+
+  Option.len(Some("foo")); // 1
+  Option.len(None); // 0
+
+ */
+
+
+// Option a -> Number
+Option.len = tx => tx(0) (_ => 1);
+
+
+/**
+ * @name to list
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.toList = tx => tx([]) (x => [x]);
+
+  Option.toList(Some("foo")); // ["foo"]
+  Option.toList(None); // []
+
+ */
+
+
+// Option a -> [a]
+Option.toList = tx => tx([]) (x => [x]);
 
 
 // TRAVERSABLE
@@ -812,7 +942,7 @@ Option.chain = tx => ft => tx[$Option] && tx(None) (x => {
 });
 
 
-// ALTERNATIVE
+// ALT
 
 
 /**
@@ -842,7 +972,7 @@ Option.chain = tx => ft => tx[$Option] && tx(None) (x => {
   None[$tag] = "None";
   None[$Option] = true;
 
-  Option.alt = tx => ty => tx(ty) (() => tx);
+  Option.alt = tx => ty => tx(ty) (_ => tx);
   const I = x => x;
 
   Option.alt(None) (Some(2)) (0) (I); // 2
@@ -853,11 +983,14 @@ Option.chain = tx => ft => tx[$Option] && tx(None) (x => {
  */
 
 
-Option.alt = tx => ty => tx(ty) (() => tx);
+Option.alt = tx => ty => tx(ty) (_ => tx);
+
+
+// PLUS
 
 
 /**
- * @name plus
+ * @name zero
  * @type first order function
  * @status stable
  * @example
@@ -867,8 +1000,8 @@ Option.alt = tx => ty => tx(ty) (() => tx);
  */
 
 
-// a -> Option a
-Option.plus = None;
+// Option a
+Option.zero = None;
 
 
 // SPECIFIC
@@ -929,7 +1062,7 @@ Option.isNone = tx => tx[$tag] === "None";
 
 
 /**
- * @name fromOption
+ * @name filter
  * @type higher order function
  * @status stable
  * @example
@@ -955,7 +1088,50 @@ Option.isNone = tx => tx[$tag] === "None";
   None[$tag] = "None";
   None[$Option] = true;
 
-  Option.fromOption = x => tx => tx(x) (x => x);
+  Option.filter = pred => tx => tx(None) (x => pred(x) ? Some(x) : None);
+  const even = x => Math.floor(x) === x && (x & 1) === 0;
+  const I = x => x;
+
+  Option.filter(even) (Some(2)) (0) (I); // Some(2)
+  Option.filter(even) (Some(1)) (0) (I); // None
+  Option.filter(even) (None) (0) (I); // None
+
+ */
+
+
+// (a -> Boolean) -> Option a -> Option a
+Option.filter = pred => tx => tx(None) (x => pred(x) ? Some(x) : None);
+
+
+/**
+ * @name fromOption
+ * @note semantic sugar (see constructors)
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.fromOption = x => tx => tx(x) (y => y);
 
   Option.fromOption(0) (Some(2)); // 2
   Option.fromOption(0) (None); // 0
@@ -964,7 +1140,84 @@ Option.isNone = tx => tx[$tag] === "None";
 
 
 // a -> Option a -> a
-Option.fromOption = x => tx => tx(x) (x => x);
+Option.fromOption = x => tx => tx(x) (y => y);
+
+
+/**
+ * @name cat some
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.catSome = xs => xs.reduce((acc, tx) => tx(acc) (x => acc.concat([x])), []);
+
+  Option.catSome([Some("foo"), None, Some("bar")]); // ["foo", "bar"]
+
+ */
+
+
+// [Option a] -> [a]
+Option.catSome = xs => xs.reduce((acc, tx) => tx(acc) (x => acc.concat([x])), []);
+
+
+/**
+ * @name map some
+ * @type higher order function
+ * @status stable
+ * @example
+
+  const $tag = Symbol.for("ftor/tag");
+  const $Option = Symbol.for("ftor/Option");
+  const Option = {};
+
+  const Some = x => {
+    const Some = r => {
+      const Some = f => f(x);
+      return Some[$tag] = "Some", Some[$Option] = true, Some;
+    };
+
+    return Some[$tag] = "Some", Some[$Option] = true, Some;
+  };
+
+  const None = r => {
+    const None = f => r;
+    return None[$tag] = "None", None[$Option] = true, None;
+  };
+
+  None[$tag] = "None";
+  None[$Option] = true;
+
+  Option.mapSome = f => xs => xs.reduce((acc, tx) => tx(acc) (x => acc.concat([f(x)])), []);
+  const toUpper = x => x.toUpperCase();
+
+  Option.mapSome(toUpper) ([Some("foo"), None, Some("bar")]); // ["FOO", "BAR"]
+
+ */
+
+
+// (Foldable t, Monoid t) => t (Option a) -> t a
+Option.mapSome = f => xs => xs.reduce((acc, tx) => tx(acc) (x => acc.concat([f(x)])), []);
 
 
 // API
