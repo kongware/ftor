@@ -52,7 +52,7 @@ const Either = {};
 
  */
 
-// a -> (a -> c) -> (b -> c) -> c
+// forall r . a -> (a -> r) -> (b -> r) -> r
 const Left = x => {
   const Left = f => {
     const Left = g => f(x);
@@ -91,7 +91,7 @@ Either.Left = Left;
  */
 
 
-// b -> (a -> c) -> (b -> c) -> c
+// forall r . b -> (a -> r) -> (b -> r) -> r
 const Right = x => {
   const Right = f => {
     const Right = g => g(x);
