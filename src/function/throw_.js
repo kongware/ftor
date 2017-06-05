@@ -15,19 +15,19 @@ const {render} = require("./primitive/str");
 
   const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
 
-  const throw_ = cons => template => f => x => {
-    throw new cons(render(template) (f(x)));
+  const throw_ = cons => template => x => {
+    throw new cons(render(template) (x));
   };
 
-  throw_(TypeError) ("invalid type ${0}") (x => x === null ? x : typeof x) (false); // TypeError: invalid type boolean
-  throw_(TypeError) ("invalid type ${0}") (x => x === null ? x : typeof x) (null); // TypeError: invalid type null
+  throw_(RangeError) ("invalid value ${0}") (false); // TypeError: invalid value false
+  throw_(RangeError) ("invalid value ${0}") (null); // TypeError: invalid value null
 
  */
 
 
 // (b -> Error) -> String -> (a -> b) -> IO
-const throw_ = cons => template => f => x => {
-  throw new cons(render(template) (f(x)));
+const throw_ = cons => template => x => {
+  throw new cons(render(template) (x));
 };
 
 

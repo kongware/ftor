@@ -158,3 +158,5 @@ Please note that names are a quite good indicator of how generic your code is. G
 - [ ] what is `m a -> (a -> m b) -> m b` good for in Haskell, do-notation?
 - [ ] use `join` and `lift2` or `join $ a <$> b <*> c` to apply a multi argument Kleisli arrow `a -> b -> m c`
 - [ ] improve chain example where the next computation depends on the result of the previous one
+- [ ] add chainrec
+- [ ] further exploring of the lazy functor/monad

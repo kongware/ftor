@@ -16,7 +16,7 @@ const GT = require("../primitive/GT");
  * @name Option
  * @note Church encoded
  * @type sum type
- * @status unstable
+ * @status stable
  */
 
 

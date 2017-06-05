@@ -71,13 +71,13 @@ Obj.clone = o => Object.assign({}, o);
 
   Obj.del = k => o => {
     const p = Object.assign({}, o);
-    return k in o ? (delete p[k], p) : throw_(TypeError) ("unknown property ${0}") (I) (k);
+    return k in o ? (delete p[k], p) : throw_(TypeError) ("unknown property ${0}") (k);
   };
 
-  Obj.del_ = k => o => k in o ? (delete o[k], o) : throw_(TypeError) ("unknown property ${0}") (I) (k);
+  Obj.del_ = k => o => k in o ? (delete o[k], o) : throw_(TypeError) ("unknown property ${0}") (k);
 
-  const throw_ = cons => template => f => x => {
-    throw new cons(render(template) (f(x)));
+  const throw_ = cons => template => x => {
+    throw new cons(render(template) (x));
   };
 
   const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
@@ -96,12 +96,12 @@ Obj.clone = o => Object.assign({}, o);
 // String -> Object -> Object
 Obj.del = k => o => {
   const p = Object.assign({}, o);
-  return k in o ? (delete p[k], p) : throw_(TypeError) ("unknown property ${0}") (I) (k);
+  return k in o ? (delete p[k], p) : throw_(TypeError) ("unknown property ${0}") (k);
 };
 
 
 // String -> Object -> Object
-Obj.del_ = k => o => k in o ? (delete o[k], o) : throw_(TypeError) ("unknown property ${0}") (I) (k);
+Obj.del_ = k => o => k in o ? (delete o[k], o) : throw_(TypeError) ("unknown property ${0}") (k);
 
 
 /**
@@ -111,10 +111,10 @@ Obj.del_ = k => o => k in o ? (delete o[k], o) : throw_(TypeError) ("unknown pro
  * @example
 
   const Obj = props => props.reduce((acc, [k, v]) => (acc[k] = v, acc), {});
-  Obj.get = k => o => k in o ? o[k] : throw_(TypeError) ("unknown property ${0}") (I) (k);
+  Obj.get = k => o => k in o ? o[k] : throw_(TypeError) ("unknown property ${0}") (k);
 
-  const throw_ = cons => template => f => x => {
-    throw new cons(render(template) (f(x)));
+  const throw_ = cons => template => x => {
+    throw new cons(render(template) (x));
   };
 
   const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
@@ -128,7 +128,7 @@ Obj.del_ = k => o => k in o ? (delete o[k], o) : throw_(TypeError) ("unknown pro
 
 
 // String -> Object -> a
-Obj.get = k => o => k in o ? o[k] : throw_(TypeError) ("unknown property ${0}") (I) (k);
+Obj.get = k => o => k in o ? o[k] : throw_(TypeError) ("unknown property ${0}") (k);
 
 
 /**
