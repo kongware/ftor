@@ -145,18 +145,21 @@ Please note that names are a quite good indicator of how generic your code is. G
 - [ ] right folds are derived by applying a flipped binary operation to fold
 - [ ] foldlk/foldrk is distinguished because of prematurely exiting
 - [ ] ftor throws when getting/deleting non-existing `Object` properties
-- [ ] use recursion instead of `xs.map((x, idx) => ...)`
+- [ ] use recursion instead of indexed map, e.g. `xs.map((x, idx) => ...)`
 - [ ] add an `Ix` type
 - [ ] do we need an `Ordering` enumaration type?
 - [ ] fold a list of tuples into a single tuple
 - [ ] fold nth element of a list of tuples
 - [ ] concat means `[Monoid a] -> Monoid a` and join is `[[a]] -> [a]`
 - [ ] fantasy land concat is append (and prepend for non-commutative operations)
-- [ ] the lack of type inference is solved with explicitly passed "type class functions"
+- [ ] the lack of type inference and return type polymorphism is circumvented with explicitly passed "type class functions"
 - [ ] several type class functions are passed in tuple-like syntac (JS multi argument functions)
-- [ ] flipped version of bind `(a -> m b) -> m a -> m b` works well with function composition
+- [ ] when are variadic functions with rest syntax harmful?
+- [ ] flipped version of chain `(a -> m b) -> m a -> m b` works well with function composition
 - [ ] what is `m a -> (a -> m b) -> m b` good for in Haskell, do-notation?
 - [ ] use `join` and `lift2` or `join $ a <$> b <*> c` to apply a multi argument Kleisli arrow `a -> b -> m c`
 - [ ] improve chain example where the next computation depends on the result of the previous one
 - [ ] add chainrec
+- [ ] is chainrec only useful for lists?
 - [ ] further exploring of the lazy functor/monad
+- [ ] explore Eq1, Eq2 lifting type classes

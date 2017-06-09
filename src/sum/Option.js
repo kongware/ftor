@@ -52,7 +52,7 @@ const Option = {};
  */
 
 
-// a -> r -> (a -> r) -> r
+// forall r . a -> r -> (a -> r) -> r
 const Some = x => {
   const Some = r => {
     const Some = f => f(x);

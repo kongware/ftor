@@ -14,7 +14,7 @@ const {$thunk} = require("./interop");
  * @status stable
  * @example
 
-  $thunk = Symbol.for("ftor/thunk");
+  const $thunk = Symbol.for("ftor/thunk");
 
   const tailrec = f => (...args) => {
     let g = f(...args);

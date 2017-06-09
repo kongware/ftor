@@ -5,7 +5,6 @@
 
 
 const {$Const, $tag} = require("../interop");
-const noop = require("../noop");
 
 
 /**
@@ -24,26 +23,19 @@ const noop = require("../noop");
     return (Const[$tag] = "Const", Const[$Const] = true, Const);
   };
 
-  const Ident = x => {
-    const Ident = f => f(x);
-    return (Ident[$tag] = "Ident", Ident[$Ident] = true, Ident);
-  };
-
   Const.map = f => tx => tx[$Const] && Const(tx(x => f(x)));
 
   const I = x => x;
   const sqr = x => x * x;
 
-  const x = Const(5),
-   y = Ident(5);
+  const x = Const(5);
 
   Const.map(sqr) (x) (I); // 5
-  Const.map(sqr) (y) (I); // TypeError
 
  */
 
 
-// a -> (a -> r) -> a
+// forall r . a -> (a -> r) -> a
 const Const = x => {
   const Const = f => x;
   return (Const[$tag] = "Const", Const[$Const] = true, Const);
@@ -75,14 +67,16 @@ const Const = x => {
  */
 
 
-// (b -> a -> b) -> b -> Const m a -> b
+// (b -> a -> b) -> b -> Const a -> b
 Const.fold = f => acc => tx => tx[$Const] && acc;
+
+
+// TRAVERSABLE
 
 
 /**
  * @name traverse
  * @type higher order function
- * @class Traversable
  * @status stable
  * @example
 
@@ -94,12 +88,11 @@ Const.fold = f => acc => tx => tx[$Const] && acc;
     return (Const[$tag] = "Const", Const[$Const] = true, Const);
   };
 
-  Const.traverse = (of, map) => ft => tx => tx[$Const] && map(Const) (of(tx(noop)));
+  Const.traverse = (of, map) => ft => tx => tx[$Const] && map(Const) (of(tx(_ => null)));
 
   const map = f => xs => xs.map(f);
   const of = x => [x];
   const I = x => x;
-  const noop = () => null;
 
   const r1 = Const.traverse(of, map) (x => x === null ? [] : [x]) (Const(1)); // [Const(1)]
   const r2 = Const.traverse(of, map) (x => x === null ? [] : [x]) (Const(null)); // [Const(null)]
@@ -111,7 +104,7 @@ Const.fold = f => acc => tx => tx[$Const] && acc;
 
 
 // Applicative f => (a -> f b) -> Const m a -> f (Const m b)
-Const.traverse = (of, map) => ft => tx => tx[$Const] && map(Const) (of(tx(noop)));
+Const.traverse = (of, map) => ft => tx => tx[$Const] && map(Const) (of(tx(_ => null)));
 
 
 // FUNCTOR
@@ -145,11 +138,11 @@ Const.traverse = (of, map) => ft => tx => tx[$Const] && map(Const) (of(tx(noop))
  */
 
 
-// (a -> b) -> Const m a -> Const m b
+// (a -> b) -> Const a -> Const b
 Const.map = f => tx => tx[$Const] && tx;
 
 
-// APPLICATIVE
+// APPLY
 
 
 /**
@@ -166,7 +159,7 @@ Const.map = f => tx => tx[$Const] && tx;
     return (Const[$tag] = "Const", Const[$Const] = true, Const);
   };
 
-  Const.ap = concat => tx => ty => tx(x => ty(y => concat(tx) (ty)))
+  Const.ap = append => tx => ty => tx(x => ty(y => Const(append(tx) (ty))));
 
   const concat = x => y => x.concat(y);
   const I = x => x;
@@ -177,9 +170,20 @@ Const.map = f => tx => tx[$Const] && tx;
 
 
 // Const m (a -> b) -> Const m a -> Const m b
-Const.ap = concat => tx => ty => tx(x => ty(y => Const.of(concat(tx) (ty))));
+Const.ap = append => tx => ty => tx(x => ty(y => Const(append(tx) (ty))));
 
 
+// APPLICATIVE
+
+
+/**
+ * @name of
+ * @type higher order function
+ * @status stable
+ */
+
+
+// a -> Const a
 Const.of = empty => x => empty;
 
 

@@ -9,7 +9,7 @@ const {lifta2} = require("./lifta");
 
 
 /**
- * @name const map
+ * @name const apply
  * @note take both effects but drop the values of the first/second action
  * @type higher order function
  * @status stable

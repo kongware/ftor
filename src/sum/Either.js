@@ -40,15 +40,10 @@ const Either = {};
     return Left[$tag] = "Left", Left[$Either] = true, Left;
   };
 
-  const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
-
-  const throw_ = cons => template => x => {
-    throw new cons(render(template) (x));
-  };
-
   const I = x => x
+  const uc = x => x.toUpperCase();
 
-  Left("foo") (throw_(RangeError) ("invalid value ${0}")) (I); // RangeError: "invalid value foo"
+  Left("foo") (I) (uc); // "foo"
 
  */
 
@@ -102,6 +97,75 @@ const Right = x => {
 };
 
 Either.Right = Right;
+
+
+// SETOID
+
+
+// ORD
+
+
+// SEMIGROUP
+
+
+// MONOID
+
+
+// FOLDABLE
+
+
+Either.fold = f => acc => tx => tx[$Either] && tx(_ => acc) (x => f(acc) (x));
+
+
+// BIFOLDABLE
+
+
+// TRAVERSABLE
+
+
+// FUNCTOR
+
+
+Either.map = f => tx => tx[$Either] && tx(_ => tx) (x => Right(f(x)));
+
+
+// BIFUNCTOR
+
+
+// APPLY
+
+
+Either.ap = tf => tx => tf[$Either] && tx[$Either] && tf(_ => tx) (f => tx(_ => tx) (x => Right(f(x))));
+
+
+// APPLICATIVE
+
+
+Either.of = x => Right(x);
+
+
+// MONAD
+
+
+Either.chain = ft => tx => tx[$Either] && tx(_ => tx) (x => {
+  const r = ft(x);
+  return r[$Either] && r;
+});
+
+
+Either.chain_ = tx => ft => tx[$Either] && tx(_ => tx) (x => {
+  const r = ft(x);
+  return r[$Either] && r;
+});
+
+
+// ALT
+
+
+// PLUS
+
+
+// SPECIFIC
 
 
 // API
