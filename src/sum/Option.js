@@ -402,18 +402,48 @@ Option.min = tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => tx)) (x =
 
 
 /**
+ * @name minimum by
+ * @type higher order function
+ * @status stable
+ * @example
+
+  ???
+
+ */
+
+
+// Ord a => (a -> a -> Boolean) -> Option a -> Option a -> Option a
+Option.minBy = min => tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => tx)) (x => ty(ty) (y => min(x) (y) ? tx : ty));
+
+
+/**
  * @name maximum
  * @type higher order function
  * @status stable
  * @example
 
-  @see Option.minimum
+  @see Option.min
 
  */
 
 
 // Ord a => Option a -> Option a -> Option a
 Option.max = tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => ty)) (x => ty(tx) (y => x > y ? tx : ty));
+
+
+/**
+ * @name maximum by
+ * @type higher order function
+ * @status stable
+ * @example
+
+  @see Option.minBy
+
+ */
+
+
+// Ord a => (a -> a -> Boolean) -> Option a -> Option a -> Option a
+Option.maxBy = max => tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => ty)) (x => ty(tx) (y => max(x) (y) ? tx : ty));
 
 
 // SEMIGROUP
