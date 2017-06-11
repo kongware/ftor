@@ -461,7 +461,7 @@ Option.maxBy = max => tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => 
 
 
 // Monoid a => Option a -> Option a -> Option a
-Option.append = tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => x + y));
+Option.append = tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty)) (x => ty(y => x + y));
 
 
 /**
@@ -476,7 +476,7 @@ Option.append = tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))
 
 
 // Monoid a => Option a -> Option a -> Option a
-Option.prepend = ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => x + y));
+Option.prepend = ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty)) (x => ty(y => x + y));
 
 
 /**
@@ -491,7 +491,7 @@ Option.prepend = ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty)
 
 
 // Monoid a => (a -> a -> a) -> Option a -> Option a -> Option a
-Option.appendBy = append => tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => append(x) (y)));
+Option.appendBy = append => tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty)) (x => ty(y => append(x) (y)));
 
 
 /**
@@ -506,7 +506,7 @@ Option.appendBy = append => tx => ty => tx[$Option] && ty[$Option] && tx(ty(None
 
 
 // Monoid a => (a -> a -> a) -> Option a -> Option a -> Option a
-Option.prependBy = prepend => ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty))(x => ty(y => prepend(x) (y)));
+Option.prependBy = prepend => ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty)) (x => ty(y => prepend(x) (y)));
 
 
 // MONOID

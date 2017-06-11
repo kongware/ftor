@@ -177,7 +177,22 @@ Either.maxBy = (max1, max2) => tx => ty =>
 // SEMIGROUP
 
 
+Either.append = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(x + y)));
+
+
+Either.prepend = ty => tx => tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(x + y)));
+
+
+Either.appendBy = append => tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(append(x) (y)));
+
+
+Either.prependBy = append => ty => tx => tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(append(x) (y)));
+
+
 // MONOID
+
+
+Either.empty = empty => Right(empty);
 
 
 // FOLDABLE
