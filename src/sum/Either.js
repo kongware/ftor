@@ -228,6 +228,12 @@ Either.bifold = f => g => acc => tx => tx[$Either] && tx(x => f(acc) (x)) (x => 
 // TRAVERSABLE
 
 
+Either.traverse = (of, map) => ft => tx => tx[$Either] && tx(x => of(Left(x))) (x => map(Right) (ft(x)));
+
+
+Either.sequence = (of, chain) => tx => tx[$Either] && tx(x => of(Left(x))) (ty => chain(ty) (y => of(Some(y))));
+
+
 // FUNCTOR
 
 

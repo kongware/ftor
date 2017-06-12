@@ -691,9 +691,6 @@ Option.null = tx => tx(true) (_ => false);
 Option.has = x => tx => tx(false) (y => x === y);
 
 
-
-
-
 // TRAVERSABLE
 
 
@@ -781,7 +778,7 @@ Option.traverse = (of, map) => ft => tx => tx[$Option] && tx(of(None)) (x => map
 
 
 // Monad m => Option (m a) -> m (Option a)
-Option.sequence = (of, chain) => tx => tx(of(None)) (ty => chain(ty) (y => of(Some(y))));
+Option.sequence = (of, chain) => tx => tx[$Option] && tx(of(None)) (ty => chain(ty) (y => of(Some(y))));
 
 
 // FUNCTOR
