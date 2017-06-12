@@ -195,10 +195,28 @@ Either.prependBy = append => ty => tx => tx[$Either] && ty[$Either] && tx(x => t
 Either.empty = empty => Right(empty);
 
 
+Either.concat = (append, empty) => xs => Right(xs.reduce((acc, tx) => append(acc) (tx), empty));
+
+
 // FOLDABLE
 
 
-Either.fold = f => acc => tx => tx[$Either] && tx(_ => acc) (x => f(acc) (x));
+Either.foldl = f => acc => tx => tx[$Either] && tx(_ => acc) (x => f(acc) (x));
+
+
+Either.foldr = f => acc => tx => tx[$Either] && tx(_ => acc) (x => f(x) (acc));
+
+
+Either.foldMap = empty => f => tx => tx[$Either] && tx(_ => empty) (x => f(x));
+
+
+Either.null = tx => tx(_ => true) (_ => false);
+
+
+Either.len = tx => tx(_ => 0) (_ => 1);
+
+
+Either.has = x => tx => tx(_ => false) (y => x === y);
 
 
 // BIFOLDABLE

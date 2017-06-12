@@ -539,7 +539,7 @@ Option.empty = None;
 
 
 // Monoid a => [Option a] -> Option a
-Option.concat = (append, empty) => xs => Some(xs.reduce((acc, x) => append(acc) (x), empty));
+Option.concat = (append, empty) => xs => Some(xs.reduce((acc, tx) => append(acc) (tx), empty));
 
 
 /**
@@ -561,7 +561,7 @@ Option.concatBy = (fold, append, empty) => tx => Some(fold(append) (empty) (tx))
 
 
 /**
- * @name fold
+ * @name fold left
  * @type higher order function
  * @status stable
  * @example
@@ -587,7 +587,7 @@ Option.concatBy = (fold, append, empty) => tx => Some(fold(append) (empty) (tx))
   None[$tag] = "None";
   None[$Option] = true;
 
-  Option.fold = f => acc => tx => tx[$Option] && tx(acc) (x => f(acc) (x));
+  Option.foldl = f => acc => tx => tx[$Option] && tx(acc) (x => f(acc) (x));
   const add = x => y => x + y;
   const I = x => x;
 
@@ -598,7 +598,13 @@ Option.concatBy = (fold, append, empty) => tx => Some(fold(append) (empty) (tx))
 
 
 // (b -> a -> b) -> b -> Option a -> b
-Option.fold = f => acc => tx => tx[$Option] && tx(acc) (x => f(acc) (x));
+Option.foldl = f => acc => tx => tx[$Option] && tx(acc) (x => f(acc) (x));
+
+
+Option.foldr = f => acc => tx => tx[$Option] && tx(acc) (x => f(x) (acc);
+
+
+Option.foldMap = empty => f => tx => tx[$Either] && tx(_ => empty) (x => f(x));
 
 
 /**
@@ -677,6 +683,15 @@ Option.len = tx => tx(0) (_ => 1);
 
 // Option a -> [a]
 Option.toList = tx => tx([]) (x => [x]);
+
+
+Option.null = tx => tx(true) (_ => false);
+
+
+Option.has = x => tx => tx(false) (y => x === y);
+
+
+
 
 
 // TRAVERSABLE
