@@ -778,8 +778,8 @@ Option.traverse = (of, map) => ft => tx => tx[$Option] && tx(of(None)) (x => map
 
 
 // Monad m => Option (m a) -> m (Option a)
-Option.sequence = (of, chain) => tx => tx[$Option] && tx(of(None)) (ty => chain(ty) (y => of(Some(y))));
-
+//Option.sequence = (of, chain) => tx => tx[$Option] && tx(of(None)) (ty => chain(ty) (y => of(Some(y))));
+// TODO: replace with sequenceA
 
 // FUNCTOR
 
