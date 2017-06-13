@@ -4,7 +4,7 @@
 // dependencies
 
 
-const I = require("../I");
+const I = require("../function/I");
 const throw_ = require("../throw_");
 
 

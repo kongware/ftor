@@ -8,6 +8,7 @@ const {$tag, $Either} = require("../interop");
 const {compare} = require("../primitive/compare");
 const {compareBy} = require("../compareBy");
 const EQ = require("../primitive/EQ");
+const I = require("../function/I");
 const LT = require("../primitive/LT");
 const GT = require("../primitive/GT");
 
@@ -228,10 +229,10 @@ Either.bifold = f => g => acc => tx => tx[$Either] && tx(x => f(acc) (x)) (x => 
 // TRAVERSABLE
 
 
-Either.traverse = (of, map) => ft => tx => tx[$Either] && tx(x => of(Left(x))) (x => map(Right) (ft(x)));
+Either.traverse = (of, map) => ft => tx => tx[$Either] && tx(_ => of(tx)) (x => map(Right) (ft(x)));
 
 
-Either.sequence = (of, chain) => tx => tx[$Either] && tx(x => of(Left(x))) (ty => chain(ty) (y => of(Some(y))));
+Either.sequence = (of, map) => traverse(of, map) (I);
 
 
 // FUNCTOR

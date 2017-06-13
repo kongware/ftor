@@ -8,6 +8,7 @@ const {$tag, $Option} = require("../interop");
 const {compare} = require("../primitive/compare");
 const {compareBy} = require("../compareBy");
 const EQ = require("../primitive/EQ");
+const I = require("../function/I");
 const LT = require("../primitive/LT");
 const GT = require("../primitive/GT");
 
@@ -554,7 +555,7 @@ Option.concat = (append, empty) => xs => Some(xs.reduce((acc, tx) => append(acc)
 
 
 // (Foldable t, Monoid a) => t (Option a) -> Option a
-Option.concatBy = (fold, append, empty) => tx => Some(fold(append) (empty) (tx));
+Option.concatBy = (foldl, append, empty) => tx => Some(foldl(append) (empty) (tx));
 
 
 // FOLDABLE
@@ -722,13 +723,12 @@ Option.has = x => tx => tx(false) (y => x === y);
   None[$Option] = true;
 
   Option.traverse = (of, map) => ft => tx => tx[$Option] && tx(of(None)) (x => map(Some) (ft(x)));
-  const I = x => x;
 
   const map = f => xs => xs.map(f);
   const of = x => [x];
 
-  Option.traverse(of, map) (sqr = x => [x * x]) (Some(5)) [0] (0) (I); // 25
-  Option.traverse(of, map) (sqr = x => [x * x]) (None) [0] (0) (I); // 0
+  Option.traverse(of, map) (sqr = x => [x * x]) (Some(5)); // [Some(25)]
+  Option.traverse(of, map) (sqr = x => [x * x]) (None); // [None]
 
  */
 
@@ -764,22 +764,22 @@ Option.traverse = (of, map) => ft => tx => tx[$Option] && tx(of(None)) (x => map
   None[$tag] = "None";
   None[$Option] = true;
 
-  Option.sequence = (of, chain) => tx => tx(of(None)) (ty => chain(ty) (y => of(Some(y))));
+  Option.traverse = (of, map) => ft => tx => tx[$Option] && tx(of(None)) (x => map(Some) (ft(x)));
+  Option.sequence = (of, map) => Option.traverse(of, map) (I);
   const I = x => x;
 
-  const chain = tx => ft => tx.map(x => join(ft(x)));
-  const join = ttx => ttx[0];
+  const map = f => xs => xs.map(f);
   const of = x => [x];
 
-  Option.sequence(of, chain) (Some([1, 2, 3])); [Some(1), Some(2), Some(3)]
-  Option.sequence(of, chain) (None); // [None]
+  Option.sequence(of, map) (Some([1, 2, 3])); // [Some(1), Some(2), Some(3)]
+  Option.sequence(of, map) (None); // [None]
 
  */
 
 
 // Monad m => Option (m a) -> m (Option a)
-//Option.sequence = (of, chain) => tx => tx[$Option] && tx(of(None)) (ty => chain(ty) (y => of(Some(y))));
-// TODO: replace with sequenceA
+Option.sequence = (of, map) => Option.traverse(of, map) (I);
+
 
 // FUNCTOR
 
