@@ -253,6 +253,9 @@ Either.bimap = f => g => tx => tx[$Either] && tx(x => Left(f(x))) (x => Right(g(
 Either.ap = tf => tx => tf[$Either] && tx[$Either] && tf(_ => tx) (f => tx(_ => tx) (x => Right(f(x))));
 
 
+Either.ap_ = tx => tf => tf[$Either] && tx[$Either] && tf(_ => tx) (f => tx(_ => tx) (x => Right(f(x))));
+
+
 // APPLICATIVE
 
 
@@ -277,7 +280,13 @@ Either.chain_ = tx => ft => tx[$Either] && tx(_ => tx) (x => {
 // ALT
 
 
+Either.alt = tx => ty => tx(_ => ty(_ => ty) (_ => ty)) (_ => ty(_ => tx) (_ => tx));
+
+
 // PLUS
+
+
+Either.plus = plus => Left(plus);
 
 
 // SPECIFIC

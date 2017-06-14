@@ -872,6 +872,9 @@ Option.map = f => tx => tx[$Option] && tx(None) (x => Some(f(x)));
 Option.ap = tf => tx => tf[$Option] && tx[$Option] && tf(None) (f => tx(None) (x => Some(f(x))));
 
 
+Option.ap_ = tx => tf => tf[$Option] && tx[$Option] && tf(None) (f => tx(None) (x => Some(f(x))));
+
+
 // APPLICATIVE
 
 
