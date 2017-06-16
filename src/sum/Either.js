@@ -27,32 +27,6 @@ const Either = {};
 // CONSTRUCTORS
 
 
-/**
- * @name Left
- * @type constructor
- * @status stable
- * @example
-
-  const $tag = Symbol.for("ftor/tag");
-  const $Either = Symbol.for("ftor/Either");
-  const Either = {};
-
-  const Left = x => {
-    const Left = f => {
-      const Left = g => f(x);
-      return Left[$tag] = "Left", Left[$Either] = true, Left;
-    };
-
-    return Left[$tag] = "Left", Left[$Either] = true, Left;
-  };
-
-  const I = x => x
-  const uc = x => x.toUpperCase();
-
-  Left("foo") (I) (uc); // "foo"
-
- */
-
 // forall r . a -> (a -> r) -> (b -> r) -> r
 const Left = x => {
   const Left = f => {
@@ -64,32 +38,6 @@ const Left = x => {
 };
 
 Either.Left = Left;
-
-
-/**
- * @name Right
- * @type constructor
- * @status stable
- * @example
-
-  const $tag = Symbol.for("ftor/tag");
-  const Either = {};
-
-  const Right = x => {
-    const Right = f => {
-      const Right = g => g(x);
-      return (Right[$tag] = "right", Right);
-    };
-
-    return (Right[$tag] = "right", Right);
-  };
-
-  const I = x => x;
-  const uc = x => x.toUpperCase();
-
-  Right("foo") (I) (uc); // "FOO"
-
- */
 
 
 // forall r . b -> (a -> r) -> (b -> r) -> r
@@ -116,11 +64,11 @@ Either.eq = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x === y) (
 Either.neq = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x !== y) (_ => true)) (x => ty(_ => true) (y => x !== y));
 
 
-// (Setoid a, Setoid b) => ((a -> a -> Boolean), (b -> b -> Boolean)) -> Either a b -> Either a b -> Boolean
+// ((a -> a -> Boolean), (b -> b -> Boolean)) -> Either a b -> Either a b -> Boolean
 Either.eqBy = (eq1, eq2) => tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => eq1(x) (y)) (_ => false)) (x => ty(_ => false) (y => eq2(x) (y));
 
 
-// (Setoid a, Setoid b) => ((a -> a -> Boolean), (b -> b -> Boolean)) -> Either a b -> Either a b -> Boolean
+// ((a -> a -> Boolean), (b -> b -> Boolean)) -> Either a b -> Either a b -> Boolean
 Either.neqBy = (neq1, neq2) => tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => neq1(x) (y)) (_ => true)) (x => ty(_ => true) (y => neq2(x) (y));
 
 
@@ -135,12 +83,12 @@ Either.compare = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => compa
 Either.compare_ = ty => tx => tx[$Either] && ty[$Either] && tx(x => ty(y => compare(x) (y)) (_ => LT)) (x => ty(_ => GT) (y => compare(x) (y)));
 
 
-// (Ord a, Ord b, Number ordering) => ((a -> a -> ordering), (b -> b -> ordering)) -> Either a b -> Either a b -> ordering
+// Number ordering => ((a -> a -> ordering), (b -> b -> ordering)) -> Either a b -> Either a b -> ordering
 Either.compareBy = (compare1, compare2) => tx => ty =>
   tx[$Either] && ty[$Either] && tx(x => ty(y => compare1(x) (y)) (_ => LT)) (x => ty(_ => GT) (y => compare2(x) (y)));
 
 
-// (Ord a, Ord b, Number ordering) => ((a -> a -> ordering), (b -> b -> ordering)) -> Either a b -> Either a b -> ordering
+// Number ordering => ((a -> a -> ordering), (b -> b -> ordering)) -> Either a b -> Either a b -> ordering
 Either.compareBy_ = (compare1, compare2) => ty => tx =>
   tx[$Either] && ty[$Either] && tx(x => ty(y => compare1(x) (y)) (_ => LT)) (x => ty(_ => GT) (y => compare2(x) (y)));
 
@@ -161,16 +109,20 @@ Either.gt = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x > y) (_ 
 Either.gte = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x >= y) (_ => false)) (x => ty(_ => true) (y => x >= y));
 
 
+// (Ord a, Ord b) => Either a b -> Either a b -> Either a b
 Either.min = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x < y ? tx : ty) (_ => tx)) (x => ty(_ => ty) (y => x < y ? tx : ty));
 
 
+// ((a -> a -> Boolean, (b -> b -> Boolean)) -> Either a b -> Either a b -> Either a b
 Either.minBy = (min1, min2) => tx => ty =>
  tx[$Either] && ty[$Either] && tx(x => ty(y => min1(x) (y) ? tx : ty) (_ => tx)) (x => ty(_ => ty) (y => min2(x) (y) ? tx : ty));
 
 
+// (Ord a, Ord b) => Either a b -> Either a b -> Either a b
 Either.max = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x > y ? tx : ty) (_ => ty)) (x => ty(_ => tx) (y => x > y ? tx : ty));
 
 
+// ((a -> a -> Boolean, (b -> b -> Boolean)) -> Either a b -> Either a b -> Either a b
 Either.maxBy = (max1, max2) => tx => ty =>
  tx[$Either] && ty[$Either] && tx(x => ty(y => max1(x) (y) ? tx : ty) (_ => ty)) (x => ty(_ => tx) (y => max2(x) (y) ? tx : ty));
 
@@ -178,52 +130,88 @@ Either.maxBy = (max1, max2) => tx => ty =>
 // SEMIGROUP
 
 
+// Semigroup b => Either a b -> Either a b -> Either a b
 Either.append = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(x + y)));
 
 
+// Semigroup b => Either a b -> Either a b -> Either a b
 Either.prepend = ty => tx => tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(x + y)));
 
 
+// (b -> b -> b) -> Either a b -> Either a b -> Either a b
 Either.appendBy = append => tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(append(x) (y)));
 
 
+// (b -> b -> b) -> Either a b -> Either a b -> Either a b
 Either.prependBy = append => ty => tx => tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(append(x) (y)));
 
 
 // MONOID
 
 
+// Monoid b => b -> Either a b
 Either.empty = empty => Right(empty);
 
 
+// Monoid b => (b -> b -> b, Either a b ) -> [Either a b] -> Either a b
 Either.concat = (append, empty) => xs => Right(xs.reduce((acc, tx) => append(acc) (tx), empty));
+
+
+// ((a -> b -> b) -> b -> Either a b -> b, b -> b -> b, Either a b) -> [Either a b] -> Either a b
+Either.concatBy = (foldl, append, empty) => tx => Right(foldl(append) (empty) (tx));
 
 
 // FOLDABLE
 
 
+// (Either a b, b -> b -> b) -> Either a b -> b
+Either.fold = (empty, append) => tx => tx[$Either] && tx(_ => acc) (append(acc) (x));
+
+
+// (c -> b -> c) -> c -> Either a b -> c
 Either.foldl = f => acc => tx => tx[$Either] && tx(_ => acc) (x => f(acc) (x));
 
 
+// (b -> c -> c) -> c -> Either a b -> c
 Either.foldr = f => acc => tx => tx[$Either] && tx(_ => acc) (x => f(x) (acc));
 
 
+// c -> (b -> c) -> Either a b -> c
 Either.foldMap = empty => f => tx => tx[$Either] && tx(_ => empty) (x => f(x));
 
 
-Either.null = tx => tx(_ => true) (_ => false);
-
-
+// Either a b -> Number
 Either.len = tx => tx(_ => 0) (_ => 1);
 
 
+// Either a b -> [b]
+Either.toList = tx => tx(_ => []) (x => [x]);
+
+
+// Either a b -> Boolean
+Either.null = tx => tx(_ => true) (_ => false);
+
+
+// b -> Either a b -> Boolean
 Either.has = x => tx => tx(_ => false) (y => x === y);
 
 
 // BIFOLDABLE
 
 
-Either.bifold = f => g => acc => tx => tx[$Either] && tx(x => f(acc) (x)) (x => g(acc) (x));
+// Either.bifold = ???
+
+
+// (c -> a -> c) -> (c -> b -> c) -> c -> Either a b -> c
+Either.bifoldl = f => g => acc => tx => tx[$Either] && tx(x => f(acc) (x)) (x => g(acc) (x));
+
+
+// (a -> c -> c) -> (b -> c -> c) -> c -> Either a b -> c
+Either.bifoldr = f => g => acc => tx => tx[$Either] && tx(x => f(x) (acc)) (x => g(x) (acc));
+
+
+// (a -> c) -> (b -> c) -> Either a b -> c
+Either.bifoldMap = f => g => tx => tx[$Either] && tx(x => f(x)) (x => g(x));
 
 
 // TRAVERSABLE
