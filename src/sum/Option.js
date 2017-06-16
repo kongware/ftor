@@ -151,7 +151,7 @@ Option.empty = None;
 Option.concat = (append, empty) => xs => Some(xs.reduce((acc, tx) => append(acc) (tx), empty));
 
 
-// ((a -> b -> b) -> b -> Option a -> b, a -> a -> a, Option a) -> [Option a] -> Option a
+// Foldable t => ((a -> b -> b) -> b -> Option a -> b, a -> a -> a, Option a) -> t (Option a) -> Option a
 Option.concatBy = (foldl, append, empty) => tx => Some(foldl(append) (empty) (tx));
 
 

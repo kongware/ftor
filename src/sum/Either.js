@@ -157,7 +157,7 @@ Either.empty = empty => Right(empty);
 Either.concat = (append, empty) => xs => Right(xs.reduce((acc, tx) => append(acc) (tx), empty));
 
 
-// ((a -> b -> b) -> b -> Either a b -> b, b -> b -> b, Either a b) -> [Either a b] -> Either a b
+// Foldable t => ((a -> b -> b) -> b -> Either a b -> b, b -> b -> b, Either a b) -> t (Either a b) -> Either a b
 Either.concatBy = (foldl, append, empty) => tx => Right(foldl(append) (empty) (tx));
 
 
