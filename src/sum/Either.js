@@ -164,8 +164,7 @@ Either.concatBy = (foldl, append, empty) => tx => Right(foldl(append) (empty) (t
 // FOLDABLE
 
 
-// (Either a b, b -> b -> b) -> Either a b -> b
-Either.fold = (empty, append) => tx => tx[$Either] && tx(_ => acc) (append(acc) (x));
+// Either.fold = ???
 
 
 // (c -> b -> c) -> c -> Either a b -> c

@@ -158,8 +158,7 @@ Option.concatBy = (foldl, append, empty) => tx => Some(foldl(append) (empty) (tx
 // FOLDABLE
 
 
-// (Option a, a -> a -> a) -> Option a -> a
-Option.fold = (empty, append) => tx => tx[$Either] && tx(_ => acc) (append(acc) (x));
+// Option.fold = ???
 
 
 // (b -> a -> b) -> b -> Option a -> b
