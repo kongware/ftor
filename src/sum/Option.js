@@ -158,7 +158,8 @@ Option.concatBy = (foldl, append, empty) => tx => Some(foldl(append) (empty) (tx
 // FOLDABLE
 
 
-// Option.fold = ???
+// a -> Option a -> a
+Option.fold = empty = tx => tx[$Option] && tx(empty) (I);
 
 
 // (b -> a -> b) -> b -> Option a -> b

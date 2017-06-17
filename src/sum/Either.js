@@ -164,7 +164,8 @@ Either.concatBy = (foldl, append, empty) => tx => Right(foldl(append) (empty) (t
 // FOLDABLE
 
 
-// Either.fold = ???
+// b -> Either a b -> b
+Either.fold = empty => tx => tx[$Either] && tx(_ => empty) (I);
 
 
 // (c -> b -> c) -> c -> Either a b -> c
@@ -198,7 +199,8 @@ Either.has = x => tx => tx(_ => false) (y => x === y);
 // BIFOLDABLE
 
 
-// Either.bifold = ???
+// Either a a -> a
+Either.bifold = tx => tx[$Either] && tx(I) (I);
 
 
 // (c -> a -> c) -> (c -> b -> c) -> c -> Either a b -> c
@@ -220,6 +222,9 @@ Either.traverse = (of, map) => ft => tx => tx[$Either] && tx(_ => of(tx)) (x => 
 
 
 Either.sequence = (of, map) => traverse(of, map) (I);
+
+
+// BITRAVERSABLE
 
 
 // FUNCTOR
