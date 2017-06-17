@@ -19,7 +19,10 @@ const $tag = Symbol.for("ftor/tag");
 const $thunk = Symbol.for("ftor/thunk");
 
 
+const $Tuple = Symbol.for("ftor/Tuple");
+
+
 // API
 
 
-module.exports = {$Const, $Either, $Ident, $Option, $tag, $thunk};
+module.exports = {$Const, $Either, $Ident, $Option, $tag, $thunk, $Tuple};
