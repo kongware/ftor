@@ -5,9 +5,6 @@
 
 
 const {$Tuple} = require("../interop");
-const compare = require("../primitive/compare");
-const compareBy = require("./compareBy");
-const eq = require("../primitive/eq");
 const EQ = require("../primitive/EQ");
 const LT = require("../primitive/LT");
 const GT = require("../primitive/GT");
@@ -18,49 +15,41 @@ const GT = require("../primitive/GT");
 
 /**
  * @name Tuple
- * @note combined type/value constructor
+ * @note combined constructor/namespace
  * @type product type
  * @status stable
  */
 
 
-// forall r . (*) -> ((*) -> r) -> r
-const Tuple = (...args) => {
-  const Tuple = f => f(...args);
-  Tuple[$Tuple] = true;
-  return Object.freeze(Object.assign(Tuple, args)); // Map/Set compatibility
-};
+// (*) -> [*]
+const Tuple = (...args) => args[$Tuple] = true, Object.freeze(args), args;
 
 
 // SETOID
 
 
-// Setoid a => (a) -> (a) -> Boolean
-Tuple.eq = tx => ty => tx[$Tuple] && ty[$Tuple] && tx(x1 => ty(x2 => x1 === x2));
+// Setoid a => [a] -> [a] -> Boolean
+Tuple.eq = t => u => t[$Tuple] && u[$Tuple] && t[0] === u[0];
 
 
-// (Setoid a, Setoid b) => (a, b) -> (a, b) -> Boolean
-Tuple.eq2 = tx => ty => tx[$Tuple] && ty[$Tuple] && tx((x1, y1) => ty((x2, y2) => x1 === x2 && y1 === y2));
+// (Setoid a, Setoid b) => [a, b] -> [a, b] -> Boolean
+Tuple.eq2 = t => u => t[$Tuple] && u[$Tuple] && t[0] === u[0] && t[1] === u[1];
 
 
-// (Setoid a, Setoid b, Setoid c) => (a, b, c) -> (a, b, c) -> Boolean
-Tuple.eq3 = tx => ty =>
- tx[$Tuple] && ty[$Tuple] && tx((x1, y1, z1) => ty((x2, y2, z2) => x1 === x2 && y1 === y2 && z1 === z2));
+// (Setoid a, Setoid b, Setoid c) => [a, b, c] -> [a, b, c] -> Boolean
+Tuple.eq3 = t => u => t[$Tuple] && u[$Tuple] && t[0] === u[0] && t[1] === u[1] && t[2] === u[2];
 
 
-// (a -> a -> Boolean) -> (a) -> (a) -> Boolean
-Tuple.eqBy = eq => tx => ty =>
- tx[$Tuple] && ty[$Tuple] && tx(x1 => ty(x2 => eq(x1) (x2)));
+// (a -> a -> Boolean) -> [a] -> [a] -> Boolean
+Tuple.eqBy = eq => t => u => t[$Tuple] && u[$Tuple] && eq(t[0]) (u[0]);
 
 
-// (a -> a -> Boolean) -> (b -> b -> Boolean) -> (a, b) -> (a, b) -> Boolean
-Tuple.eqBy2 = (eq1, eq2) => tx => ty =>
- tx[$Tuple] && ty[$Tuple] && tx((x1, y1) => ty((x2, y2) => eq1(x1) (x2) && eq2(y1) (y2)));
+// (a -> a -> Boolean) -> (b -> b -> Boolean) -> [a, b] -> [a, b] -> Boolean
+Tuple.eqBy2 = (eq1, eq2) => t => u => t[$Tuple] && u[$Tuple] && eq(t[0]) (u[0]) && eq(t[1]) (u[1]);
 
 
-// (a -> a -> Boolean) -> (b -> b -> Boolean) -> (c -> c -> Boolean) -> (a, b, c) -> (a, b, c) -> Boolean
-Tuple.eqBy3 = (eq1, eq2, eq3) => tx => ty =>
- tx[$Tuple] && ty[$Tuple] && tx((x1, y1, z1) => ty((x2, y2, z2) => eq1(x1) (x2) && eq2(y1) (y2) && eq3(z1) (z2)));
+// (a -> a -> Boolean) -> (b -> b -> Boolean) -> (c -> c -> Boolean) -> [a, b] -> [a, b] -> Boolean
+Tuple.eqBy3 = (eq1, eq2, eq3) => t => u => t[$Tuple] && u[$Tuple] && eq(t[0]) (u[0]) && eq(t[1]) (u[1]) && eq(t[2]) (u[2]);
 
 
 // ORD
