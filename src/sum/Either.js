@@ -218,6 +218,7 @@ Either.bifoldMap = f => g => tx => tx[$Either] && tx(x => f(x)) (x => g(x));
 // TRAVERSABLE
 
 
+// Applicative f => (b -> f c) -> Either a b -> f (Either a c)
 Either.traverse = (of, map) => ft => tx => tx[$Either] && tx(_ => of(tx)) (x => map(Right) (ft(x)));
 
 
@@ -231,39 +232,50 @@ Either.sequence = (of, map) => traverse(of, map) (I);
 // FUNCTOR
 
 
+// (b -> c) -> Either a b -> Either a c
 Either.map = f => tx => tx[$Either] && tx(_ => tx) (x => Right(f(x)));
 
 
 // BIFUNCTOR
 
 
+// (a -> c) -> (b -> d) -> Either a b -> Either b d
 Either.bimap = f => g => tx => tx[$Either] && tx(x => Left(f(x))) (x => Right(g(x)));
 
 
 // APPLY
 
 
+// Either a (b -> c) -> Either a b -> Either a c
 Either.ap = tf => tx => tf[$Either] && tx[$Either] && tf(_ => tx) (f => tx(_ => tx) (x => Right(f(x))));
 
 
+// Either a b -> Either a (b -> c) -> Either a c
 Either.ap_ = tx => tf => tf[$Either] && tx[$Either] && tf(_ => tx) (f => tx(_ => tx) (x => Right(f(x))));
 
 
 // APPLICATIVE
 
 
+// b -> Either a b
 Either.of = x => Right(x);
 
 
 // MONAD
 
 
+// Either a (Either a b) -> Either a b
+Either.join = ttx => ttx[$Either] && ttx(_ => ttx) (tx => tx[$Either] && tx);
+
+
+// (b -> Either a c) -> Either a b -> Either a c
 Either.chain = ft => tx => tx[$Either] && tx(_ => tx) (x => {
   const r = ft(x);
   return r[$Either] && r;
 });
 
 
+// Either a b -> (b -> Either a c) -> Either a c
 Either.chain_ = tx => ft => tx[$Either] && tx(_ => tx) (x => {
   const r = ft(x);
   return r[$Either] && r;
@@ -273,31 +285,43 @@ Either.chain_ = tx => ft => tx[$Either] && tx(_ => tx) (x => {
 // ALT
 
 
+// Either a b -> Either a b -> Either a b
 Either.alt = tx => ty => tx(_ => ty(_ => ty) (_ => ty)) (_ => ty(_ => tx) (_ => tx));
 
 
 // PLUS
 
 
-Either.plus = plus => Left(plus);
+// a -> Either a b
+Either.zero = x => Left(x);
 
 
 // SPECIFIC
 
 
+// Either a b -> Boolean
 Either.isLeft = tx => tx[$Either] && tx(_ => true) (_ => false);
 
 
+// Either a b -> Boolean
 Either.isRight = tx => tx[$Either] && tx(_ => false) (_ => true);
 
 
+// [Either a b] -> [a]
 Either.lefts = xs => xs.reduce((acc, tx) => tx[$Either] && tx(x => acc.concat([x])) (_ => acc), []);
 
 
+// TODO: lefts generalized with Foldable constraint
+
+
+// [Either a b] -> [b]
 Either.rights = xs => xs.reduce((acc, tx) => tx[$Either] && tx(_ => acc) (x => acc.concat([x])), []);
 
 
-// partition :: [Either a b] -> ([a], [b])
+// TODO: rights generalized with Foldable constraint
+
+
+// TODO: partition :: [Either a b] -> ([a], [b])
 
 
 // API

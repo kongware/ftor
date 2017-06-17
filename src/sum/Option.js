@@ -215,6 +215,7 @@ Option.map = f => tx => tx[$Option] && tx(None) (x => Some(f(x)));
 Option.ap = tf => tx => tf[$Option] && tx[$Option] && tf(None) (f => tx(None) (x => Some(f(x))));
 
 
+// Option a -> Option (a -> b) -> Option b
 Option.ap_ = tx => tf => tf[$Option] && tx[$Option] && tf(None) (f => tx(None) (x => Some(f(x))));
 
 
@@ -232,6 +233,13 @@ Option.of = Some;
 Option.join = ttx => ttx[$Option] && ttx(None) (tx => tx[$Option] && tx);
 
 
+// (a -> Option b) -> Option a -> Option b
+Option.chain = ft => tx => tx[$Option] && tx(None) (x => {
+  const r = ft(x);
+  return r[$Option] && r;
+});
+
+
 // Option a -> (a -> Option b) -> Option b
 Option.chain = tx => ft => tx[$Option] && tx(None) (x => {
   const r = ft(x);
@@ -242,6 +250,7 @@ Option.chain = tx => ft => tx[$Option] && tx(None) (x => {
 // ALT
 
 
+// Option a -> Option a -> Option a
 Option.alt = tx => ty => tx(ty) (_ => tx);
 
 
@@ -272,7 +281,10 @@ Option.fromOption = x => tx => tx(x) (y => y);
 
 
 // [Option a] -> [a]
-Option.catSome = xs => xs.reduce((acc, tx) => tx(acc) (x => acc.concat([x])), []);
+Option.concatSome = xs => xs.reduce((acc, tx) => tx(acc) (x => acc.concat([x])), []);
+
+
+// TODO: concatSome generalized with Foldable constraint (foldSome?)
 
 
 // (Foldable t, Monoid t) => t (Option a) -> t a
