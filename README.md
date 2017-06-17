@@ -3,15 +3,23 @@ ftor
 
 <img src="https://i.stack.imgur.com/UqCPm.png?s=328&g=1" width="164" height="164" alt="ftor">
 
-An idiomatic, non-dogmatic lazy lib that encodes the functional paradigm in Javascript.
+The typed functional paradigm adapted to untyped environments and encoded in Javascript.
 
 # Status
 
 This library is experimental and still work in progress.
 
-# Main focus
+# Mission Statement
 
-ftor attempts to facilitate the work with pure functions, function composition and combinators and hence depends heavily on the following toolset:
+Originally this lib was the attempt to transfer Haskell idioms to Javascript. However, I finally realized that Haskell suffers from a fundamental weakness: It is just too complicated to become part of the mainstream. A programming language is still a language and what is a language worth that is only really understood by few.
+
+The reason for Haskell's complexity is its close relationship to mathematics, namely category theory. Maths is a curse and a blessing at the same time. It offers proofs, composibility, elegance but it also leads to non-intuitive reasoning and non-intuitive algorithms. It leads to code whose runtime behavior is difficult to predict.
+
+Consequently, ftor is now the attempt to adapt the typed functional paradigm to an untyped environment. It is an exploration with uncertain outcome.
+
+## It is all about functions
+
+I believe Javascript's prototype system is deeply flawed and leads to less robust, hard to read code. This is the reason why ftor mainly relies on function composition and other combinators and hence depends heavily on the following toolset:
 
 * closures
 * first class functions

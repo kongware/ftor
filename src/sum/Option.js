@@ -197,7 +197,7 @@ Option.has = x => tx => tx(false) (y => x === y);
 Option.traverse = (of, map) => ft => tx => tx[$Option] && tx(of(None)) (x => map(Some) (ft(x)));
 
 
-// Monad m => Option (m a) -> m (Option a)
+// Applicative f => Option (f a) -> f (Option a)
 Option.sequence = (of, map) => Option.traverse(of, map) (I);
 
 

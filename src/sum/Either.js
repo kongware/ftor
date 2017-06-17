@@ -221,6 +221,7 @@ Either.bifoldMap = f => g => tx => tx[$Either] && tx(x => f(x)) (x => g(x));
 Either.traverse = (of, map) => ft => tx => tx[$Either] && tx(_ => of(tx)) (x => map(Right) (ft(x)));
 
 
+// Applicative f => Either a (f b) -> f (Either a b)
 Either.sequence = (of, map) => traverse(of, map) (I);
 
 
