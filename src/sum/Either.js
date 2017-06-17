@@ -284,6 +284,21 @@ Either.plus = plus => Left(plus);
 // SPECIFIC
 
 
+Either.isLeft = tx => tx[$Either] && tx(_ => true) (_ => false);
+
+
+Either.isRight = tx => tx[$Either] && tx(_ => false) (_ => true);
+
+
+Either.lefts = xs => xs.reduce((acc, tx) => tx[$Either] && tx(x => acc.concat([x])) (_ => acc), []);
+
+
+Either.rights = xs => xs.reduce((acc, tx) => tx[$Either] && tx(_ => acc) (x => acc.concat([x])), []);
+
+
+// partition :: [Either a b] -> ([a], [b])
+
+
 // API
 
 
