@@ -22,7 +22,7 @@ const GT = require("../primitive/GT");
 
 
 // (*) -> [*]
-const Tuple = (...args) => args[$Tuple] = true, Object.freeze(args), args;
+const Tuple = (...args) => args[$Tuple] = true, Object.seal(args), args;
 
 
 // SETOID
@@ -77,6 +77,9 @@ Tuple.eqBy3 = (eq1, eq2, eq3) => t => u => t[$Tuple] && u[$Tuple] && eq(t[0]) (u
 
 
 // BIFUNCTOR
+
+
+// PROFUNCTOR
 
 
 // ALT
