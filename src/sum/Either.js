@@ -6,7 +6,6 @@
 
 const {$tag, $Either} = require("../interop");
 const {compare} = require("../primitive/compare");
-const {compareBy} = require("../compareBy");
 const EQ = require("../primitive/EQ");
 const I = require("../function/I");
 const LT = require("../primitive/LT");
@@ -60,36 +59,33 @@ Either.Right = Right;
 Either.eq = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x === y) (_ => false)) (x => ty(_ => false) (y => x === y));
 
 
+// ((a -> a -> Boolean), (b -> b -> Boolean)) -> Either a b -> Either a b -> Boolean
+Either.eqBy = (eq1, eq2) => tx => ty =>
+ tx[$Either] && ty[$Either] && tx(x => ty(y => eq1(x) (y)) (_ => false)) (x => ty(_ => false) (y => eq2(x) (y));
+
+
 // (Setoid a, Setoid b) => Either a b -> Either a b -> Boolean
 Either.neq = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x !== y) (_ => true)) (x => ty(_ => true) (y => x !== y));
 
 
 // ((a -> a -> Boolean), (b -> b -> Boolean)) -> Either a b -> Either a b -> Boolean
-Either.eqBy = (eq1, eq2) => tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => eq1(x) (y)) (_ => false)) (x => ty(_ => false) (y => eq2(x) (y));
-
-
-// ((a -> a -> Boolean), (b -> b -> Boolean)) -> Either a b -> Either a b -> Boolean
-Either.neqBy = (neq1, neq2) => tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => neq1(x) (y)) (_ => true)) (x => ty(_ => true) (y => neq2(x) (y));
+Either.neqBy = (neq1, neq2) => tx => ty =>
+ tx[$Either] && ty[$Either] && tx(x => ty(y => neq1(x) (y)) (_ => true)) (x => ty(_ => true) (y => neq2(x) (y));
 
 
 // ORD
 
 
-// (Ord a, Ord b, Number ordering) => Either a b -> Either a b -> ordering
+// (Ord a, Ord b) => Either a b -> Either a b -> Number ordering
 Either.compare = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => compare(x) (y)) (_ => LT)) (x => ty(_ => GT) (y => compare(x) (y)));
 
 
-// (Ord a, Ord b, Number ordering) => Either a b -> Either a b -> ordering
+// (Ord a, Ord b) => Either a b -> Either a b -> Number ordering
 Either.compare_ = ty => tx => tx[$Either] && ty[$Either] && tx(x => ty(y => compare(x) (y)) (_ => LT)) (x => ty(_ => GT) (y => compare(x) (y)));
 
 
-// Number ordering => ((a -> a -> ordering), (b -> b -> ordering)) -> Either a b -> Either a b -> ordering
+// ((a -> a -> ordering), (b -> b -> ordering)) -> Either a b -> Either a b -> Number ordering
 Either.compareBy = (compare1, compare2) => tx => ty =>
-  tx[$Either] && ty[$Either] && tx(x => ty(y => compare1(x) (y)) (_ => LT)) (x => ty(_ => GT) (y => compare2(x) (y)));
-
-
-// Number ordering => ((a -> a -> ordering), (b -> b -> ordering)) -> Either a b -> Either a b -> ordering
-Either.compareBy_ = (compare1, compare2) => ty => tx =>
   tx[$Either] && ty[$Either] && tx(x => ty(y => compare1(x) (y)) (_ => LT)) (x => ty(_ => GT) (y => compare2(x) (y)));
 
 
@@ -97,23 +93,43 @@ Either.compareBy_ = (compare1, compare2) => ty => tx =>
 Either.lt = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x < y) (_ => true)) (x => ty(_ => false) (y => x < y));
 
 
+// (a -> a -> Boolean, b -> b -> Boolean) -> Either a b -> Either a b -> Boolean
+Either.ltBy = (lt1, lt2) => tx => ty =>
+ tx[$Either] && ty[$Either] && tx(x => ty(y => lt1(x) (y)) (_ => true)) (x => ty(_ => false) (y => lt2(x) (y)));
+
+
 // (Ord a, Ord b) => Either a b -> Either a b -> Boolean
 Either.lte = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x <= y) (_ => true)) (x => ty(_ => false) (y => x <= y));
+
+
+// (a -> a -> Boolean, b -> b -> Boolean) -> Either a b -> Either a b -> Boolean
+Either.lteBy = (lte1, lte2) => tx => ty =>
+ tx[$Either] && ty[$Either] && tx(x => ty(y => lte1(x) (y)) (_ => true)) (x => ty(_ => false) (y => lte2(x) (y)));
 
 
 // (Ord a, Ord b) => Either a b -> Either a b -> Boolean
 Either.gt = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x > y) (_ => false)) (x => ty(_ => true) (y => x > y));
 
 
+// (a -> a -> Boolean, b -> b -> Boolean) -> Either a b -> Either a b -> Boolean
+Either.gtBy = (gt1, gt2) => tx => ty =>
+ tx[$Either] && ty[$Either] && tx(x => ty(y => gt1(x) (y)) (_ => false)) (x => ty(_ => true) (y => gt2(x) (y)));
+
+
 // (Ord a, Ord b) => Either a b -> Either a b -> Boolean
 Either.gte = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x >= y) (_ => false)) (x => ty(_ => true) (y => x >= y));
+
+
+// (a -> a -> Boolean, b -> b -> Boolean) -> Either a b -> Either a b -> Boolean
+Either.gteBy = (gte1, gte2) => tx => ty =>
+ tx[$Either] && ty[$Either] && tx(x => ty(y => gte1(x) (y)) (_ => false)) (x => ty(_ => true) (y => gte2(x) (y)));
 
 
 // (Ord a, Ord b) => Either a b -> Either a b -> Either a b
 Either.min = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x < y ? tx : ty) (_ => tx)) (x => ty(_ => ty) (y => x < y ? tx : ty));
 
 
-// ((a -> a -> Boolean, (b -> b -> Boolean)) -> Either a b -> Either a b -> Either a b
+// (a -> a -> Boolean, b -> b -> Boolean) -> Either a b -> Either a b -> Either a b
 Either.minBy = (min1, min2) => tx => ty =>
  tx[$Either] && ty[$Either] && tx(x => ty(y => min1(x) (y) ? tx : ty) (_ => tx)) (x => ty(_ => ty) (y => min2(x) (y) ? tx : ty));
 
@@ -122,7 +138,7 @@ Either.minBy = (min1, min2) => tx => ty =>
 Either.max = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(y => x > y ? tx : ty) (_ => ty)) (x => ty(_ => tx) (y => x > y ? tx : ty));
 
 
-// ((a -> a -> Boolean, (b -> b -> Boolean)) -> Either a b -> Either a b -> Either a b
+// (a -> a -> Boolean, b -> b -> Boolean) -> Either a b -> Either a b -> Either a b
 Either.maxBy = (max1, max2) => tx => ty =>
  tx[$Either] && ty[$Either] && tx(x => ty(y => max1(x) (y) ? tx : ty) (_ => ty)) (x => ty(_ => tx) (y => max2(x) (y) ? tx : ty));
 
@@ -134,31 +150,30 @@ Either.maxBy = (max1, max2) => tx => ty =>
 Either.append = tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(x + y)));
 
 
+// (b -> b -> b) -> Either a b -> Either a b -> Either a b
+Either.appendBy = append => tx => ty =>
+ tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(append(x) (y)));
+
+
 // Semigroup b => Either a b -> Either a b -> Either a b
 Either.prepend = ty => tx => tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(x + y)));
 
 
 // (b -> b -> b) -> Either a b -> Either a b -> Either a b
-Either.appendBy = append => tx => ty => tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(append(x) (y)));
-
-
-// (b -> b -> b) -> Either a b -> Either a b -> Either a b
-Either.prependBy = append => ty => tx => tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(append(x) (y)));
+Either.prependBy = append => ty => tx =>
+ tx[$Either] && ty[$Either] && tx(x => ty(_ => tx) (_ => ty)) (x => ty(_ => tx) (y => Right(append(x) (y)));
 
 
 // MONOID
 
 
-// Monoid b => b -> Either a b
+// b -> Either a b
 Either.empty = empty => Right(empty);
 
 
-// Monoid b => (b -> b -> b, Either a b ) -> [Either a b] -> Either a b
+// (b -> b -> b, b) -> [Either a b] -> Either a b
+// TODO: What happens with Left tagged values?
 Either.concat = (append, empty) => xs => Right(xs.reduce((acc, tx) => append(acc) (tx), empty));
-
-
-// Foldable t => ((a -> b -> b) -> b -> Either a b -> b, b -> b -> b, Either a b) -> t (Either a b) -> Either a b
-Either.concatBy = (foldl, append, empty) => tx => Right(foldl(append) (empty) (tx));
 
 
 // FOLDABLE

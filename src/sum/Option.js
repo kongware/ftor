@@ -6,7 +6,6 @@
 
 const {$tag, $Option} = require("../interop");
 const {compare} = require("../primitive/compare");
-const {compareBy} = require("../compareBy");
 const EQ = require("../primitive/EQ");
 const I = require("../function/I");
 const LT = require("../primitive/LT");
@@ -58,16 +57,18 @@ Option.None = None;
 Option.eq = tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(false) (y => x === y));
 
 
+// (a -> a -> Boolean) -> Option a -> Option a -> Boolean
+Option.eqBy = eq => tx => ty =>
+ tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(false) (y => eq(x) (y)));
+
+
 // Setoid a => Option a -> Option a -> Boolean
 Option.neq = tx => ty => tx[$Option] && ty[$Option] && tx(ty(false) (_ => true)) (x => ty(true) (y => x !== y));
 
 
 // (a -> a -> Boolean) -> Option a -> Option a -> Boolean
-Option.eqBy = eq => tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(false) (y => eq(x) (y)));
-
-
-// (a -> a -> Boolean) -> Option a -> Option a -> Boolean
-Option.neqBy = neq => tx => ty => tx[$Option] && ty[$Option] && tx(ty(false) (_ => true)) (x => ty(true) (y => neq(x) (y)));
+Option.neqBy = neq => tx => ty =>
+ tx[$Option] && ty[$Option] && tx(ty(false) (_ => true)) (x => ty(true) (y => neq(x) (y)));
 
 
 // ORD
@@ -82,27 +83,44 @@ Option.compare_ = ty => tx => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT))
 
 
 // (a -> a -> Boolean) -> Option a -> Option a -> Number ordering
-Option.compareBy = compare => tx => ty => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compare(x) (y)));
-
-
-// (a -> a -> Boolean) -> Option a -> Option a -> Number ordering
-Option.compareBy_ = compare => ty => tx => tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compare(x) (y)));
+Option.compareBy = compare => tx => ty =>
+ tx[$Option] && ty[$Option] && tx(ty(EQ) (_ => LT)) (x => ty(GT) (y => compare(x) (y)));
 
 
 // Ord a => Option a -> Option a -> Boolean
 Option.lt = tx => ty => tx[$Option] && ty[$Option] && tx(ty(false) (_ => true)) (x => ty(false) (y => x < y));
 
 
+// (a -> a -> Boolean) -> Option a -> Option a -> Boolean
+Option.ltBy = lt => tx => ty =>
+ tx[$Option] && ty[$Option] && tx(ty(false) (_ => true)) (x => ty(false) (y => lt(x) (y)));
+
+
 // Ord a => Option a -> Option a -> Boolean
 Option.lte = tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => true)) (x => ty(false) (y => x <= y));
+
+
+// (a -> a -> Boolean) -> Option a -> Option a -> Boolean
+Option.lteBy = lte => tx => ty =>
+ tx[$Option] && ty[$Option] && tx(ty(true) (_ => true)) (x => ty(false) (y => lte(x) (y)));
 
 
 // Ord a => Option a -> Option a -> Boolean
 Option.gt = tx => ty => tx[$Option] && ty[$Option] && tx(ty(false) (_ => false)) (x => ty(true) (y => x > y));
 
 
+// (a -> a -> Boolean) -> Option a -> Option a -> Boolean
+Option.gtBy = gt => tx => ty =>
+ tx[$Option] && ty[$Option] && tx(ty(false) (_ => false)) (x => ty(true) (y => gt(x) (y)));
+
+
 // Ord a => Option a -> Option a -> Boolean
 Option.gte = tx => ty => tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(true) (y => x >= y));
+
+
+// (a -> a -> Boolean) -> Option a -> Option a -> Boolean
+Option.gteBy = gte => tx => ty =>
+ tx[$Option] && ty[$Option] && tx(ty(true) (_ => false)) (x => ty(true) (y => gte(x) (y)));
 
 
 // Ord a => Option a -> Option a -> Option a
@@ -110,7 +128,8 @@ Option.min = tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => tx)) (x =
 
 
 // (a -> a -> Boolean) -> Option a -> Option a -> Option a
-Option.minBy = min => tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => tx)) (x => ty(ty) (y => min(x) (y) ? tx : ty));
+Option.minBy = min => tx => ty =>
+ tx[$Option] && ty[$Option] && tx(ty(tx) (_ => tx)) (x => ty(ty) (y => min(x) (y) ? tx : ty));
 
 
 // Ord a => Option a -> Option a -> Option a
@@ -118,7 +137,8 @@ Option.max = tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => ty)) (x =
 
 
 // (a -> a -> Boolean) -> Option a -> Option a -> Option a
-Option.maxBy = max => tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => ty)) (x => ty(tx) (y => max(x) (y) ? tx : ty));
+Option.maxBy = max => tx => ty =>
+ tx[$Option] && ty[$Option] && tx(ty(tx) (_ => ty)) (x => ty(tx) (y => max(x) (y) ? tx : ty));
 
 
 // SEMIGROUP
@@ -128,16 +148,18 @@ Option.maxBy = max => tx => ty => tx[$Option] && ty[$Option] && tx(ty(tx) (_ => 
 Option.append = tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty)) (x => ty(y => x + y));
 
 
+// (a -> a -> a) -> Option a -> Option a -> Option a
+Option.appendBy = append => tx => ty =>
+ tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty)) (x => ty(y => append(x) (y)));
+
+
 // Semigroup a => Option a -> Option a -> Option a
 Option.prepend = ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty)) (x => ty(y => x + y));
 
 
 // (a -> a -> a) -> Option a -> Option a -> Option a
-Option.appendBy = append => tx => ty => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty)) (x => ty(y => append(x) (y)));
-
-
-// (a -> a -> a) -> Option a -> Option a -> Option a
-Option.prependBy = prepend => ty => tx => tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty)) (x => ty(y => prepend(x) (y)));
+Option.prependBy = prepend => ty => tx =>
+ tx[$Option] && ty[$Option] && tx(ty(None) (_ => ty)) (x => ty(y => prepend(x) (y)));
 
 
 // MONOID
@@ -147,12 +169,8 @@ Option.prependBy = prepend => ty => tx => tx[$Option] && ty[$Option] && tx(ty(No
 Option.empty = None;
 
 
-// Monoid a => (a -> a -> a, Option a) -> [Option a] -> Option a
+// (a -> a -> a, a) -> [Option a] -> Option a
 Option.concat = (append, empty) => xs => Some(xs.reduce((acc, tx) => append(acc) (tx), empty));
-
-
-// Foldable t => ((a -> b -> b) -> b -> Option a -> b, a -> a -> a, Option a) -> t (Option a) -> Option a
-Option.concatBy = (foldl, append, empty) => tx => Some(foldl(append) (empty) (tx));
 
 
 // FOLDABLE
