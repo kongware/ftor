@@ -172,8 +172,7 @@ Either.empty = empty => Right(empty);
 
 
 // (b -> b -> b, b) -> [Either a b] -> Either a b
-// TODO: What happens with Left tagged values?
-Either.concat = (append, empty) => xs => Right(xs.reduce((acc, tx) => append(acc) (tx), empty));
+Either.concat = (append, empty) => xs => Right(xs.reduce((acc, tx) => tx(_ => acc) (x => append(acc) (x)), empty));
 
 
 // FOLDABLE
