@@ -146,10 +146,24 @@ Tuple.empty = Tuple();
 
 
 // (a -> a -> a, a) -> [(a)] -> (a)
-Tuple.concat = (append, empty) => xs => Tuple(xs.reduce((acc, t) => append(acc) (t), empty));
+Tuple.concat = (append, empty) => xs => Tuple(xs.reduce((acc, t) => append(acc) (t[0]), empty));
 
 
-// TODO: concat2
+// (a -> a -> a, a, b -> b -> b, b) -> [(a, b)] -> (a, b)
+Tuple.concat2 = (append1, empty1, append2, empty2) => xs =>
+ Tuple(
+   xs.reduce((acc, t) => append1(acc) (t[0]), empty1),
+   xs.reduce((acc, t) => append2(acc) (t[1]), empty2)
+ );
+
+
+// (a -> a -> a, a, b -> b -> b, b, c -> c -> c) -> [(a, b, c)] -> (a, b, c)
+Tuple.concat3 = (append1, empty1, append2, empty2, append3, empty3) => xs =>
+ Tuple(
+   xs.reduce((acc, t) => append1(acc) (t[0]), empty1),
+   xs.reduce((acc, t) => append2(acc) (t[1]), empty2),
+   xs.reduce((acc, t) => append3(acc) (t[2]), empty3)
+ );
 
 
 // FOLDABLE
