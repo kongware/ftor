@@ -172,7 +172,7 @@ Either.empty = empty => Right(empty);
 
 
 // (b -> b -> b, b) -> [Either a b] -> Either a b
-Either.concat = (append, empty) => xs => Right(xs.reduce((acc, tx) => tx(_ => acc) (x => append(acc) (x)), empty));
+Either.concat = (append, empty) => xs => Right(xs.reduce((acc, tx) => tx[$Either] && tx(_ => acc) (x => append(acc) (x)), empty));
 
 
 // FOLDABLE

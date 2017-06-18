@@ -170,7 +170,7 @@ Option.empty = None;
 
 
 // (a -> a -> a, a) -> [Option a] -> Option a
-Option.concat = (append, empty) => xs => Some(xs.reduce((acc, tx) => tx(acc) (x => append(acc) (x)), empty));
+Option.concat = (append, empty) => xs => Some(xs.reduce((acc, tx) => tx[$Option] && tx(acc) (x => append(acc) (x)), empty));
 
 
 // FOLDABLE
