@@ -15,7 +15,7 @@ Originally this lib was the attempt to transfer Haskell idioms to Javascript. Ho
 
 The reason for Haskell's complexity is its close relationship to mathematics, namely category theory. Maths is a curse and a blessing at the same time. It offers proofs, composibility, elegance but it also leads to non-intuitive reasoning and non-intuitive algorithms. It leads to code whose runtime behavior is difficult to predict.
 
-Consequently, ftor is now the attempt to adapt the typed functional paradigm for an untyped environment. Adaption in this context means that the result isn't equivalent to the original idiom in most cases. It is rather a very lose translation process.
+Consequently, ftor is now the attempt to adapt Haskell idioms for an untyped environment. Adaption in this context means that the result isn't equivalent to the original idiom in most cases. It is rather a very lose translation process, which takes the nature of untyped languages into account.
 
 # Principles
 
