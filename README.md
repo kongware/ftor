@@ -27,7 +27,7 @@ ftor maneuvers between the following opposites with the objective of optimal bal
 
 ## It is all about functions
 
-I believe Javascript's prototype system is deeply flawed and leads to less robust, hard to read code. This is the reason why ftor mainly relies on function composition and other combinators and hence depends heavily on the following toolset:
+I believe Javascript's prototype system is a bad design and leads to less robust, hard to read code. This is the reason why ftor mainly relies on function composition and other combinators and hence depends heavily on the following toolset:
 
 * closures
 * first class functions
@@ -35,7 +35,7 @@ I believe Javascript's prototype system is deeply flawed and leads to less robus
 * arrow functions
 * generator functions (impure)
 
-It uses higher order functions to define new types (Church encoding) and instances of the `Arrow` type class to model control flows. It avoids globally visible mutations, reifies effects to first classe values or shifts them to the edges of an application.
+The lib uses higher order functions to define new types (Church encoding) and instances of the `Arrow` type class to model control flows. It avoids globally visible mutations, reifies effects to first classe values or shifts them to the edges of an application.
 
 # Fundamentals
 
