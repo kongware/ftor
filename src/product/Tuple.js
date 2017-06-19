@@ -169,7 +169,47 @@ Tuple.concat3 = (append1, empty1, append2, empty2, append3, empty3) => xs =>
 // FOLDABLE
 
 
+// (c -> a -> c) -> c -> (a, b) -> c
+Tuple.foldl1st = f => acc => t => t[$Tuple] && f(acc) (t[0]);
+
+
+// (a -> c -> c) -> c -> (a, b) -> c
+Tuple.foldr1st = f => acc => t => t[$Tuple] && f(t[0]) (acc);
+
+
+// (c -> b -> c) -> c -> (a, b) -> c
+Tuple.foldl2nd = f => acc => t => t[$Tuple] && f(acc) (t[1]);
+
+
+// (b -> c -> c) -> c -> (a, b) -> c
+Tuple.foldr2nd = f => acc => t => t[$Tuple] && f(t[1]) (acc);
+
+
+// (d -> c -> d) -> d -> (a, b, c) -> d
+Tuple.foldl3rd = f => acc => t => t[$Tuple] && f(acc) (t[2]);
+
+
+// (c -> d -> d) -> d -> (a, b, c) -> d
+Tuple.foldr3rd = f => acc => t => t[$Tuple] && f(t[2]) (acc);
+
+
 // BIFOLDABLE
+
+
+// (a -> a -> a) -> (a, a) -> a
+Tuple.bifold = append => t => t[$Tuple] && append(t[0]) (t[1]);
+
+
+// (c -> c -> c) -> (a -> c) -> (b -> c) -> (a, b) -> c
+Tuple.bifoldMap = append => f => g => t => t[$Tuple] && append(f(t[0])) (g(t[1]));
+
+
+// (c -> c -> c, c) -> (c -> a -> c) -> (c -> b -> c) -> c -> (a, b) -> c
+Tuple.bifoldl = (append, empty) => f => g => acc => t => t[$Tuple] && append(f(acc) (t[0])) (g(empty) (t[1]));
+
+
+// (c -> c -> c, c) -> (a -> c -> c) -> (b -> c -> c) -> c -> (a, b) -> c
+Tuple.bifoldr = (append, empty) => f => g => acc => t => t[$Tuple] && append(f(t[0]) (empty)) (g(t[1]) (acc));
 
 
 // TRIFOLDABLE
@@ -179,6 +219,9 @@ Tuple.concat3 = (append1, empty1, append2, empty2, append3, empty3) => xs =>
 
 
 // BITRAVERSABLE
+
+
+// TRITRAVERSABLE
 
 
 // FUNCTOR

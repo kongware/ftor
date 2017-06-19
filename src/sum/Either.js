@@ -183,16 +183,16 @@ Either.concat = (append, empty) => xs =>
 Either.fold = empty => tx => tx[$Either] && tx(_ => empty) (I);
 
 
+// c -> (b -> c) -> Either a b -> c
+Either.foldMap = empty => f => tx => tx[$Either] && tx(_ => empty) (x => f(x));
+
+
 // (c -> b -> c) -> c -> Either a b -> c
 Either.foldl = f => acc => tx => tx[$Either] && tx(_ => acc) (x => f(acc) (x));
 
 
 // (b -> c -> c) -> c -> Either a b -> c
 Either.foldr = f => acc => tx => tx[$Either] && tx(_ => acc) (x => f(x) (acc));
-
-
-// c -> (b -> c) -> Either a b -> c
-Either.foldMap = empty => f => tx => tx[$Either] && tx(_ => empty) (x => f(x));
 
 
 // Either a b -> Number

@@ -178,7 +178,11 @@ Option.concat = (append, empty) => xs =>
 
 
 // a -> Option a -> a
-Option.fold = empty = tx => tx[$Option] && tx(empty) (I);
+Option.fold = empty => tx => tx[$Option] && tx(empty) (I);
+
+
+// b -> (a -> b) -> Option a -> b
+Option.foldMap = empty => f => tx => tx[$Option] && tx(empty) (x => f(x));
 
 
 // (b -> a -> b) -> b -> Option a -> b
@@ -187,10 +191,6 @@ Option.foldl = f => acc => tx => tx[$Option] && tx(acc) (x => f(acc) (x));
 
 // (a -> b -> b) -> b -> Option a -> b
 Option.foldr = f => acc => tx => tx[$Option] && tx(acc) (x => f(x) (acc);
-
-
-// b -> (a -> b) -> Option a -> b
-Option.foldMap = empty => f => tx => tx[$Either] && tx(_ => empty) (x => f(x));
 
 
 // Option a -> Number
