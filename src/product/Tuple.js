@@ -23,7 +23,7 @@ const GT = require("../primitive/GT");
 
 
 // (*) -> [*]
-const Tuple = (...args) => args[$Tuple] = true, Object.seal(args), args;
+const Tuple = (...args) => (args[$Tuple] = true, Object.seal(args), args);
 
 
 // SETOID
@@ -215,7 +215,26 @@ Tuple.bifoldr = (append, empty) => f => g => acc => t => t[$Tuple] && append(f(t
 // TRIFOLDABLE
 
 
+// (a -> a -> a -> a) -> (a, a, a) -> a
+Tuple.trifold = append => t => t[$Tuple] && append(t[0]) (t[1]) (t[2]);
+
+
+// (d -> d -> d -> d) -> (a -> d) -> (b -> d) -> (c -> d) -> (a, b, c) -> d
+Tuple.trifoldMap = append => f => g => h => t => t[$Tuple] && append(f(t[0])) (g(t[1])) (h(t[2]));
+
+
+// (d -> d -> d -> d, d) -> (d -> a -> d) -> (d -> b -> d) -> (d -> c -> d) -> d -> (a, b, c) -> d
+Tuple.trifoldl = (append, empty) => f => g => h => acc => t => t[$Tuple] && append(f(acc) (t[0])) (g(empty) (t[1])) (h(empty) (t[2]));
+
+
+// (d -> d -> d -> d, d) -> (a -> d -> d) -> (b -> d -> d) -> (c -> d -> d) -> d -> (a, b, c) -> d
+Tuple.trifoldr = (append, empty) => f => g => h => acc => t => t[$Tuple] && append(f(t[0]) (empty)) (g(t[1]) (empty)) (h(t[2]) (acc));
+
+
 // TRAVERSABLE
+
+
+Tuple.traverse1st
 
 
 // BITRAVERSABLE
