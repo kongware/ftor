@@ -195,6 +195,9 @@ Either.foldl = f => acc => tx => tx[$Either] && tx(_ => acc) (x => f(acc) (x));
 Either.foldr = f => acc => tx => tx[$Either] && tx(_ => acc) (x => f(x) (acc));
 
 
+// TODO: foldl1, foldr1
+
+
 // Either a b -> Number
 Either.len = tx => tx(_ => 0) (_ => 1);
 
@@ -233,12 +236,12 @@ Either.bifoldMap = f => g => tx => tx[$Either] && tx(x => f(x)) (x => g(x));
 // TRAVERSABLE
 
 
-// Applicative f => (b -> f c) -> Either a b -> f (Either a c)
-Either.traverse = (of, map) => ft => tx => tx[$Either] && tx(_ => of(tx)) (x => map(Right) (ft(x)));
+// Applicative f => ((b -> c) -> f b -> f c, a -> f a) -> (b -> f c) -> Either a b -> f (Either a c)
+Either.traverse = (map, of) => ft => tx => tx[$Either] && tx(x => of(Left(x))) (x => map(Right) (ft(x)));
 
 
-// Applicative f => Either a (f b) -> f (Either a b)
-Either.sequence = (of, map) => traverse(of, map) (I);
+// Applicative f => ((b -> c) -> f b -> f c, a -> f a) -> Either a (f b) -> f (Either a b)
+Either.sequence = (map, of) => ft => tx => tx[$Either] && tx(x => of(Left(x))) (ux => map(Right) (ux));
 
 
 // BITRAVERSABLE
@@ -249,6 +252,9 @@ Either.sequence = (of, map) => traverse(of, map) (I);
 
 // (b -> c) -> Either a b -> Either a c
 Either.map = f => tx => tx[$Either] && tx(_ => tx) (x => Right(f(x)));
+
+
+// TODO: mapConst
 
 
 // BIFUNCTOR
@@ -269,11 +275,17 @@ Either.ap = tf => tx => tf[$Either] && tx[$Either] && tf(_ => tx) (f => tx(_ => 
 Either.ap_ = tx => tf => tf[$Either] && tx[$Either] && tf(_ => tx) (f => tx(_ => tx) (x => Right(f(x))));
 
 
+// BIAPPLY
+
+
 // APPLICATIVE
 
 
 // b -> Either a b
 Either.of = x => Right(x);
+
+
+// BIAPPLICATIVE
 
 
 // MONAD
@@ -297,11 +309,17 @@ Either.chain_ = tx => ft => tx[$Either] && tx(_ => tx) (x => {
 });
 
 
+// BIMONAD
+
+
 // ALT
 
 
 // Either a b -> Either a b -> Either a b
 Either.alt = tx => ty => tx(_ => ty(_ => ty) (_ => ty)) (_ => ty(_ => tx) (_ => tx));
+
+
+// TODO: some, any
 
 
 // PLUS

@@ -234,7 +234,12 @@ Tuple.trifoldr = (append, empty) => f => g => h => acc => t => t[$Tuple] && appe
 // TRAVERSABLE
 
 
-Tuple.traverse1st
+// Applicative f => ((a -> b) -> f a -> f b) -> (a -> f b) -> (a, c) -> f (b, c)
+Tuple.traverse1st = map => ft => t => t[$Tuple] && map(x => Tuple(x, ...t.slice(1))) (ft(t[0]));
+
+
+// Applicative f => ((a -> b) -> f a -> f b) -> (f a, c) -> f (b, c)
+Tuple.sequence1st = map => ft => t => t[$Tuple] && map(x => Tuple(x, ...t.slice(1))) (t[0]);
 
 
 // BITRAVERSABLE

@@ -193,6 +193,9 @@ Option.foldl = f => acc => tx => tx[$Option] && tx(acc) (x => f(acc) (x));
 Option.foldr = f => acc => tx => tx[$Option] && tx(acc) (x => f(x) (acc);
 
 
+// TODO: foldl1, foldr1
+
+
 // Option a -> Number
 Option.len = tx => tx(0) (_ => 1);
 
@@ -212,12 +215,12 @@ Option.has = x => tx => tx(false) (y => x === y);
 // TRAVERSABLE
 
 
-// Applicative f => (a -> f b) -> Option a -> f (Option b)
-Option.traverse = (of, map) => ft => tx => tx[$Option] && tx(of(None)) (x => map(Some) (ft(x)));
+// Applicative f => ((a -> b) -> f a -> f b, a -> f a) -> (a -> f b) -> Option a -> f (Option b)
+Option.traverse = (map, of) => ft => tx => tx[$Option] && tx(of(None)) (x => map(Some) (ft(x)));
 
 
-// Applicative f => Option (f a) -> f (Option a)
-Option.sequence = (of, map) => Option.traverse(of, map) (I);
+// Applicative f => ((a -> b) -> f a -> f b, a -> f a) -> Option (f a) -> f (Option a)
+Option.sequence = (map, of) => tx => tx[$Option] && tx(of(None)) (ux => map(Some) (ux));
 
 
 // FUNCTOR
@@ -225,6 +228,9 @@ Option.sequence = (of, map) => Option.traverse(of, map) (I);
 
 // (a -> b) -> Option a -> Option b
 Option.map = f => tx => tx[$Option] && tx(None) (x => Some(f(x)));
+
+
+// TODO: mapConst
 
 
 // APPLY
@@ -271,6 +277,9 @@ Option.chain = tx => ft => tx[$Option] && tx(None) (x => {
 
 // Option a -> Option a -> Option a
 Option.alt = tx => ty => tx(ty) (_ => tx);
+
+
+// TODO: some, any
 
 
 // PLUS
