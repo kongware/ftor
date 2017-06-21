@@ -7,7 +7,7 @@ ftor
 
 This library is experimental and still work in progress.
 
-# What is ftor?
+# What is ftor good for?
 
 ftor is a library that adapts the functional paradigm meaningfully for untyped languages like Javascript.
 
