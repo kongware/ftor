@@ -2,7 +2,7 @@
 
 
 /**
- * @name conditional function
+ * @name conditional function application
  * @note lazy conditional expression
  * @type higher order function
  * @status stable

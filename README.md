@@ -3,39 +3,51 @@ ftor
 
 <img src="https://i.stack.imgur.com/UqCPm.png?s=328&g=1" width="164" height="164" alt="ftor">
 
-The typed functional paradigm adapted to untyped environments and encoded in Javascript.
-
 # Status
 
 This library is experimental and still work in progress.
 
-# Mission Statement
+# What is ftor?
 
-Originally this lib was the attempt to transfer Haskell idioms to Javascript. However, I finally realized that Haskell suffers from a fundamental weakness: It is just too complicated to become part of the mainstream. A programming language is still a language and what is a language worth that is only really understood by few.
+ftor is a library that adapts the functional paradigm meaningfully for untyped languages like Javascript.
 
-The reason for Haskell's complexity is its close relationship to mathematics, namely category theory. Maths is a curse and a blessing at the same time. It offers proofs, composibility, elegance but it also leads to non-intuitive reasoning and non-intuitive algorithms. It leads to code whose runtime behavior is difficult to predict.
+# Why should I learn it?
 
-Consequently, ftor is now the attempt to adapt Haskell idioms for an untyped environment. Adaption in this context means that the result isn't equivalent to the original idiom in most cases. It is rather a very lose translation process, which takes the nature of untyped languages into account.
+ftor teaches you the fundamental functional idioms, which are extremely generalized concepts and language agnostic. This means you can use this knowledge in countless scenarios, regardless of the programming language you're working on. In order to achieve this ftor doesn't force you to learn a knew language. You can just stick to the Lingua Franca of the web - Javascript.
 
-# Principles
+With ftor you develop a feel for
 
-ftor maneuvers between the following opposites with the objective of optimal balance:
+* types
+* effects
+* purity
+* compositon
+* polymorphism
+* immutability
+* currying
+* co-/recursion
+
+There is a good chance that you are a better programmer afterwards :D
+
+# Design Principles
 
 * abstraction vs. comprehensibility
+* advanced techniques vs. low barrier to entry
 * functional purity vs. performance
 * idiomatic code vs. thinking outside the box
 
-## It is all about functions
+# Programming Guidelines
 
-I believe Javascript's prototype system is a bad design and leads to less robust, hard to read code. This is the reason why ftor mainly relies on function composition and other combinators and hence depends heavily on the following toolset:
+* whenever you can do it with a pure function, just do it with a pure function
+* reify effects to first class values
+* defer the execution of effects as long as possible
+* avoid visible mutations but learn to appreciate private ones
+* model your domain with alternatives instead of hierarchies
+* prefer tail recursive algorithms over loops
+* transform statements into first class expressions
 
-* closures
-* first class functions
-* higher order functions
-* arrow functions
-* generator functions (impure)
+All of these guidelines have the same purpose, which is kind of like the fetish of functional programming:
 
-The lib uses higher order functions to define new types (Church encoding) and instances of the `Arrow` type class to model control flows. It avoids globally visible mutations, reifies effects to first classe values or shifts them to the edges of an application.
+Everything must be composable!
 
 # Fundamentals
 
@@ -56,9 +68,10 @@ The following conventions for name bindings are used:
 * `vs`, `ws`, `xs`, `ys`, `zs` represent collection types
 * `iv`, `iw`, `ix`, `iy`, `iz` represent either iterables or iterators
 * `o`, `p`, `q`, `r`, `s` represent `Object` types
-* `f, g, h, i, j` represent function types
-* `ft`, `gt`, `ht` represent Kleisli arrows, i.e. functions that return monads
+* `f`, `g`, `h`, `i`, `j` represent function types
+* `ft`, `gt`, `ht` represent Kleisli arrows, i.e. functions that return functors/applicatives/monads etc.
 * `tv`, `tw`, `tx`, `ty`, `tz` represent a value wrapped in a sum type
+* `t`, `u`, `v` `w` represent product types except `Array`s and `Object`s
 * `name_` or `_name` indicates a slightly modified variant of an existing function `name`
 * `nameBy` or `nameWith` indicates a more general version of an existing function `name`
 
