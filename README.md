@@ -47,7 +47,7 @@ There is a good chance that you are a better programmer afterwards :D
 * transform statements into first class expressions
 
 
-All of these guidelines have the same purpose, which is kind of like the fetish of functional programming:
+All of these guidelines have the same purpose, which is somehow the fetish of functional programming:
 
 **Everything must be composable!**
 
