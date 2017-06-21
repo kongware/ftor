@@ -7,11 +7,11 @@ ftor
 
 This library is experimental and still work in progress.
 
-# What is ftor good for?
+# What
 
 ftor is a library that adapts the functional paradigm meaningfully for untyped languages like Javascript.
 
-# Why should I learn it?
+# Why
 
 ftor teaches you the fundamental functional idioms, which are extremely generalized concepts and language agnostic. This means you can use this knowledge in countless scenarios, regardless of the programming language you're working on. In order to achieve this ftor doesn't force you to learn a knew language. You can just stick to the Lingua Franca of the web - Javascript.
 
