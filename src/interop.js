@@ -13,6 +13,9 @@ const $Ident = Symbol.for("ftor/Ident");
 const $Option = Symbol.for("ftor/Option");
 
 
+const $Rec = Symbol.for("ftor/Rec");
+
+
 const $tag = Symbol.for("ftor/tag");
 
 

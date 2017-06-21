@@ -2,7 +2,7 @@
 
 
 /**
- * @name conditional function
+ * @name select function
  * @note lazy conditional expression
  * @type higher order function
  * @status stable
@@ -14,7 +14,7 @@
 
 
 // (a -> b) -> Boolean -> a -> b
-const condf = f => x => b => b ? f(x) : x;
+const selectf = f => g => x => b => b ? f(x) : g(x);
 
 
-module.exports = condf;
+module.exports = selectf;
