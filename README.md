@@ -25,6 +25,7 @@ With ftor you develop a feel for
 * immutability
 * currying
 * co-/recursion
+* lazy evaluation
 
 There is a good chance that you are a better programmer afterwards :D
 
@@ -45,9 +46,10 @@ There is a good chance that you are a better programmer afterwards :D
 * prefer tail recursive algorithms over loops
 * transform statements into first class expressions
 
+
 All of these guidelines have the same purpose, which is kind of like the fetish of functional programming:
 
-Everything must be composable!
+**Everything must be composable!**
 
 # Fundamentals
 
