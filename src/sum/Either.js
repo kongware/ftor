@@ -257,7 +257,7 @@ Either.map = f => tx => tx[$Either] && tx(_ => tx) (x => Right(f(x)));
 // TODO: mapConst
 
 
-// BIFUNCTOR
+// BIFUNCTOR (TODO: verify)
 
 
 // (a -> c) -> (b -> d) -> Either a b -> Either b d
@@ -273,6 +273,9 @@ Either.ap = tf => tx => tf[$Either] && tx[$Either] && tf(_ => tx) (f => tx(_ => 
 
 // Either a b -> Either a (b -> c) -> Either a c
 Either.ap_ = tx => tf => tf[$Either] && tx[$Either] && tf(_ => tx) (f => tx(_ => tx) (x => Right(f(x))));
+
+
+// TODO: apConst, apConst_
 
 
 // BIAPPLY
@@ -312,7 +315,7 @@ Either.chain_ = tx => ft => tx[$Either] && tx(_ => tx) (x => {
 // BIMONAD
 
 
-// ALT
+// ALT (TODO: verify)
 
 
 // Either a b -> Either a b -> Either a b

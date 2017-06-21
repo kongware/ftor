@@ -244,6 +244,8 @@ Option.ap = tf => tx => tf[$Option] && tx[$Option] && tf(None) (f => tx(None) (x
 Option.ap_ = tx => tf => tf[$Option] && tx[$Option] && tf(None) (f => tx(None) (x => Some(f(x))));
 
 
+// TODO: apConst, apConst_
+
 // APPLICATIVE
 
 
@@ -272,7 +274,7 @@ Option.chain = tx => ft => tx[$Option] && tx(None) (x => {
 });
 
 
-// ALT
+// ALT (TODO: verify)
 
 
 // Option a -> Option a -> Option a

@@ -2,8 +2,8 @@
 
 
 /**
- * @name composition (bluebird et al.)
- * @note functorial
+ * @name composition
+ * @note bluebird combinator; functorial
  * @type higher order function
  * @status stable
  * @example
