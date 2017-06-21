@@ -13,7 +13,7 @@ ftor is a library that adapts the functional paradigm meaningfully for untyped l
 
 # Why
 
-ftor teaches you the fundamental functional idioms, which are extremely generalized concepts and language agnostic. This means you can use this knowledge in countless scenarios, regardless of the programming language you're working on. In order to achieve this ftor doesn't force you to learn a knew language. You can just stick to the Lingua Franca of the web - Javascript.
+ftor teaches you the fundamental functional idioms, which are extremely generalized concepts and language agnostic. This means you can use this knowledge in countless scenarios, regardless of the programming language you're working on. In order to achieve this ftor doesn't force you to learn a new language. You can just stick to the Lingua Franca of the web - Javascript.
 
 With ftor you develop a feel for
 
