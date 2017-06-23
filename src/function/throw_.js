@@ -7,18 +7,18 @@
  * @status stable
  * @example
 
-  const throw_ = cons => f => (...args) => {
-    throw new cons(f(...args));
+  const throw_ = cons => x => {
+    throw new cons(x);
   };
 
-  throw_(TypeError) (x => `invalid type ${null}`) (null); // TypeError: invalid type null
+  throw_(TypeError) (`invalid type ${null}`); // TypeError: invalid type null
 
  */
 
 
-// (a -> IO a) -> (...* -> a) -> (...args) -> IO
-const throw_ = cons => f => (...args) => {
-  throw new cons(f(...args));
+// (String -> IO String) -> String -> IO String
+const throw_ = cons => x => {
+  throw new cons(x);
 };
 
 
