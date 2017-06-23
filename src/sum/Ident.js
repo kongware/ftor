@@ -125,14 +125,14 @@ Ident.traverse = map => ft => tx => tx[$Ident] && tx(x => map(Ident) (ft(x)));
 
   Ident.map = f => tx => tx[$Ident] && Ident(tx(x => f(x)));
 
-  const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+  const comp_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
   const I = x => x;
   const sqr = x => x * x;
   const dbl = x => x * 2;
 
   const x = Ident(5);
 
-  B_(Ident.map(sqr), Ident.map(dbl)) (x) (I); // 100
+  comp_(Ident.map(sqr), Ident.map(dbl)) (x) (I); // 100
 
  */
 
@@ -158,12 +158,12 @@ Ident.map = f => tx => tx[$Ident] && Ident(tx(x => f(x)));
   Ident.map = f => tx => tx[$Ident] && Ident(tx(x => f(x)));
   Ident.ap = tf => tx => tf[$Ident] && tx[$Ident] && tf(f => Ident.map(f) (tx));
 
-  const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+  const comp_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
   const I = x => x;
   const add = x => y => x + y;
 
-  B_(Ident.ap, Ident.map(add)) (Ident(2)) (Ident(3)) (I); // 5
-  B_(Ident.ap, add) (Ident(2)) (Ident(3)) (I); // TypeError
+  comp_(Ident.ap, Ident.map(add)) (Ident(2)) (Ident(3)) (I); // 5
+  comp_(Ident.ap, add) (Ident(2)) (Ident(3)) (I); // TypeError
 
  */
 
@@ -207,11 +207,11 @@ Ident.of = x => Ident(x);
     return r[$Ident] && r;
   });
 
-  const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+  const comp_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
   const I = x => x;
   const sqr = x => x * x;
 
-  Ident.chain(B_(Ident, sqr)) (Ident(5)) (I); // 25
+  Ident.chain(comp_(Ident, sqr)) (Ident(5)) (I); // 25
   Ident.chain(sqr) (Ident(5)) (I); // TypeError
 
  */

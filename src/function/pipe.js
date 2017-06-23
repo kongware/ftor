@@ -3,12 +3,12 @@
 
 /**
  * @name pipe
- * @note contra-functorial
+ * @note contra functorial
  * @type higher order function
  * @status stable
  * @example
 
-  ??
+  @see comp
 
  */
 

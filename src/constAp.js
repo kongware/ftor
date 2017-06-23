@@ -18,26 +18,26 @@ const {lifta2} = require("./lifta");
   const lifta2 = (map, ap) => f => tx => ty => ap(map(f) (tx)) (ty);
   const K_ = x => y => y;
 
-  const apConst = (map, ap) => lifta2(map, ap) (K_);
+  const constAp = (map, ap) => lifta2(map, ap) (K_);
 
   const map = f => xs => xs.map(x => f(x));
   const ap = fs => xs => fs.reduce((acc, f) => acc.concat(xs.map(x => f(x))), []);
 
-  apConst(map, ap) ([1, 2]) ([3, 4]); // [3, 4, 3, 4]
-  apConst(map, ap) ([]) ([3, 4]); // []
+  constAp(map, ap) ([1, 2]) ([3, 4]); // [3, 4, 3, 4]
+  constAp(map, ap) ([]) ([3, 4]); // []
 
  */
 
 
 // Applicative f => f a -> f b -> f b
-const apConst = (map, ap) => lifta2(map, ap) (K_);
+const constAp = (map, ap) => lifta2(map, ap) (K_);
 
 
 // Applicative f => f a -> f b -> f a
-const apConst_ = (map, ap) => lifta2(map, ap) (K);
+const constAp_ = (map, ap) => lifta2(map, ap) (K);
 
 
 // API
 
 
-module.exports = {apConst, apConst_};
+module.exports = {constAp, constAp_};

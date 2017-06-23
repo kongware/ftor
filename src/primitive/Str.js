@@ -92,26 +92,6 @@ Str.minBound = n => Array(n).fill("\u{0}").join("");
 Str.prepend = x => y => x.concat(y);
 
 
-/**
- * @name render
- * @note variadic
- * @type first order function
- * @status stable
- * @example
-
-  const Str = x => String(x);
-  Str.render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
-  const template = Str.render("${0} monkeys on ${1} trees");
-
-  template(9, 3); // "9 monkeys on 3 trees"
-
- */
-
-
-// String -> (*) -> String
-Str.render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
-
-
 // API
 
 

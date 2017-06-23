@@ -126,14 +126,14 @@ Const.traverse = (of, map) => ft => tx => tx[$Const] && map(Const) (of(tx(_ => n
 
   Const.map = f => tx => tx[$Const] && tx;
 
-  const B_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
+  const comp_ = (...fs) => x => fs.reduceRight((acc, f) => f(acc), x);
   const I = x => x;
   const sqr = x => x * x;
   const dbl = x => x * 2;
 
   const x = Const(5);
 
-  B_(Const.map(sqr), Const.map(dbl)) (x) (I); // 5
+  comp_(Const.map(sqr), Const.map(dbl)) (x) (I); // 5
 
  */
 

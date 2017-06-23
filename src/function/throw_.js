@@ -1,33 +1,24 @@
 "use strict";
 
 
-// dependencies
-
-
-const {render} = require("./primitive/str");
-
-
 /**
  * @name throw
  * @type action
  * @status stable
  * @example
 
-  const render = template => (...args) => template.replace(/\$\{(\d+)}/g, (_, i) => args[i]);
-
-  const throw_ = cons => template => x => {
-    throw new cons(render(template) (x));
+  const throw_ = cons => f => (...args) => {
+    throw new cons(f(...args));
   };
 
-  throw_(RangeError) ("invalid value ${0}") (false); // TypeError: invalid value false
-  throw_(RangeError) ("invalid value ${0}") (null); // TypeError: invalid value null
+  throw_(TypeError) (x => `invalid type ${null}`) (null); // TypeError: invalid type null
 
  */
 
 
-// (b -> Error) -> String -> (a -> b) -> IO
-const throw_ = cons => template => x => {
-  throw new cons(render(template) (x));
+// (a -> IO a) -> (...* -> a) -> (...args) -> IO
+const throw_ = cons => f => (...args) => {
+  throw new cons(f(...args));
 };
 
 

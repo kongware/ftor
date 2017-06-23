@@ -4,7 +4,7 @@
 // dependencies
 
 
-const {B_} = require("../B");
+const {comp_} = require("../comp");
 
 
 /**
@@ -136,7 +136,7 @@ Arr.clone = xs => [].concat(xs);
 
 
 // (a -> [b]) -> [a] -> [b]
-Arr.concatMap = f => Arr.fold(B_(Arr.append, f)) ([]);
+Arr.concatMap = f => Arr.fold(comp_(Arr.append, f)) ([]);
 
 
 /**

@@ -14,7 +14,7 @@
     let g;
 
     // validate contract
-    c(tag, args);
+    c(args, tag);
 
     // produce the return value
     if (cs.length === 1) return cs[0](tag) (f(...args));
@@ -31,14 +31,20 @@
     return g;
   }});
 
-  const unary = c => (tag, args) =>
-   (c(tag) (args[0]), 1 in args ? throwType(`${tag} expects one argument (${args.length} given)`) : args);
+  const unary = c => (args, tag) =>
+   args.length === 1
+    ? c(tag) (args[0])
+    : throwType(`${tag} expects one argument (${args.length} given)`);
 
-  const binary = (c1, c2) => (tag, args) =>
-   (c1(tag) (args[0]), c2(tag) (args[1]), 2 in args ? throwType(`${tag} expects two arguments (${args.length} given)`) : args);
+  const binary = (c1, c2) => (args, tag) =>
+   args.length === 2
+    ? (c1(tag) (args[0]), c2(tag) (args[1]))
+    : throwType(`${tag} expects two arguments (${args.length} given)`);
 
-  const ternary = (c1, c2, c3) => (tag, args) =>
-   (c1(tag) (args[0]), c2(tag) (args[1]), c3(tag) (args[2]), 3 in args ? throwType(`${tag} expects two arguments (${args.length} given)`) : args);
+  const ternary = (c1, c2, c3) => (args, tag) =>
+   args.length === 3
+    ? (c1(tag) (args[0]), c2(tag) (args[1]), c3(tag) (args[2]))
+    : throwType(`${tag} expects two arguments (${args.length} given)`);
 
   const nary = c => (tag, args) => args.forEach(x => c(tag) (x)); 
 
@@ -112,7 +118,7 @@ const handleF = ([c, ...cs], tag) => ({ apply: (f, _, args) => {
   let g;
 
   // validate contract
-  c(tag, args);
+  c(args, tag);
 
   // produce the return value
   if (cs.length === 1) return cs[0](tag) (f(...args));
