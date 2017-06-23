@@ -8,6 +8,8 @@
  * @status stable
  * @example
 
+  const interceptF = (tag, f) => (...cs) => new Proxy(f, handleF(cs, tag));
+
   const handleF = ([c, ...cs], tag) => ({ apply: (f, _, args) => {
     let g;
 
@@ -28,8 +30,6 @@
 
     return g;
   }});
-
-  const interceptF = (tag, f) => (...cs) => new Proxy(f, handleF(cs, tag));
 
   const unary = c => (tag, args) =>
    (c(tag) (args[0]), 1 in args ? throwType(`${tag} expects one argument (${args.length} given)`) : args);
@@ -99,8 +99,12 @@
   comp2(sqr) (add) (2) (); // TypeError: add expects one argument (0 given)
   comp2(sqr, sqr) (add) (2) (3); // TypeError: comp expects one argument (2 given)
   comp2(sqr) (concat) ("a") ("b"); // TypeError: sqr expects a number (string given)
-  
+
  */
+
+
+// ?
+const interceptF = (tag, f) => (...cs) => new Proxy(f, handleF(cs, tag));
 
 
 // ?
@@ -125,9 +129,6 @@ const handleF = ([c, ...cs], tag) => ({ apply: (f, _, args) => {
   return g;
 }});
 
-
-// ?
-const interceptF = (tag, f) => (...cs) => new Proxy(f, handleF(cs, tag));
 
 // API
 
