@@ -19,8 +19,8 @@ const throwType = require("../function/throwType");
  */
 
 
-// String -> [a] -> [a]
-const arrl = tag => x => x !== null && typeof x === "object" && length in x ? x : throwType(`${tag} expects an array like (${typeof x} given)`);
+// String -> [*] -> [*]
+const arrl = tag => x => x !== null && typeof x === "object" && length in x ? x : throwType(`${tag} expects an []-like (${typeof x} given)`);
 
 
 // API

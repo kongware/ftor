@@ -9,7 +9,6 @@ const {comp_} = require("./comp");
 
 /**
  * @name fold map
- * @note generic concat map
  * @type higher order function
  * @status stable
  * @example

@@ -10,7 +10,7 @@ const throw_ = require("../throw_");
 
 /**
  * @name Object
- * @note combined namespace/constructor
+ * @note combined constructor/namespace
  * @type product type
  * @todo use pair tuples?
  * @status stable

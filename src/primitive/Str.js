@@ -48,6 +48,10 @@ Str.append = y => x => x.concat(y);
 Str.localeCompare = x => y => x.localeCompare(y);
 
 
+// Object -> String -> String
+Str.interpolate = o => x => x.replace(/\${(\w+)}/g, (_, k) => o[k]);
+
+
 // String -> String -> Ordering
 Str.localeCompare_ = y => x => x.localeCompare(y);
 

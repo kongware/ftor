@@ -19,8 +19,8 @@ const throwType = require("../function/throwType");
  */
 
 
-// String -> Number -> Number
-const num = tag => x => typeof x === "number" ? x : throwType(`${tag} expects a number (${typeof x} given)`);
+// Number -> Number|TypeError String
+const num = x => typeof x === "number" ? x : throwType("${tag} " + `expects a number (${typeof x} given)`);
 
 
 // API

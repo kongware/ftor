@@ -19,8 +19,8 @@ const throwType = require("../function/throwType");
  */
 
 
-// String -> [a] -> [a]
-const arr = tag => x => Array.isArray(x) ? x : throwType(`${tag} expects an array (${typeof x} given)`);
+// String -> [*] -> [*]
+const arr = tag => x => Array.isArray(x) ? x : throwType(`${tag} expects an [] (${typeof x} given)`);
 
 
 // API

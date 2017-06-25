@@ -7,9 +7,11 @@
 const {comp_} = require("../comp");
 
 
+// TODO: split, zip, elemIndex, elemIndices, (!!), findIndex, findIndices, Ix class
+
 /**
  * @name Array
- * @note combined namespace/constructor
+ * @note combined constructor/namespace
  * @type product type
  * @status stable
  */
@@ -349,8 +351,7 @@ Arr.foldrk = f => acc => xs => {
 
 /**
  * @name for each
- * @note performs side effects
- * @type higher order function
+ * @type action
  * @status stable
  * @example
 
@@ -634,20 +635,20 @@ Arr.pop_ = xs => [xs.pop(), xs];
  * @example
 
   const Arr = Array.of;
-  Arr.prepend = xs => x => [x].concat(xs);
+  Arr.prepend = x => xs => [x].concat(xs);
 
-  Arr.prepend([1, 2]) (0); // [0, 1, 2]
-  Arr.prepend([1, 2]) ([3]); // [[0], 1, 2]
+  Arr.prepend(0) ([1, 2]); // [0, 1, 2]
+  Arr.prepend([0]) ([1, 2]); // [[0], 1, 2]
 
  */
 
 
-// [a] -> a -> [a]
-Arr.prepend = xs => x => [x].concat(xs);
-
-
 // a -> [a] -> [a]
-Arr.prepend_ = x => xs => [x].concat(xs);
+Arr.prepend = x => xs => [x].concat(xs);
+
+
+// [a] -> a -> [a]
+Arr.prepend_ = xs => x => [x].concat(xs);
 
 
 /**

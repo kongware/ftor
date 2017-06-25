@@ -110,11 +110,22 @@
 
 
 // ?
-const interceptF = (tag, f) => (...cs) => new Proxy(f, handleF(cs, tag));
+const interceptF = (tag, f) => (...cs) => {
+  // create a proxy instance
+  const g = new Proxy(f, handleF(tag, cs));
+
+  // set name property to avoid anynomous apply traps
+  Object.defineProperty(g, "name", {value: tag});
+
+  // enable string coercion for apply traps
+  g.toString = Function.prototype.toString.bind(f);
+
+  return g;
+};
 
 
 // ?
-const handleF = ([c, ...cs], tag) => ({ apply: (f, _, args) => {
+const handleF = (tag, [c, ...cs]) => ({ apply: (f, _, args) => {
   let g;
 
   // validate contract
@@ -124,12 +135,12 @@ const handleF = ([c, ...cs], tag) => ({ apply: (f, _, args) => {
   if (cs.length === 1) return cs[0](tag) (f(...args));
 
   // create new proxy
-  g = new Proxy(f(...args), handleF(cs, tag))
+  g = new Proxy(f(...args), handleF(tag, cs))
 
-  // set name property to avoid debugging of anonymous lambdas
+  // set name property to avoid anynomous apply traps
   Object.defineProperty(g, "name", {value: tag});
 
-  // enable to-string-coercion for "proxified" functions
+  // enable string coercion for apply traps
   g.toString = Function.prototype.toString.bind(f);
 
   return g;
