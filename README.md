@@ -7,11 +7,11 @@ ftor
 
 This library is experimental and still work in progress.
 
-# What
+## What
 
 ftor is a library that adapts the functional paradigm meaningfully for untyped languages like Javascript.
 
-# Why
+## Why
 
 ftor teaches you the fundamental functional idioms, which are extremely generalized concepts and language agnostic. This means you can use this knowledge in countless scenarios, regardless of the programming language you're working on. In order to achieve this ftor doesn't force you to learn a new language. You can just stick to the Lingua Franca of the web - Javascript.
 
@@ -29,14 +29,14 @@ With ftor you develop a feel for
 
 There is a good chance that you are a better programmer afterwards :D
 
-# Design Principles
+## Design Principles
 
 * abstraction vs. comprehensibility
 * advanced techniques vs. low barrier to entry
 * functional purity vs. performance
 * idiomatic code vs. thinking outside the box
 
-# Programming Guidelines
+## Programming Guidelines
 
 * whenever you can do it with a pure function, just do it with a pure function
 * reify effects to first class values
@@ -51,7 +51,7 @@ All of these guidelines have the same purpose, which is somehow the fetish of fu
 
 **Everything must be composable!**
 
-# Terminology
+## Terminology
 
 * composable function: A pure function that is partially applicable in its last argument
 * first order function: A function that neither accepts function types as arguments nor returns them
@@ -60,7 +60,7 @@ All of these guidelines have the same purpose, which is somehow the fetish of fu
 * Church encoding: Data types that are encoded by higher order functions
 * Arrows: The type class that abstracts over function types (not ES2015 arrow functions)
 
-# Naming conventions
+## Naming conventions
 
 The following conventions for name bindings are used:
 
@@ -75,7 +75,7 @@ The following conventions for name bindings are used:
 * `name_` or `_name` indicates a slightly modified variant of an existing function `name`
 * `nameBy` or `nameWith` indicates a more general version of an existing function `name`
 
-# Type signature extension
+## Type signature extension
 
 The following type signature extension is neccesary given the fact that Javascript is dynamically typed:
 
