@@ -1,22 +1,29 @@
 "use strict";
 
 
+// dependencies
+
+
+const Err = require("../product/Err");
+
+
 /**
- * @name nullary
+ * @name unary
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// ?
-const unary = () => (args, tag) =>
+// () -> [] -> []|Error String [?]
+const unary = c => args =>
  args.length === 0
   ? args
-  : throwType(`${tag} expects no arguments (${args.length} given)`);
+  : Err(ArityError) ("", 0, args.length);
 
 
 // API

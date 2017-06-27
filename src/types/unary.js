@@ -4,25 +4,26 @@
 // dependencies
 
 
-const throwType = require("../function/throwType");
+const Err = require("../product/Err");
 
 
 /**
  * @name unary
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// ?
-const unary = c => (args, tag) =>
+// (a -> a) -> [a] -> [a]|Error String [?]
+const unary = c => args =>
  args.length === 1
-  ? (c(tag) (args[0]), args)
-  : throwType(`${tag} expects one argument (${args.length} given)`);
+  ? (c(args[0]), args)
+  : Err(ArityError) ("", 1, args.length);
 
 
 // API

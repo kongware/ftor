@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name regular expression
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> RegExp -> RegExp
-const reg = tag => x => Object.prototype.toString.call(x) === "[object RegExp]" ? x : throwType(`${tag} expects a regular expression (${typeof x} given)`);
+// RegExp -> RegExp|TypeError String [?]
+const reg = x => Object.prototype.toString.call(x) === "[object RegExp]" ? x : Err(TypeError) ("", "regexp", typeof x);
 
 
 // API

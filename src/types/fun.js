@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name function
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> Function -> Function
-const fun = tag => x => typeof x === "function" ? x : throwType(`${tag} expects a function (${typeof x} given)`);
+// Function -> Function|TypeError String [?]
+const fun = x => typeof x === "function" ? x : Err(TypeError) ("", "function", typeof x);
 
 
 // API

@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name value
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> a -> a
-const val = tag => x => x !== undefined && x !== null ? x : throwType(`${tag} expects a value (${typeof x} given)`);
+// ?
+const val = x => x !== undefined && x !== null ? x : Err(TypeError) ("", "value", typeof x);
 
 
 // API

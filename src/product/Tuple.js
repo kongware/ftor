@@ -22,7 +22,7 @@ const GT = require("../primitive/GT");
  */
 
 
-// (*) -> [*]
+// (*) -> [?]
 const Tuple = (...args) => (args[$Tuple] = true, Object.seal(args), args);
 
 

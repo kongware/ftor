@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name symbol
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> Symbol -> Symbol
-const sym = tag => x => typeof x === "symbol" ? x : throwType(`${tag} expects a symbol (${typeof x} given)`);
+// Symbol -> Symbol|TypeError String [?]
+const sym = x => typeof x === "symbol" ? x : Err(TypeError) ("", "symbol", typeof x);
 
 
 // API

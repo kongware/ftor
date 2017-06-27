@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name weak map
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> WeakMap -> WeakMap
-const wmap = tag => x => Object.prototype.toString.call(x) === "[object WeakMap]" ? x : throwType(`${tag} expects a weakmap (${typeof x} given)`);
+// WeakMap ? ? -> WeakMap ? ?|TypeError String [?]
+const wmap = x => Object.prototype.toString.call(x) === "[object WeakMap]" ? x : Err(TypeError) ("", "weakmap", typeof x);
 
 
 // API

@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name map
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> Map -> Map
-const map = tag => x => Object.prototype.toString.call(x) === "[object Map]" ? x : throwType(`${tag} expects a map (${typeof x} given)`);
+// Map ? ? -> Map ? ?|TypeError String [?]
+const map = x => Object.prototype.toString.call(x) === "[object Map]" ? x : Err(TypeError) ("", "map", typeof x);
 
 
 // API

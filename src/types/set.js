@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name set
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> Set -> Set
-const set = tag => x => Object.prototype.toString.call(x) === "[object Set]" ? x : throwType(`${tag} expects a set (${typeof x} given)`);
+// Set ? -> Set ?|TypeError String [?]
+const set = x => Object.prototype.toString.call(x) === "[object Set]" ? x : Err(TypeError) ("", "set", typeof x);
 
 
 // API

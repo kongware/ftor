@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name date
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> Date -> Date
-const dat = tag => x => Object.prototype.toString.call(x) === "[object Date]" ? x : throwType(`${tag} expects a date (${typeof x} given)`);
+// Date -> Date|TypeError String [?]
+const dat = x => Object.prototype.toString.call(x) === "[object Date]" ? x : Err(TypeError) ("", "date", typeof x);
 
 
 // API

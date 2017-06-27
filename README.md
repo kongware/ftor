@@ -51,9 +51,7 @@ All of these guidelines have the same purpose, which is somehow the fetish of fu
 
 **Everything must be composable!**
 
-# Fundamentals
-
-## Terminology
+# Terminology
 
 * composable function: A pure function that is partially applicable in its last argument
 * first order function: A function that neither accepts function types as arguments nor returns them
@@ -62,7 +60,7 @@ All of these guidelines have the same purpose, which is somehow the fetish of fu
 * Church encoding: Data types that are encoded by higher order functions
 * Arrows: The type class that abstracts over function types (not ES2015 arrow functions)
 
-## Naming conventions
+# Naming conventions
 
 The following conventions for name bindings are used:
 
@@ -76,3 +74,18 @@ The following conventions for name bindings are used:
 * `t`, `u`, `v` `w` represent product types except `Array`s and `Object`s
 * `name_` or `_name` indicates a slightly modified variant of an existing function `name`
 * `nameBy` or `nameWith` indicates a more general version of an existing function `name`
+
+# Type signature extension
+
+The following type signature extension is neccesary given the fact that Javascript is dynamically typed:
+
+* `(a, b) -> a` describes a multi-argument function (`Tuple`-like)
+* `? -> ?` describes an unary function with unknown types
+* `Function` describes a function with unknown types and arity
+* `[a, b]` describes an heterogeneous `Array` that is used like a `Tuple`
+* `[?]` describes an heterogeneous `Array`
+* `{k:v}` describes a homogenous map
+* `{k:?}` describes a map that is heterogeneous in its values
+* `Map ? ?` describes a heterogeneous `Map`
+* `Map k ?` describes a `Map` that is heterogeneous in its values
+* `IO` represents an interaction with the real world

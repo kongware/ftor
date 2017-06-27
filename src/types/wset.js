@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name weak set
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> WeakSet -> WeakSet
-const wset = tag => x => Object.prototype.toString.call(x) === "[object WeakSet]" ? x : throwType(`${tag} expects a weakset (${typeof x} given)`);
+// WeakSet ? -> WeakSet ?|TypeError String [?]
+const wset = x => Object.prototype.toString.call(x) === "[object WeakSet]" ? x : Err(TypeError) ("", "weakset", typeof x);
 
 
 // API

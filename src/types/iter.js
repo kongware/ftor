@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name iterable
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> Iterable -> Iterable
-const iter = tag => x => typeof x === "object" && Symbol.iterator in x ? x : throwType(`${tag} expects an iterable (${typeof x} given)`);
+// Iterable -> Iterable|TypeError String [?]
+const iter = x => typeof x === "object" && Symbol.iterator in x ? x : Err(TypeError) ("", "iterable", typeof x);
 
 
 // API

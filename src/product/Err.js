@@ -12,7 +12,7 @@
  */
 
 
-// (String -> Error) -> (...*) -> Error
+// String a => (a -> Error) -> [?] -> Error a
 Err = cons => (...args) => {
   const e = new cons(args[0]);
   e[Symbol.for("ftor/error")] = args.slice(1);
@@ -23,6 +23,7 @@ Err = cons => (...args) => {
 // SUBTYPES
 
 
+// String a => a -> ArityError a
 class ArityError extends Error {
   constructor(x) {
     super(x);
@@ -31,6 +32,7 @@ class ArityError extends Error {
 }
 
 
+// String a => a -> ReturnTypeError a
 class ReturnTypeError extends Error {
   constructor(x) {
     super(x);
@@ -42,27 +44,39 @@ class ReturnTypeError extends Error {
 // SPECIFIC
 
 
-throw_ = e => {throw e};
+// String a => (a -> Error) -> [?] -> IO a
+const throw_ = cons => (...args) => {
+  const e = new cons(args[0]);
+  e[Symbol.for("ftor/error")] = args.slice(1);
+  throw e;
+};
 
 
+// String a => (a -> Error) -> [?] -> IO a
 Err.throw = throw_
 
 
-Err.throwType = comp_(throw_, Err(TypeError));
+// String a => (a -> TypeError) -> [?] -> IO a
+Err.throwType = throw_(TypeError);
 
 
+// String a => (a -> ReturnTypeError) -> [?] -> IO a
 Err.throwReturnType = throw_(ReturnTypeError);
 
 
+// String a => (a -> ArityError) -> [?] -> IO a
 Err.throwArity = throw_(ArityError);
 
 
+// String a => (a -> RangeError) -> [?] -> IO a
 Err.throwRange = throw_(RangeError);
 
 
+// String a => (a -> ReferenceError) -> [?] -> IO a
 Err.throwReference = throw_(ReferenceError);
 
 
+// Error String -> [?]
 Err.get$ = e => e[Symbol.for("ftor/error")];
 
 

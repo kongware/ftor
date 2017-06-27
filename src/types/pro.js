@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name promise
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> Promise -> Promise
-const pro = tag => x => Object.prototype.toString.call(x) === "[object Promise]" ? x : throwType(`${tag} expects a promise (${typeof x} given)`);
+// Promise a-> Promise a|TypeError String [?]
+const pro = x => Object.prototype.toString.call(x) === "[object Promise]" ? x : Err(TypeError) ("", "promise", typeof x);
 
 
 // API

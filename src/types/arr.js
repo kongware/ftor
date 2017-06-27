@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name array
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> [*] -> [*]
-const arr = tag => x => Array.isArray(x) ? x : throwType(`${tag} expects an [] (${typeof x} given)`);
+// Array -> Array|TypeError String [?]
+const arr = x => Array.isArray(x) ? x : Err(TypeError) ("", "array", typeof x);
 
 
 // API

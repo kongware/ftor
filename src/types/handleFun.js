@@ -2,7 +2,8 @@
 
 
 /**
- * @name intercept function calls
+ * @name handle function
+ * @note handle apply traps for functions
  * @note impure
  * @type action
  * @status stable
@@ -109,45 +110,54 @@
  */
 
 
-// ?
-const interceptF = (tag, f) => (...cs) => {
-  // create a proxy instance
-  const g = new Proxy(f, handleF(tag, cs));
+// (String, [? -> ?]) -> Function
+const handleFun = (name, [c, ...cs]) => ({
+  get: (f, k) => k === "name" ? name : f[k],
 
-  // set name property to avoid anynomous apply traps
-  Object.defineProperty(g, "name", {value: tag});
+  apply: (f, _, args) => {
+    let g, r;
 
-  // enable string coercion for apply traps
-  g.toString = Function.prototype.toString.bind(f);
+    // type check
+    r = c(args)
 
-  return g;
-};
+    // handle type mismatch
+    if (Error.prototype.isPrototypeOf(r)) {
+      switch (r.constructor) {
+        case ArityError: {
+          throw new ArityError(`${name} expects ${Err.get$(r)[0]} argument(s) (${Err.get$(r)[1]} given)`);
+        }
 
+        case TypeError: {
+          throw new TypeError(`${name} expects a(n) ${Err.get$(r)[0]} (${Err.get$(r)[1]} given)`);
+        }
+      }
+    }
 
-// ?
-const handleF = (tag, [c, ...cs]) => ({ apply: (f, _, args) => {
-  let g;
+    // produce the return value
+    if (cs.length === 1) {
+      // return type check
+      r = cs[0](f(...args));
 
-  // validate contract
-  c(args, tag);
+      // handle type mismatch
+      if (Error.prototype.isPrototypeOf(r)) {
+        throw new ReturnTypeError(`${name} must return a ${Err.get$(r)[0]} (${Err.get$(r)[1]} given)`);
+      }
 
-  // produce the return value
-  if (cs.length === 1) return cs[0](tag) (f(...args));
+      return r;
+    }
 
-  // create new proxy
-  g = new Proxy(f(...args), handleF(tag, cs))
+    // create new proxy instance
+    g = new Proxy(f(...args), handleFun(name, cs))
 
-  // set name property to avoid anynomous apply traps
-  Object.defineProperty(g, "name", {value: tag});
+    // enable string coercion for apply traps
+    g.toString = Function.prototype.toString.bind(f);
 
-  // enable string coercion for apply traps
-  g.toString = Function.prototype.toString.bind(f);
-
-  return g;
-}});
+    return g;
+  }
+});
 
 
 // API
 
 
-module.exports = interceptF;
+module.exports = handleFun;

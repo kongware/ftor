@@ -2,7 +2,7 @@
 
 
 /**
- * @name number
+ * @name unsigned integer
  * @note contract
  * @type action
  * @status stable
@@ -15,10 +15,10 @@
 
 
 // Number -> Number|TypeError String [?]
-const num = x => typeof x === "number" ? x : Err(TypeError) ("", "number", typeof x);
+const int = x => typeof x === "number" && x % 1 === 0 && x >= 0 ? x : Err(TypeError) ("", "unsigned integer", typeof x);
 
 
 // API
 
 
-module.exports = num;
+module.exports = uint;

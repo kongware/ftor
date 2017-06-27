@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name boolean
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> Boolean -> Boolean
-const boo = tag => x => typeof x === "boolean" ? x : throwType(`${tag} expects a boolean (${typeof x} given)`);
+// Boolean -> Boolean|TypeError String [?]
+const boo = x => typeof x === "boolean" ? x : Err(TypeError) ("", "boolean", typeof x);
 
 
 // API

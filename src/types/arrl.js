@@ -1,26 +1,21 @@
 "use strict";
 
 
-// dependencies
-
-
-const throwType = require("../function/throwType");
-
-
 /**
  * @name array like
  * @note contract
  * @type action
  * @status stable
+ * @todo replace with sum type
  * @example
 
-  @see interceptF
+  @see handleFun
 
  */
 
 
-// String -> [*] -> [*]
-const arrl = tag => x => x !== null && typeof x === "object" && length in x ? x : throwType(`${tag} expects an []-like (${typeof x} given)`);
+// Object -> Object|TypeError String [?]
+const arrl = x => x !== null && typeof x === "object" && length in x ? x : Err(TypeError) ("", "array like", typeof x);
 
 
 // API
