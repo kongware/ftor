@@ -9,6 +9,8 @@
  * @status stable
  * @example
 
+  deprecated!!!
+  
   const interceptF = (tag, f) => (...cs) => new Proxy(f, handleF(cs, tag));
 
   const handleF = ([c, ...cs], tag) => ({ apply: (f, _, args) => {
@@ -110,10 +112,18 @@
  */
 
 
-// (String, [? -> ?]) -> Function
-const handleFun = (name, [c, ...cs]) => ({
-  get: (f, k) => k === "name" ? name : f[k],
+// (String, String, [? -> ?]) -> Function
+const handleFun = (type, name, [c, ...cs]) => ({
+  // get trap
+  get: (o, k) => {
+    switch (k) {
+      case "type": return type;
+      case "name": return name;
+      default: return o[k]
+    }
+  },
 
+  // apply trap
   apply: (f, _, args) => {
     let g, r;
 
@@ -147,7 +157,7 @@ const handleFun = (name, [c, ...cs]) => ({
     }
 
     // create new proxy instance
-    g = new Proxy(f(...args), handleFun(name, cs))
+    g = new Proxy(f(...args), handleFun(type, name, cs))
 
     // enable string coercion for apply traps
     g.toString = Function.prototype.toString.bind(f);

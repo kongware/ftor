@@ -3,20 +3,19 @@
 
 /**
  * @name type
- * @note proy based runtime type checker
+ * @note proxy based runtime type enhancer
  * @note impure
  * @type action
  * @status stable
  * @example
 
   @see handleFun
-  @see handleCons
 
  */
 
 
-// {String: Function} -> (String, Function) -> [? -> ?] -> Function
-const type = handler => (name, f) => (...cs) => {
+// {String: Function} -> (String, String, Function) -> [? -> ?] -> Function
+const type = handler => (type, name, f) => (...cs) => {
   // create new proxy instance
   const g = new Proxy(f, handler(name, cs));
 
