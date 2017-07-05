@@ -64,28 +64,33 @@ All of these guidelines have the same purpose, which is somehow the fetish of fu
 
 The following conventions for name bindings are used:
 
-* `v`, `w`, `x`, `y`, `z` represent arbitrary types
-* `vs`, `ws`, `xs`, `ys`, `zs` represent collection types
-* `iv`, `iw`, `ix`, `iy`, `iz` represent either iterables or iterators
-* `o`, `p`, `q`, `r`, `s` represent `Object` types
-* `f`, `g`, `h`, `i`, `j` represent function types
-* `ft`, `gt`, `ht` represent Kleisli arrows, i.e. functions that return functors/applicatives/monads etc.
-* `tv`, `tw`, `tx`, `ty`, `tz` represent a value wrapped in a sum type
-* `t`, `u`, `v` `w` represent product types except `Array`s and `Object`s
-* `name_` or `_name` indicates a slightly modified variant of an existing function `name`
+* `name_` or `_name` indicates eihter a slightly modified variant of an existing function `name` or just avoids name conflicts with reserved keywords or native functions.
 * `nameBy` or `nameWith` indicates a more general version of an existing function `name`
+
+Otherwise I tend to use the first letter of a type for name bindings, e.g. `f` for functions. When I need to name several functions, I fall back to alphabetically following letters, e.g. `g`, `h` etc. for functions.
+
+For more specific functions I also sometimes use descriptive names. Since this is a generic library it doesn't happen often though.
 
 ## Type signature extension
 
 The following type signature extension is neccesary given the fact that Javascript is dynamically typed:
 
-* `(a, b) -> a` describes a multi-argument function (`Tuple`-like)
+* `(a, b) -> a` represents either a multi-argument function (`Tuple`-like) or an actual `Tuple`
 * `? -> ?` describes an unary function with unknown types
 * `Function` describes a function with unknown types and arity
 * `[a, b]` describes an heterogeneous `Array` that is used like a `Tuple`
 * `[?]` describes an heterogeneous `Array`
-* `{k:v}` describes a homogenous map
-* `{k:?}` describes a map that is heterogeneous in its values
-* `Map ? ?` describes a heterogeneous `Map`
-* `Map k ?` describes a `Map` that is heterogeneous in its values
-* `IO` represents an interaction with the real world
+* `Object` describes a heterogeneous dictionary with `String`s as keys
+* `{a}` describes a homogenous dictionary with `String`s as keys
+* `Map` describes a heterogeneous dictionary with keys of any type
+* `{k:a}` describes a homogenous dictionary with keys of any type
+* `{a, b}` describes a record
+* `IO` represents an interaction with the real world (side effect)
+
+# Runtime type system
+
+Functional programming without strict types isn't reasonable. Hence we must pretend Javascript would have a strict type system. But how would such a type system affect our programming? How should we develop a better feeling for types when there are none?
+
+For this reason ftor ships with a pluggable runtime type system, that is to say you can switch it on and off whenever you want. It covers curried, multi-argument, variadic and polymorphic functions, all built-in types, polymorphic types, tuples, records, homogenous collections and dictionaries and above all, sum types!
+
+See more within a few days...
