@@ -4,8 +4,8 @@
 /**
  * @name Identity
  * @note combined namespace/constructor
- * @type sum type
- * @revision 1
+ * @type prototype
+ * @rev 0
  */
 
 

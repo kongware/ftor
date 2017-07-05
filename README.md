@@ -69,7 +69,7 @@ The following conventions for name bindings are used:
 
 Otherwise I tend to use the first letter of a type for name bindings, e.g. `f` for functions. When I need to name several functions, I fall back to alphabetically following letters, e.g. `g`, `h` etc. for functions.
 
-For more specific functions I also sometimes use descriptive names. Since this is a generic library it doesn't happen often though.
+For more specific functions I also use descriptive names sometimes. Since ftor is a generic library it doesn't happen often, though.
 
 ## Type signature extension
 
