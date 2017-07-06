@@ -83,7 +83,7 @@ The following type signature extension is neccesary given the fact that Javascri
 * `(?)` represents a tuple of unknown length
 * `[a, b]` represents an heterogeneous `Array` that is used like a tuple
 * `[?]` represents an heterogeneous `Array`
-* `Object` represents a heterogeneous dictionary with `String`s as keys
+* `{?}` represents a heterogeneous dictionary with `String`s as keys
 * `{a}` represents a homogenous dictionary with `String`s as keys
 * `Map` represents a heterogeneous dictionary with keys of any type
 * `{k:a}` represents a homogenous dictionary with keys of any type
