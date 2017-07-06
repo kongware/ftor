@@ -66,6 +66,7 @@ The following conventions for name bindings are used:
 
 * `name_` or `_name` indicates eihter a slightly modified variant of an existing function `name` or just avoids name conflicts with reserved keywords or native functions.
 * `nameBy` or `nameWith` indicates a more general version of an existing function `name`
+* `$name` regularly represents a `Symbol`
 
 Otherwise I tend to use the first letter of a type for name bindings, e.g. `f` for functions. When I need to name several functions, I fall back to alphabetically following letters, e.g. `g`, `h` etc. for functions.
 
@@ -75,17 +76,24 @@ For more specific functions I also use descriptive names sometimes. Since ftor i
 
 The following type signature extension is neccesary given the fact that Javascript is dynamically typed:
 
-* `(a, b) -> a` represents either a multi-argument function (`Tuple`-like) or an actual `Tuple`
-* `? -> ?` describes an unary function with unknown types
-* `Function` describes a function with unknown types and arity
-* `[a, b]` describes an heterogeneous `Array` that is used like a `Tuple`
-* `[?]` describes an heterogeneous `Array`
-* `Object` describes a heterogeneous dictionary with `String`s as keys
-* `{a}` describes a homogenous dictionary with `String`s as keys
-* `Map` describes a heterogeneous dictionary with keys of any type
-* `{k:a}` describes a homogenous dictionary with keys of any type
-* `{a, b}` describes a record
+* `(a, b) -> a` represents either a multi-argument function (tuple-like) or an real tuple
+* `? -> ?` represents an unary function with unknown types
+* `Function` represents a function with unknown types and arity
+* `(...?) -> ?` represents a function that takes any number of arguments of various types (rest syntax)
+* `(?)` represents a tuple of unknown length
+* `[a, b]` represents an heterogeneous `Array` that is used like a tuple
+* `[?]` represents an heterogeneous `Array`
+* `Object` represents a heterogeneous dictionary with `String`s as keys
+* `{a}` represents a homogenous dictionary with `String`s as keys
+* `Map` represents a heterogeneous dictionary with keys of any type
+* `{k:a}` represents a homogenous dictionary with keys of any type
+* `{a, b}` represents a record
+* `a -> a|b` represents a function that either returns a value of type `a` or `b`
 * `IO` represents an interaction with the real world (side effect)
+
+## ES2015 modules
+
+I'll switch to ES2015 modules as soon as there is native support by browser vendors.
 
 # Runtime type system
 

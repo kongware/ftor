@@ -4,7 +4,7 @@
 /**
  * @name Identity
  * @note combined namespace/constructor
- * @type prototype
+ * @type prototype/polymorphic function
  * @rev 0
  */
 
