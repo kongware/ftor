@@ -74,21 +74,37 @@ For more specific functions I also use descriptive names sometimes. Since ftor i
 
 ## Type signature extension
 
-The following type signature extension is neccesary given the fact that Javascript is dynamically typed:
+The following type signature extension is neccesary given the fact that Javascript is dynamically typed. Please note that `?` represents the lack of a type.
 
-* `(a, b) -> a` represents either a multi-argument function (tuple-like) or an real tuple
-* `? -> ?` represents an unary function with unknown types
-* `Function` represents a function with unknown types and arity
-* `(...?) -> ?` represents a function that takes any number of arguments of various types (rest syntax)
-* `(?)` represents a tuple of unknown length
-* `[a, b]` represents an heterogeneous `Array` that is used like a tuple
-* `[?]` represents an heterogeneous `Array`
-* `{?}` represents a heterogeneous dictionary with `String`s as keys
-* `{a}` represents a homogenous dictionary with `String`s as keys
-* `Map` represents a heterogeneous dictionary with keys of any type
-* `{k:a}` represents a homogenous dictionary with keys of any type
-* `{a, b}` represents a record
-* `a -> a|b` represents a function that either returns a value of type `a` or `b`
+Functions:
+
+* `Function` represents an untyped function with unknown arity
+* `? -> ?` represents an untyped unary function
+* `? -> ? -> ?` represents an untyped binary function
+
+Multi-argument functions and tuples:
+
+* `(a, b) -> a` represents either a multi-argument function or a tuple (pair) of type `a` and `b`
+* `(...a) -> a` represents a variadic function (rest syntax)
+* `(...?) -> ?` represents an untyped variadic function (rest syntax)
+
+Arrays and collections:
+
+* `[?]` represents an untyped `Array` collection
+* `[a, b]` represents an heterogeneous `Array` that acts like a pair tuple
+* `[a, b, c]` represents an heterogeneous `Array` that acts like a triple tuple
+
+Objects, dictionaries and records:
+
+* `{?}` represents an untyped `Object` with key/value-pairs of type `String`/untyped
+* `{x: a}` represents a heterogeneous `Object` with at least a key/value-pair of type `String`/`a`
+* `{x: a, y: b}` represents a heterogeneous `Object` with at least two key/value-pairs of type `String`/`a` and `String`/`b`
+* `{a}` represents a homogenous dictionary with key/value-pairs of type `String`/`a`
+* `{k a}` represents a homogenous dictionary with key/value-pairs of type `k`/`a`
+* `{a, b}` represents a record with two fields and keys of type `String`
+
+Input/Output and side effects:
+
 * `IO` represents an interaction with the real world (side effect)
 
 ## ES2015 modules

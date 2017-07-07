@@ -14,12 +14,14 @@
 ******************************************************************************/
 
 // symbol prefix (rev 0)
+// internal
 // String
 
 const SYM_PREFIX = "ftor/";
 
 
 // type check (rev 0)
+// internal
 // Boolean
 
 const TC = true;
@@ -37,74 +39,99 @@ const TC = true;
 ******************************************************************************/
 
 
+// --[ CONTRACTS ]-------------------------------------------------------------
+
+
+// unary (rev 0)
+// (? -> ?) -> [a] -> {x: a, status: String -> Error}
+
+const unary = c => args => args.length === 1
+ ? c(args[0])
+ : {x: args[0], status: ArityError, nominal: 1, real: args.length};
+
+
+// length of (rev 0)
+// Number -> [a] -> Object
+
+const lenOf = n => xs => xs.length === n
+ ? {x: xs, status: NoError}
+ : {x: xs, status: TypeError, nominal: n, real: xs.length};
+
+
+// number (rev0)
+// a -> {x: a, status: String -> Error}
+
+const num = x => typeof x === "number"
+ ? {x: x, status: NoError}
+ : {x: x, status: TypeError, nominal: "Number", real: introspect(x).join("/")};
+
+
+// to string
+// () -> String
+
+num.toString = () => "Number";
+
+
 // --[ PROXY ]-----------------------------------------------------------------
 
 
 // virtualize (rev 0)
-// Object -> (String, Function) -> (...? -> ?) -> Function
+// (String, Function, [() -> ? -> ?]) -> Function
 
-const virtualize = handler => (name, f) => (...cs) => {
-  // create new proxy instance
-  const g = new Proxy(f, handler(name, cs));
+const virt = (name, f, ...cs) => {
+  if (TC) {
+    const g = new Proxy(f, handleType(name, cs.map(f => f())));
+    g.toString = Function.prototype.toString.bind(f);
+    return g;
+  }
 
-  // enable string coercion for apply traps
-  g.toString = Function.prototype.toString.bind(f);
-
-  return g;
+  return f;
 };
 
 
-// handle (rev 0)
+// handle type (rev 0)
+// internal
 // handle apply traps for virtualized functions
 // (String, [? -> ?]) -> Function
 
 const handleType = (name, [c, ...cs]) => ({
-  // apply trap
   apply: (f, _, args) => {
-    let g, r;
+    const r = c(args);
 
-    // type check
-    r = c(args)
-
-    // handle type mismatch
-    if (Error.prototype.isPrototypeOf(r)) {
-      const [x, y] = get$("errArgs") (r);
-
-      switch (r.constructor) {
-        case ArityError: {
-          throw new ArityError(`${name} expects ${x} argument(s) (${y} received)`);
-        }
-
-        case TypeError: {
-          throw new TypeError(`${name} expects a(n) ${x} (${y} received)`);
-        }
+    switch(r.status) {
+      case ArityError: {
+        const {nominal, real} = r;
+        throw new ArityError(`${name} expects ${nominal} argument(s) (${real} received)`);
       }
+
+      case TypeError: {
+        const {nominal, real} = r;
+        throw new TypeError(`${name} expects a(n) ${nominal} (${real} received)`);
+      }
+
+      case NoError: break;
+
+      default: throw new TypeError(`Error constructor expected (${introspect(r.constructor).join("/")} received)`);
     }
 
-    // produce the return value
     if (cs.length === 1) {
-      // return type check
-      r = cs[0] (f(...args));
+      const r = cs[0] (f(...args));
 
-      // handle type mismatch
-      if (Error.prototype.isPrototypeOf(r)) {
-        const [x, y] = getErr$(r);
-        throw new ReturnTypeError(`${name} must return a(n) ${x} (${y} returned)`);
+      switch (r.status) {
+        case ReturnTypeError: {
+          const {nominal, real} = r;
+          throw new ReturnTypeError(`${name} must return a(n) ${nominal} (${real} returned)`);
+        }
       }
 
-      return r;
+      return r.x;
     }
 
-    // create new proxy instance
-    g = new Proxy(f(...args), handle(type, name, cs))
-
-    // enable string coercion for apply traps
+    const g = new Proxy(f(...args), handle(type, name, cs))
     g.toString = Function.prototype.toString.bind(f);
-
     return g;
   },
 
-  // get trap
   get: (o, k) => k === "name" ? name : o[k]
 });
 
@@ -140,7 +167,7 @@ const introspect = x => {
     case "string": return ["String"];
     case "boolean": return ["Boolean"];
     case "symbol": return ["Symbol"];
-    case "function": return ["Function"];
+    case "function": return x.name !== "" ? ["Function", x.name] : ["Function"];
 
     case "object": {
       if (x === null) return ["Null"];
@@ -152,27 +179,6 @@ const introspect = x => {
     }
   }
 };
-
-
-// --[ CONTRACTS ]-------------------------------------------------------------
-
-
-// length of (rev 0)
-// Number -> [a] -> [a]|TypeError (String [?])
-
-const lenOf = n => xs => xs.length === n ? xs : Err(TypeError) (introspect(xs));
-
-
-// number (rev0)
-// Number -> Number|TypeError (String [?])
-
-const num = x => typeof x === "number" ? x : Err(TypeError) (introspect(x));
-
-
-// to string (rev 0)
-// () -> String
-
-num.toString = () => "Number";
 
 
 /******************************************************************************
@@ -191,16 +197,16 @@ num.toString = () => "Number";
 
 
 // Error (rev 0)
-// (String -> Error) -> (...?) -> Error (String [?])
+// (String -> Error) -> Object -> Error
 
-const Err = cons => (...args) => {
+const Err = cons => o => {
   const e = new cons();
-  e[Symbol.for("ftor/errArgs")] = args;
+  e[Symbol.for(SYM_PREFIX + "errArgs")] = o;
   return e;
 };
 
 
-// --[ SUBCLASS CONSTRUCTOR ]--------------------------------------------------
+// --[ SUBCLASS CONSTRUCTORS ]-------------------------------------------------
 
 
 // Arity Error (rev 0)
@@ -210,6 +216,17 @@ class ArityError extends Error {
   constructor(x) {
     super(x);
     Error.captureStackTrace(this, ArityError);
+  }
+};
+
+
+// No Error (rev 0)
+// String -> NoError
+
+class NoError extends Error {
+  constructor(x) {
+    super(x);
+    Error.captureStackTrace(this, NoError);
   }
 };
 
@@ -229,19 +246,9 @@ class ReturnTypeError extends Error {
 
 
 // throw (rev 0)
-// String -> Error -> IO
+// (String -> Error) -> String -> IO
 
-const _throw = msg => e => {e.message = msg; throw e};
-
-
-// throw if not (rev 0)
-// todo: replace with sum type
-// a -> (a -> String) -> a|IO
-
-const throwIfNot = x => f => {
-  if (Error.prototype.isPrototypeOf(x)) {x.message = f(x); throw x};
-  return x;
-};
+const _throw = cons => s => {throw new cons(s)};
 
 
 /******************************************************************************
@@ -273,22 +280,9 @@ const Tuple = (...cs) => {
   };
 
   const type = "(" + cs.reduce((acc, c) => `${acc}${c},`, "").slice(0, -1) + ")";
-  Tuple.ofArr = xs => Tuple(...xs);
-  Tuple.ofObj = k => o => Tuple(k, o[k]);
+  Tuple.of = iter => Tuple(...iter);
   return Tuple.toString = () => type, Tuple;
 };
-
-
-// of Array
-// (...? -> ?) -> [?] -> (String, ?)
-
-Tuple.ofArr = (...cs) => xs => Tuple(...cs) (...xs);
-
-
-// of Object
-// (...? -> ?) -> {?} -> (String, ?)
-
-Tuple.ofObj = (...cs) => k => o => Tuple(...cs) (k, o[k]);
 
 
 /******************************************************************************
@@ -299,7 +293,7 @@ Tuple.ofObj = (...cs) => k => o => Tuple(...cs) (k, o[k]);
 
 
 // get symbol (rev 0)
-// Error (String [?]) -> [?]
+// String -> Object -> [?]
 
 const get$ = s => o => o[Symbol.for(SYM_PREFIX + s)];
 
@@ -312,14 +306,14 @@ module.exports = {
   Err,
   get$,
   getType,
-  handleType,
   instanceOf,
   introspect,
   lenOf,
+  NoError,
   num,
   ReturnTypeError,
   _throw,
   throwIfNot,
   Tuple,
-  virtualize
+  virt
 };
