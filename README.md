@@ -64,7 +64,8 @@ All of these guidelines have the same purpose, which is somehow the fetish of fu
 
 The following conventions for name bindings are used:
 
-* `name_` or `_name` indicates eihter a slightly modified variant of an existing function `name` or just avoids name conflicts with reserved keywords or native functions.
+* `name_` indicates a slightly modified variant of an existing function `name`
+* `_name` just avoids name conflicts with reserved keywords or native functions
 * `nameBy` or `nameWith` indicates a more general version of an existing function `name`
 * `$name` regularly represents a `Symbol`
 
@@ -90,13 +91,13 @@ Multi-argument functions and tuples:
 
 Arrays and collections:
 
-* `[?]` represents an untyped `Array` collection
+* `Array` represents an untyped `Array` collection
 * `[a, b]` represents an heterogeneous `Array` that acts like a pair tuple
 * `[a, b, c]` represents an heterogeneous `Array` that acts like a triple tuple
 
 Objects, dictionaries and records:
 
-* `{?}` represents an untyped `Object` with key/value-pairs of type `String`/untyped
+* `Object` represents an untyped `Object` with key/value-pairs of type `String`/untyped
 * `{x: a}` represents a heterogeneous `Object` with at least a key/value-pair of type `String`/`a`
 * `{x: a, y: b}` represents a heterogeneous `Object` with at least two key/value-pairs of type `String`/`a` and `String`/`b`
 * `{a}` represents a homogenous dictionary with key/value-pairs of type `String`/`a`
