@@ -24,7 +24,7 @@ const SYM_PREFIX = "ftor/";
 // internal
 // Boolean
 
-const TC = true;
+const TYPE_CHECK = true;
 
 
 /******************************************************************************
@@ -39,11 +39,10 @@ const TC = true;
 ******************************************************************************/
 
 
-// --[ CONTRACTS ]-------------------------------------------------------------
+// --[ ARITY CONTRACTS ]-------------------------------------------------------
 
 
 // arity (rev 0)
-// internal
 // Number -> (...(? -> ?)) -> Array -> {status: String -> Error}
 
 const arity = n => (...cs) => args => {
@@ -89,12 +88,58 @@ const binary = arity(2);
 const ternary = arity(3);
 
 
+// --[ MONOMORPHIC CONTRACTS ]-------------------------------------------------
+
+
+// array (rev0)
+// a -> {status: String -> Error}
+
+const arr = xs => Array.isArray(x)
+ ? {status: NoError}
+ : {status: TypeError, nominal: "Array", real: introspect(xs).join("/")};
+
+arr.toString = () => "Array";
+
+
+// boolean (rev0)
+// a -> {status: String -> Error}
+
+const boo = b => typeof b === "boolean"
+ ? {status: NoError}
+ : {status: TypeError, nominal: "Boolean", real: introspect(b).join("/")};
+
+boo.toString = () => "Boolean";
+
+
+// number (rev0)
+// a -> {status: String -> Error}
+
+const num = n => typeof n === "number"
+ ? {status: NoError}
+ : {status: TypeError, nominal: "Number", real: introspect(n).join("/")};
+
+num.toString = () => "Number";
+
+
+// string (rev0)
+// a -> {status: String -> Error}
+
+const str = s => typeof s === "string"
+ ? {status: NoError}
+ : {status: TypeError, nominal: "String", real: introspect(s).join("/")};
+
+str.toString = () => "String";
+
+
+// --[ POLYMORPHIC CONTRACTS ]-------------------------------------------------
+
+
 // compare by (rev 0)
 // String -> (a -> Boolean) -> Array -> {status: String -> Error}
 
 const compareBy = s => p => xs => p(xs.length)
- ? {x: xs, status: NoError}
- : {x: xs, status: TypeError, nominal: s, real: xs.length};
+ ? {status: NoError}
+ : {status: TypeError, nominal: s, real: xs.length};
 
 
 // length of (rev 0)
@@ -103,30 +148,22 @@ const compareBy = s => p => xs => p(xs.length)
 const lenOf = n => compareBy(n) (eq);
 
 
-// number (rev0)
-// a -> {x: a, status: String -> Error}
+// array of (rev 0)
+// (...(? -> ?)) -> a -> {status: String -> Error}
 
-const num = x => typeof x === "number"
- ? {x: x, status: NoError}
- : {x: x, status: TypeError, nominal: "Number", real: introspect(x).join("/")};
+const arrOf = (...cs) => xs => {
+  if (cs.length !== 1) return {status: ContractError, nominal: 1, real: cs.length};
+  if (!Array.isArray(xs)) return {status: TypeError, nominal: "Array", real: introspect(xs).join("/")};
 
-num.toString = () => "Number";
+  const aux = i => {
+    const r = cs[0] (xs[i]);
+    if (r.status === TypeError) return r;
+    if (i === xs.length - 1) return {status: NoError};
+    return aux(i + 1);
+  };
 
-
-// string (rev0)
-// a -> {x: a, status: String -> Error}
-
-const str = x => typeof x === "string"
- ? {x: x, status: NoError}
- : {x: x, status: TypeError, nominal: "String", real: introspect(x).join("/")};
-
-
-// boolean (rev0)
-// a -> {x: a, status: String -> Error}
-
-const boo = x => typeof x === "boolean"
- ? {x: x, status: NoError}
- : {x: x, status: TypeError, nominal: "Boolean", real: introspect(x).join("/")};
+  return aux(0);
+};
 
 
 // --[ PROXY ]-----------------------------------------------------------------
@@ -136,7 +173,7 @@ const boo = x => typeof x === "boolean"
 // (String, Function, [? -> ?]) -> Function
 
 const virt = (name, f, ...cs) => {
-  if (TC) {
+  if (TYPE_CHECK) {
     const g = new Proxy(f, handleType(name, cs));
     g.toString = Function.prototype.toString.bind(f);
     return g;
@@ -172,7 +209,8 @@ const handleType = (name, [c, ...cs]) => ({
     }
 
     if (cs.length === 1) {
-      const r = cs[0] (f(...args));
+      const x = f(...args),
+       r = cs[0] (x);
 
       switch (r.status) {
         case ReturnTypeError: {
@@ -181,7 +219,7 @@ const handleType = (name, [c, ...cs]) => ({
         }
       }
 
-      return r.x;
+      return x;
     }
 
     const g = new Proxy(f(...args), handle(type, name, cs))
@@ -239,6 +277,16 @@ const introspect = x => {
     }
   }
 };
+
+
+// --[ MISC ]------------------------------------------------------------------
+
+
+// contract
+// defer contract composition
+// (((a -> b) -> [c] -> d), (a -> b)) -> [c] -> d
+
+const con = (f, g) => xs => f(g) (xs);
 
 
 /******************************************************************************
@@ -358,7 +406,55 @@ const _throw = cons => s => {throw new cons(s)};
 
 /******************************************************************************
 *******************************************************************************
-*********************************[ 10. MISC ]**********************************
+*******************************[ 5. SUM TYPES ]********************************
+*******************************************************************************
+******************************************************************************/
+
+
+/******************************************************************************
+*******************************************************************************
+**************************[ 6. ABSTRACT DATA TYPES ]***************************
+*******************************************************************************
+******************************************************************************/
+
+
+/******************************************************************************
+*******************************************************************************
+*******************************[ 7. PRIMITIVES ]*******************************
+*******************************************************************************
+******************************************************************************/
+
+
+// equal
+// a -> a -> Boolean
+
+const eq = x => y => Object.is(x, y);
+
+
+/******************************************************************************
+*******************************************************************************
+******************************[ 8. COMBINATORS ]*******************************
+*******************************************************************************
+******************************************************************************/
+
+
+/******************************************************************************
+*******************************************************************************
+*********************************[ 9. ARROWS ]*********************************
+*******************************************************************************
+******************************************************************************/
+
+
+/******************************************************************************
+*******************************************************************************
+*******************************[ 10. DEBUGGING ]*******************************
+*******************************************************************************
+******************************************************************************/
+
+
+/******************************************************************************
+*******************************************************************************
+*********************************[ 99. MISC ]**********************************
 *******************************************************************************
 ******************************************************************************/
 
@@ -373,10 +469,15 @@ const get$ = s => o => o[Symbol.for(SYM_PREFIX + s)];
 
 
 module.exports = {
+  arity,
   ArityError,
+  arr,
+  arrOf,
   binary,
   boo,
+  compareBy,
   ContractError,
+  eq,
   Err,
   get$,
   getType,
