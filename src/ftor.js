@@ -46,7 +46,6 @@ const TYPE_CHECK = true;
 // Number -> (...(? -> ?)) -> Array -> {status: String -> Error}
 
 const arity = n => (...cs) => args => {
-  if (cs.length !== n) return {status: ContractError, nominal: n, real: cs.length};
   if (args.length !== n) return {status: ArityError, nominal: n, real: args.length};
 
   const aux = ([c, ...cs], n) => {
@@ -64,8 +63,7 @@ const arity = n => (...cs) => args => {
 // (...(? -> ?)) -> [] -> {status: String -> Error}
 
 const nullary = (...cs) => args => {
-  if (cs.length !== 1) return {status: ContractError, nominal: 1, real: cs.length};
-  if (args.length !== 0) return {status: ArityError, nominal: 0, real: args.length};
+  if (args.length !== 0) return {status: TypeError, nominal: 0, real: args.length};
   return {status: NoError};
 };
 
@@ -86,6 +84,20 @@ const binary = arity(2);
 // (...(? -> ?)) -> [a, b, c] -> {status: String -> Error}
 
 const ternary = arity(3);
+
+
+// compare by (rev 0)
+// String -> (a -> Boolean) -> Array -> {status: String -> Error}
+
+const compareBy = s => p => xs => p(xs.length)
+ ? {status: NoError}
+ : {status: TypeError, nominal: s, real: xs.length};
+
+
+// length of (rev 0)
+// Number -> [a] -> Object
+
+const lenOf = n => compareBy(n) (eq);
 
 
 // --[ MONOMORPHIC CONTRACTS ]-------------------------------------------------
@@ -134,35 +146,14 @@ str.toString = () => "String";
 // --[ POLYMORPHIC CONTRACTS ]-------------------------------------------------
 
 
-// compare by (rev 0)
-// String -> (a -> Boolean) -> Array -> {status: String -> Error}
-
-const compareBy = s => p => xs => p(xs.length)
- ? {status: NoError}
- : {status: TypeError, nominal: s, real: xs.length};
-
-
-// length of (rev 0)
-// Number -> [a] -> Object
-
-const lenOf = n => compareBy(n) (eq);
-
-
 // array of (rev 0)
 // (...(? -> ?)) -> a -> {status: String -> Error}
 
-const arrOf = (...cs) => xs => {
-  if (cs.length !== 1) return {status: ContractError, nominal: 1, real: cs.length};
-  if (!Array.isArray(xs)) return {status: TypeError, nominal: "Array", real: introspect(xs).join("/")};
-
-  const aux = i => {
-    const r = cs[0] (xs[i]);
-    if (r.status === TypeError) return r;
-    if (i === xs.length - 1) return {status: NoError};
-    return aux(i + 1);
-  };
-
-  return aux(0);
+const arrOf = c => xs => {
+  if (!Array.isArray(xs)) return {status: TypeError, nominal: `[${c}]`, real: introspect(xs).join("/")};
+  if (!("type" in xs)) return {status: TypeError, nominal: `[${c}]`, real: "heterogeneous Array"};
+  if (xs.type !== `[${c}]`) return {status: TypeError, nominal: `[${c}]`, real: xs.type};
+  return {status: NoError};
 };
 
 
@@ -200,12 +191,12 @@ const handleType = (name, [c, ...cs]) => ({
 
       case TypeError: {
         const {nominal, real} = r;
-        throw new TypeError(`${name} expects a(n) ${nominal} (${real} received)`);
+        throw new TypeError(`${name} expects value of type ${nominal} (${real} received)`);
       }
 
       case NoError: break;
 
-      default: throw new TypeError(`Error constructor expected (${introspect(r.constructor).join("/")} received)`);
+      default: throw new TypeSysError(`Error constructor expected (${introspect(r.constructor).join("/")} received)`);
     }
 
     if (cs.length === 1) {
@@ -328,17 +319,6 @@ class ArityError extends Error {
 };
 
 
-// Contract Error (rev 0)
-// String -> ContractError
-
-class ContractError extends Error {
-  constructor(x) {
-    super(x);
-    Error.captureStackTrace(this, TypeSysError);
-  }
-};
-
-
 // No Error (rev 0)
 // String -> NoError
 
@@ -357,6 +337,17 @@ class ReturnTypeError extends Error {
   constructor(x) {
     super(x);
     Error.captureStackTrace(this, ReturnTypeError);
+  }
+};
+
+
+// Type System Error (rev 0)
+// String -> TypeSysError
+
+class TypeSysError extends Error {
+  constructor(x) {
+    super(x);
+    Error.captureStackTrace(this, TypeSysError);
   }
 };
 
@@ -425,7 +416,7 @@ const _throw = cons => s => {throw new cons(s)};
 ******************************************************************************/
 
 
-// equal
+// equal (rev 0)
 // a -> a -> Boolean
 
 const eq = x => y => Object.is(x, y);
@@ -476,7 +467,6 @@ module.exports = {
   binary,
   boo,
   compareBy,
-  ContractError,
   eq,
   Err,
   get$,
@@ -493,6 +483,7 @@ module.exports = {
   ternary,
   throwIfNot,
   /*Tuple,*/
+  TypeSysError,
   unary,
   virt
 };
