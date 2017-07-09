@@ -13,6 +13,10 @@
 *******************************************************************************
 ******************************************************************************/
 
+
+// --[ GENERAL ]---------------------------------------------------------------
+
+
 // symbol prefix (rev 0)
 // internal
 // String
@@ -25,6 +29,12 @@ const SYM_PREFIX = "ftor/";
 // Boolean
 
 const TYPE_CHECK = true;
+
+
+// --[ SYMBOLS ]---------------------------------------------------------------
+
+
+const $type = Symbol.for(SYM_PREFIX + "type");
 
 
 /******************************************************************************
@@ -46,11 +56,18 @@ const TYPE_CHECK = true;
 // Number -> (...(? -> ?)) -> Array -> {status: String -> Error}
 
 const arity = n => (...cs) => args => {
-  if (!isNum(n)) throw new TypeSysError(`arity expects value of type Number at 1 (${introspect(n).join("/")} received)`);
-  if (cs.length !== n) throw new TypeSysError(`arity expects ${n} argument(s) (${cs.length} received)`);
+  if (!isNum(n)) throw new TypeSysError(
+    `arity expects value of type Number at 1 (${introspect(n).join("/")} received)`
+  );
+  
+  if (cs.length !== n) throw new TypeSysError(
+    `arity expects ${n} argument(s) (${cs.length} received)`
+  );
   
   cs.forEach(f => {
-    if (!isFun(f)) throw new TypeSysError(`arity expects Array of type ? -> ? at 2 (${introspect(f).join("/")} received)`);
+    if (!isFun(f)) throw new TypeSysError(
+      `arity expects Array of type ? -> ? at 2 (${introspect(f).join("/")} received)`
+    );
   });
 
   if (args.length !== n) return {status: ArityError, nominal: n, real: args.length};
@@ -99,7 +116,7 @@ const ternary = arity(3);
 // array (rev0)
 // a -> {status: String -> Error}
 
-const arr = xs => Array.isArray(x)
+const arr = xs => isArr(xs)
  ? {status: NoError}
  : {status: TypeError, nominal: "Array", real: introspect(xs).join("/")};
 
@@ -142,13 +159,23 @@ str.toString = () => "String";
 // array of (rev 0)
 // (...(? -> ?)) -> a -> {status: String -> Error}
 
-const arrOf = c => xs => {
-  if (!isFun(c)) throw new TypeSysError(`arrOf expects value of type ? -> ? at 1 (${introspect(n).join("/")} received)`);
-  if (!Array.isArray(xs)) return {status: TypeError, nominal: `[${c}]`, real: introspect(xs).join("/")};
-  if (!has("type") (xs)) return {status: TypeError, nominal: `[${c}]`, real: "heterogeneous Array"};
-  if (xs.type !== `[${c}]`) return {status: TypeError, nominal: `[${c}]`, real: xs.type};
-  return {status: NoError};
+const arrOf = c => {
+  if (!isFun(c)) throw new TypeSysError(
+    `arrOf expects value of type ? -> ? at 1 (${introspect(n).join("/")} received)`
+  );
+
+  const arrOf = xs => {
+    if (!isArr(xs)) return {status: TypeError, nominal: type, real: introspect(xs).join("/")};
+    if (!has($type) (xs)) return {status: TypeError, nominal: type, real: "heterogeneous Array"};
+    if (xs[$type] !== type) return {status: TypeError, nominal: type, real: xs[$type]};
+    return {status: NoError};
+  };
+
+  const type = `[${c}]`;
+  return arrOf.toString = () => type, arrOf;
 };
+
+arrOf.toString = () => "[a]";
 
 
 // compare by (rev 0)
@@ -173,11 +200,18 @@ const lenOf = n => compareBy(n) (eq);
 
 const virt = (name, f, ...cs) => {
   if (TYPE_CHECK) {
-    if (!isStr(name)) throw new TypeSysError(`virt expects value of type String at 1 (${introspect(name).join("/")} received)`);
-    if (!isFun(f)) throw new TypeSysError(`virt expects value of type Function at 2 (${introspect(f).join("/")} received)`);
+    if (!isStr(name)) throw new TypeSysError(
+      `virt expects value of type String at 1 (${introspect(name).join("/")} received)`
+    );
+
+    if (!isFun(f)) throw new TypeSysError(
+      `virt expects value of type Function at 2 (${introspect(f).join("/")} received)`
+    );
 
     cs.forEach(f => {
-      if (!isFun(f)) throw new TypeSysError(`virt expects Array of type ? -> ? at 3 (${introspect(f).join("/")} received)`);
+      if (!isFun(f)) throw new TypeSysError(
+        `virt expects Array of type ? -> ? at 3 (${introspect(f).join("/")} received)`
+      );
     });
 
     const g = new Proxy(f, handleType(name, cs));
@@ -197,8 +231,9 @@ const virt = (name, f, ...cs) => {
 const handleType = (name, [c, ...cs]) => ({
   apply: (f, _, args) => {
     const r = c(args);
-    if (!isObj(r)) throw new TypeSysError();
-    if (!has("status") (r)) throw new TypeSysError();
+    if (!isObj(r) || !has("status") (r) || !isFun(r.status)) throw new TypeSysError(
+      `${c.name} must return value of type {status: String -> Error} (${introspect(r).join("/")} returned)`
+    );
 
     switch(r.status) {
       case ArityError: {
@@ -220,10 +255,14 @@ const handleType = (name, [c, ...cs]) => ({
       const x = f(...args),
        r = cs[0] (x);
 
+      if (!isObj(r) || !has("status") (r) || !isFun(r.status)) throw new TypeSysError(
+        `${c.name} must return value of type {status: String -> Error} (${introspect(r).join("/")} returned)`
+      );
+
       switch (r.status) {
         case ReturnTypeError: {
           const {nominal, real} = r;
-          throw new ReturnTypeError(`${name} must return a(n) ${nominal} (${real} returned)`);
+          throw new ReturnTypeError(`${name} must return value of type ${nominal} (${real} returned)`);
         }
       }
 
@@ -457,21 +496,28 @@ const has = k => o => k in o;
 ******************************************************************************/
 
 
+// Array (rev 0)
+// (? -> ?) -> [a] -> [a]
+
 const Arr = c => {
   const Arr = xs => {
-    xs.forEach(x => {
-      Err.throwIfNot(cs[0] (x), x => `${type} expects ${cs[0]} (${Err.get$(x).join("/")} received)`);
+    xs.forEach((x, i) => {
+      const r = c(x);
+
+      switch (r.status) {
+        case TypeError: {
+          const {nominal, real} = r;
+          throw new TypeError(`Arr expects value of type ${nominal} at ${i + 1} (${real} received)`);
+        }
+      }
     });
 
-    xs.cs = cs;
-    xs.ptype = "[a]";
-    xs.type = type;
+    xs[$type] = type;
     return Object.freeze(xs);
   };
 
   const type = `[${c}]`;
-  Err.throwIfNot(lenOf(1) (cs), () => `${type} expects 1 contract (${cs.length} received)`);
-  return Arr.toString = () => type, Arr;
+  return (Arr.toString = () => type, Arr);
 };
 
 
@@ -510,7 +556,7 @@ const eq = x => y => Object.is(x, y);
 
 
 // lazy
-// defer the application of an higher order function
+// defer the first invocation of an higher order function
 // (((a -> b) -> c -> d), (a -> b)) -> c -> d
 
 const lazy = (f, g) => x => f(g) (x);
@@ -583,7 +629,6 @@ module.exports = {
   _throw,
   ternary,
   throwIfNot,
-  /*Tuple,*/
   TypeSysError,
   unary,
   virt
