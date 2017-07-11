@@ -34,14 +34,19 @@ const TYPE_CHECK = true;
 // --[ SYMBOLS ]---------------------------------------------------------------
 
 
+// polymorphic type (rev 0)
+
+const $poly = Symbol.for(SYM_PREFIX + "poly");
+
+
+// monomorphic type (rev 0)
+
+const $mono = Symbol.for(SYM_PREFIX + "mono");
+
+
 // tag (rev 0)
 
 const $tag = Symbol.for(SYM_PREFIX + "tag");
-
-
-// type (rev 0)
-
-const $type = Symbol.for(SYM_PREFIX + "type");
 
 
 // x (rev 0)
@@ -70,16 +75,16 @@ const $x = Symbol.for(SYM_PREFIX + "x");
 const virt = (name, f, ...cs) => {
   if (TYPE_CHECK) {
     if (!isStr(name)) throw new TypeSysError(
-      `virt expects value of type String at 1 (${introspect(name).join("/")} received)`
+      `virt expects value of type "String" at 1 ("${introspect(name).join("/")}" received)`
     );
 
     if (!isFun(f)) throw new TypeSysError(
-      `virt expects value of type Function at 2 (${introspect(f).join("/")} received)`
+      `virt expects value of type "Function" at 2 ("${introspect(f).join("/")}" received)`
     );
 
     cs.forEach(c => {
       if (!isUnary(c)) throw new TypeSysError(
-        `virt expects Array of type ? -> ? at 3 (${introspect(c).join("/")} received)`
+        `virt expects Array of type "? -> ?" at 3 ("${introspect(c).join("/")}" received)`
       );
     });
 
@@ -100,8 +105,9 @@ const virt = (name, f, ...cs) => {
 const handleType = (name, [c, ...cs]) => ({
   apply: (f, _, args) => {
     const r = c(args);
-    if (!isObjOf(x => has("status") (x) && isUnary(x.status))) throw new TypeSysError(
-      `${c} must return value of type {status: String -> Error} (${introspect(r).join("/")} returned)`
+
+    if (!isSumOf(Contract) (r)) throw new TypeSysError(
+      `${c} must return value of type "Contract (a)" (${introspect(r).join("/")} returned)`
     );
 
     switch(r.status) {
@@ -147,78 +153,79 @@ const handleType = (name, [c, ...cs]) => ({
 });
 
 
-// --[ SUM TYPE FOR CONTRACTS ]------------------------------------------------
+// --[ CONTRACT GADT ]---------------------------------------------------------
 
 
 // Contract (rev 0.1)
-// () -> undefined
+// a -> String
 
-const Contract = () => {};
+const Contract = x => `Contract (${introspect(x).join("/")})`;
 
-Contract.toString = () => "Contract";
+Contract.toString = () => "Contract (a)";
 
 
-// Fulfilled (rev 0.1)
-// a -> Contract (a)
+// Type (rev 0.1)
+// (a, String, String) -> Contract a
 
-const Fulfilled = x => {
-  return {
-    [$type]: Contract,
-    [$tag]: Fulfilled,
-    [$x]: x
+const Type = (x, caller, pos) => {
+  if (TYPE_CHECK) {
+    if (!isStr(caller)) throw new TypeSysError(
+      `Contract expects value of type "String" at 2 ("${introspect(caller).join("/")}" received)`
+    );
+
+    if (!isStr(pos)) throw new TypeSysError(
+      `Contract expects value of type "String" at 3 ("${introspect(pos).join("/")}" received)`
+    );
+  }
+
+  const r = {
+    [$tag]: "Type",
+    toString: () => `Type (${x}, ${caller}, ${pos})`,
+    x, caller, pos
   };
+
+  if (TYPE_CHECK) {
+    r[$poly] = "Contract (a)";
+    r[$mono] = Contract(x);
+  }
+
+  return Object.freeze(r);
 };
 
-Fulfilled.toString = () => "Fulfilled";
+Type.toString = () => "Type";
 
 
-// Violated (rev 0.1)
-// Object -> Contract (a)
+// Return Type (rev 0.1)
+// (a, String) -> Contract a
 
-const Violated = o => {
-  if (!isObjOf(o => has("err")
-  && isUnary(o.err)
-  && has("nominal")
-  && has("real")) (o)) throw new TypeSysError(
-    `Violated expects value of type {err: ? -> ?, nominal: ?, real: ?} at 1 (${introspect(o).join("/")} received)`
-  );
+const ReturnType = (x, caller) => {
+  if (TYPE_CHECK) {
+    if (!isStr(caller)) throw new TypeSysError(
+      `Contract expects value of type "String" at 2 ("${introspect(caller).join("/")}" received)`
+    );
+  }
+  
+  const r = {
+    [$tag]: "ReturnType",
+    toString: () => `ReturnType (${x}, ${caller})`,
+    x, caller
+  };
 
-  return {
-    [$type]: Contract,
-    [$tag]: Violated,
-    [$x]: o};
+  if (TYPE_CHECK) {
+    r[$poly] = "Contract (a)";
+    r[$mono] = Contract(x);
+  }
+
+  return Object.freeze(r);
 };
 
-Violated.toString = () => "Violated";
-
-
-// Violated at (rev 0.1)
-// Object -> Contract (a)
-
-const ViolatedAt = o => {
-  if (!isObjOf(o => has("err")
-  && isUnary(o.err)
-  && has("nominal")
-  && has("real")
-  && has("pos")
-  && isUInt(o.pos)) (o)) throw new TypeSysError(
-    `ViolatedAt expects value of type {err: ? -> ?, nominal: ?, real: ?, pos: Number} at 1 (${introspect(o).join("/")} received)`
-  );
-
-  return {
-    toString: () => `ViolatedAt (${o})}`,
-    [$type]: Contract,
-    [$tag]: ViolatedAt,
-    [$x]: o};
-};
-
-ViolatedAt.toString = () => "ViolatedAt";
+Type.toString = () => "ReturnType";
 
 
 // --[ ARITY CONTRACTS ]-------------------------------------------------------
 
 
-// arity (rev 0.1)
+// arity (rev 0)
 // Number -> (...(? -> ?)) -> Array -> Contract (a)
 
 const arity = n => {
@@ -266,7 +273,7 @@ const arity = n => {
 };
 
 
-// nullary (rev 0.1)
+// nullary (rev 0)
 // [] -> {status: String -> Error}
 
 const nullary = c => {
@@ -302,7 +309,7 @@ const nullary = c => {
 // --[ MONOMORPHIC CONTRACTS ]-------------------------------------------------
 
 
-// array (rev0)
+// array (rev 0)
 // a -> {status: String -> Error}
 
 const arr = x => isArr(x)
@@ -312,17 +319,33 @@ const arr = x => isArr(x)
 arr.toString = () => "Array";
 
 
-// boolean (rev0)
-// a -> Contract (a)
+// boolean (rev 0.1)
+// Contract (a) -> Contract (Boolean)
 
-const boo = x => isBoo(x)
- ? Fulfilled (x)
- : Violated({error: TypeError, nominal: "Boolean", real: introspect(x).join("/")});
+const boo = o => {
+  if (!isSumOf(Contract) (o)) throw new TypeSysError(
+    `boo expects value of type "Contract (a)" at 1 ("${introspect(o.x).join("/")}" received)`
+  );
+
+  if (o[$mono] === "Contract (Boolean)") return o;
+
+  switch (o[$tag]) {
+    case Type: {
+      throw new TypeError(`${o.caller} expects value of type "Boolean" at ${o.pos} ("${introspect(o.x).join("/")}" received)`);
+    }
+
+    case ReturnType: {
+      throw new ReturnTypeError(`${o.caller} must return value of type "Boolean" ("${introspect(o.x).join("/")}" returned)`);
+    }
+
+    default: throw new TypeSysError(`boo received invalid sum type case "${o[$tag]}"`);
+  }
+};
 
 boo.toString = () => "Boolean";
 
 
-// number (rev0)
+// number (rev 0)
 // a -> {status: String -> Error}
 
 const num = x => isNum(x)
@@ -332,7 +355,7 @@ const num = x => isNum(x)
 num.toString = () => "Number";
 
 
-// string (rev0)
+// string (rev 0)
 // a -> {status: String -> Error}
 
 const str = x => isStr(x)
@@ -521,10 +544,10 @@ const isObjOf = p => x => instanceOf(Object) (x) && p(x);
 const isStr = x => typeof x === "string";
 
 
-// is sum of (rev 0)
-// a -> Boolean
+// is sum of (rev 0.1)
+// Function -> a -> Boolean
 
-const isSumOf = type => x => isObj(x) && x[$type] === type;
+const isSumOf = cons => x => isObj(x) && x[$poly] === cons.toString();
 
 
 // is symbol (rev 0)
@@ -561,6 +584,12 @@ const isUnary = x => isFun(x) && x.length === 1;
 // a -> Boolean
 
 const isUndef = x => x === undefined;
+
+
+// is value
+// a -> Boolean
+
+const isValue = x => isUndef(x) || isNull(x);
 
 
 // is variadic (rev 0)
@@ -614,19 +643,6 @@ const introspect = x => {
 ******************************************************************************/
 
 
-// --[ CONSTRUCTOR ]-----------------------------------------------------------
-
-
-// Error (rev 0)
-// (String -> Error) -> Object -> Error
-
-const Err = cons => o => {
-  const e = new cons();
-  e[Symbol.for(SYM_PREFIX + "errArgs")] = o;
-  return e;
-};
-
-
 // --[ SUBCLASS CONSTRUCTORS ]-------------------------------------------------
 
 
@@ -666,10 +682,40 @@ class TypeSysError extends Error {
 // --[ THROWING ]--------------------------------------------------------------
 
 
-// throw (rev 0)
+// throw (rev 0.1)
 // (String -> Error) -> String -> IO
 
 const _throw = cons => s => {throw new cons(s)};
+
+
+// throw arity (rev 0.1)
+// (String -> TypeError) -> String -> IO
+
+const throwArity = _throw(ArityError);
+
+
+// throw range (rev 0.1)
+// (String -> RangeError) -> String -> IO
+
+const throwRange = _throw(RangeError);
+
+
+// throw return type (rev 0.1)
+// (String -> TypeError) -> String -> IO
+
+const throwReturnType = _throw(ReturnTypeError);
+
+
+// throw type (rev 0.1)
+// (String -> TypeError) -> String -> IO
+
+const throwType = _throw(TypeError);
+
+
+// throw type system (rev 0.1)
+// (String -> TypeSysError) -> String -> IO
+
+const throwTypeSys = _throw(TypeSysError);
 
 
 /******************************************************************************
@@ -802,25 +848,25 @@ const get$ = s => o => o[Symbol.for(SYM_PREFIX + s)];
 // --[ ARITY CONTRACTS ]-------------------------------------------------------
 
 
-// unary (rev 0.1)
+// unary (rev 0)
 // (...(? -> ?)) -> [a] -> {status: String -> Error}
 
 const unary = arity(1);
 
 
-// binary (rev 0.1)
+// binary (rev 0)
 // (...(? -> ?)) -> [a, b] -> {status: String -> Error}
 
 const binary = arity(2);
 
 
-// ternary (rev 0.1)
+// ternary (rev 0)
 // (...(? -> ?)) -> [a, b, c] -> {status: String -> Error}
 
 const ternary = arity(3);
 
 
-// variadic (rev 0.1)
+// variadic (rev 0)
 // (...(? -> ?)) -> [?] -> {status: String -> Error}
 
 const variadic = arity(Infinity);

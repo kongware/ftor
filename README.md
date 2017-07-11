@@ -98,15 +98,25 @@ Arrays and collections:
 Objects, dictionaries and records:
 
 * `Object` represents an untyped `Object` with key/value-pairs of type `String`/untyped
-* `{x: a}` represents a heterogeneous `Object` with at least a key/value-pair of type `String`/`a`
-* `{x: a, y: b}` represents a heterogeneous `Object` with at least two key/value-pairs of type `String`/`a` and `String`/`b`
+* `{x: a}` represents a heterogeneous `Object` that includes at least a key/value-pair of type `String`/`a` accessible via the key `x`
 * `{a}` represents a homogenous dictionary with key/value-pairs of type `String`/`a`
-* `{k a}` represents a homogenous dictionary with key/value-pairs of type `k`/`a`
+* `{a b}` represents a homogenous dictionary with key/value-pairs of type `a`/`b`
 * `{a, b}` represents a record with two fields and keys of type `String`
 
 Input/Output and side effects:
 
 * `IO` represents an interaction with the real world (side effect)
+
+Sum Types:
+
+Please note that sum types are internally encoded by `Object`s. In order to avoid verbose type signatures their types are similar to Haskell's notation.
+
+* `Sum` represents a monomorphic sum type
+* `Sum (a)` represents a polymorphic sum type with an unary type constructor
+* `Sum (a b)` represents a polymorphic sum type with a curried binary type constructor
+* `Sum (a, b)` represents a polymorphic sum type with a (uncurried) binary type constructor
+
+As you can see parenthesis are always set, also unnecessarily.
 
 ## ES2015 modules
 
@@ -118,4 +128,4 @@ Functional programming without strict types isn't reasonable. Hence we must pret
 
 For this reason ftor ships with a pluggable runtime type system, that is to say you can switch it on and off whenever you want. It covers curried, multi-argument, variadic and polymorphic functions, all built-in types, polymorphic types, tuples, records, homogenous collections and dictionaries and above all, sum types!
 
-See more within a few days...
+Find more within a few days...
