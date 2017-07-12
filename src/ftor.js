@@ -34,24 +34,32 @@ const TYPE_CHECK = true;
 // --[ SYMBOLS ]---------------------------------------------------------------
 
 
-// polymorphic type (rev 0)
+// polymorphic type (rev 0.1)
+// internal
 
 const $poly = Symbol.for(SYM_PREFIX + "poly");
 
 
-// monomorphic type (rev 0)
+// monomorphic type (rev 0.1)
+// internal
 
 const $mono = Symbol.for(SYM_PREFIX + "mono");
 
 
-// tag (rev 0)
+// tag (rev 0.1)
 
 const $tag = Symbol.for(SYM_PREFIX + "tag");
 
 
-// x (rev 0)
+// x (rev 0.1)
 
 const $x = Symbol.for(SYM_PREFIX + "x");
+
+
+// catamorphism (rev 0.1)
+
+const $cata = Symbol.for(SYM_PREFIX + "cata");
+
 
 
 /******************************************************************************
@@ -107,7 +115,7 @@ const handleType = (name, [c, ...cs]) => ({
     const r = c(args);
 
     if (!isSumOf(Contract) (r)) throw new TypeSysError(
-      `${c} must return value of type "Contract (a)" (${introspect(r).join("/")} returned)`
+      `${c} must return value of type "Contract (a)" ("${introspect(r).join("/")}" returned)`
     );
 
     switch(r.status) {
@@ -163,6 +171,8 @@ const Contract = x => `Contract (${introspect(x).join("/")})`;
 
 Contract.toString = () => "Contract (a)";
 
+Contract[$cata] = cata(Contract, ["Type", "ReturnType"]);
+
 
 // Type (rev 0.1)
 // (a, String, String) -> Contract a
@@ -179,7 +189,7 @@ const Type = (x, caller, pos) => {
   }
 
   const r = {
-    [$tag]: "Type",
+    [$tag]: Type,
     toString: () => `Type (${x}, ${caller}, ${pos})`,
     x, caller, pos
   };
@@ -206,7 +216,7 @@ const ReturnType = (x, caller) => {
   }
   
   const r = {
-    [$tag]: "ReturnType",
+    [$tag]: ReturnType,
     toString: () => `ReturnType (${x}, ${caller})`,
     x, caller
   };
@@ -226,21 +236,21 @@ Type.toString = () => "ReturnType";
 
 
 // arity (rev 0)
-// Number -> (...(? -> ?)) -> Array -> Contract (a)
+// Number -> (...Contract (a)) -> Array -> Contract (a)
 
 const arity = n => {
   if (!isNum(n)) throw new TypeSysError(
-    `arity expects value of type Number at 1 (${introspect(n).join("/")} received)`
+    `arity expects value of type "Number" at 1 ("${introspect(n).join("/")}" received)`
   );
 
   const arity = (...cs) => {
-    if (!isArrOf(isUnary) (cs)) throw new TypeSysError(
-      `arity expects value of type [? -> ?] at 2 (${introspect(cs).join("/")} received)`
+    if (!isArrOf(isSumOf(Contract) (cs))) throw new TypeSysError(
+      `arity expects value of type "[Contract (a)]" at 2 ("${introspect(cs).join("/")}" received)`
     );
 
     const arity = args => {
       if (!isArr(args)) throw new TypeSysError(
-        `arity expects value of type Array at 3 (${introspect(args).join("/")} received)`
+        `arity expects value of type "Array" at 3 ("${introspect(args).join("/")}" received)`
       );
 
       if (isFinite(n)) {
@@ -328,18 +338,16 @@ const boo = o => {
   );
 
   if (o[$mono] === "Contract (Boolean)") return o;
-
-  switch (o[$tag]) {
-    case Type: {
-      throw new TypeError(`${o.caller} expects value of type "Boolean" at ${o.pos} ("${introspect(o.x).join("/")}" received)`);
+  
+  Contract.cata({
+    Type: ({caller, pos, x}) => {
+      throw new TypeError(`${caller} expects value of type "Boolean" at ${pos} ("${introspect(x).join("/")}" received)`)
+    },
+    
+    ReturnType: ({caller, x}) => {
+      throw new ReturnTypeError(`${caller} must return value of type "Boolean" ("${introspect(x).join("/")}" returned)`);
     }
-
-    case ReturnType: {
-      throw new ReturnTypeError(`${o.caller} must return value of type "Boolean" ("${introspect(o.x).join("/")}" returned)`);
-    }
-
-    default: throw new TypeSysError(`boo received invalid sum type case "${o[$tag]}"`);
-  }
+  }) (o);
 };
 
 boo.toString = () => "Boolean";
@@ -598,7 +606,7 @@ const isValue = x => isUndef(x) || isNull(x);
 const isVariadic = isNullary;
 
 
-// introspect (rev 0)
+// introspect (rev 0.1)
 // a -> [String]
 
 const introspect = x => {
@@ -621,6 +629,7 @@ const introspect = x => {
 
     case "object": {
       if (x === null) return ["Null"];
+      if ($mono in x) return [x[$mono]];
       return Array.from(new Set([
         "Object",
         getType(x),
@@ -777,6 +786,22 @@ const has = k => o => k in o;
 *******************************[ 5. SUM TYPES ]********************************
 *******************************************************************************
 ******************************************************************************/
+
+
+// catamorphism (rev 0.1)
+// (Function, [String]) -> Object -> Object -> a
+
+const cata = (cons, xs) => pattern => {
+  if (TYPE_CHECK && xs.forEach(k => {
+    if (!(k in pattern)) throw new TypeError(`missing case "${k}" for type "${cons(o[$x])}"`);
+  }));
+
+  const cata = o => {
+    return pattern[o[$tag]] (o);
+  };
+
+  return cata;
+};
 
 
 /******************************************************************************
