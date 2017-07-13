@@ -83,11 +83,12 @@ Functions:
 * `? -> ?` represents an untyped unary function
 * `? -> ? -> ?` represents an untyped binary function
 
-Multi-argument functions and tuples:
+Multi-argument functions variadic functions and tuples:
 
 * `(a, b) -> a` represents either a multi-argument function or a tuple (pair) of type `a` and `b`
 * `(...a) -> a` represents a variadic function (rest syntax)
 * `(...?) -> ?` represents an untyped variadic function (rest syntax)
+* `() -> a` represents a nullary function
 
 Arrays and collections:
 

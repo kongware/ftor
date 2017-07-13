@@ -78,7 +78,7 @@ const $cata = Symbol.for(SYM_PREFIX + "cata");
 
 
 // virtualize (rev 0.1)
-// (String, Function, [? -> ?]) -> Function
+// (String, Function, [() -> ?]) -> Function
 
 const virt = (name, f, ...cs) => {
   if (TYPE_CHECK) {
@@ -91,12 +91,12 @@ const virt = (name, f, ...cs) => {
     );
 
     cs.forEach(c => {
-      if (!isUnary(c)) throw new TypeSysError(
-        `virt expects Array of type "? -> ?" at 3 ("${introspect(c).join("/")}" received)`
+      if (!isNullary(c)) throw new TypeSysError(
+        `virt expects Array of type "() -> ?" at 3 ("${introspect(c).join("/")}" received)`
       );
     });
 
-    const g = new Proxy(f, handleType(name, cs));
+    const g = new Proxy(f, handleType(name, cs.map(c => c()), 1));
     g.toString = Function.prototype.toString.bind(f);
     return g;
   }
@@ -105,54 +105,31 @@ const virt = (name, f, ...cs) => {
 };
 
 
-// handle type (rev 0)
+// handle type (rev 0.1)
 // internal
 // handle apply traps for virtualized functions
-// (String, [? -> ?]) -> Function
+// (String, [? -> ?], Number) -> Function
 
-const handleType = (name, [c, ...cs]) => ({
+const handleType = (name, [c, ...cs], n) => ({
   apply: (f, _, args) => {
-    const r = c(args);
+    const o = c(Type(args, name, n));
 
-    if (!isSumOf(Contract) (r)) throw new TypeSysError(
-      `${c} must return value of type "Contract (a)" ("${introspect(r).join("/")}" returned)`
+    if (!isSumOf(Contract) (o)) throw new TypeSysError(
+      `${c} must return value of type "Contract (a)" ("${introspect(o).join("/")}" returned)`
     );
 
-    switch(r.status) {
-      case ArityError: {
-        const {nominal, real} = r;
-        throw new ArityError(`${name} expects ${nominal} argument(s) (${real} received)`);
-      }
-
-      case TypeError: {
-        const {nominal, real, pos} = r;
-        throw new TypeError(`${name} expects value of type ${nominal} at ${pos + 1} (${real} received)`);
-      }
-
-      case NoError: break;
-
-      default: throw new TypeSysError(`Error constructor expected (${introspect(r.status).join("/")} received)`);
-    }
-
     if (cs.length === 1) {
-      const x = f(...args),
-       r = cs[0] (x);
+      const r = f(...args),
+       o = cs[0] (ReturnType(r, name));
 
-      if (!isObj(r) || !has("status") (r) || !isFun(r.status)) throw new TypeSysError(
-        `${c.name} must return value of type {status: String -> Error} (${introspect(r).join("/")} returned)`
+      if (!isSumOf(Contract) (o)) throw new TypeSysError(
+        `${cs[0]} must return value of type "Contract (a)" ("${introspect(o).join("/")}" returned)`
       );
 
-      switch (r.status) {
-        case ReturnTypeError: {
-          const {nominal, real} = r;
-          throw new ReturnTypeError(`${name} must return value of type ${nominal} (${real} returned)`);
-        }
-      }
-
-      return x;
+      return r;
     }
 
-    const g = new Proxy(f(...args), handle(type, name, cs))
+    const g = new Proxy(f(...args), handleType(name, cs, n + 1))
     g.toString = Function.prototype.toString.bind(f);
     return g;
   },
@@ -171,7 +148,38 @@ const Contract = x => `Contract (${introspect(x).join("/")})`;
 
 Contract.toString = () => "Contract (a)";
 
-Contract[$cata] = cata(Contract, ["Type", "ReturnType"]);
+// Contract[$cata] see at section XX. DERIVED
+
+
+// Arity (rev 0.1)
+// (a, String, Number) -> Contract a
+
+const Arity = (x, caller, n) => {
+  if (TYPE_CHECK) {
+    if (!isStr(caller)) throw new TypeSysError(
+      `Arity expects value of type "String" at 2 ("${introspect(caller).join("/")}" received)`
+    );
+
+    if (!isNat(n)) throw new TypeSysError(
+      `Arity expects value of type "positive Integer" at 3 ("${introspect(n).join("/")}" received)`
+    );
+  }
+  
+  const r = {
+    [$tag]: Arity,
+    toString: () => `Arity (${x}, ${caller}, ${n})`,
+    x, caller, n
+  };
+
+  if (TYPE_CHECK) {
+    r[$poly] = "Contract (a)";
+    r[$mono] = Contract(x);
+  }
+
+  return Object.freeze(r);
+};
+
+Arity.toString = () => "Arity";
 
 
 // Type (rev 0.1)
@@ -180,11 +188,11 @@ Contract[$cata] = cata(Contract, ["Type", "ReturnType"]);
 const Type = (x, caller, pos) => {
   if (TYPE_CHECK) {
     if (!isStr(caller)) throw new TypeSysError(
-      `Contract expects value of type "String" at 2 ("${introspect(caller).join("/")}" received)`
+      `Type expects value of type "String" at 2 ("${introspect(caller).join("/")}" received)`
     );
 
     if (!isStr(pos)) throw new TypeSysError(
-      `Contract expects value of type "String" at 3 ("${introspect(pos).join("/")}" received)`
+      `Type expects value of type "String" at 3 ("${introspect(pos).join("/")}" received)`
     );
   }
 
@@ -211,7 +219,7 @@ Type.toString = () => "Type";
 const ReturnType = (x, caller) => {
   if (TYPE_CHECK) {
     if (!isStr(caller)) throw new TypeSysError(
-      `Contract expects value of type "String" at 2 ("${introspect(caller).join("/")}" received)`
+      `ReturnType expects value of type "String" at 2 ("${introspect(caller).join("/")}" received)`
     );
   }
   
@@ -229,48 +237,41 @@ const ReturnType = (x, caller) => {
   return Object.freeze(r);
 };
 
-Type.toString = () => "ReturnType";
+ReturnType.toString = () => "ReturnType";
 
 
 // --[ ARITY CONTRACTS ]-------------------------------------------------------
 
 
 // arity (rev 0)
-// Number -> (...Contract (a)) -> Array -> Contract (a)
+// Number -> (...Contract (a) -> Contract (a)) -> Contract (a) -> Contract (a)
 
 const arity = n => {
-  if (!isNum(n)) throw new TypeSysError(
-    `arity expects value of type "Number" at 1 ("${introspect(n).join("/")}" received)`
+  if (!isNat(n) && !isInfinite) throw new TypeSysError(
+    `arity expects value of type "positive Integer" at 1 ("${introspect(n).join("/")}" received)`
   );
 
   const arity = (...cs) => {
-    if (!isArrOf(isSumOf(Contract) (cs))) throw new TypeSysError(
+    if (!isArrOf(isUnary) (cs)) throw new TypeSysError(
       `arity expects value of type "[Contract (a)]" at 2 ("${introspect(cs).join("/")}" received)`
     );
 
-    const arity = args => {
-      if (!isArr(args)) throw new TypeSysError(
-        `arity expects value of type "Array" at 3 ("${introspect(args).join("/")}" received)`
+    const arity = o => {
+      if (!isSumOf(Contract) (o)) throw new TypeSysError(
+        `arity expects value of type "Contract (a)" at 3 ("${introspect(o).join("/")}" received)`
       );
 
-      if (isFinite(n)) {
-        if (args.length !== n) return Violated({err: ArityError, nominal: n, real: args.length});
-      }
+      if (isFinite(n)) nary(Arity(cs[0].caller, n, o.x.length));
 
-      const aux = ([c, ...cs], n) => {
-        const r = c(args[n]);
+      const aux = ([c, ...cs], m) => {
+        const r = c(o.x[m]);
 
         if (!isSumOf(Contract) (r)) throw new TypeSysError(
-          `${c} must return value of type Contract (a) (${introspect(r).join("/")} returned)`
+          `${c} must return value of type "Contract (a)" ("${introspect(r).join("/")}" returned)`
         );
 
-        switch (r[$tag]) {
-          case Violated: return Object.assign(r, {pos: n});
-          case ViolatedAt: return r;
-        }
-
-        if (cs.length === 0) return Fulfilled(args);
-        return aux(cs, n + 1);
+        if (cs.length === 0) return o;
+        return aux(cs, m + 1);
       };
 
       return aux(cs, 0);
@@ -377,7 +378,7 @@ str.toString = () => "String";
 
 
 // array of (rev 0)
-// (...(? -> ?)) -> a -> {status: String -> Error}
+// (...? -> ?) -> a -> {status: String -> Error}
 
 const arrOf = c => {
   if (!isFun(c)) throw new TypeSysError(
@@ -427,6 +428,32 @@ const compareBy = s => p => xs => p(xs.length)
 // Number -> [a] -> Object
 
 const lenOf = n => compareBy(n) (eq);
+
+
+// n-ary (rev 0.1)
+// Contract (a) -> Contract (a)
+
+const nary = o => {
+  if (!isSumOf(Contract) (o)) throw new TypeSysError(
+    `ary expects value of type "Contract (a)" at 1 ("${introspect(o).join("/")}" received)`
+  );
+
+  if (o.x.length !== o.n) {  
+    Contract.cata({
+      Arity: ({caller, n, x}) => {
+        throw new ArityError(`${caller} expects ${n} argument(s) ("${x.length}" received)`)
+      },
+      
+      Type: ({caller}) => {
+        throw new TypeSysError(`ary cannot handle values of type "Contract (a)" tagged with "Type" for ${caller}`);
+      },
+
+      ReturnType: ({caller}) => {
+        throw new TypeSysError(`ary cannot handle values of type "Contract (a)" tagged with "ReturnType" for ${caller}`);
+      },
+    }) (o);
+  }
+};
 
 
 // --[ REFLECTION ]------------------------------------------------------------
@@ -498,10 +525,16 @@ const isFloat = x => isNum(x) && x >= 0 && x % 1 > 0
 const isFun = x => typeof x === "function";
 
 
+// is infinite (rev 0)
+// a -> Boolean
+
+const isInfinite = x => isNum(x) && !isFinite(x);
+
+
 // is integer (rev 0)
 // a -> Boolean
 
-const isInt = x => isNum(x) && x % 1 === 0
+const isInt = x => Number.isInteger(x);
 
 
 // is not a number (rev 0)
@@ -510,10 +543,16 @@ const isInt = x => isNum(x) && x % 1 === 0
 const isNaN = x => Number.isNaN(x);
 
 
-// is finite (rev 0)
+// is natural number (rev 0)
 // a -> Boolean
 
-const isNotEmpty = x => isArrLike(x) && x.length > 0;
+const isNat = x => isInt(x) && x >= 0;
+
+
+// is negative number (rev 0)
+// a -> Boolean
+
+const isNeg = x => isNum(x) && x < 0;
 
 
 // is null (rev 0)
@@ -546,6 +585,12 @@ const isObj = instanceOf(Object);
 const isObjOf = p => x => instanceOf(Object) (x) && p(x);
 
 
+// is positive number (rev 0)
+// a -> Boolean
+
+const isPos = x => isNum(x) && x >= 0;
+
+
 // is string (rev 0)
 // a -> Boolean
 
@@ -568,18 +613,6 @@ const isSym = x => typeof x === "symbol";
 // a -> Boolean
 
 const isTernary = x => isFun(x) && x.length === 3;
-
-
-// is unsigned float (rev 0)
-// a -> Boolean
-
-const isUFloat = x => isFloat(x) && x >= 0;
-
-
-// is unsigned integer (rev 0)
-// a -> Boolean
-
-const isUInt = x => isInt(x) && x >= 0;
 
 
 // is unary (rev 0)
@@ -869,30 +902,35 @@ const get$ = s => o => o[Symbol.for(SYM_PREFIX + s)];
 ********************************[ 2.1. TYPES ]*********************************
 ******************************************************************************/
 
+// --[ CONTRACT GADT ]-------------------------------------------------------
+
+
+Contract[$cata] = cata(Contract, ["Type", "ReturnType"]);
+
 
 // --[ ARITY CONTRACTS ]-------------------------------------------------------
 
 
 // unary (rev 0)
-// (...(? -> ?)) -> [a] -> {status: String -> Error}
+// (...? -> ?) -> [a] -> {status: String -> Error}
 
 const unary = arity(1);
 
 
 // binary (rev 0)
-// (...(? -> ?)) -> [a, b] -> {status: String -> Error}
+// (...? -> ?) -> [a, b] -> {status: String -> Error}
 
 const binary = arity(2);
 
 
 // ternary (rev 0)
-// (...(? -> ?)) -> [a, b, c] -> {status: String -> Error}
+// (...? -> ?) -> [a, b, c] -> {status: String -> Error}
 
 const ternary = arity(3);
 
 
 // variadic (rev 0)
-// (...(? -> ?)) -> [?] -> {status: String -> Error}
+// (...? -> ?) -> [?] -> {status: String -> Error}
 
 const variadic = arity(Infinity);
 
