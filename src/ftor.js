@@ -80,10 +80,10 @@ const $cata = Symbol.for(SYM_PREFIX + "cata");
 // virtualize (rev 0.1)
 // (String, Function, [() -> ?]) -> Function
 
-const virt = (name, f, ...cs) => {
+const virt = (fname, f, ...cs) => {
   if (TYPE_CHECK) {
-    if (!isStr(name)) throw new TypeSysError(
-      `virt expects value of type "String" at 1 ("${introspect(name).join("/")}" received)`
+    if (!isStr(fname)) throw new TypeSysError(
+      `virt expects value of type "String" at 1 ("${introspect(fname).join("/")}" received)`
     );
 
     if (!isFun(f)) throw new TypeSysError(
@@ -96,7 +96,7 @@ const virt = (name, f, ...cs) => {
       );
     });
 
-    const g = new Proxy(f, handleType(name, cs.map(c => c()), 1));
+    const g = new Proxy(f, handleType(fname, cs.map(c => c()), 1));
     g.toString = Function.prototype.toString.bind(f);
     return g;
   }
@@ -110,9 +110,9 @@ const virt = (name, f, ...cs) => {
 // handle apply traps for virtualized functions
 // (String, [? -> ?], Number) -> Function
 
-const handleType = (name, [c, ...cs], n) => ({
+const handleType = (fname, [c, ...cs], n) => ({
   apply: (f, _, args) => {
-    const o = c(Type(args, name, n));
+    const o = c(Type(args, fname, n, 1));
 
     if (!isSumOf(Contract) (o)) throw new TypeSysError(
       `${c} must return value of type "Contract (a)" ("${introspect(o).join("/")}" returned)`
@@ -120,7 +120,7 @@ const handleType = (name, [c, ...cs], n) => ({
 
     if (cs.length === 1) {
       const r = f(...args),
-       o = cs[0] (ReturnType(r, name));
+       o = cs[0] (ReturnType(r, fname));
 
       if (!isSumOf(Contract) (o)) throw new TypeSysError(
         `${cs[0]} must return value of type "Contract (a)" ("${introspect(o).join("/")}" returned)`
@@ -129,12 +129,12 @@ const handleType = (name, [c, ...cs], n) => ({
       return r;
     }
 
-    const g = new Proxy(f(...args), handleType(name, cs, n + 1))
+    const g = new Proxy(f(...args), handleType(fname, cs, n + 1))
     g.toString = Function.prototype.toString.bind(f);
     return g;
   },
 
-  get: (o, k) => k === "name" ? name : o[k]
+  get: (o, k) => k === "name" ? fname : o[k]
 });
 
 
@@ -154,21 +154,21 @@ Contract.toString = () => "Contract (a)";
 // Arity (rev 0.1)
 // (a, String, Number) -> Contract a
 
-const Arity = (x, caller, n) => {
+const Arity = (x, fname, n) => {
   if (TYPE_CHECK) {
-    if (!isStr(caller)) throw new TypeSysError(
-      `Arity expects value of type "String" at 2 ("${introspect(caller).join("/")}" received)`
+    if (!isStr(fname)) throw new TypeSysError(
+      `Arity expects value of type "String" at 2 ("${introspect(fname).join("/")}" received)`
     );
 
     if (!isNat(n)) throw new TypeSysError(
-      `Arity expects value of type "positive Integer" at 3 ("${introspect(n).join("/")}" received)`
+      `Arity expects value of type "natural Number" at 3 ("${introspect(n).join("/")}" received)`
     );
   }
   
   const r = {
     [$tag]: Arity,
-    toString: () => `Arity (${x}, ${caller}, ${n})`,
-    x, caller, n
+    toString: () => `Arity (${x}, ${fname}, ${n})`,
+    x, fname, n
   };
 
   if (TYPE_CHECK) {
@@ -183,23 +183,27 @@ Arity.toString = () => "Arity";
 
 
 // Type (rev 0.1)
-// (a, String, String) -> Contract a
+// (a, String, Number, Number) -> Contract a
 
-const Type = (x, caller, pos) => {
+const Type = (x, fname, nf, nargs) => {
   if (TYPE_CHECK) {
-    if (!isStr(caller)) throw new TypeSysError(
-      `Type expects value of type "String" at 2 ("${introspect(caller).join("/")}" received)`
+    if (!isStr(fname)) throw new TypeSysError(
+      `Type expects value of type "String" at 2 ("${introspect(fname).join("/")}" received)`
     );
 
-    if (!isStr(pos)) throw new TypeSysError(
-      `Type expects value of type "String" at 3 ("${introspect(pos).join("/")}" received)`
+    if (!isNum(nf)) throw new TypeSysError(
+      `Type expects value of type "String" at 3 ("${introspect(nf).join("/")}" received)`
+    );
+
+    if (!isNum(nargs)) throw new TypeSysError(
+      `Type expects value of type "String" at 4 ("${introspect(nargs).join("/")}" received)`
     );
   }
 
   const r = {
     [$tag]: Type,
-    toString: () => `Type (${x}, ${caller}, ${pos})`,
-    x, caller, pos
+    toString: () => `Type (${x}, ${fname}, ${nf}, ${nargs})`,
+    x, fname, nf, nargs
   };
 
   if (TYPE_CHECK) {
@@ -216,17 +220,17 @@ Type.toString = () => "Type";
 // Return Type (rev 0.1)
 // (a, String) -> Contract a
 
-const ReturnType = (x, caller) => {
+const ReturnType = (x, fname) => {
   if (TYPE_CHECK) {
-    if (!isStr(caller)) throw new TypeSysError(
-      `ReturnType expects value of type "String" at 2 ("${introspect(caller).join("/")}" received)`
+    if (!isStr(fname)) throw new TypeSysError(
+      `ReturnType expects value of type "String" at 2 ("${introspect(fname).join("/")}" received)`
     );
   }
   
   const r = {
     [$tag]: ReturnType,
-    toString: () => `ReturnType (${x}, ${caller})`,
-    x, caller
+    toString: () => `ReturnType (${x}, ${fname})`,
+    x, fname
   };
 
   if (TYPE_CHECK) {
@@ -248,7 +252,7 @@ ReturnType.toString = () => "ReturnType";
 
 const arity = n => {
   if (!isNat(n) && !isInfinite) throw new TypeSysError(
-    `arity expects value of type "positive Integer" at 1 ("${introspect(n).join("/")}" received)`
+    `arity expects value of type "natural Number" at 1 ("${introspect(n).join("/")}" received)`
   );
 
   const arity = (...cs) => {
@@ -261,10 +265,10 @@ const arity = n => {
         `arity expects value of type "Contract (a)" at 3 ("${introspect(o).join("/")}" received)`
       );
 
-      if (isFinite(n)) nary(Arity(cs[0].caller, n, o.x.length));
+      if (isFinite(n)) nary(Arity(o.x, o.fname, n));
 
       const aux = ([c, ...cs], m) => {
-        const r = c(o.x[m]);
+        const r = c(Type(o.x[m], o.fname, o.nf, o.nargs));
 
         if (!isSumOf(Contract) (r)) throw new TypeSysError(
           `${c} must return value of type "Contract (a)" ("${introspect(r).join("/")}" returned)`
@@ -340,13 +344,17 @@ const boo = o => {
 
   if (o[$mono] === "Contract (Boolean)") return o;
   
-  Contract.cata({
-    Type: ({caller, pos, x}) => {
-      throw new TypeError(`${caller} expects value of type "Boolean" at ${pos} ("${introspect(x).join("/")}" received)`)
+  Contract[$cata] ({
+    Arity: ({fname}) => {
+      throw new TypeSysError(`boo cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`);
+    },
+
+    Type: ({x, fname, nf, nargs}) => {
+      throw new TypeError(`${fname} expects value of type "Boolean" at ${nf}/${nargs} ("${introspect(x).join("/")}" received)`)
     },
     
-    ReturnType: ({caller, x}) => {
-      throw new ReturnTypeError(`${caller} must return value of type "Boolean" ("${introspect(x).join("/")}" returned)`);
+    ReturnType: ({x, fname}) => {
+      throw new ReturnTypeError(`${fname} must return value of type "Boolean" ("${introspect(x).join("/")}" returned)`);
     }
   }) (o);
 };
@@ -439,17 +447,17 @@ const nary = o => {
   );
 
   if (o.x.length !== o.n) {  
-    Contract.cata({
-      Arity: ({caller, n, x}) => {
-        throw new ArityError(`${caller} expects ${n} argument(s) ("${x.length}" received)`)
+    Contract[$cata] ({
+      Arity: ({fname, n, x}) => {
+        throw new ArityError(`${fname} expects ${n} argument(s) (${x.length} received)`)
       },
       
-      Type: ({caller}) => {
-        throw new TypeSysError(`ary cannot handle values of type "Contract (a)" tagged with "Type" for ${caller}`);
+      Type: ({fname}) => {
+        throw new TypeSysError(`ary cannot handle values of type "Contract (a)" tagged with "Type" for ${fname}`);
       },
 
-      ReturnType: ({caller}) => {
-        throw new TypeSysError(`ary cannot handle values of type "Contract (a)" tagged with "ReturnType" for ${caller}`);
+      ReturnType: ({fname}) => {
+        throw new TypeSysError(`ary cannot handle values of type "Contract (a)" tagged with "ReturnType" for ${fname}`);
       },
     }) (o);
   }
@@ -905,7 +913,7 @@ const get$ = s => o => o[Symbol.for(SYM_PREFIX + s)];
 // --[ CONTRACT GADT ]-------------------------------------------------------
 
 
-Contract[$cata] = cata(Contract, ["Type", "ReturnType"]);
+Contract[$cata] = cata(Contract, ["Arity", "Type", "ReturnType"]);
 
 
 // --[ ARITY CONTRACTS ]-------------------------------------------------------
