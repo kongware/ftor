@@ -83,16 +83,16 @@ const $cata = Symbol.for(SYM_PREFIX + "cata");
 const virt = (fname, f, ...cs) => {
   if (TYPE_CHECK) {
     if (!isStr(fname)) throw new TypeSysError(
-      `virt expects value of type "String" at 1/1 ("${introspect(fname).join("/")}" received)`
+      `virt expects value of type "String" at 1/1 ("${introspect(fname)}" received)`
     );
 
     if (!isFun(f)) throw new TypeSysError(
-      `virt expects value of type "Function" at 1/2 ("${introspect(f).join("/")}" received)`
+      `virt expects value of type "Function" at 1/2 ("${introspect(f)}" received)`
     );
 
     cs.forEach(c => {
       if (!isNullary(c)) throw new TypeSysError(
-        `virt expects Array of type "() -> Contract (a) -> Contract (a)" at 1/3 ("${introspect(c).join("/")}" received)`
+        `virt expects Array of type "() -> Contract (a) -> Contract (a)" at 1/3 ("${introspect(c)}" received)`
       );
     });
 
@@ -115,7 +115,7 @@ const handleF = (fname, [c, ...cs], n) => ({
     const o = c(Type(args, fname, n, 1));
 
     if (!isSumOf(Contract) (o)) throw new TypeSysError(
-      `${c} must return value of type "Contract (a)" ("${introspect(o).join("/")}" returned)`
+      `${c} must return value of type "Contract (a)" ("${introspect(o)}" returned)`
     );
 
     if (cs.length === 1) {
@@ -123,7 +123,7 @@ const handleF = (fname, [c, ...cs], n) => ({
        o = cs[0] (ReturnType(r, fname));
 
       if (!isSumOf(Contract) (o)) throw new TypeSysError(
-        `${cs[0]} must return value of type "Contract (a)" ("${introspect(o).join("/")}" returned)`
+        `${cs[0]} must return value of type "Contract (a)" ("${introspect(o)}" returned)`
       );
 
       return r;
@@ -144,7 +144,7 @@ const handleF = (fname, [c, ...cs], n) => ({
 // Contract (rev 0.1)
 // a -> String
 
-const Contract = x => `Contract (${introspect(x).join("/")})`;
+const Contract = x => `Contract (${introspect(x)})`;
 
 Contract.toString = () => "Contract (a)";
 
@@ -157,15 +157,15 @@ Contract.toString = () => "Contract (a)";
 const Arity = (x, fname, nf, n) => {
   if (TYPE_CHECK) {
     if (!isStr(fname)) throw new TypeSysError(
-      `Arity expects value of type "String" at 1/2 ("${introspect(fname).join("/")}" received)`
+      `Arity expects value of type "String" at 1/2 ("${introspect(fname)}" received)`
     );
 
     if (!isNat(nf)) throw new TypeSysError(
-      `Arity expects value of type "natural Number" at 1/3 ("${introspect(nf).join("/")}" received)`
+      `Arity expects value of type "natural Number" at 1/3 ("${introspect(nf)}" received)`
     );
 
     if (!isNat(n)) throw new TypeSysError(
-      `Arity expects value of type "natural Number" at 1/4 ("${introspect(n).join("/")}" received)`
+      `Arity expects value of type "natural Number" at 1/4 ("${introspect(n)}" received)`
     );
   }
   
@@ -183,6 +183,7 @@ const Arity = (x, fname, nf, n) => {
   return Object.freeze(r);
 };
 
+
 Arity.toString = () => "Arity";
 
 
@@ -192,15 +193,15 @@ Arity.toString = () => "Arity";
 const Type = (x, fname, nf, nargs) => {
   if (TYPE_CHECK) {
     if (!isStr(fname)) throw new TypeSysError(
-      `Type expects value of type "String" at 1/2 ("${introspect(fname).join("/")}" received)`
+      `Type expects value of type "String" at 1/2 ("${introspect(fname)}" received)`
     );
 
     if (!isNum(nf)) throw new TypeSysError(
-      `Type expects value of type "String" at 1/3 ("${introspect(nf).join("/")}" received)`
+      `Type expects value of type "String" at 1/3 ("${introspect(nf)}" received)`
     );
 
     if (!isNum(nargs)) throw new TypeSysError(
-      `Type expects value of type "String" at 1/4 ("${introspect(nargs).join("/")}" received)`
+      `Type expects value of type "String" at 1/4 ("${introspect(nargs)}" received)`
     );
   }
 
@@ -227,7 +228,7 @@ Type.toString = () => "Type";
 const ReturnType = (x, fname) => {
   if (TYPE_CHECK) {
     if (!isStr(fname)) throw new TypeSysError(
-      `ReturnType expects value of type "String" at 1/2 ("${introspect(fname).join("/")}" received)`
+      `ReturnType expects value of type "String" at 1/2 ("${introspect(fname)}" received)`
     );
   }
   
@@ -256,17 +257,17 @@ ReturnType.toString = () => "ReturnType";
 
 const arity = n => {
   if (!isNat(n) && !isInfinite) throw new TypeSysError(
-    `arity expects value of type "natural Number" at 1/1 ("${introspect(n).join("/")}" received)`
+    `arity expects value of type "natural Number" at 1/1 ("${introspect(n)}" received)`
   );
 
   const arity = (...cs) => {
     if (!isArrOf(isUnary) (cs)) throw new TypeSysError(
-      `arity expects value of type "[Contract (a) -> Contract (a)]" at 2/1 ("${introspect(cs).join("/")}" received)`
+      `arity expects value of type "[Contract (a) -> Contract (a)]" at 2/1 ("${introspect(cs)}" received)`
     );
 
     const arity = o => {
       if (!isSumOf(Contract) (o)) throw new TypeSysError(
-        `arity expects value of type "Contract (a)" at 3/1 ("${introspect(o).join("/")}" received)`
+        `arity expects value of type "Contract (a)" at 3/1 ("${introspect(o)}" received)`
       );
 
       if (isFinite(n)) nary(Arity(o.x, o.fname, o.nf, n));
@@ -277,7 +278,7 @@ const arity = n => {
          : cs[0] (Type(x, o.fname, o.nf, m + 1));
 
         if (!isSumOf(Contract) (r)) throw new TypeSysError(
-          `${cs[m]} must return value of type "Contract (a)" ("${introspect(r).join("/")}" returned)`
+          `${cs[m]} must return value of type "Contract (a)" ("${introspect(r)}" returned)`
         );
       });
 
@@ -314,10 +315,10 @@ const arity = n => {
 
 const arr = o => {
   if (!isSumOf(Contract) (o)) throw new TypeSysError(
-    `arr expects value of type "Contract (a)" at 1/1 ("${introspect(o.x).join("/")}" received)`
+    `arr expects value of type "Contract (a)" at 1/1 ("${introspect(o.x)}" received)`
   );
 
-  if (o[$mono] === "Contract (Array)") return o;
+  if (introspect(o.x) === "Array") return o
   
   Contract[$cata] ({
     Arity: ({fname}) => {
@@ -325,11 +326,11 @@ const arr = o => {
     },
 
     Type: ({x, fname, nf, nargs}) => {
-      throw new TypeError(`${fname} expects value of type "Array" at ${nf}/${nargs} ("${introspect(x).join("/")}" received)`)
+      throw new TypeError(`${fname} expects value of type "Array" at ${nf}/${nargs} ("${introspect(x)}" received)`)
     },
     
     ReturnType: ({x, fname}) => {
-      throw new ReturnTypeError(`${fname} must return value of type "Array" ("${introspect(x).join("/")}" returned)`);
+      throw new ReturnTypeError(`${fname} must return value of type "Array" ("${introspect(x)}" returned)`);
     }
   }) (o);
 };
@@ -342,10 +343,10 @@ arr.toString = () => "Array";
 
 const boo = o => {
   if (!isSumOf(Contract) (o)) throw new TypeSysError(
-    `boo expects value of type "Contract (a)" at 1/1 ("${introspect(o).join("/")}" received)`
+    `boo expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
 
-  if (o[$mono] === "Contract (Boolean)") return o;
+  if (introspect(o.x) === "Boolean") return o
   
   Contract[$cata] ({
     Arity: ({fname}) => {
@@ -353,11 +354,11 @@ const boo = o => {
     },
 
     Type: ({x, fname, nf, nargs}) => {
-      throw new TypeError(`${fname} expects value of type "Boolean" at ${nf}/${nargs} ("${introspect(x).join("/")}" received)`)
+      throw new TypeError(`${fname} expects value of type "Boolean" at ${nf}/${nargs} ("${introspect(x)}" received)`)
     },
     
     ReturnType: ({x, fname}) => {
-      throw new ReturnTypeError(`${fname} must return value of type "Boolean" ("${introspect(x).join("/")}" returned)`);
+      throw new ReturnTypeError(`${fname} must return value of type "Boolean" ("${introspect(x)}" returned)`);
     }
   }) (o);
 };
@@ -370,7 +371,7 @@ boo.toString = () => "Boolean";
 
 const nary = o => {
   if (!isSumOf(Contract) (o)) throw new TypeSysError(
-    `ary expects value of type "Contract (a)" at 1/1 ("${introspect(o).join("/")}" received)`
+    `ary expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
 
   if (o.x.length !== o.n) {  
@@ -398,10 +399,10 @@ const nary = o => {
 
 const num = o => {
   if (!isSumOf(Contract) (o)) throw new TypeSysError(
-    `num expects value of type "Contract (a)" at 1/1 ("${introspect(o).join("/")}" received)`
+    `num expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
 
-  if (o[$mono] === "Contract (Number)") return o;
+  if (introspect(o.x) === "Number") return o
   
   Contract[$cata] ({
     Arity: ({fname}) => {
@@ -409,11 +410,11 @@ const num = o => {
     },
 
     Type: ({x, fname, nf, nargs}) => {
-      throw new TypeError(`${fname} expects value of type "Number" at ${nf}/${nargs} ("${introspect(x).join("/")}" received)`)
+      throw new TypeError(`${fname} expects value of type "Number" at ${nf}/${nargs} ("${introspect(x)}" received)`)
     },
     
     ReturnType: ({x, fname}) => {
-      throw new ReturnTypeError(`${fname} must return value of type "Number" ("${introspect(x).join("/")}" returned)`);
+      throw new ReturnTypeError(`${fname} must return value of type "Number" ("${introspect(x)}" returned)`);
     }
   }) (o);
 };
@@ -426,10 +427,10 @@ num.toString = () => "Number";
 
 const str = o => {
   if (!isSumOf(Contract) (o)) throw new TypeSysError(
-    `str expects value of type "Contract (a)" at 1/1 ("${introspect(o).join("/")}" received)`
+    `str expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
 
-  if (o[$mono] === "Contract (String)") return o;
+  if (introspect(o.x) === "String") return o
   
   Contract[$cata] ({
     Arity: ({fname}) => {
@@ -437,11 +438,11 @@ const str = o => {
     },
 
     Type: ({x, fname, nf, nargs}) => {
-      throw new TypeError(`${fname} expects value of type "String" at ${nf}/${nargs} ("${introspect(x).join("/")}" received)`)
+      throw new TypeError(`${fname} expects value of type "String" at ${nf}/${nargs} ("${introspect(x)}" received)`)
     },
     
     ReturnType: ({x, fname}) => {
-      throw new ReturnTypeError(`${fname} must return value of type "String" ("${introspect(x).join("/")}" returned)`);
+      throw new ReturnTypeError(`${fname} must return value of type "String" ("${introspect(x)}" returned)`);
     }
   }) (o);
 };
@@ -457,12 +458,12 @@ str.toString = () => "String";
 
 const arrOf = c => {
   if (!isUnary(c)) throw new TypeSysError(
-    `arrOf expects function of type "Contract (a) -> Contract (a)" at 1/1 ("${introspect(c).join("/")}" received)`
+    `arrOf expects function of type "Contract (a) -> Contract (a)" at 1/1 ("${introspect(c)}" received)`
   );
 
   const arrOf = o => {
     if (!isSumOf(Contract) (o)) throw new TypeSysError(
-      `arrOf expects value of type "Contract (a)" at 2/1 ("${introspect(o).join("/")}" received)`
+      `arrOf expects value of type "Contract (a)" at 2/1 ("${introspect(o)}" received)`
     );
 
     if (!isArr(o.x)) throw new TypeError(
@@ -472,17 +473,28 @@ const arrOf = c => {
         },
 
         Type: ({x, fname, nf, nargs}) => {
-          throw new TypeError(`${fname} expects value of type "[a]" at ${nf}/${nargs} ("${introspect(x).join("/")}" received)`)
+          throw new TypeError(`${fname} expects value of type "[a]" at ${nf}/${nargs} ("${introspect(x)}" received)`)
         },
         
         ReturnType: ({x, fname}) => {
-          throw new ReturnTypeError(`${fname} must return value of type "[a]" ("${introspect(x).join("/")}" returned)`);
+          throw new ReturnTypeError(`${fname} must return value of type "[a]" ("${introspect(x)}" returned)`);
         }
       }) (o)
     );
 
     if (o.x[$mono] === type) return o;
-    return (o.x.forEach(x => c(Type(x, c.name, 1, 1))), o);
+
+    Contract[$cata] ({
+      Arity: ({fname}) => {
+        throw new TypeSysError(`arrOf cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`);
+      },
+
+      Type: ({x: xs, fname, nf, nargs}) => xs.forEach(x => c(Type(x, name, nf, nargs))),
+
+      ReturnType: ({x: xs, fname}) => xs.forEach(x => c(ReturnType(x, name)))
+    }) (o);
+
+    return o;
   };
 
   const type = `[${c}]`;
@@ -676,34 +688,30 @@ const isVariadic = isNullary;
 
 
 // introspect (rev 0.1)
-// a -> [String]
+// a -> String
 
 const introspect = x => {
   switch (typeof x) {
-    case "undefined": return ["Undefined"];
+    case "undefined": return "Undefined";
 
     case "number": {
-      if (isNaN(x)) return ["Number", "NaN"];
-      if (!isFinite(x)) return  ["Number", "Infinity"];
+      if (isNaN(x)) return "NaN";
+      if (!isFinite(x)) return "Infinity";
       return ["Number"];
     }
 
-    case "string": return ["String"];
-    case "boolean": return ["Boolean"];
-    case "symbol": return ["Symbol"];
-
-    case "function": return x.name !== ""
-     ? ["Function", x.name]
-     : ["Function"];
+    case "string": return "String";
+    case "boolean": return "Boolean";
+    case "symbol": return "Symbol";
+    case "function": return "Function";
 
     case "object": {
-      if (x === null) return ["Null"];
-      if ($mono in x) return [x[$mono]];
+      if (x === null) return "Null";
+      if ($mono in x) return x[$mono];
       return Array.from(new Set([
-        "Object",
         getType(x),
         x.constructor.name
-      ]));
+      ])).reduce((acc, s) => s !== "Object" ? s : acc, "Object");
     }
   }
 };
@@ -824,11 +832,11 @@ const has = k => o => k in o;
 const Arr = (c, xs) => {
   if (TYPE_CHECK) {
     if (!isNullary(c)) throw new TypeSysError(
-      `Arr expects function of type "() -> Contract (a) -> Contract (a)" at 1/1 ("${introspect(c).join("/")}" received)`
+      `Arr expects function of type "() -> Contract (a) -> Contract (a)" at 1/1 ("${introspect(c)}" received)`
     );
 
     if (!isArr(xs)) throw new TypeSysError(
-      `Arr expects value of type "Array" at 1/2 ("${introspect(xs).join("/")}" received)`
+      `Arr expects value of type "Array" at 1/2 ("${introspect(xs)}" received)`
     );
 
     c = c();
