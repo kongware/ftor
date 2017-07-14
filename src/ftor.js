@@ -96,7 +96,7 @@ const virt = (fname, f, ...cs) => {
       );
     });
 
-    const g = new Proxy(f, handleF(fname, cs.map(c => c()), 1));
+    const g = new Proxy(f, handleFun(fname, cs.map(c => c()), 1));
     g.toString = Function.prototype.toString.bind(f);
     return g;
   }
@@ -110,7 +110,7 @@ const virt = (fname, f, ...cs) => {
 // handle apply traps for virtualized functions
 // (String, Contract (a), (...Contract (a) -> Contract (a)), Number) -> Function
 
-const handleF = (fname, [c, ...cs], n) => ({
+const handleFun = (fname, [c, ...cs], n) => ({
   apply: (f, _, args) => {
     const o = c(Type(args, fname, n, 1));
 
@@ -129,7 +129,7 @@ const handleF = (fname, [c, ...cs], n) => ({
       return r;
     }
 
-    const g = new Proxy(f(...args), handleF(fname, cs, n + 1))
+    const g = new Proxy(f(...args), handleFun(fname, cs, n + 1))
     g.toString = Function.prototype.toString.bind(f);
     return g;
   },
@@ -849,43 +849,55 @@ const has = k => o => k in o;
 ******************************************************************************/
 
 // Array (rev 0.1)
-// (() -> Contract (a) -> Contract (a)) -> [a] -> [a]
+// (Contract (a) -> Contract (a)) -> [a] -> [a]
 
-const Arr = (c, xs) => {
+const Arr = c => {
   if (TYPE_CHECK) {
-    if (!isNullary(c)) throw new TypeSysError(
-      `Arr expects function of type "() -> Contract (a) -> Contract (a)" at 1/1 ("${introspect(c)}" received)`
+    if (!isUnary(c)) throw new TypeSysError(
+      `Arr expects function of type "Contract (a) -> Contract (a)" at 1/1 ("${introspect(c)}" received)`
     );
-
-    if (!isArr(xs)) throw new TypeSysError(
-      `Arr expects value of type "Array" at 1/2 ("${introspect(xs)}" received)`
-    );
-
-    c = c();
-
-    const poly = "[a]",
-     mono = `[${c}]`;
-
-    return new Proxy(arrOf(c) (Type(xs, "Arr", 1, 2)).x, {
-      get: (o, k, _) => {
-        if (k === $poly) return poly;
-        if (k === $mono) return mono;
-        if (!(k in o)) throw new TypeError(`invalid property request "${k}"" for type ${mono}`);
-        return o[k];
-      },
-
-      set: (o, k, v, _) => {
-        throw new TypeError(`invalid destructive set of "${k}: ${v}" for immutable type "${mono}"`);
-      }
-    });
   }
 
-  return xs;
+  const Arr = xs => {
+    if (TYPE_CHECK) {
+      if (!isArr(xs)) throw new TypeSysError(
+        `Arr expects value of type "Array" at 2/1 ("${introspect(xs)}" received)`
+      );
+
+      const poly = "[a]",
+       mono = `[${c}]`;
+
+      return new Proxy(arrOf(c) (Type(xs, "Arr", 2, 1)).x, handleArr(poly, mono));
+    }
+
+    return xs;
+  };
+
+  return Arr;
 };
 
 Arr.of = (c, ...xs) => Arr(c, xs);
 
 Arr.from = (c, iter) => Arr(c, Array.from(iter));
+
+
+// handle array (rev 0.1)
+// internal
+// handle get/set traps for virtualized arrays
+// (String, String) -> Array
+
+const handleArr = (poly, mono) => ({
+  get: (o, k, _) => {
+    if (k === $poly) return poly;
+    if (k === $mono) return mono;
+    if (!(k in o)) throw new TypeError(`invalid property request "${k}" for type ${mono}`);
+    return o[k];
+  },
+
+  set: (o, k, v, _) => {
+    throw new TypeError(`invalid destructive set of "${k}: ${v}" for immutable type "${mono}"`);
+  }
+});
 
 
 /******************************************************************************
