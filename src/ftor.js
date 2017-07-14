@@ -152,23 +152,27 @@ Contract.toString = () => "Contract (a)";
 
 
 // Arity (rev 0.1)
-// (a, String, Number) -> Contract a
+// (a, String, Number, Number) -> Contract a
 
-const Arity = (x, fname, n) => {
+const Arity = (x, fname, nf, n) => {
   if (TYPE_CHECK) {
     if (!isStr(fname)) throw new TypeSysError(
       `Arity expects value of type "String" at 1/2 ("${introspect(fname).join("/")}" received)`
     );
 
+    if (!isNat(nf)) throw new TypeSysError(
+      `Arity expects value of type "natural Number" at 1/3 ("${introspect(nf).join("/")}" received)`
+    );
+
     if (!isNat(n)) throw new TypeSysError(
-      `Arity expects value of type "natural Number" at 1/3 ("${introspect(n).join("/")}" received)`
+      `Arity expects value of type "natural Number" at 1/4 ("${introspect(n).join("/")}" received)`
     );
   }
   
   const r = {
     [$tag]: Arity,
-    toString: () => `Arity (${x}, ${fname}, ${n})`,
-    x, fname, n
+    toString: () => `Arity (${x}, ${fname}, ${nf}, ${n})`,
+    x, fname, nf, n
   };
 
   if (TYPE_CHECK) {
@@ -265,20 +269,19 @@ const arity = n => {
         `arity expects value of type "Contract (a)" at 3/1 ("${introspect(o).join("/")}" received)`
       );
 
-      if (isFinite(n)) nary(Arity(o.x, o.fname, n));
+      if (isFinite(n)) nary(Arity(o.x, o.fname, o.nf, n));
 
-      const aux = ([c, ...cs], m) => {
-        const r = c(Type(o.x[m], o.fname, o.nf, o.nargs));
+      o.x.forEach((x, m) => {
+        const r = isFinite(n)
+         ? cs[m] (Type(x, o.fname, o.nf, m + 1))
+         : cs[0] (Type(x, o.fname, o.nf, m + 1));
 
         if (!isSumOf(Contract) (r)) throw new TypeSysError(
-          `${c} must return value of type "Contract (a)" ("${introspect(r).join("/")}" returned)`
+          `${cs[m]} must return value of type "Contract (a)" ("${introspect(r).join("/")}" returned)`
         );
+      });
 
-        if (cs.length === 0) return o;
-        return aux(cs, m + 1);
-      };
-
-      return aux(cs, 0);
+      return o
     };
 
     return arity;
@@ -288,25 +291,7 @@ const arity = n => {
 };
 
 
-// nullary (rev 0.1)
-// (Contract (a) -> Contract (a)) -> Contract (a) -> Contract (a)
-
-const nullary = c => {
-  if (!isUnary(c)) throw new TypeSysError(
-    `nullary expects value of type "Contract (a) -> Contract (a)" at 1/1 ("${introspect(c).join("/")}" received)`
-  );
-
-  const nullary = o => {
-    if (!isSumOf(Contract) (o)) throw new TypeSysError(
-      `nullary expects value of type "Contract (a)" at 2/1 ("${introspect(o).join("/")}" received)`
-    );
-
-    nary(Arity(o.x, o.fname, 0));
-    return o;
-  };
-
-  return nullary;
-};
+// nullary see @ section XX. DERIVED
 
 
 // unary see @ section XX. DERIVED
@@ -390,8 +375,8 @@ const nary = o => {
 
   if (o.x.length !== o.n) {  
     Contract[$cata] ({
-      Arity: ({fname, n, x}) => {
-        throw new ArityError(`${fname} expects ${n} argument(s) (${x.length} received)`)
+      Arity: ({x, fname, nf, n}) => {
+        throw new ArityError(`${fname} expects ${n} argument(s) at ${nf} (${x.length} received)`)
       },
       
       Type: ({fname}) => {
@@ -403,6 +388,8 @@ const nary = o => {
       },
     }) (o);
   }
+
+  return o;
 };
 
 
@@ -465,8 +452,8 @@ str.toString = () => "String";
 // --[ POLYMORPHIC CONTRACTS ]-------------------------------------------------
 
 
-// array of (rev 0)
-// (Contract (a) -> Contract (a)) -> [a] -> [a] ???
+// array of (rev 0.1)
+// (Contract (a) -> Contract (a)) -> Contract (a) -> Contract (a)
 
 const arrOf = c => {
   if (!isUnary(c)) throw new TypeSysError(
@@ -968,6 +955,12 @@ Contract[$cata] = cata(Contract, ["Arity", "Type", "ReturnType"]);
 // --[ ARITY CONTRACTS ]-------------------------------------------------------
 
 
+// nullary (rev 0.1)
+// [a] -> {status: String -> Error}
+
+const nullary = arity(0) ();
+
+
 // unary (rev 0.1)
 // (...? -> ?) -> [a] -> {status: String -> Error}
 
@@ -987,7 +980,7 @@ const ternary = arity(3);
 
 
 // variadic (rev 0.1)
-// (...? -> ?) -> [?] -> {status: String -> Error}
+// (...? -> ?) -> [a, b, c] -> {status: String -> Error}
 
 const variadic = arity(Infinity);
 
