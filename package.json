@@ -1,9 +1,9 @@
 {
   "name": "ftor",
   "author": "Iven Marquardt <info@kongware.net>",
-  "version": "0.3.1",
+  "version": "0.3.8",
   "description": "The functional paradigm adapted for untyped environments and encoded in Javascript.",
-  "main": "/src/ftor.js",
+  "main": "src/ftor.js",
   "license": "MIT",
   "repository": {
     "type": "git",
