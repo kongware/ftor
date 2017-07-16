@@ -123,10 +123,26 @@ As you can see parenthesis are always set, also unnecessarily.
 
 I'll switch to ES2015 modules as soon as there is native support by browser vendors.
 
-# Runtime type system
+# Type systems
 
-Functional programming without strict types isn't reasonable. Hence we must pretend Javascript would have a strict type system. But how would such a type system affect our programming? How should we develop a better feeling for types when there are none?
+ftor ships with an augmented runtime type system that guides your developing and leads to more robust programms. Let's make a short detour to static type systems to better comprehend the need of such a type system in connection with untyped languages.
 
-For this reason ftor ships with a pluggable runtime type system, that is to say you can switch it on and off whenever you want. It covers curried, multi-argument, variadic and polymorphic functions, all built-in types, polymorphic types, tuples, records, homogenous collections and dictionaries and above all, sum types!
+## Static type system
 
-Find more within a few days...
+What role does a static type system play?
+
+* it offers a guarantee at compile time that a large class of errors cannot occur at run time
+* it comes along with certain optimization techniques, which lead to less boilerplate code and improved performance (e.g. automatic deriving, type erasure, optimized implementations per type)
+* it provides an abstract and hence succinct way to express your intentions for both, other developers and the machine
+* it restricts the structure of your program (to meaningful data structures and algorithms on them)
+* it offers means to mitigate these constraints without losing the type guarantee (polymorphism)
+
+## Dynamic type system
+
+With Javascript's trivial dynamic type system we lose all the characteristics listed above. We can work with any data structure we want and algorithms are inherently "generic", but in an often undesired manner. Although this may be a blessing for trivial programs, it is a curse for more complex software.
+
+Usually one maintains countless unit tests to get a sort of guarantee that a program will run as intended. In the following paragraphs I am going to demonstrate an additional technique that doesn't replace unit tests, but complement them in order to improve coding productivity and code robustness.
+
+## Augmented runtime type system
+
+...
