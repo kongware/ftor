@@ -27,11 +27,9 @@ With ftor you develop a feel for
 * co-/recursion
 * lazy evaluation
 
-There is a good chance that you are a better programmer afterwards :D
-
 ## Design Principles
 
-* abstraction vs. comprehensibility
+* abstraction/generalization vs. comprehensibility
 * advanced techniques vs. low barrier to entry
 * functional purity vs. performance
 * idiomatic code vs. thinking outside the box
@@ -124,11 +122,11 @@ As you can see parenthesis are always set, also unnecessarily.
 
 I'll switch to ES2015 modules as soon as there is native support by browser vendors.
 
-# Type systems
+# 1. Type systems
 
 ftor ships with an augmented runtime type system that guides your developing and leads to more robust programms and higher productivity. Let's make a short detour to static type systems to better comprehend the need of such a runtime type system in connection with untyped languages.
 
-## Static type system
+## 1.1. Static type system
 
 What role does a static type system play?
 
@@ -138,13 +136,13 @@ What role does a static type system play?
 * it restricts the structure of your program (to meaningful data structures and algorithms on them)
 * it offers means to mitigate these constraints without losing the type guarantee (polymorphism)
 
-## Dynamic type system
+## 1.2. Dynamic type system
 
 With Javascript's trivial dynamic type system we lose all the characteristics listed above. We can work with any data structure we want and algorithms are inherently "generic", but in an often undesired manner. Although this may be a blessing for trivial programs, it is a curse for more complex software.
 
 Usually one maintains countless unit tests to get a sort of guarantee that a program will run as intended. In the following paragraphs I am going to demonstrate an additional technique that doesn't replace unit tests, but complement them in order to improve coding productivity and code robustness.
 
-3. Augmented runtime type system
+## 1.3. Augmented runtime type system
 
 ftor encourages you to pursue type-directed programming, because I believe that a type system makes it easier to write complex programs. Software designs are very clearly expressed using types, because the latter provide a high level of abstraction, i.e. a lot of distracting details are omitted. Usually, when you encounter a specific function type, it is pretty easy to cut down the space of possible code you could write to a very small number of candidates. Type annotations are usually much smaller then the corresponding code and that is a big win.
 
@@ -152,46 +150,46 @@ Instead of a static type checker ftor offers a plugable, runtime type system for
 
 The next sections are going to cover the different type families like primitves, exponential (functional) types, product types and sum types.
 
-3.2. Functional types
+### 1.3.1. Functional types
 
 ...
 
-3.2.1. Curried functions
+#### 1.3.1.1. Curried functions
 
 ...
 
-3.2.2. N-ary functions
+#### 1.3.1.2. Multi-argument functions
 
 ...
 
-3.2.3. Variadic functions
+#### 1.3.1.3. Variadic functions
 
 ...
 
-3.2.4. Polymorphic functions
+#### 1.3.1.4. Polymorphic functions
 
 ...
 
-3.2.4.1. Parametric polymorphism
+Parametric polymorphism
 
 ...
 
-3.2.4.2. Ad-hoc polymorphism
+Ad-hoc polymorphism
 
 ...
 
-3.3. Primitive types
+### 1.3.2. Primitive types
 
 ...
 
-3.4. Product types
+### 1.3.3. Product types
 
 ...
 
-3.5. Sum types
+### 1.3.4. Sum types
 
 ...
 
-3.6. Prototypes
+### 1.3.5. Prototypes
 
 ...
