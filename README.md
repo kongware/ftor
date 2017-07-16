@@ -9,11 +9,11 @@ This library is experimental and still work in progress.
 
 ## What
 
-ftor is a library that offers type-directed programming and functional programming idioms in an untyped language like Javascript.
+ftor is a functional programming library that adapts the functional paradigm meaningfully for untyped environments.
 
 ## Why
 
-ftor teaches you type-directed programming and fundamental functional idioms, which are extremely generalized concepts and language agnostic. This means you can use this knowledge in countless scenarios, regardless of the programming language you're working with. In order to achieve this ftor doesn't force you to learn a new language. You can just stick to the Lingua Franca of the web - Javascript.
+ftor teaches you type-directed programming and fundamental functional idioms, which are extremely generalized concepts and language agnostic. That means you can use this knowledge in various scenarios, regardless of the programming language you're working with. In doing so ftor neither introduces a new language (and treats Javascript merely as a compile target) nor relies on new syntax (by macros) but simply stick to vanilla Javascript.
 
 With ftor you develop a feel for
 
