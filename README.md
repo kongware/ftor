@@ -146,7 +146,7 @@ Usually one maintains countless unit tests to get a sort of guarantee that a pro
 
 3. Augmented runtime type system
 
-ftor encourages you to pursue type-directed programming, because I believe that a type system makes it easier to write complex programs. Software designs are very clearly expressed using types, because the latter provide a high level of abstraction, i.e. a lot of distracting details are omitted. Type annotations are usually much smaller then the corresponding code and that is a big win.
+ftor encourages you to pursue type-directed programming, because I believe that a type system makes it easier to write complex programs. Software designs are very clearly expressed using types, because the latter provide a high level of abstraction, i.e. a lot of distracting details are omitted. Usually, when you encounter a specific function type, it is pretty easy to cut down the space of possible code you could write to a very small number of candidates. Type annotations are usually much smaller then the corresponding code and that is a big win.
 
 Instead of a static type checker ftor offers a plugable, runtime type system for the development stage, which augments Javascript's dynamic type system with non-trivial features. In order to achieve a minimal footprint on the production system, where this type system is "unplugged", it relies heavily on proxy virtualization, that is to say functions and composite data types are replaced by their corresponding proxy objects, which handle the additional behavior.
 
