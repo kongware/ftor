@@ -13,7 +13,7 @@ ftor is a functional programming library that adapts the functional paradigm mea
 
 ## Why
 
-ftor teaches you type-directed programming and fundamental functional idioms, which are extremely generalized concepts and language agnostic. That means you can use this knowledge in various scenarios, regardless of the programming language you're working with. In doing so ftor neither introduces a new language (and treats Javascript merely as a compile target) nor relies on new syntax (by macros) but simply stick to vanilla Javascript.
+ftor teaches you type-directed programming and fundamental functional idioms, which are extremely generalized concepts and language agnostic. That means you can use this knowledge in various scenarios, regardless of the programming language you're working with. In doing so ftor neither introduces a new language (and treats Javascript merely as a compile target) nor relies on new syntax (by macros), but simply sticks to vanilla Javascript.
 
 With ftor you develop a feel for
 
@@ -144,6 +144,54 @@ With Javascript's trivial dynamic type system we lose all the characteristics li
 
 Usually one maintains countless unit tests to get a sort of guarantee that a program will run as intended. In the following paragraphs I am going to demonstrate an additional technique that doesn't replace unit tests, but complement them in order to improve coding productivity and code robustness.
 
-## Augmented runtime type system
+3. Augmented runtime type system
+
+...
+
+3.1. Type-directed programming
+
+...
+
+3.2. Functional types
+
+...
+
+3.2.1. Curried functions
+
+...
+
+3.2.2. N-ary functions
+
+...
+
+3.2.3. Variadic functions
+
+...
+
+3.2.4. Polymorphic functions
+
+...
+
+3.2.4.1. Parametric polymorphism
+
+...
+
+3.2.4.2. Ad-hoc polymorphism
+
+...
+
+3.3. Primitive types
+
+...
+
+3.4. Product types
+
+...
+
+3.5. Sum types
+
+...
+
+3.6. Prototypes
 
 ...
