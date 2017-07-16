@@ -9,11 +9,11 @@ This library is experimental and still work in progress.
 
 ## What
 
-ftor is a library that adapts the functional paradigm meaningfully for untyped languages like Javascript.
+ftor is a library that offers type-directed programming and functional programming idioms in an untyped language like Javascript.
 
 ## Why
 
-ftor teaches you the fundamental functional idioms, which are extremely generalized concepts and language agnostic. This means you can use this knowledge in countless scenarios, regardless of the programming language you're working on. In order to achieve this ftor doesn't force you to learn a new language. You can just stick to the Lingua Franca of the web - Javascript.
+ftor teaches you type-directed programming and fundamental functional idioms, which are extremely generalized concepts and language agnostic. This means you can use this knowledge in countless scenarios, regardless of the programming language you're working with. In order to achieve this ftor doesn't force you to learn a new language. You can just stick to the Lingua Franca of the web - Javascript.
 
 With ftor you develop a feel for
 
@@ -38,6 +38,7 @@ There is a good chance that you are a better programmer afterwards :D
 
 ## Programming Guidelines
 
+* first get the types right before you start implementing
 * whenever you can do it with a pure function, just do it with a pure function
 * reify effects to first class values
 * defer the execution of effects as long as possible
@@ -125,7 +126,7 @@ I'll switch to ES2015 modules as soon as there is native support by browser vend
 
 # Type systems
 
-ftor ships with an augmented runtime type system that guides your developing and leads to more robust programms. Let's make a short detour to static type systems to better comprehend the need of such a type system in connection with untyped languages.
+ftor ships with an augmented runtime type system that guides your developing and leads to more robust programms and higher productivity. Let's make a short detour to static type systems to better comprehend the need of such a runtime type system in connection with untyped languages.
 
 ## Static type system
 
