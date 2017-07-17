@@ -186,6 +186,22 @@ Ad-hoc polymorphism
 
 ...
 
+#### 1.3.3.1. Tuple
+
+...
+
+#### 1.3.3.2. Record
+
+...
+
+#### 1.3.3.3. Array
+
+...
+
+#### 1.3.3.4. Dictionary
+
+...
+
 ### 1.3.4. Sum types
 
 ...

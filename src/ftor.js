@@ -273,7 +273,7 @@ const arity = n => {
         `arity expects value of type "Contract (a)" at 3/1 ("${introspect(o)}" received)`
       );
 
-      if (isFinite(n)) nary(Arity(o.x, o.fname, o.nf, n));
+      if (isFinite(n)) length(Arity(o.x, o.fname, o.nf, n));
 
       o.x.forEach((x, m) => {
         const r = isFinite(n)
@@ -501,13 +501,13 @@ const arrOf = c => {
 arrOf.toString = () => "[a]";
 
 
-// n-ary (rev 0.1)
+// length (rev 0.1)
 // internal
 // Contract (a) -> Contract (a)
 
-const nary = o => {
+const length = o => {
   if (!isSumOf(Contract) (o)) throw new TypeSysError(
-    `ary expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
+    `length expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
 
   if (o.x.length !== o.n) {  
@@ -517,11 +517,11 @@ const nary = o => {
       },
       
       Type: ({fname}) => {
-        throw new TypeSysError(`ary cannot handle values of type "Contract (a)" tagged with "Type" for ${fname}`);
+        throw new TypeSysError(`length cannot handle values of type "Contract (a)" tagged with "Type" for ${fname}`);
       },
 
       ReturnType: ({fname}) => {
-        throw new TypeSysError(`ary cannot handle values of type "Contract (a)" tagged with "ReturnType" for ${fname}`);
+        throw new TypeSysError(`length cannot handle values of type "Contract (a)" tagged with "ReturnType" for ${fname}`);
       },
     }) (o);
   }
@@ -839,14 +839,65 @@ const _throw = cons => s => {throw new cons(s)};
 ******************************************************************************/
 
 
+// handle product type (rev 0.1)
+// internal
+// handle get/set traps for virtualized product types
+// (String, String) -> Array
+
+const handleProd = (poly, mono) => ({
+  get: (o, k, _) => {
+    if (k === $poly) return poly;
+    if (k === $mono) return mono;
+    if (k === Symbol.toStringTag) return o[k];
+    if (!(k in o)) throw new TypeError(`invalid property request "${k}" for type ${mono}`);
+    return o[k];
+  },
+
+  set: (o, k, v, _) => {
+    throw new TypeError(`invalid destructive set of "${k}: ${v}" for immutable type "${mono}"`);
+  }
+});
+
+
 /******************************************************************************
-********************************[ 4.1. OBJECT ]********************************
+********************************[ 4.1. TUPLE ]*********************************
+******************************************************************************/
+
+
+// Tuple (rev 0.1)
+// 
+
+const Tuple = (cs, xs) => {
+  if (TYPE_CHECK) {
+    if (!isArrOf(isUnary) (cs)) throw new TypeSysError(
+      `Arr expects array of type "[Contract (a) -> Contract (a)]" at 1/1 ("${introspect(cs)}" received)`
+    );
+
+    if (!isArr(xs)) throw new TypeSysError(
+      `Arr expects value of type "Array" at 1/2 ("${introspect(xs)}" received)`
+    );
+
+    const poly = "[a]",
+     mono = "(" + cs.map(c => c + "").join(",") + ")";
+
+    length(Arity(xs, "Tuple", 1, cs.length));
+    cs.forEach((c, i) => cs[i] (Type(xs[i], "Tuple", 1, 2)));
+    return new Proxy(xs, handleProd(poly, mono));
+  }
+
+  return xs;
+};
+
+
+/******************************************************************************
+********************************[ 4.2. RECORD ]********************************
 ******************************************************************************/
 
 
 /******************************************************************************
-********************************[ 4.2. ARRAY ]*********************************
+********************************[ 4.3. ARRAY ]*********************************
 ******************************************************************************/
+
 
 // Array (rev 0.1)
 // ((Contract (a) -> Contract (a)), [a]) -> [a]
@@ -864,7 +915,8 @@ const Arr = (c, xs) => {
     const poly = "[a]",
      mono = `[${c}]`;
 
-    return new Proxy(arrOf(c) (Type(xs, "Arr", 2, 1)).x, handleArr(poly, mono));
+    arrOf(c) (Type(xs, "Arr", 1, 2));
+    return new Proxy(xs, handleProd(poly, mono));
   }
 
   return xs;
@@ -875,24 +927,9 @@ Arr.of = (c, ...xs) => Arr(c, xs);
 Arr.from = (c, iter) => Arr(c, Array.from(iter));
 
 
-// handle array (rev 0.1)
-// internal
-// handle get/set traps for virtualized arrays
-// (String, String) -> Array
-
-const handleArr = (poly, mono) => ({
-  get: (o, k, _) => {
-    if (k === $poly) return poly;
-    if (k === $mono) return mono;
-    if (k === Symbol.toStringTag) return o[k];
-    if (!(k in o)) throw new TypeError(`invalid property request "${k}" for type ${mono}`);
-    return o[k];
-  },
-
-  set: (o, k, v, _) => {
-    throw new TypeError(`invalid destructive set of "${k}: ${v}" for immutable type "${mono}"`);
-  }
-});
+/******************************************************************************
+******************************[ 4.4. DICTIONARY ]******************************
+******************************************************************************/
 
 
 /******************************************************************************
@@ -1038,6 +1075,7 @@ module.exports = {
   $tag,
   ternary,
   _throw,
+  Tuple,
   unary,
   variadic,
   virt,
