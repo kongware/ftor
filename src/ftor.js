@@ -77,22 +77,22 @@ const $cata = Symbol.for(SYM_PREFIX + "cata");
 // --[ PROXY ]-----------------------------------------------------------------
 
 
-// virtualize (rev 0.1)
+// Function (rev 0.1)
 // (String, Function, (...() -> Contract (a) -> Contract (a))) -> Function
 
-const virt = (fname, f, ...cs) => {
+const Fun = (fname, f, ...cs) => {
   if (TYPE_CHECK) {
     if (!isStr(fname)) throw new TypeSysError(
-      `virt expects value of type "String" at 1/1 ("${introspect(fname)}" received)`
+      `Fun expects value of type "String" at 1/1 ("${introspect(fname)}" received)`
     );
 
     if (!isFun(f)) throw new TypeSysError(
-      `virt expects value of type "Function" at 1/2 ("${introspect(f)}" received)`
+      `Fun expects value of type "Function" at 1/2 ("${introspect(f)}" received)`
     );
 
     cs.forEach(c => {
       if (!isNullary(c)) throw new TypeSysError(
-        `virt expects Array of type "() -> Contract (a) -> Contract (a)" at 1/3 ("${introspect(c)}" received)`
+        `Fun expects Array of type "() -> Contract (a) -> Contract (a)" at 1/3 ("${introspect(c)}" received)`
       );
     });
 
@@ -273,7 +273,7 @@ const arity = n => {
         `arity expects value of type "Contract (a)" at 3/1 ("${introspect(o)}" received)`
       );
 
-      if (isFinite(n)) length(Arity(o.x, o.fname, o.nf, n));
+      if (isFinite(n)) nary(Arity(o.x, o.fname, o.nf, n));
 
       o.x.forEach((x, m) => {
         const r = isFinite(n)
@@ -465,19 +465,19 @@ const arrOf = c => {
 
         Type: ({x, fname, nf, nargs}) => {
           throw new TypeError(
-            `${fname} expects value of type "[${c}]" at ${nf}/${nargs} ("${introspect(x)}" received)`
+            `${fname} expects value of type "${mono}" at ${nf}/${nargs} ("${introspect(x)}" received)`
           );
         },
         
         ReturnType: ({x, fname}) => {
           throw new ReturnTypeError(
-            `${fname} must return value of type "[${c}]" ("${introspect(x)}" returned)`
+            `${fname} must return value of type "${mono}" ("${introspect(x)}" returned)`
           );
         }
       }) (o)
     );
 
-    if (o.x[$mono] === type) return o;
+    if (o.x[$mono] === mono) return o;
 
     Contract[$cata] ({
       Arity: ({fname}) => {
@@ -494,18 +494,18 @@ const arrOf = c => {
     return o;
   };
 
-  const type = `[${c}]`;
-  return arrOf.toString = () => type, arrOf;
+  const mono = `[${c}]`;
+  return arrOf.toString = () => mono, arrOf;
 };
 
 arrOf.toString = () => "[a]";
 
 
-// length (rev 0.1)
+// n-ary (rev 0.1)
 // internal
 // Contract (a) -> Contract (a)
 
-const length = o => {
+const nary = o => {
   if (!isSumOf(Contract) (o)) throw new TypeSysError(
     `length expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
@@ -528,6 +528,65 @@ const length = o => {
 
   return o;
 };
+
+
+// tuple of (rev 0.1)
+// (Contract (a) -> Contract (a)) -> Contract (a) -> Contract (a)
+
+const tupleOf = cs => {
+  if (!isArrOf(isUnary) (cs)) throw new TypeSysError(
+    `tupleOf expects function of type "Contract (a) -> Contract (a)" at 1/1 ("${introspect(cs)}" received)`
+  );
+
+  const tupleOf = o => {
+    if (!isSumOf(Contract) (o)) throw new TypeSysError(
+      `tupleOf expects value of type "Contract (a)" at 2/1 ("${introspect(o)}" received)`
+    );
+
+    if (o[$mono] !== "Contract (Array)") throw new TypeError(
+      Contract[$cata] ({
+        Arity: ({fname}) => {
+          throw new TypeSysError(
+            `tupleOf cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`
+          );
+        },
+
+        Type: ({x, fname, nf, nargs}) => {
+          throw new TypeError(
+            `${fname} expects value of type "${mono}" at ${nf}/${nargs} ("${introspect(x)}" received)`
+          );
+        },
+        
+        ReturnType: ({x, fname}) => {
+          throw new ReturnTypeError(
+            `${fname} must return value of type "${mono}" ("${introspect(x)}" returned)`
+          );
+        }
+      }) (o)
+    );
+
+    if (o.x[$mono] === mono) return o;
+
+    Contract[$cata] ({
+      Arity: ({fname}) => {
+        throw new TypeSysError(
+          `tupleOf cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`
+        );
+      },
+
+      Type: ({x: xs, fname, nf, nargs}) => xs.forEach(x => c(Type(x, fname, nf, nargs))),
+
+      ReturnType: ({x: xs, fname}) => xs.forEach(x => c(ReturnType(x, fname)))
+    }) (o);
+
+    return o;
+  };
+
+  const mono = `(${cs.map(c => c + "").join(",")})`;
+  return tupleOf.toString = () => mono, tupleOf;
+};
+
+tupleOf.toString = () => "(?)";
 
 
 // --[ REFLECTION ]------------------------------------------------------------
@@ -865,7 +924,7 @@ const handleProd = (poly, mono) => ({
 
 
 // Tuple (rev 0.1)
-// 
+// ([(Contract (a) -> Contract (a))], Array) -> [a]
 
 const Tuple = (cs, xs) => {
   if (TYPE_CHECK) {
@@ -877,10 +936,10 @@ const Tuple = (cs, xs) => {
       `Arr expects value of type "Array" at 1/2 ("${introspect(xs)}" received)`
     );
 
-    const poly = "[a]",
+    const poly = "(" + ranger((_, n) => n < xs.length, succ) ("a") + ")",
      mono = "(" + cs.map(c => c + "").join(",") + ")";
 
-    length(Arity(xs, "Tuple", 1, cs.length));
+    nary(Arity(xs, "Tuple", 1, cs.length));
     cs.forEach((c, i) => cs[i] (Type(xs[i], "Tuple", 1, 2)));
     return new Proxy(xs, handleProd(poly, mono));
   }
@@ -927,6 +986,24 @@ Arr.of = (c, ...xs) => Arr(c, xs);
 Arr.from = (c, iter) => Arr(c, Array.from(iter));
 
 
+// range (rev 0.1)
+// ((a -> Boolean), a -> a) -> a -> [a]
+
+const range = (p, step) => x => {
+  const aux = (acc, y) => p(y) ? aux(acc.concat([y]), step(y)) : acc;
+  return aux([], x);
+};
+
+
+// range relative (rev 0.1)
+// ((a -> Number -> Boolean), a -> a) -> a -> [a]
+
+const ranger = (p, step) => x => {
+  const aux = (acc, y) => p(y, acc.length) ? aux(acc.concat([y]), step(y)) : acc;
+  return aux([], x);
+};
+
+
 /******************************************************************************
 ******************************[ 4.4. DICTIONARY ]******************************
 ******************************************************************************/
@@ -967,6 +1044,17 @@ const cata = (cons, xs) => pattern => {
 *******************************[ 7. PRIMITIVES ]*******************************
 *******************************************************************************
 ******************************************************************************/
+
+
+/******************************************************************************
+********************************[ 7.1. STRING ]********************************
+******************************************************************************/
+
+
+// successor (rev 0.1)
+// String -> String
+
+const succ = x => String.fromCharCode(x.charCodeAt(0) + 1);
 
 
 /******************************************************************************
@@ -1067,17 +1155,21 @@ module.exports = {
   boo,
   $cata,
   cata,
+  Fun,
   get$,
   nullary,
   num,
+  range,
+  ranger,
   ReturnTypeError,
   str,
   $tag,
+  succ,
   ternary,
   _throw,
   Tuple,
+  tupleOf,
   unary,
   variadic,
-  virt,
   $x
 };

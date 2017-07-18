@@ -126,6 +126,8 @@ I'll switch to ES2015 modules as soon as there is native support by browser vend
 
 ftor ships with an augmented runtime type system that guides your developing and leads to more robust programms and higher productivity. Let's make a short detour to static type systems to better comprehend the need of such a runtime type system in connection with untyped languages.
 
+Please note that from a type theoretical point of view a runtime type system isn't a real type system but rather a meta-programming tool for the purpose of debugging.
+
 ## 1.1. Static type system
 
 What role does a static type system play?
