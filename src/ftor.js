@@ -1063,6 +1063,9 @@ Tup.from = (cs, iter) => Tup(cs, Array.from(iter));
 ******************************************************************************/
 
 
+// --[ CONSTRUCTOR ]-----------------------------------------------------------
+
+
 // Array (rev 0.1)
 // ((Contract (a) -> Contract (a)), [a]) -> [a]
 
@@ -1091,6 +1094,9 @@ Arr.of = (c, ...xs) => Arr(c, xs);
 Arr.from = (c, iter) => Arr(c, Array.from(iter));
 
 
+// --[ MISC ]------------------------------------------------------------------
+
+
 // range (rev 0.1)
 // ((a -> Boolean), a -> a) -> a -> [a]
 
@@ -1100,11 +1106,11 @@ const range = (p, step) => x => {
 };
 
 
-// range relative (rev 0.1)
-// ((a -> Number -> Boolean), a -> a) -> a -> [a]
+// range (rev 0.1)
+// (((a, [a]) -> Boolean), a -> a) -> a -> [a]
 
-const ranger = (p, step) => x => {
-  const aux = (acc, y) => p(y, acc.length) ? aux(acc.concat([y]), step(y)) : acc;
+const range_ = (p, step) => x => {
+  const aux = (acc, y) => p(y, acc) ? aux(acc.concat([y]), step(y)) : acc;
   return aux([], x);
 };
 
@@ -1119,6 +1125,117 @@ const ranger = (p, step) => x => {
 *******************************[ 5. SUM TYPES ]********************************
 *******************************************************************************
 ******************************************************************************/
+
+
+// --[ CONSTRUCTOR ]-----------------------------------------------------------
+
+// EXPERIMENTAL
+
+Tcons = (name, o) => {
+  const r = Object.keys(o).reduce((acc, k) => {
+    acc[k] = o[k] (name, k);
+    return acc;
+  }, {});
+
+  r[name] = {cata: pattern => p => pattern[p.tag] (p)};
+  return r;
+};
+
+handleSum = os => ({
+  apply: (f, _, args) => {
+    if (!Array.isArray(os)) throw new TypeError("Array expected");
+
+    os.forEach(o => {
+      if (typeof o !== "object") throw new TypeError("Object expected");
+
+      Object.keys(o).forEach(k => {
+        if (typeof o[k] !== "function") throw new TypeError("Function expected");
+        if (o[k].length !== 1) throw new TypeError("Unary expected");
+      });
+    });
+    
+    if (typeof args[0] !== "string") throw new TypeError("String expected");
+    if (typeof args[1] !== "string") throw new TypeError("String expected");
+    return f(...args);
+  }
+});
+
+handleSum2 = (os, acc) => ({
+  apply: (f, _, args) => {
+    if (Object.keys(os[acc.length]).length !== args.length) throw new TypeError("invalid arity");
+    Object.keys(os[acc.length]).forEach((k, n) => os[acc.length] [k] (args[n]));
+    return f(...args);
+  }
+});
+
+handleSum3 = (os, acc, name) => ({
+  get: (o, k, _) => {
+    switch (k) {
+      case "cons": return name;
+      
+      case "type": {
+        return `${name} (${os.reduce((acc, o) => acc.concat(Object.keys(o).map(k => o[k] + "")), []).join(",")})`;
+      }
+
+      case "toString":
+
+      case Symbol.toPrimitive: {
+        return () => `${name} (${acc.reduce((acc, xs) => acc.concat(xs.map(x => typeof x === "string" ? "\"" + x + "\"" : x)), []).join(",")})`;
+      }
+
+
+      default: {
+        if (!(k in o)) throw new TypeError("invalid property");
+        return o[k];
+      }
+    }
+  },
+
+  set: (o, k, v, _) => {
+    throw new TypeError("illegal mutation");
+  }
+});
+
+Dcons = (...os) => {
+  const Dcons2 = (name, tag) => {
+    const Dcons3 = acc => {
+      const Dcons4 = (...args) => {
+        const acc_ = acc.concat([args]);
+
+        if (acc_.length === os.length) {
+          const r = os.reduce((p, o, n) => {
+            Object.keys(o).forEach((k, m) => p[k] = acc_[n] [m]);
+            return p;
+          }, {});
+
+          r.tag = tag;
+          //r.toString = () => `${tag} (${s.concat(args.join(","))})`;
+          return TYPE_CHECK ? new Proxy(r, handleSum3(os, acc_, name)) : r;
+        }
+
+        //else return Dcons3(acc_, s.concat(args.join(","), ","));
+        else return Dcons3(acc_);
+      };
+
+      Dcons4.toString = () => tag;
+      return TYPE_CHECK ? new Proxy(Dcons4, handleSum2(os, acc)) : Dcons4;
+    };
+
+    return Dcons3([], "");
+  };
+
+  return TYPE_CHECK ? new Proxy(Dcons2, handleSum(os)) : Dcons2;
+};
+
+Dconst = f => (name, tag) => {
+  const r = {};
+  r.tag = tag;
+  r.toString = () => `${tag}`;
+  return r;
+};
+
+
+// --[ CATAMORPHISM ]----------------------------------------------------------
 
 
 // catamorphism (rev 0.1)
@@ -1227,7 +1344,7 @@ const get$ = s => o => o[Symbol.for(SYM_PREFIX + s)];
 // --[ CONTRACT GADT ]-------------------------------------------------------
 
 
-Contract[$cata] = cata(Contract, ["Arity", "Type", "ReturnType, "Length]);
+Contract[$cata] = cata(Contract, ["Arity", "Type", "ReturnType", "Length"]);
 
 
 // --[ ARITY CONTRACTS ]-------------------------------------------------------
