@@ -1132,67 +1132,27 @@ const range_ = (p, step) => x => {
 // EXPERIMENTAL
 
 Tcons = (name, o) => {
-  const r = Object.keys(o).reduce((acc, k) => {
-    acc[k] = o[k] (name, k);
-    return acc;
+  const r = Object.keys(o).reduce((p, k) => {
+    p[k] = o[k] (name, k);
+    return p;
   }, {});
 
   r[name] = {cata: pattern => p => pattern[p.tag] (p)};
+  if (TYPE_CHECK) r[name].cata = new Proxy(r[name].cata, handleCata(Object.keys(o)));
   return r;
 };
 
-handleSum = os => ({
+handleCata = cases => ({
   apply: (f, _, args) => {
-    if (!Array.isArray(os)) throw new TypeError("Array expected");
+    const [pattern] = args;
+    if (args.length !== 1) throw new TypeError("wrong arity");
 
-    os.forEach(o => {
-      if (typeof o !== "object") throw new TypeError("Object expected");
-
-      Object.keys(o).forEach(k => {
-        if (typeof o[k] !== "function") throw new TypeError("Function expected");
-        if (o[k].length !== 1) throw new TypeError("Unary expected");
-      });
+    cases.forEach(case_ => {
+      if (!(case_ in pattern)) throw new TypeError("missing case");
+      if (cases.length != Object.keys(pattern).length) throw new TypeError("superfluous cases");
     });
-    
-    if (typeof args[0] !== "string") throw new TypeError("String expected");
-    if (typeof args[1] !== "string") throw new TypeError("String expected");
-    return f(...args);
-  }
-});
 
-handleSum2 = (os, acc) => ({
-  apply: (f, _, args) => {
-    if (Object.keys(os[acc.length]).length !== args.length) throw new TypeError("invalid arity");
-    Object.keys(os[acc.length]).forEach((k, n) => os[acc.length] [k] (args[n]));
-    return f(...args);
-  }
-});
-
-handleSum3 = (os, acc, name) => ({
-  get: (o, k, _) => {
-    switch (k) {
-      case "cons": return name;
-      
-      case "type": {
-        return `${name} (${os.reduce((acc, o) => acc.concat(Object.keys(o).map(k => o[k] + "")), []).join(",")})`;
-      }
-
-      case "toString":
-
-      case Symbol.toPrimitive: {
-        return () => `${name} (${acc.reduce((acc, xs) => acc.concat(xs.map(x => typeof x === "string" ? "\"" + x + "\"" : x)), []).join(",")})`;
-      }
-
-
-      default: {
-        if (!(k in o)) throw new TypeError("invalid property");
-        return o[k];
-      }
-    }
-  },
-
-  set: (o, k, v, _) => {
-    throw new TypeError("illegal mutation");
+    return f(pattern);
   }
 });
 
@@ -1209,49 +1169,118 @@ Dcons = (...os) => {
           }, {});
 
           r.tag = tag;
-          //r.toString = () => `${tag} (${s.concat(args.join(","))})`;
-          return TYPE_CHECK ? new Proxy(r, handleSum3(os, acc_, name)) : r;
+          return TYPE_CHECK ? new Proxy(r, handleSum(os, acc_, name)) : r;
         }
 
-        //else return Dcons3(acc_, s.concat(args.join(","), ","));
         else return Dcons3(acc_);
       };
 
       Dcons4.toString = () => tag;
-      return TYPE_CHECK ? new Proxy(Dcons4, handleSum2(os, acc)) : Dcons4;
+      return TYPE_CHECK ? new Proxy(Dcons4, handleArgs(os, acc)) : Dcons4;
     };
 
     return Dcons3([], "");
   };
 
-  return TYPE_CHECK ? new Proxy(Dcons2, handleSum(os)) : Dcons2;
+  return TYPE_CHECK ? new Proxy(Dcons2, handleCons(os)) : Dcons2;
 };
 
-Dconst = f => (name, tag) => {
-  const r = {};
-  r.tag = tag;
-  r.toString = () => `${tag}`;
-  return r;
+handleCons = os => ({
+  apply: (f, _, args) => {
+    const [name, tag] = args;
+    if (args.length !== 2) throw new TypeError("wrong arity");
+    if (!Array.isArray(os)) throw new TypeError("Array expected");
+
+    os.forEach(o => {
+      if (typeof o !== "object") throw new TypeError("Object expected");
+
+      Object.keys(o).forEach(k => {
+        if (typeof o[k] !== "function") throw new TypeError("Function expected");
+        if (o[k].length > 1) throw new TypeError("Unary expected");
+        else if (o[k].length === 0) {
+          const c = o[k] ();
+          if (typeof c !== "function") throw new TypeError("Function expected");
+          if (c.length !== 1) throw new TypeError("Unary expected");
+        }
+      });
+    });
+    
+    if (typeof name !== "string") throw new TypeError("String expected");
+    if (typeof tag !== "string") throw new TypeError("String expected");
+    return f(name, tag);
+  }
+});
+
+handleArgs = (os, acc) => ({
+  apply: (f, _, args) => {
+    if (Object.keys(os[acc.length]).length !== args.length) throw new TypeError("invalid arity");
+    
+    Object.keys(os[acc.length]).forEach((k, n) => os[acc.length] [k].length === 0
+     ? os[acc.length] [k] () (args[n])
+     : os[acc.length] [k] (args[n]));
+    
+    return f(...args);
+  }
+});
+
+handleSum = (os, acc, name) => ({
+  get: (o, k, _) => {
+    switch (k) {
+      case "cons": return name;
+      
+      case "type": {
+        return `${name} (${os.reduce((acc, o) => acc.concat(Object.keys(o).map(k => o[k] + "")), []).join(",")})`;
+      }
+
+      case "toString":
+
+      case Symbol.toPrimitive: {
+        return () => `${name} (${acc.reduce((acc, xs) => acc.concat(xs.map(x => typeof x === "string" ? "\"" + x + "\"" : x)), []).join(",")})`;
+      }
+
+      default: {
+        if (!(k in o)) throw new TypeError("invalid property");
+        return o[k];
+      }
+    }
+  },
+
+  set: (o, k, v, _) => {
+    throw new TypeError("illegal mutation");
+  }
+});
+
+Dconst = c => (name, tag) => {
+  const r = {tag: tag};
+  return TYPE_CHECK ? new Proxy(r, handleConst(c, name, tag)) : r;
 };
 
+handleConst = (c, name, tag) => ({
+  get: (o, k, _) => {
+    switch (k) {
+      case "cons": return name;
+      
+      case "type": {
+        return `${name} (${c})`;
+      }
 
-// --[ CATAMORPHISM ]----------------------------------------------------------
+      case "toString":
 
+      case Symbol.toPrimitive: {
+        return () => tag;
+      }
 
-// catamorphism (rev 0.1)
-// (Function, [String]) -> Object -> Object -> a
+      default: {
+        if (!(k in o)) throw new TypeError("invalid property");
+        return o[k];
+      }
+    }
+  },
 
-const cata = (cons, xs) => pattern => {
-  if (TYPE_CHECK && xs.forEach(k => {
-    if (!(k in pattern)) throw new TypeError(`missing case "${k}" for type "${cons(o[$x])}"`);
-  }));
-
-  const cata = o => {
-    return pattern[o[$tag]] (o);
-  };
-
-  return cata;
-};
+  set: (o, k, v, _) => {
+    throw new TypeError("illegal mutation");
+  }
+});
 
 
 /******************************************************************************
