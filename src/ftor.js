@@ -31,19 +31,25 @@ const SYM_PREFIX = "ftor/";
 const TYPE_CHECK = true;
 
 
+// length (rev 0.1)
+// String
+
+const "length" = "length";
+
+
 // --[ SYMBOLS ]---------------------------------------------------------------
+
+
+// constructor (rev 0.1)
+// internal
+
+const $cons = Symbol.for(SYM_PREFIX + "cons");
 
 
 // polymorphic type (rev 0.1)
 // internal
 
-const $poly = Symbol.for(SYM_PREFIX + "poly");
-
-
-// monomorphic type (rev 0.1)
-// internal
-
-const $mono = Symbol.for(SYM_PREFIX + "mono");
+const $type = Symbol.for(SYM_PREFIX + "type");
 
 
 // tag (rev 0.1)
@@ -51,15 +57,9 @@ const $mono = Symbol.for(SYM_PREFIX + "mono");
 const $tag = Symbol.for(SYM_PREFIX + "tag");
 
 
-// x (rev 0.1)
-
-const $x = Symbol.for(SYM_PREFIX + "x");
-
-
 // catamorphism (rev 0.1)
 
 const $cata = Symbol.for(SYM_PREFIX + "cata");
-
 
 
 /******************************************************************************
@@ -74,29 +74,16 @@ const $cata = Symbol.for(SYM_PREFIX + "cata");
 ******************************************************************************/
 
 
-// --[ PROXY ]-----------------------------------------------------------------
+// --[ FUNCTION PROXY ]--------------------------------------------------------
 
 
 // Function (rev 0.1)
-// (String, Function, (...() -> Contract (a) -> Contract (a))) -> Function
+// virtualize function
+// (String, Function, (...Function) -> Function
 
 const Fun = (fname, f, ...cs) => {
   if (TYPE_CHECK) {
-    if (!isStr(fname)) throw new TypeSysError(
-      `Fun expects value of type "String" at 1/1 ("${introspect(fname)}" received)`
-    );
-
-    if (!isFun(f)) throw new TypeSysError(
-      `Fun expects value of type "Function" at 1/2 ("${introspect(f)}" received)`
-    );
-
-    cs.forEach(c => {
-      if (!isNullary(c)) throw new TypeSysError(
-        `Fun expects Array of type "() -> Contract (a) -> Contract (a)" at 1/3 ("${introspect(c)}" received)`
-      );
-    });
-
-    const g = new Proxy(f, handleFun(fname, cs.map(c => c()), 1));
+    const g = new Proxy(f, handleFun(fname, f, cs, 1));
     g.toString = Function.prototype.toString.bind(f);
     return g;
   }
@@ -105,37 +92,61 @@ const Fun = (fname, f, ...cs) => {
 };
 
 
-// handle function (rev 0.1)
+// handle initial call (rev 0.1)
 // internal
-// handle apply traps for virtualized functions
+// handle apply trap for virtualized function
 // (String, Contract (a), (...Contract (a) -> Contract (a)), Number) -> Function
 
-const handleFun = (fname, [c, ...cs], n) => ({
-  apply: (f, _, args) => {
-    const o = c(Type(args, fname, n, 1));
+const handleFun = (fname, g, [c, ...cs], n) => {
+  if (!isStr(fname)) throw new TypeSysError(
+    `Fun expects value of type "String" at 1/1 ("${introspect(fname)}" received)`
+  );
 
-    if (!isSumOf(Contract) (o)) throw new TypeSysError(
-      `${c} must return value of type "Contract (a)" ("${introspect(o)}" returned)`
+  if (!isFun(g)) throw new TypeSysError(
+    `Fun expects value of type "Function" at 1/2 ("${introspect(g)}" received)`
+  );
+
+  cs.concat(c).forEach(c => {
+    if (!isFun(c) || $("length", of(c), gt(1))) throw new TypeSysError(
+      `Fun expects Array either of type "[? -> ?]" or of type "[() -> ? -> ?]" at 1/3 ("${introspect(c)}" received)`
     );
 
-    if (cs.length === 1) {
-      const r = f(...args),
-       o = cs[0] (ReturnType(r, fname));
+    if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
+      `Fun expects Array of type "[() -> ? -> ?]" at 1/3 ("${introspect(c)}" received)`
+    );
+  });
 
-      if (!isSumOf(Contract) (o)) throw new TypeSysError(
-        `${cs[0]} must return value of type "Contract (a)" ("${introspect(o)}" returned)`
+  if (!(isNum(n) && isPos(n)) throw new TypeSysError(
+    `Fun expects value of type natural "Number" at 1/4 ("${introspect(n)}" received)`
+  );
+
+  return {
+    apply: (f, _, args) => {
+      const o = c(Type(args, fname, n, 1));
+
+      if (!$(o, isSumOf, Contract)) throw new TypeSysError(
+        `${c} contract must return value of type "Contract (a)" ("${introspect(o)}" returned)`
       );
 
-      return r;
-    }
+      if (cs.length === 1) {
+        const r = f(...args),
+         o = cs[0] (ReturnType(r, fname));
 
-    const g = new Proxy(f(...args), handleFun(fname, cs, n + 1))
-    g.toString = Function.prototype.toString.bind(f);
-    return g;
-  },
+        if (!isSumOf(Contract) (o)) throw new TypeSysError(
+          `${cs[0]} must return value of type "Contract (a)" ("${introspect(o)}" returned)`
+        );
 
-  get: (o, k, _) => k === "name" ? fname : o[k]
-});
+        return r;
+      }
+
+      const g = new Proxy(f(...args), handleFun(fname, cs, n + 1))
+      g.toString = Function.prototype.toString.bind(f);
+      return g;
+    },
+
+    get: (o, k, _) => k === "name" ? fname : o[k]
+  };
+};
 
 
 // --[ CONTRACT GADT ]---------------------------------------------------------
@@ -162,11 +173,11 @@ const Arity = (x, fname, nf, n) => {
       `Arity expects value of type "String" at 1/2 ("${introspect(fname)}" received)`
     );
 
-    if (!isNat(nf)) throw new TypeSysError(
+    if (!(isNum(nf) && isPos(nf))) throw new TypeSysError(
       `Arity expects value of type "natural Number" at 1/3 ("${introspect(nf)}" received)`
     );
 
-    if (!isNat(n)) throw new TypeSysError(
+    if (!(isNum(n) && isPos(n))) throw new TypeSysError(
       `Arity expects value of type "natural Number" at 1/4 ("${introspect(n)}" received)`
     );
   }
@@ -299,7 +310,7 @@ Length.toString = () => "Length";
 // Number -> (...Contract (a) -> Contract (a)) -> Contract (a) -> Contract (a)
 
 const arity = n => {
-  if (!isNat(n) && isFinite) throw new TypeSysError(
+  if (!(isNum(nf) && isPos(nf) && isFinite)) throw new TypeSysError(
     `arity expects value of type "natural Number" at 1/1 ("${introspect(n)}" received)`
   );
 
@@ -732,13 +743,7 @@ const instanceOf = cons => o => cons.prototype.isPrototypeOf(o);
 // has (rev 0.1)
 // String -> a -> Boolean
 
-const has = k => o => o[k] !== undefined;
-
-
-// has of (rev 0.1)
-// (b -> Boolean) -> String -> a -> Boolean
-
-const hasOf = p => k => o => o[k] !== undefined && p(o[k]);
+const has = k => x => x[k] !== undefined;
 
 
 // hasLen (rev 0.1)
@@ -762,7 +767,7 @@ const isArrOf = p => x => isArr(x) && x.every(y => p(y));
 // is binary (rev 0.1)
 // a -> Boolean
 
-const isBinary = x => isFun(x) && x.length === 2;
+const isBinary = x => x.length === 2;
 
 
 // is boolean (rev 0.1)
@@ -780,8 +785,7 @@ const isChr = x => isStr(x) && x.length === 1;
 // is empty (rev 0.1)
 // a -> Boolean
 
-const isEmpty = x => (hasLen(x) && x.length === 0)
-|| (has("size") (x) && x.size === 0);
+const isEmpty = x => "length" in x ? x.length === 0 || x.size === 0;
 
 
 // is finite (rev 0.1)
@@ -793,7 +797,7 @@ const isFinite = x => Number.isFinite(x);
 // is float (rev 0.1)
 // a -> Boolean
 
-const isFloat = x => isNum(x) && x >= 0 && x % 1 > 0
+const isFloat = x => x % 1 > 0;
 
 
 // is function (rev 0.1)
@@ -814,12 +818,6 @@ const isInt = x => Number.isInteger(x);
 const isNaN = x => Number.isNaN(x);
 
 
-// is natural number (rev 0.1)
-// a -> Boolean
-
-const isNat = x => isInt(x) && x >= 0;
-
-
 // is negative number (rev 0.1)
 // a -> Boolean
 
@@ -835,7 +833,7 @@ const isNull = x => x === null;
 // is nullary (rev 0.1)
 // a -> Boolean
 
-const isNullary = x => isFun(x) && x.length === 0;
+const isNullary = x => x.length === 0;
 
 
 // is number (rev 0.1)
@@ -853,7 +851,7 @@ const isObj = instanceOf(Object);
 // is positive number (rev 0.1)
 // a -> Boolean
 
-const isPos = x => isNum(x) && x >= 0;
+const isPos = x => x >= 0;
 
 
 // is string (rev 0.1)
@@ -863,9 +861,9 @@ const isStr = x => typeof x === "string";
 
 
 // is sum of (rev 0.1)
-// Function -> a -> Boolean
+// a -> Function -> Boolean
 
-const isSumOf = cons => x => has($poly) (x) && x[$poly] === cons.toString();
+const isSumOf = x => cons => has($poly) (x) && x[$poly] === cons.toString();
 
 
 // is symbol (rev 0.1)
@@ -877,13 +875,13 @@ const isSym = x => typeof x === "symbol";
 // is ternary (rev 0.1)
 // a -> Boolean
 
-const isTernary = x => isFun(x) && x.length === 3;
+const isTernary = x => x.length === 3;
 
 
 // is unary (rev 0.1)
 // a -> Boolean
 
-const isUnary = x => isFun(x) && x.length === 1;
+const isUnary = x => x.length === 1;
 
 
 // is undefined (rev 0.1)
@@ -902,6 +900,12 @@ const isValue = x => !(isUndef(x) || isNull(x));
 // a -> Boolean
 
 const isVariadic = isNullary;
+
+
+// of (rev 0.1)
+// a -> String -> (b -> Boolean) -> Boolean
+
+const of = x => k => p => p(x[k]);
 
 
 // introspect (rev 0.1)
@@ -1129,8 +1133,6 @@ const range_ = (p, step) => x => {
 
 // --[ CONSTRUCTOR ]-----------------------------------------------------------
 
-// EXPERIMENTAL
-
 Tcons = (name, o) => {
   const r = Object.keys(o).reduce((p, k) => {
     p[k] = o[k] (name, k);
@@ -1147,8 +1149,8 @@ handleCata = cases => ({
     const [pattern] = args;
     if (args.length !== 1) throw new TypeError("wrong arity");
 
-    cases.forEach(case_ => {
-      if (!(case_ in pattern)) throw new TypeError("missing case");
+    cases.forEach(_case => {
+      if (!(_case in pattern)) throw new TypeError("missing case");
       if (cases.length != Object.keys(pattern).length) throw new TypeError("superfluous cases");
     });
 
@@ -1297,6 +1299,12 @@ handleConst = (c, name, tag) => ({
 ******************************************************************************/
 
 
+// greater than
+// a -> a -> Boolean
+
+const gt = y => x => x > y;
+
+
 /******************************************************************************
 ********************************[ 7.1. STRING ]********************************
 ******************************************************************************/
@@ -1314,22 +1322,71 @@ const succ = x => String.fromCharCode(x.charCodeAt(0) + 1);
 *******************************************************************************
 ******************************************************************************/
 
+
+// infix applicator
+// (a, a -> b -> c, b) -> c
+
+const $ = (x, f, y) => f(x) (y);
+
+
+// prefix applicator (rev 0.1)
+// (a, a -> b -> c, b) -> c
+
+const _$ = (f, y) => x => f(x) (y);
+
+
 // function composition (rev 0.1)
 // (...? -> ?) -> ? -> ?
 
-const $ = (...fs) => x => fs.reduceRight((y, f) => f(y), x);
+const co = (...fs) => x => fs.reduceRight((y, f) => f(y), x);
 
 
 // binary function composition (rev 0.1)
 // (...Function) -> ? -> ? -> ?
 
-const $2 = (...fs) => x => y => fs.slice(0, -1).reduceRight((z, f) => f(z), fs[fs.length - 1] (x) (y));
+const co2 = (...fs) => x => y => fs.slice(0, -1).reduceRight((z, f) => f(z), fs[fs.length - 1] (x) (y));
 
 
 // ternary function composition (rev 0.1)
 // (...Function) -> ? -> ? -> ? -> ?
 
-const $3 = (...fs) => x => y => z => fs.slice(0, -1).reduceRight((w, f) => f(w), fs[fs.length - 1] (x) (y) (z));
+const co3 = (...fs) => x => y => z => fs.slice(0, -1).reduceRight((w, f) => f(w), fs[fs.length - 1] (x) (y) (z));
+
+
+// reverse function composition (rev 0.1)
+// (...? -> ?) -> ? -> ?
+
+const contra = (...fs) => x => fs.reduce((y, f) => f(y), x);
+
+
+// binary reverse function composition (rev 0.1)
+// (...Function) -> ? -> ? -> ?
+
+const contra2 = (...fs) => x => y => fs.slice(1).reduce((z, f) => f(z), fs[0] (x) (y));
+
+
+// ternary reverse function composition (rev 0.1)
+// (...Function) -> ? -> ? -> ? -> ?
+
+const contra3 = (...fs) => x => y => z => fs.slice(1).reduce((w, f) => f(w), fs[0] (x) (y) (z));
+
+
+// flip (rev 0.1)
+// (a -> b -> c) -> b -> a -> c
+
+const flip = f => y => x => f(x) (y);
+
+
+// rotate left
+// (a -> b -> c -> d) -> b -> c -> a -> d
+
+const rol = f => y => z => x => f(x) (y) (z);
+
+
+// rotate right
+// (a -> b -> c -> d) -> c -> a -> b -> d
+
+const ror = f => z => x => y => f(x) (y) (z);
 
 
 /******************************************************************************
@@ -1413,6 +1470,8 @@ const variadic = arity(Infinity);
 
 
 module.exports = {
+  $,
+  _$,
   any,
   arity,
   ArityError,
@@ -1422,12 +1481,18 @@ module.exports = {
   binary,
   boo,
   $cata,
-  cata,
+  co,
+  co2,
+  co3,
+  contra,
+  contra2,
+  contra3,
+  flip,
   Fun,
-  getType,
   get$,
+  getType,
+  gt,
   has,
-  hasOf,
   hasLen,
   instanceOf,
   isArr,
@@ -1441,7 +1506,6 @@ module.exports = {
   isFun,
   isInt,
   isNaN,
-  isNat,
   isNeg,
   isNull,
   isNullary,
@@ -1458,11 +1522,14 @@ module.exports = {
   isVariadic,
   nullary,
   num,
+  of,
   range,
   ranger,
   ReturnTypeError,
-  str,
+  rol,
+  ror,
   $tag,
+  str,
   succ,
   ternary,
   _throw,
@@ -1470,5 +1537,4 @@ module.exports = {
   tupOf,
   unary,
   variadic,
-  $x
 };
