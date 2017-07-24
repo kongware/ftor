@@ -89,7 +89,7 @@ const Fun = (fname, f, ...cs) => {
 // handle function (rev 0.1)
 // internal
 // handle apply trap for virtualized function
-// (String, Contract, (...Contract -> Contract), Number) -> Function
+// (String, Contract (a), (...Contract (a) -> Contract (a)), Number) -> Function
 
 const handleFun = (fname, g, [c, ...cs], n) => {
   if (!isStr(fname)) throw new TypeSysError(
@@ -119,7 +119,7 @@ const handleFun = (fname, g, [c, ...cs], n) => {
       const o = isNullary(c) ? c() (Type(args, fname, n, 1)) : c(Type(args, fname, n, 1));
 
       if (!$_(o, isSumOf, Contract)) throw new TypeSysError(
-        `${c} contract must return value of type "Contract" ("${introspect(o)}" returned)`
+        `${c} contract must return value of type "Contract (a)" ("${introspect(o)}" returned)`
       );
 
       if (cs.length === 1) {
@@ -127,7 +127,7 @@ const handleFun = (fname, g, [c, ...cs], n) => {
          o = cs[0] (ReturnType(r, fname));
 
         if (!$_(o, isSumOf, Contract)) throw new TypeSysError(
-          `${cs[0]} must return value of type "Contract" ("${introspect(o)}" returned)`
+          `${cs[0]} must return value of type "Contract (a)" ("${introspect(o)}" returned)`
         );
 
         return r;
@@ -152,7 +152,7 @@ const handleFun = (fname, g, [c, ...cs], n) => {
 
 const Contract = x => `Contract (${introspect(x)})`;
 
-Contract.toString = () => "Contract";
+Contract.toString = () => "Contract (a)";
 
 // catamorphism (rev 0.1)
 // Object -> Object -> a
@@ -176,7 +176,7 @@ Contract[$cata] = pattern => {
 
 // Type (rev 0.1)
 // internal
-// (a, String, Number, Number) -> Contract a
+// (a, String, Number, Number) -> Contract (a)
 
 const Type = (x, fname, nf, nargs) => {
   if (!isStr(fname)) throw new TypeSysError(
@@ -192,7 +192,7 @@ const Type = (x, fname, nf, nargs) => {
   );
 
   const r = {
-    [$cons]: "Contract",
+    [$cons]: "Contract (a)",
     [$type]: Contract(x),
     [$tag]: Type,
     toString: () => `Type (${x},${fname},${nf},${nargs})`,
@@ -207,7 +207,7 @@ Type.toString = () => "Type";
 
 // Return Type (rev 0.1)
 // internal
-// (a, String) -> Contract a
+// (a, String) -> Contract (a)
 
 const ReturnType = (x, fname) => {
   if (!isStr(fname)) throw new TypeSysError(
@@ -215,7 +215,7 @@ const ReturnType = (x, fname) => {
   );
   
   const r = {
-    [$cons]: "Contract",
+    [$cons]: "Contract (a)",
     [$type]: Contract(x),
     [$tag]: ReturnType,
     toString: () => `ReturnType (${x},${fname})`,
@@ -230,7 +230,7 @@ ReturnType.toString = () => "ReturnType";
 
 // Arity (rev 0.1)
 // internal
-// (a, String, Number, Number) -> Contract a
+// (a, String, Number, Number) -> Contract (a)
 
 const Arity = (x, fname, nf, n) => {
   if (!isStr(fname)) throw new TypeSysError(
@@ -246,7 +246,7 @@ const Arity = (x, fname, nf, n) => {
   );
   
   const r = {
-    [$cons]: "Contract",
+    [$cons]: "Contract (a)",
     [$type]: Contract(x),
     [$tag]: Arity,
     toString: () => `Arity (${x},${fname},${nf},${n})`,
@@ -261,7 +261,7 @@ Arity.toString = () => "Arity";
 
 // Length (rev 0.1)
 // internal
-// (a, String, Number, Number, Number) -> Contract a
+// (a, String, Number, Number, Number) -> Contract (a)
 
 const Length = (x, fname, nf, nargs, n) => {
   if (!isStr(fname)) throw new TypeSysError(
@@ -281,7 +281,7 @@ const Length = (x, fname, nf, nargs, n) => {
   );
 
   const r = {
-    [$cons]: "Contract",
+    [$cons]: "Contract (a)",
     [$type]: Contract(x),
     [$tag]: Length,
     toString: () => `Length (${x},${fname},${nf},${nargs},$)`,
@@ -298,7 +298,7 @@ Length.toString = () => "Length";
 
 
 // arity (rev 0.1)
-// Number -> (...Contract -> Contract) -> Contract -> Contract
+// Number -> (...Contract (a) -> Contract (a)) -> Contract (Array) -> Contract (Array)
 
 const arity = n => {
   if (!isNat(n)) throw new TypeSysError(
@@ -307,12 +307,16 @@ const arity = n => {
 
   const arity2 = (...cs) => {
     if (!$_(cs, isArrOf, isUnary)) throw new TypeSysError(
-      `arity2 expects value of type "[Contract -> Contract]" at 1/1 ("${introspect(cs)}" received)`
+      `arity2 expects value of type "[Contract (a) -> Contract (a)]" at 1/1 ("${introspect(cs)}" received)`
+    );
+
+    if (cs.length !== n) throw new TypeSysError(
+      `arity2 expects ${n} functions of type "Contract (a) -> Contract (a)" at 1/1 ("${introspect(cs.length)}" received)`
     );
 
     const arity3 = o => {
       if (!$_(o, isSumOf, Contract)) throw new TypeSysError(
-        `arity3 expects value of type "Contract" at 1/1 ("${introspect(o)}" received)`
+        `arity3 expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
       );
 
       if (isFinite(n)) nary(Arity(o.x, o.fname, o.nf, n));
@@ -323,7 +327,7 @@ const arity = n => {
          : cs[0] (Type(x, o.fname, o.nf, m + 1));
 
         if (!$_(r, isSumOf, Contract)) throw new TypeSysError(
-          `${cs[isFinite(n) ? m : 0]} must return value of type "Contract" ("${introspect(r)}" returned)`
+          `${cs[isFinite(n) ? m : 0]} must return value of type "Contract (a)" ("${introspect(r)}" returned)`
         );
       });
 
@@ -359,8 +363,8 @@ const arity = n => {
 // Contract (Array) -> Contract (Array)
 
 const arr = o => {
-  if (!isSumOf(Contract) (o)) throw new TypeSysError(
-    `arr expects value of type "Contract" at 1/1 ("${introspect(o)}" received)`
+  if (!$_(o, isSumOf, Contract)) throw new TypeSysError(
+    `arr expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
 
   if (o[$type] === "Contract (Array)") return o;
@@ -375,11 +379,11 @@ const arr = o => {
     },
 
     Arity: ({fname}) => {
-      throw new TypeSysError(`arr cannot handle values of type "Contract" tagged with "Arity" for ${fname}`);
+      throw new TypeSysError(`arr cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`);
     },
 
     Length: ({fname}) => {
-      throw new TypeSysError(`arr cannot handle values of type "Contract" tagged with "Length" for ${fname}`);
+      throw new TypeSysError(`arr cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`);
     }
   }) (o);
 };
@@ -391,8 +395,8 @@ arr.toString = () => "Array";
 // Contract (Boolean) -> Contract (Boolean)
 
 const boo = o => {
-  if (!isSumOf(Contract) (o)) throw new TypeSysError(
-    `boo expects value of type "Contract" at 1/1 ("${introspect(o)}" received)`
+  if (!$_(o, isSumOf, Contract)) throw new TypeSysError(
+    `boo expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
 
   if (o[$type] === "Contract (Boolean)") return o;
@@ -407,11 +411,11 @@ const boo = o => {
     },
 
     Arity: ({fname}) => {
-      throw new TypeSysError(`boo cannot handle values of type "Contract" tagged with "Arity" for ${fname}`);
+      throw new TypeSysError(`boo cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`);
     },
 
     Length: ({fname}) => {
-      throw new TypeSysError(`boo cannot handle values of type "Contract" tagged with "Length" for ${fname}`);
+      throw new TypeSysError(`boo cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`);
     }
   }) (o);
 };
@@ -423,8 +427,8 @@ boo.toString = () => "Boolean";
 // Contract (Number) -> Contract (Number)
 
 const num = o => {
-  if (!isSumOf(Contract) (o)) throw new TypeSysError(
-    `num expects value of type "Contract" at 1/1 ("${introspect(o)}" received)`
+  if (!$_(o, isSumOf, Contract)) throw new TypeSysError(
+    `num expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
 
   if (o[$type] === "Contract (Number)") return o;
@@ -439,11 +443,11 @@ const num = o => {
     },
 
     Arity: ({fname}) => {
-      throw new TypeSysError(`num cannot handle values of type "Contract" tagged with "Arity" for ${fname}`);
+      throw new TypeSysError(`num cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`);
     },
 
     Length: ({fname}) => {
-      throw new TypeSysError(`num cannot handle values of type "Contract" tagged with "Length" for ${fname}`);
+      throw new TypeSysError(`num cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`);
     }
   }) (o);
 };
@@ -455,8 +459,8 @@ num.toString = () => "Number";
 // Contract (String) -> Contract (String)
 
 const str = o => {
-  if (!isSumOf(Contract) (o)) throw new TypeSysError(
-    `str expects value of type "Contract" at 1/1 ("${introspect(o)}" received)`
+  if (!$_(o, isSumOf, Contract)) throw new TypeSysError(
+    `str expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
 
   if (o[$type] === "Contract (String)") return o;
@@ -471,11 +475,11 @@ const str = o => {
     },
 
     Arity: ({fname}) => {
-      throw new TypeSysError(`str cannot handle values of type "Contract" tagged with "Arity" for ${fname}`);
+      throw new TypeSysError(`str cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`);
     },
 
     Length: ({fname}) => {
-      throw new TypeSysError(`str cannot handle values of type "Contract" tagged with "Length" for ${fname}`);
+      throw new TypeSysError(`str cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`);
     }
   }) (o);
 };
@@ -487,11 +491,11 @@ str.toString = () => "String";
 
 
 // any (rev 0.1)
-// Contract -> Contract
+// Contract (a) -> Contract (a)
 
 const any = o => {
-  if (!isSumOf(Contract) (o)) throw new TypeSysError(
-    `any expects value of type "Contract" at 1/1 ("${introspect(o)}" received)`
+  if (!$_(o, isSumOf, Contract)) throw new TypeSysError(
+    `any expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
 
   return o;
@@ -501,16 +505,16 @@ any.toString = () => "a";
 
 
 // array of (rev 0.1)
-// (Contract -> Contract) -> Contract -> Contract
+// (Contract (a) -> Contract (a)) -> Contract (a) -> Contract (a)
 
 const arrOf = c => {
   if (!isUnary(c)) throw new TypeSysError(
-    `arrOf expects function of type "Contract -> Contract" at 1/1 ("${introspect(c)}" received)`
+    `arrOf expects function of type "Contract (a) -> Contract (a)" at 1/1 ("${introspect(c)}" received)`
   );
 
   const arrOf = o => {
     if (!isSumOf(Contract) (o)) throw new TypeSysError(
-      `arrOf expects value of type "Contract" at 2/1 ("${introspect(o)}" received)`
+      `arrOf expects value of type "Contract (a)" at 2/1 ("${introspect(o)}" received)`
     );
 
     if (o[$mono] !== "Contract (Array)") throw new TypeError(
@@ -529,13 +533,13 @@ const arrOf = c => {
 
         Arity: ({fname}) => {
           throw new TypeSysError(
-            `arrOf cannot handle values of type "Contract" tagged with "Arity" for ${fname}`
+            `arrOf cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`
           );
         },
 
         Length: ({fname}) => {
           throw new TypeSysError(
-            `arrOf cannot handle values of type "Contract" tagged with "Length" for ${fname}`
+            `arrOf cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`
           );
         }
       }) (o)
@@ -550,13 +554,13 @@ const arrOf = c => {
 
       Arity: ({fname}) => {
         throw new TypeSysError(
-          `arrOf cannot handle values of type "Contract" tagged with "Arity" for ${fname}`
+          `arrOf cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`
         );
       },
 
       Length: ({fname}) => {
         throw new TypeSysError(
-          `arrOf cannot handle values of type "Contract" tagged with "Length" for ${fname}`
+          `arrOf cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`
         );
       }
     }) (o);
@@ -573,11 +577,11 @@ arrOf.toString = () => "[a]";
 
 // length (rev 0.1)
 // internal
-// Contract -> Contract
+// Contract (a) -> Contract (a)
 
 const length = o => {
   if (!isSumOf(Contract) (o)) throw new TypeSysError(
-    `length expects value of type "Contract" at 1/1 ("${introspect(o)}" received)`
+    `length expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
 
   if (!isArr(o.x)) throw new TypeSysError(
@@ -587,15 +591,15 @@ const length = o => {
   if (o.x.length !== o.n) {  
     Contract[$cata] ({
       Type: ({fname}) => {
-        throw new TypeSysError(`length cannot handle values of type "Contract" tagged with "Type" for ${fname}`);
+        throw new TypeSysError(`length cannot handle values of type "Contract (a)" tagged with "Type" for ${fname}`);
       },
 
       ReturnType: ({fname}) => {
-        throw new TypeSysError(`length cannot handle values of type "Contract" tagged with "ReturnType" for ${fname}`);
+        throw new TypeSysError(`length cannot handle values of type "Contract (a)" tagged with "ReturnType" for ${fname}`);
       },
 
       Arity: ({fname}) => {
-        throw new TypeSysError(`length cannot handle values of type "Contract" tagged with "Arity" for ${fname}`);
+        throw new TypeSysError(`length cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`);
       },
 
       Length: ({x, fname, nf, nargs, n}) => {
@@ -610,11 +614,11 @@ const length = o => {
 
 // n-ary (rev 0.1)
 // internal
-// Contract -> Contract
+// Contract (a) -> Contract (a)
 
 const nary = o => {
   if (!isSumOf(Contract) (o)) throw new TypeSysError(
-    `nary expects value of type "Contract" at 1/1 ("${introspect(o)}" received)`
+    `nary expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
 
   if (!isArr(o.x)) throw new TypeSysError(
@@ -624,11 +628,11 @@ const nary = o => {
   if (o.x.length !== o.n) {  
     Contract[$cata] ({
       Type: ({fname}) => {
-        throw new TypeSysError(`nary cannot handle values of type "Contract" tagged with "Type" for ${fname}`);
+        throw new TypeSysError(`nary cannot handle values of type "Contract (a)" tagged with "Type" for ${fname}`);
       },
 
       ReturnType: ({fname}) => {
-        throw new TypeSysError(`nary cannot handle values of type "Contract" tagged with "ReturnType" for ${fname}`);
+        throw new TypeSysError(`nary cannot handle values of type "Contract (a)" tagged with "ReturnType" for ${fname}`);
       },
 
       Arity: ({x, fname, nf, n}) => {
@@ -646,16 +650,16 @@ const nary = o => {
 
 
 // tuple of (rev 0.1)
-// (Contract -> Contract) -> Contract -> Contract
+// (Contract (a) -> Contract (a)) -> Contract (a) -> Contract (a)
 
 const tupOf = cs => {
   if (!isArrOf(isUnary) (cs)) throw new TypeSysError(
-    `tupOf expects function of type "Contract -> Contract" at 1/1 ("${introspect(cs)}" received)`
+    `tupOf expects function of type "Contract (a) -> Contract (a)" at 1/1 ("${introspect(cs)}" received)`
   );
 
   const tupOf = o => {
     if (!isSumOf(Contract) (o)) throw new TypeSysError(
-      `tupOf expects value of type "Contract" at 2/1 ("${introspect(o)}" received)`
+      `tupOf expects value of type "Contract (a)" at 2/1 ("${introspect(o)}" received)`
     );
 
     if (o[$mono] !== "Contract (Array)") throw new TypeError(
@@ -674,13 +678,13 @@ const tupOf = cs => {
 
         Arity: ({fname}) => {
           throw new TypeSysError(
-            `tupOf cannot handle values of type "Contract" tagged with "Arity" for ${fname}`
+            `tupOf cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`
           );
         },
 
         Length: ({fname}) => {
           throw new TypeSysError(
-            `tupOf cannot handle values of type "Contract" tagged with "Length" for ${fname}`
+            `tupOf cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`
           );
         }
       }) (o)
@@ -695,13 +699,13 @@ const tupOf = cs => {
 
       Arity: ({fname}) => {
         throw new TypeSysError(
-          `tupOf cannot handle values of type "Contract" tagged with "Arity" for ${fname}`
+          `tupOf cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`
         );
       },
 
       Length: ({fname}) => {
         throw new TypeSysError(
-          `tupOf cannot handle values of type "Contract" tagged with "Length" for ${fname}`
+          `tupOf cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`
         );
       }
     }) (o);
@@ -1026,12 +1030,12 @@ const handleProd = (poly, mono) => ({
 
 
 // Tuple (rev 0.1)
-// ([(Contract -> Contract)], Array) -> [a]
+// ([Contract (a) -> Contract (a)], Array) -> [a]
 
 const Tup = (cs, xs) => {
   if (TYPE_CHECK) {
     if (!isArrOf(isUnary) (cs)) throw new TypeSysError(
-      `Arr expects array of type "[Contract -> Contract]" at 1/1 ("${introspect(cs)}" received)`
+      `Arr expects array of type "[Contract (a) -> Contract (a)]" at 1/1 ("${introspect(cs)}" received)`
     );
 
     if (!isArr(xs)) throw new TypeSysError(
@@ -1068,12 +1072,12 @@ Tup.from = (cs, iter) => Tup(cs, Array.from(iter));
 
 
 // Array (rev 0.1)
-// ((Contract -> Contract), [a]) -> [a]
+// ((Contract (a) -> Contract (a)), [a]) -> [a]
 
 const Arr = (c, xs) => {
   if (TYPE_CHECK) {
     if (!isUnary(c)) throw new TypeSysError(
-      `Arr expects function of type "Contract -> Contract" at 1/1 ("${introspect(c)}" received)`
+      `Arr expects function of type "Contract (a) -> Contract (a)" at 1/1 ("${introspect(c)}" received)`
     );
 
     if (!isArr(xs)) throw new TypeSysError(
