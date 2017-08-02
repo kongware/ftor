@@ -164,8 +164,12 @@ Contract[$cata] = pattern => {
 
   const cata2 = o => {
     if (!isObj(o)) throw new TypeSysError(
-      `cata expects value of type "Object" at 2/1 ("${introspect(o)}" received)`
+      `cata2 expects value of type "Object" at 1/1 ("${introspect(o)}" received)`
     );
+
+    if (!(o[$tag] in pattern)) {
+      throw new TypeSysError(`cata2 cannot handle values of type "Contract (a)" tagged with "${o[$tag]}" for ${fname}`);
+    }
 
     return pattern[o[$tag]] (o);
   };
@@ -376,14 +380,6 @@ const boo = o => {
     
     ReturnType: ({x, fname}) => {
       throw new ReturnTypeError(`${fname} must return value of type "Boolean" ("${introspect(x)}" returned)`);
-    },
-
-    Arity: ({fname}) => {
-      throw new TypeSysError(`boo cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`);
-    },
-
-    Length: ({fname}) => {
-      throw new TypeSysError(`boo cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`);
     }
   }) (o);
 };
@@ -408,14 +404,6 @@ const num = o => {
     
     ReturnType: ({x, fname}) => {
       throw new ReturnTypeError(`${fname} must return value of type "Number" ("${introspect(x)}" returned)`);
-    },
-
-    Arity: ({fname}) => {
-      throw new TypeSysError(`num cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`);
-    },
-
-    Length: ({fname}) => {
-      throw new TypeSysError(`num cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`);
     }
   }) (o);
 };
@@ -440,14 +428,6 @@ const str = o => {
     
     ReturnType: ({x, fname}) => {
       throw new ReturnTypeError(`${fname} must return value of type "String" ("${introspect(x)}" returned)`);
-    },
-
-    Arity: ({fname}) => {
-      throw new TypeSysError(`str cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`);
-    },
-
-    Length: ({fname}) => {
-      throw new TypeSysError(`str cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`);
     }
   }) (o);
 };
@@ -489,14 +469,6 @@ const arr = o => {
     
     ReturnType: ({x, fname}) => {
       throw new ReturnTypeError(`${fname} must return value either of type "[any]" or of type "Array" ("${introspect(x)}" returned)`);
-    },
-
-    Arity: ({fname}) => {
-      throw new TypeSysError(`arr cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`);
-    },
-
-    Length: ({fname}) => {
-      throw new TypeSysError(`arr cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`);
     }
   }) (o);
 };
@@ -517,56 +489,39 @@ const arrOf = c => {
       `arrOf2 expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
     );
 
-    if (o[$type] !== "Contract ([any])" && o[$type] !== "Contract (Array)") throw new TypeError(
-      Contract[$cata] ({
-        Type: ({x, fname, nf, nargs}) => {
-          throw new TypeError(
-            `${fname} expects value of type "${type}" at ${nf}/${nargs} ("${introspect(x)}" received)`
-          );
-        },
-        
-        ReturnType: ({x, fname}) => {
-          throw new ReturnTypeError(
-            `${fname} must return value of type "${type}" ("${introspect(x)}" returned)`
-          );
-        },
-
-        Arity: ({fname}) => {
-          throw new TypeSysError(
-            `arrOf2 cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`
-          );
-        },
-
-        Length: ({fname}) => {
-          throw new TypeSysError(
-            `arrOf2 cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`
-          );
-        }
-      }) (o)
-    );
-
-    if (!isArr(o.x)) throw new TypeSysError(
-      `length expects value of type "Array" at 1/1 at property "x" ("${introspect(o.x)}" received)`
-    );
+    if (o[$type] !== "Contract ([any])" && o[$type] !== "Contract (Array)") Contract[$cata] ({
+      Type: ({x, fname, nf, nargs}) => {
+        throw new TypeError(
+          `${fname} expects value of type "${type}" at ${nf}/${nargs} ("${introspect(x)}" received)`
+        );
+      },
+      
+      ReturnType: ({x, fname}) => {
+        throw new ReturnTypeError(
+          `${fname} must return value of type "${type}" ("${introspect(x)}" returned)`
+        );
+      }
+    }) (o)
 
     if (o.x[$type] === type) return o;
 
-    Contract[$cata] ({
-      Type: ({x: xs, fname, nf, nargs}) => xs.forEach(x => c(Type(x, fname, nf, nargs))),
-
-      ReturnType: ({x: xs, fname}) => xs.forEach(x => c(ReturnType(x, fname))),
-
-      Arity: ({fname}) => {
-        throw new TypeSysError(
-          `arrOf2 cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`
+    if (!isArr(o.x)) Contract[$cata] ({
+      Type: ({x, fname, nf, nargs}) => {
+        throw new TypeError(
+          `${fname} expects value of type "${type}" at ${nf}/${nargs} at property "x" ("${introspect(o.x)}" received)`
         );
       },
-
-      Length: ({fname}) => {
-        throw new TypeSysError(
-          `arrOf2 cannot handle values of type "Contract (a)" tagged with "Length" for ${fname}`
+      
+      ReturnType: ({x, fname}) => {
+        throw new ReturnTypeError(
+          `${fname} must return value of type "${type}" at property "x" ("${introspect(o.x)}" returned)`
         );
       }
+    }) (o)
+
+    Contract[$cata] ({
+      Type: ({x: xs, fname, nf, nargs}) => xs.forEach(x => c(Type(x, fname, nf, nargs))),
+      ReturnType: ({x: xs, fname}) => xs.forEach(x => c(ReturnType(x, fname)))
     }) (o);
 
     return o;
@@ -592,20 +547,8 @@ const length = o => {
 
   if (o.x.length !== o.n) {
     Contract[$cata] ({
-      Type: ({fname}) => {
-        throw new TypeSysError(`length cannot handle values of type "Contract (a)" tagged with "Type" for ${fname}`);
-      },
-
-      ReturnType: ({fname}) => {
-        throw new TypeSysError(`length cannot handle values of type "Contract (a)" tagged with "ReturnType" for ${fname}`);
-      },
-
-      Arity: ({fname}) => {
-        throw new TypeSysError(`length cannot handle values of type "Contract (a)" tagged with "Arity" for ${fname}`);
-      },
-
       Length: ({x, fname, nf, nargs, n}) => {
-        throw new TypeError(`${fname} expects Array with ${n} element(s) at ${nf}/${nargs} (${x.length} received)`)
+        throw new TypeError(`${fname} expects Array including ${n} element(s) at ${nf}/${nargs} (${x.length} received)`)
       }
     }) (o);
   }
@@ -619,7 +562,7 @@ const length = o => {
 // Contract (a) -> Contract (a)
 
 const nary = o => {
-  if (!isSumOf(Contract) (o)) throw new TypeSysError(
+  if (!$_(o, isSumOf,Contract)) throw new TypeSysError(
     `nary expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
   );
 
@@ -629,20 +572,8 @@ const nary = o => {
 
   if (o.x.length !== o.n) {  
     Contract[$cata] ({
-      Type: ({fname}) => {
-        throw new TypeSysError(`nary cannot handle values of type "Contract (a)" tagged with "Type" for ${fname}`);
-      },
-
-      ReturnType: ({fname}) => {
-        throw new TypeSysError(`nary cannot handle values of type "Contract (a)" tagged with "ReturnType" for ${fname}`);
-      },
-
       Arity: ({x, fname, nf, n}) => {
         throw new ArityError(`${fname} expects ${n} argument(s) at ${nf} (${x.length} received)`)
-      },
-      
-      Length: ({x, fname, nf, nargs, n}) => {
-        throw new TypeError(`${fname} expects ${x} with ${n} field(s) at ${nf}/${nargs} (${x.length} received)`)
       }
     }) (o);
   }
