@@ -138,10 +138,10 @@ const handleFun = (fname, f, [c, ...cs], n) => {
 
           case "type": {
             if (n > 1 || cs.length > 1) {
-              e_ = new TypeError(`${fname} excpects argument #${o.pos} of type "${o.nominal}" at invocation #${n} ("${o.real}" received)`);
+              e_ = new TypeError(`${fname} excpects argument #${o.pos} of type ${o.nominal} at invocation #${n} (${o.real} received)`);
             }
 
-            else e_ = new TypeError(`${fname} excpects argument #${o.pos} of type "${o.nominal}" ("${o.real}" received)`);
+            else e_ = new TypeError(`${fname} excpects argument #${o.pos} of type ${o.nominal} (${o.real} received)`);
             break;
           }
 
@@ -277,7 +277,7 @@ const arity = n => {
 
 const boo = b => {
   if (isBoo(b)) return b;
-  throw new Error(JSON.stringify({type: "type", nominal: "Boolean", real: introspect(b)}));
+  throw new Error(JSON.stringify({type: "type", nominal: "\"Boolean\"", real: `"${introspect(b)}"`}));
 };
 
 boo.toString = () => "Boolean";
@@ -288,7 +288,7 @@ boo.toString = () => "Boolean";
 
 const num = n => {
   if (isNum(n)) return n;
-  throw new Error(JSON.stringify({type: "type", nominal: "Number", real: introspect(n)}));
+  throw new Error(JSON.stringify({type: "type", nominal: "\"Number\"", real: `"${introspect(n)}"`}));
 };
 
 num.toString = () => "Number";
@@ -299,7 +299,7 @@ num.toString = () => "Number";
 
 const str = s => {
   if (isStr(s)) return s;
-  throw new Error(JSON.stringify({type: "type", nominal: "String", real: introspect(s)}));
+  throw new Error(JSON.stringify({type: "type", nominal: "\"String\"", real: `"${introspect(s)}"`}));
 };
 
 str.toString = () => "String";
@@ -321,7 +321,7 @@ any.toString = () => "any";
 
 const arr = xs => {
   if (isArr(xs)) return xs;
-  throw new Error(JSON.stringify({type: "type", nominal: "Array", real: introspect(s)}));
+  throw new Error(JSON.stringify({type: "type", nominal: "\"Array\"", real: `"${introspect(s)}"`}));
 };
 
 arr.toString = () => "Array";
@@ -340,10 +340,11 @@ const arrOf = c => {
   );
 
   const arrOf2 = xs => {
-    if (!isArr(xs)) throw new Error(JSON.stringify({type: "type", nominal: "Array", real: introspect(xs)}));
+    if (!isArr(xs)) throw new Error(JSON.stringify({type: "type", nominal: "\"Array\"", real: `"${introspect(xs)}"`}));
 
     if ($type in xs) {
       if (xs[$type] === type) return xs;
+      else throw new Error(JSON.stringify({type: "type", nominal: `"${type}"`, real: `"${introspect(xs)}"`}));
     }
 
     xs.forEach((x, n) => {
@@ -351,7 +352,8 @@ const arrOf = c => {
 
       catch (e) {
         const o = JSON.parse(e.message);
-        o.pos = n;
+        o.nominal = `"${type}"`;
+        o.real = `${o.real} element at index #${n}`;
         const e_ = new Error(JSON.stringify(o));
         e_.stack = e.stack;
         throw e_;
@@ -679,11 +681,10 @@ const introspect = x => {
     case "object": {
       if (x === null) return "Null";
       if ($type in x) return x[$type];
-      if (!(name in x)) return "Object";
 
       return Array.from(new Set([
         getType(x),
-        x.constructor.name
+        constructor in x ? x.constructor.name : "Object"
       ])).reduce((acc, s) => s !== "Object" ? s : acc, "Object");
     }
   }
@@ -760,17 +761,22 @@ const _throw = cons => s => {throw new cons(s)};
 // handle get/set traps for virtualized product types
 // (String, String) -> Array
 
-const handleProd = (poly, mono) => ({
+const handleProd = type => ({
   get: (o, k, _) => {
-    if (k === $poly) return poly;
-    if (k === $mono) return mono;
-    if (k === Symbol.toStringTag) return o[k];
-    if (!(k in o)) throw new TypeError(`invalid property request "${k}" for type ${mono}`);
-    return o[k];
+    switch (k) {
+      case $type: return type;
+      case Symbol.toStringTag: return o[k]
+      
+      default: {
+        if (!(k in o)) throw new TypeError(`"${type}" received invalid get request for unknown property "${k}"`);
+        return o[k];
+      }
+    }
   },
 
   set: (o, k, v, _) => {
-    throw new TypeError(`invalid mutation of property "${k}" with value "${v}" for immutable type "${mono}"`);
+    if (k === "toString") return o[k] = v;
+    throw new TypeError(`immutable "${type}" received invalid set request for property "${k}" with value "${v}"`);
   }
 });
 
@@ -822,24 +828,40 @@ Tup.from = (cs, iter) => Tup(cs, Array.from(iter));
 // --[ CONSTRUCTOR ]-----------------------------------------------------------
 
 
-// Array (rev 0.1)
-// ((Contract (a) -> Contract (a)), [a]) -> [a]
+// Array (rev 0.2)
+// (a -> a), [a]) -> [a]
 
 const Arr = (c, xs) => {
   if (TYPE_CHECK) {
-    if (!isUnary(c)) throw new TypeSysError(
-      `Arr expects function of type "Contract (a) -> Contract (a)" at 1/1 ("${introspect(c)}" received)`
+    if (!isFun(c)) throw new TypeSysError(
+      `Arr expects argument #1 of type "Function" ("${introspect(xs)}" received)`
     );
 
-    if (!isArr(xs)) throw new TypeSysError(
-      `Arr expects value of type "Array" at 1/2 ("${introspect(xs)}" received)`
+    if ($("length", of(c), gt(1))) throw new TypeSysError(
+      `Arr expects argument #1 of type "Nullary"/"Unary" ("${arityMap[c.length]}" received)`
     );
 
-    const poly = "[a]",
-     mono = `[${c}]`;
+    if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
+      `Arr expects argument #1 of type "() -> ? -> ?" ("() -> (${repeat(Monoid.arr) (c() . length) ("?") . join(",")}) -> ?" received)`
+    );
 
-    arrOf(c) (Type(xs, "Arr", 1, 2));
-    return new Proxy(xs, handleProd(poly, mono));
+    if (!isArr(xs)) throw new TypeError(
+      `Arr expects argument #2 of type "Array" ("${introspect(xs)}" received)`
+    );
+
+    const type = `[${c}]`;
+    try{arrOf(c) (xs)}
+
+    catch (e) {
+      const o = JSON.parse(e.message);
+      const e_ = new TypeError(`Arr expects argument #2 of type ${type} (${o.real} received)`);
+      e_.stack = e.stack;
+      throw e_;
+    }
+
+    const r = new Proxy(xs, handleProd(type));
+    r.toString = Array.prototype.toString.bind(xs);
+    return r;
   }
 
   return xs;

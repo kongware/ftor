@@ -9,7 +9,7 @@ This library is experimental and still work in progress.
 
 ## What
 
-ftor is a functional programming library that meaningfully adapts the functional paradigm for untyped environments.
+ftor is a functional programming library that adapts the functional paradigm sensibly for untyped environments.
 
 ## Why
 
