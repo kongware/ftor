@@ -196,7 +196,7 @@ const arityMap = ["Nullary", "Unary", "Binary", "Ternary", "4-ary", "5-ary"];
 // --[ ARITY CONTRACTS ]-------------------------------------------------------
 
 
-// arity (rev 0.1)
+// arity (rev 0.2)
 // Number -> (...a -> a) -> Array -> Array
 
 const arity = n => {
@@ -233,24 +233,14 @@ const arity = n => {
       }
 
       args.forEach((x, m) => {
-        if (isFin(n)) {
-          try {cs[m] (x)}
+        try {isFin(n) ? cs[m] (x) : cs[0] (x)}
 
-          catch (e) {
-            const o = JSON.parse(e.message);
-            o.pos = m + 1;
-            throw new Error(JSON.stringify(o));
-          }
-        }
-
-        else {
-          try {cs[0] (x)}
-
-          catch (e) {
-            const o = JSON.parse(e.message);
-            o.pos = 1;
-            throw new Error(JSON.stringify(o));
-          }
+        catch (e) {
+          const o = JSON.parse(e.message);
+          o.pos = m + 1;
+          const e_ = new Error(JSON.stringify(o));
+          e_.stack = e.stack;
+          throw e_;
         }
       });
 
@@ -286,7 +276,7 @@ const arity = n => {
 // Boolean -> Boolean
 
 const boo = b => {
-  if (introspect(b) === "Boolean") return b;
+  if (isBoo(b)) return b;
   throw new Error(JSON.stringify({type: "type", nominal: "Boolean", real: introspect(b)}));
 };
 
@@ -297,7 +287,7 @@ boo.toString = () => "Boolean";
 // Number -> Number
 
 const num = n => {
-  if (introspect(n) === "Number") return n;
+  if (isNum(n)) return n;
   throw new Error(JSON.stringify({type: "type", nominal: "Number", real: introspect(n)}));
 };
 
@@ -308,7 +298,7 @@ num.toString = () => "Number";
 // String -> String
 
 const str = s => {
-  if (introspect(s) === "String") return s;
+  if (isStr(s)) return s;
   throw new Error(JSON.stringify({type: "type", nominal: "String", real: introspect(s)}));
 };
 
@@ -318,86 +308,57 @@ str.toString = () => "String";
 // --[ POLYMORPHIC CONTRACTS ]-------------------------------------------------
 
 
-// any (rev 0.1)
-// Contract (a) -> Contract (a)
+// any (rev 0.2)
+// a -> a
 
-const any = o => {
-  if (!$_(o, isSumOf, Contract)) throw new TypeSysError(
-    `any expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
-  );
-
-  return o;
-};
+const any = x => x;
 
 any.toString = () => "any";
 
 
-// array (rev 0.1)
-// Contract (Array) -> Contract (Array)
+// array (rev 0.2)
+// Array -> Array
 
-const arr = o => {
-  if (!$_(o, isSumOf, Contract)) throw new TypeSysError(
-    `arr expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
-  );
-
-  if (o[$type] === "Contract ([any])" || o[$type] === "Contract (Array)") return o;
-  
-  Contract[$cata] ({
-    Type: ({x, fname, nf, nargs}) => {
-      throw new TypeError(`${fname} expects value either of type "[any]" or of type "Array" at ${nf}/${nargs} ("${introspect(x)}" received)`)
-    },
-    
-    ReturnType: ({x, fname}) => {
-      throw new ReturnTypeError(`${fname} must return value either of type "[any]" or of type "Array" ("${introspect(x)}" returned)`);
-    }
-  }) (o);
+const arr = xs => {
+  if (isArr(xs)) return xs;
+  throw new Error(JSON.stringify({type: "type", nominal: "Array", real: introspect(s)}));
 };
 
 arr.toString = () => "Array";
 
 
-// array of (rev 0.1)
-// (Contract (a) -> Contract (a)) -> Contract (a) -> Contract (a)
+// array of (rev 0.2)
+// (a -> a) -> [a] -> [a]
 
 const arrOf = c => {
-  if (!isUnary(c)) throw new TypeSysError(
-    `arrOf expects function of type "Contract (a) -> Contract (a)" at 1/1 ("${introspect(c)}" received)`
+  if (!isFun(c)) throw new TypeSysError(
+    `arrOf expects argument #1 of type "Function" ("${introspect(c)}" received)`
   );
 
-  const arrOf2 = o => {
-    if (!$_(o, isSumOf, Contract)) throw new TypeSysError(
-      `arrOf2 expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
-    );
+  if (!isUnary(c)) throw new TypeSysError(
+    `arrOf expects argument #1 of type "Unary" ("${arityMap[c.length]}" received)`
+  );
 
-    if (o.x[$type] === type) return o;
+  const arrOf2 = xs => {
+    if (!isArr(xs)) throw new Error(JSON.stringify({type: "type", nominal: "Array", real: introspect(xs)}));
 
-    if (!isArr(o.x)) Contract[$cata] ({
-      Type: ({x, fname, nf, nargs}) => {
-        throw new TypeError(
-          `${fname} expects value of type "${type}" at ${nf}/${nargs} at property "x" ("${introspect(o.x)}" received)`
-        );
-      },
-      
-      ReturnType: ({x, fname}) => {
-        throw new ReturnTypeError(
-          `${fname} must return value of type "${type}" at property "x" ("${introspect(o.x)}" returned)`
-        );
+    if ($type in xs) {
+      if (xs[$type] === type) return xs;
+    }
+
+    xs.forEach((x, n) => {
+      try {c(x)}
+
+      catch (e) {
+        const o = JSON.parse(e.message);
+        o.pos = n;
+        const e_ = new Error(JSON.stringify(o));
+        e_.stack = e.stack;
+        throw e_;
       }
-    }) (o)
+    });
 
-    Contract[$cata] ({
-      Type: ({x: xs, fname, nf, nargs}) => {
-        try {xs.forEach(x => c(Type(x, fname, nf, nargs)))}
-        catch (e) {throw new TypeError(`${fname} expects Array of type "${type}" at ${nf}/${nargs} at property "x" ("${introspect(o.x)}" received)`)}
-      },
-
-      ReturnType: ({x: xs, fname}) => {
-        try {xs.forEach(x => c(ReturnType(x, fname)))}
-        catch (e) {throw new ReturnTypeError(`${fname} must return Array of type "${type}" at property "x" ("${introspect(o.x)}" returned)`)}
-      }
-    }) (o);
-
-    return o;
+    return xs;
   };
 
   const type = `[${c}]`;
@@ -617,6 +578,12 @@ const isObj = instanceOf(Object);
 // a -> Boolean
 
 const isPos = x => x >= 0;
+
+
+// is scalar value (rev 0.1)
+// a -> Boolean
+
+const isSca = x => !isObj(x);
 
 
 // is set (rev 0.2)
@@ -1354,6 +1321,7 @@ module.exports = {
   isNum,
   isObj,
   isPos,
+  isSca,
   isStr,
   isSumOf,
   isSym,
