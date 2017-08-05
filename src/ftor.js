@@ -100,17 +100,17 @@ const handleFun = (fname, f, [c, ...cs], n) => {
     `handleFun expects argument #2 of type "Function" ("${introspect(f)}" received)`
   );
 
-  cs.concat(c).forEach(c => {
+  cs.concat(c).forEach((c, m) => {
     if (!isFun(c)) throw new TypeSysError(
       `handleFun expects argument #3 of type "[Function]" ("${introspect(c)}" received)`
     );
 
     if ($("length", of(c), gt(1))) throw new TypeSysError(
-      `handleFun expects argument #3 of type "[Nullary]"/"[Unary]" ("${arityMap[c.length]}" element received)`
+      `handleFun expects argument #3 of type "[Nullary]"/"[Unary]" ("${arityMap[c.length]}" at index #${m} received)`
     );
 
     if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
-      `handleFun expects argument #3 of type "[() -> ? -> ?]" ("() -> (${repeat(Monoid.arr) (c() . length) ("?") . join(",")}) -> ?" element received)`
+      `handleFun expects argument #3 of type "[() -> ? -> ?]" ("() -> (${repeat(Monoid.arr) (c() . length) ("?") . join(",")}) -> ?" at index #${m} received)`
     );
   });
 
@@ -128,24 +128,29 @@ const handleFun = (fname, f, [c, ...cs], n) => {
 
         switch (o.type) {
           case "arity": {
-            if (n > 1 || cs.length > 1) {
-              e_ = new ArityError(`${fname} excpects ${o.nominal} argument(s) at invocation #${n} (${o.real} received)`);
-            }
+            if (n > 1 || cs.length > 1) e_ = new ArityError(
+              `${fname} excpects ${o.nominal} argument(s) at invocation #${n} (${o.real} received)`
+            );
 
             else e_ = new ArityError(`${fname} excpects ${o.nominal} argument(s) (${o.real} received)`);
             break;
           }
 
           case "type": {
-            if (n > 1 || cs.length > 1) {
-              e_ = new TypeError(`${fname} excpects argument #${o.pos} of type ${o.nominal} at invocation #${n} (${o.real} received)`);
-            }
+            if (n > 1 || cs.length > 1) e_ = new TypeError(
+              `${fname} excpects argument #${o.pos} of type ${o.nominal} at invocation #${n} (${o.real} received)`
+            );
 
-            else e_ = new TypeError(`${fname} excpects argument #${o.pos} of type ${o.nominal} (${o.real} received)`);
+            else e_ = new TypeError(
+              `${fname} excpects argument #${o.pos} of type ${o.nominal} (${o.real} received)`
+            );
+
             break;
           }
 
-          default: throw new TypeSysError(`handleFun received invalid error type "${o.type}" during argument check`);
+          default: throw new TypeSysError(
+            `handleFun received invalid error type "${o.type}" during argument check`
+          );
         }
 
         e_.stack = e.stack;
@@ -163,11 +168,16 @@ const handleFun = (fname, f, [c, ...cs], n) => {
 
           switch (o.type) {
             case "type": {
-              e_ = new ReturnTypeError(`${fname} must return value of type "${o.nominal}" ("${o.real}" returned)`);
+              e_ = new ReturnTypeError(
+                `${fname} must return value of type "${o.nominal}" ("${o.real}" returned)`
+              );
+
               break;
             }
 
-            default: throw new TypeSysError(`handleFun received invalid error type "${o.type}" during return value check`);
+            default: throw new TypeSysError(
+              `handleFun received invalid error type "${o.type}" during return value check`
+            );
           }
 
           e_.stack = e.stack;
@@ -190,7 +200,19 @@ const handleFun = (fname, f, [c, ...cs], n) => {
 // --[ AUXILIARY ]-------------------------------------------------------------
 
 
+// arity map (rev 0.2)
+// [String]
+
 const arityMap = ["Nullary", "Unary", "Binary", "Ternary", "4-ary", "5-ary"];
+
+
+// deep virtualize array (rev 0.2)
+// [a] -> [a]
+
+const virtArr = type => xs => xs.map(x => {
+  if (isArr(x)) return new Proxy(virtArr(x), handleProd(type));
+  return x;
+});
 
 
 // --[ ARITY CONTRACTS ]-------------------------------------------------------
@@ -217,9 +239,9 @@ const arity = n => {
       );
     }
 
-    cs.forEach(c => {
+    cs.forEach((c, m) => {
       if (!isUnary(c)) throw new TypeSysError(
-        `arity2 expects argument #1 of type "[? -> ?]" ("(${repeat(Monoid.arr) (c.length) ("?") . join(",")}) -> ?" element received)`
+        `arity2 expects argument #1 of type "[? -> ?]" ("(${repeat(Monoid.arr) (c.length) ("?") . join(",")}) -> ?" at index #${m} received)`
       );
     });
 
@@ -340,7 +362,9 @@ const arrOf = c => {
   );
 
   const arrOf2 = xs => {
-    if (!isArr(xs)) throw new Error(JSON.stringify({type: "type", nominal: "\"Array\"", real: `"${introspect(xs)}"`}));
+    if (!isArr(xs)) throw new Error(
+      JSON.stringify({type: "type", nominal: "\"Array\"", real: `"${introspect(xs)}"`})
+    );
 
     if ($type in xs) {
       if (xs[$type] === type) return xs;
@@ -353,7 +377,7 @@ const arrOf = c => {
       catch (e) {
         const o = JSON.parse(e.message);
         o.nominal = `"${type}"`;
-        o.real = `${o.real} element at index #${n}`;
+        o.real = `${o.real} at index #${n}`;
         const e_ = new Error(JSON.stringify(o));
         e_.stack = e.stack;
         throw e_;
@@ -384,7 +408,9 @@ const length = o => {
   if (o.x.length !== o.n) {
     Contract[$cata] ({
       Length: ({x, fname, nf, nargs, n}) => {
-        throw new TypeError(`${fname} expects Array including ${n} element(s) at ${nf}/${nargs} (${x.length} received)`)
+        throw new TypeError(
+          `${fname} expects Array including ${n} element(s) at ${nf}/${nargs} (${x.length} received)`
+        )
       }
     }) (o);
   }
@@ -568,6 +594,12 @@ const isNullary = x => isFun(x) && x.length === 0;
 // a -> Boolean
 
 const isNum = x => typeof x === "number";
+
+
+// is number string (rev 0.1)
+// a -> Boolean
+
+const isNumStr = x => isStr(x) && x * 1 + "" === x;
 
 
 // is object (rev 0.1)
@@ -765,18 +797,23 @@ const handleProd = type => ({
   get: (o, k, _) => {
     switch (k) {
       case $type: return type;
+      case Symbol.toPrimitive: return o[k]
       case Symbol.toStringTag: return o[k]
       
       default: {
-        if (!(k in o)) throw new TypeError(`"${type}" received invalid get request for unknown property "${k}"`);
+        if (!(k in o)) throw new TypeError(
+          `"${type}" received invalid get operation for unknown ${isNumStr(k) ? `index #${k}` : `property "${k}"`}`
+        );
+
         return o[k];
       }
     }
   },
 
   set: (o, k, v, _) => {
-    if (k === "toString") return o[k] = v;
-    throw new TypeError(`immutable "${type}" received invalid set request for property "${k}" with value "${v}"`);
+    throw new TypeError(
+      `immutable "${type}" received invalid set operation for ${isNumStr(k) ? `index #${k}` : `property "${k}"`} with value "${v}"`
+    );
   }
 });
 
@@ -829,7 +866,7 @@ Tup.from = (cs, iter) => Tup(cs, Array.from(iter));
 
 
 // Array (rev 0.2)
-// (a -> a), [a]) -> [a]
+// ((a -> a), [a]) -> [a]
 
 const Arr = (c, xs) => {
   if (TYPE_CHECK) {
@@ -849,6 +886,7 @@ const Arr = (c, xs) => {
       `Arr expects argument #2 of type "Array" ("${introspect(xs)}" received)`
     );
 
+    if (isNullary(c)) c = c();
     const type = `[${c}]`;
     try{arrOf(c) (xs)}
 
@@ -859,9 +897,7 @@ const Arr = (c, xs) => {
       throw e_;
     }
 
-    const r = new Proxy(xs, handleProd(type));
-    r.toString = Array.prototype.toString.bind(xs);
-    return r;
+    return new Proxy(virtArr(type) (xs), handleProd(type));
   }
 
   return xs;
@@ -1341,6 +1377,7 @@ module.exports = {
   isNull,
   isNullary,
   isNum,
+  isNumStr,
   isObj,
   isPos,
   isSca,
@@ -1369,4 +1406,5 @@ module.exports = {
   tupOf,
   unary,
   variadic,
+  virtArr
 };
