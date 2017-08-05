@@ -206,11 +206,15 @@ const handleFun = (fname, f, [c, ...cs], n) => {
 const arityMap = ["Nullary", "Unary", "Binary", "Ternary", "4-ary", "5-ary"];
 
 
-// deep virtualize array (rev 0.2)
+// virtualize array (rev 0.2)
 // [a] -> [a]
 
 const virtArr = type => xs => xs.map(x => {
-  if (isArr(x)) return new Proxy(virtArr(x), handleProd(type));
+  if (isArr(x)) {
+    const type_ = type.slice(1, -1);
+    return new Proxy(virtArr(type_) (x), handleProd(type_));
+  }
+
   return x;
 });
 
@@ -802,7 +806,7 @@ const handleProd = type => ({
       
       default: {
         if (!(k in o)) throw new TypeError(
-          `"${type}" received invalid get operation for unknown ${isNumStr(k) ? `index #${k}` : `property "${k}"`}`
+          `value of type "${type}" received invalid get operation for unknown ${isNumStr(k) ? `index #${k}` : `property "${k}"`}`
         );
 
         return o[k];
@@ -811,8 +815,10 @@ const handleProd = type => ({
   },
 
   set: (o, k, v, _) => {
+    if (isStr(v)) v = `"${v}"`;
+
     throw new TypeError(
-      `immutable "${type}" received invalid set operation for ${isNumStr(k) ? `index #${k}` : `property "${k}"`} with value "${v}"`
+      `immutable value of type "${type}" received invalid set operation for ${isNumStr(k) ? `index #${k}` : `property "${k}"`} with value ${v}`
     );
   }
 });
