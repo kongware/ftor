@@ -206,13 +206,27 @@ const handleFun = (fname, f, [c, ...cs], n) => {
 const arityMap = ["Nullary", "Unary", "Binary", "Ternary", "4-ary", "5-ary"];
 
 
-// virtualize array (rev 0.2)
+// extract type (rev 0.2)
+// String -> String
+
+const extractType = type => {
+  const open = type[0], closed = type[type.length - 1];
+  return type
+   .slice(1, -1).split(",")
+   .filter(s => s.includes(open) || s.includes(closed))
+   // add xor
+   .join(",").trim();
+};
+
+
+// virtualize recursive (rev 0.2)
 // [a] -> [a]
 
-const virtArr = type => xs => xs.map(x => {
+const virtRec = (type, xs) => xs.map(x => {
+  // broken
   if (isArr(x)) {
-    const type_ = type.slice(1, -1);
-    return new Proxy(virtArr(type_) (x), handleProd(type_));
+    const type_ = extractType(type);
+    return new Proxy(virtRec(type_, x), handleProd(type_));
   }
 
   return x;
@@ -353,6 +367,14 @@ const arr = xs => {
 arr.toString = () => "Array";
 
 
+// tuple (rev 0.2)
+// Array -> Array
+
+const tup = arr;
+
+tup.toString = () => "Tuple";
+
+
 // array of (rev 0.2)
 // (a -> a) -> [a] -> [a]
 
@@ -372,7 +394,7 @@ const arrOf = c => {
 
     if ($type in xs) {
       if (xs[$type] === type) return xs;
-      else throw new Error(JSON.stringify({type: "type", nominal: `"${type}"`, real: `"${introspect(xs)}"`}));
+      else throw new Error(JSON.stringify({type: "type", nominal: `"${type}"`, real: `"${xs[$type]}"`}));
     }
 
     xs.forEach((x, n) => {
@@ -395,74 +417,60 @@ const arrOf = c => {
   return arrOf2.toString = () => type, arrOf2;
 };
 
-
-// length (rev 0.1)
-// internal
-// Contract (a) -> Contract (a)
-
-const length = o => {
-  if (!$_(o, isSumOf, Contract)) throw new TypeSysError(
-    `length expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
-  );
-
-  if (!isArr(o.x)) throw new TypeSysError(
-    `length expects value of type "Array" at 1/1 at property "x" ("${introspect(o.x)}" received)`
-  );
-
-  if (o.x.length !== o.n) {
-    Contract[$cata] ({
-      Length: ({x, fname, nf, nargs, n}) => {
-        throw new TypeError(
-          `${fname} expects Array including ${n} element(s) at ${nf}/${nargs} (${x.length} received)`
-        )
-      }
-    }) (o);
-  }
-
-  return o;
-};
+arrOf.toString = () => "[a]";
 
 
-// tuple of (rev 0.1)
-// (Contract (a) -> Contract (a)) -> Contract (a) -> Contract (a)
+// tuple of (rev 0.2)
+// [? -> ?] -> Array -> Array
 
 const tupOf = cs => {
-  if (!$_(cs, isArrOf, isUnary)) throw new TypeSysError(
-    `tupOf expects function of type "Contract (a) -> Contract (a)" at 1/1 ("${introspect(cs)}" received)`
-  );
+  cs.forEach((c, n) => {
+    if (!isFun(c)) throw new TypeSysError(
+      `tupOf expects argument #1 of type "[Function]" ("${introspect(c)}" at index #${n} received)`
+    );
+  });
+  
+  cs.forEach((c, n) => {
+    if (!isUnary(c)) throw new TypeSysError(
+      `tupOf expects argument #1 of type "[Unary]" ("${arityMap[c.length]}" at index #${n} received)`
+    );
+  });
 
-  const tupOf2 = o => {
-    if (!$_(o, isSumOf, Contract)) throw new TypeSysError(
-      `tupOf2 expects value of type "Contract (a)" at 1/1 ("${introspect(o)}" received)`
+  const tupOf2 = xs => {
+    if (!isArr(xs)) throw new Error(
+      JSON.stringify({type: "type", nominal: "\"Array\"", real: `"${introspect(xs)}"`})
     );
 
-    if (o.x[$type] === type) return o;
+    if (cs.length !== xs.length) throw new Error(
+      JSON.stringify({type: "length", nominal: cs.length, real: xs.length})
+    );
 
-    if (!isArr(o.x)) Contract[$cata] ({
-      Type: ({x, fname, nf, nargs}) => {
-        throw new TypeError(
-          `${fname} expects value of type "${type}" at ${nf}/${nargs} at property "x" ("${introspect(o.x)}" received)`
-        );
-      },
-      
-      ReturnType: ({x, fname}) => {
-        throw new ReturnTypeError(
-          `${fname} must return value of type "${type}" at property "x" ("${introspect(o.x)}" returned)`
-        );
+    if ($type in xs) {
+      if (xs[$type] === type) return xs;
+      else throw new Error(JSON.stringify({type: "type", nominal: `"${type}"`, real: `"${xs[$type]}"`}));
+    }
+
+    cs.forEach((c, n) => {
+      try {c(xs[n])}
+
+      catch (e) {
+        const o = JSON.parse(e.message);
+        o.nominal = `"${type}"`;
+        o.real = `${o.real} at index #${n}`;
+        const e_ = new Error(JSON.stringify(o));
+        e_.stack = e.stack;
+        throw e_;
       }
-    }) (o)
+    });
 
-    Contract[$cata] ({
-      Type: ({x: xs, fname, nf, nargs}) => xs.forEach(x => c(Type(x, fname, nf, nargs))),
-      ReturnType: ({x: xs, fname}) => xs.forEach(x => c(ReturnType(x, fname)))
-    }) (o);
-
-    return o;
+    return xs;
   };
 
-  const type = `(${cs.map(c => c + "").join(",")})`;
+  const type = `(${cs})`;
   return tupOf2.toString = () => type, tupOf2;
 };
+
+tupOf.toString = () => "Tuple";
 
 
 // --[ REFLECTION ]------------------------------------------------------------
@@ -753,6 +761,17 @@ class ArityError extends Error {
 };
 
 
+// Length Error (rev 0.1)
+// String -> LenghError
+
+class LengthError extends Error {
+  constructor(x) {
+    super(x);
+    Error.captureStackTrace(this, LengthError);
+  }
+};
+
+
 // Return Type Error (rev 0.1)
 // String -> ReturnTypeError
 
@@ -834,20 +853,41 @@ const handleProd = type => ({
 
 const Tup = (cs, xs) => {
   if (TYPE_CHECK) {
-    if (!isArrOf(isUnary) (cs)) throw new TypeSysError(
-      `Arr expects array of type "[Contract (a) -> Contract (a)]" at 1/1 ("${introspect(cs)}" received)`
+    cs.forEach((c, n) => {
+      if (!isFun(c)) throw new TypeSysError(
+        `Tup expects argument #1 of type "[Function]" ("${introspect(c)}" at index #${n} received)`
+      );
+
+      if ($("length", of(c), gt(1))) throw new TypeSysError(
+        `Tup expects argument #1 of type "[Nullary]"/"[Unary]" ("${arityMap[c.length]}" at index #${n} received)`
+      );
+
+      if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
+        `Tup expects argument #1 of type "[() -> ? -> ?]" ("() -> (${repeat(Monoid.arr) (c() . length) ("?") . join(",")}) -> ?" at index #${n} received)`
+      );
+    });
+
+    if (!isArr(xs)) throw new TypeError(
+      `Tup expects argument #2 of type "Array" ("${introspect(xs)}" received)`
     );
 
-    if (!isArr(xs)) throw new TypeSysError(
-      `Arr expects value of type "Array" at 1/2 ("${introspect(xs)}" received)`
+    if (cs.length !== xs.length) throw new LengthError(
+      `Tup expects "Array" of length ${cs.length} (${xs.length} received)`
     );
 
-    const poly = "(" + ranger((_, n) => n < xs.length, succ) ("a") + ")",
-     mono = "(" + cs.map(c => c + "").join(",") + ")";
+    cs = cs.map(c => isNullary(c) ? c() : c);
+    const type = `(${cs})`;
+    try{tupOf(cs) (xs)}
 
-    length(Length(xs, "Tup", 1, 2, cs.length));
-    cs.forEach((c, i) => cs[i] (Type(xs[i], "Tup", 1, 2)));
-    return new Proxy(xs, handleProd(poly, mono));
+    catch (e) {
+      const o = JSON.parse(e.message);
+      // switch length/type error
+      const e_ = new TypeError(`Tup expects argument #2 of type "${type}" (${o.real} received)`);
+      e_.stack = e.stack;
+      throw e_;
+    }
+
+    return new Proxy(virtRec(type, xs), handleProd(type));
   }
 
   return xs;
@@ -898,12 +938,12 @@ const Arr = (c, xs) => {
 
     catch (e) {
       const o = JSON.parse(e.message);
-      const e_ = new TypeError(`Arr expects argument #2 of type ${type} (${o.real} received)`);
+      const e_ = new TypeError(`Arr expects argument #2 of type "${type}" (${o.real} received)`);
       e_.stack = e.stack;
       throw e_;
     }
 
-    return new Proxy(virtArr(type) (xs), handleProd(type));
+    return new Proxy(virtRec(type, xs), handleProd(type));
   }
 
   return xs;
@@ -1136,12 +1176,6 @@ const handleConst = (c, name, tag) => ({
 ******************************************************************************/
 
 
-// interpolate
-// Object -> String -> String
-
-const interpolate = o => s => s.replace(/\${(\w+)}/g, (_, k) => o[k]);
-
-
 // greater than
 // a -> a -> Boolean
 
@@ -1149,8 +1183,25 @@ const gt = y => x => x > y;
 
 
 /******************************************************************************
-********************************[ 7.1. STRING ]********************************
+********************************[ 7.1. BOOLEAN ]*******************************
 ******************************************************************************/
+
+
+// xor
+// Boolean -> Boolean -> Boolean
+
+const xor = x => y => !x === !y ? false : true;
+
+
+/******************************************************************************
+********************************[ 7.2. STRING ]********************************
+******************************************************************************/
+
+
+// interpolate
+// Object -> String -> String
+
+const interpolate = o => s => s.replace(/\${(\w+)}/g, (_, k) => o[k]);
 
 
 // successor (rev 0.1)
@@ -1357,6 +1408,7 @@ module.exports = {
   contra,
   contra2,
   contra3,
+  extractType,
   flip,
   Fun,
   get$,
@@ -1412,5 +1464,5 @@ module.exports = {
   tupOf,
   unary,
   variadic,
-  virtArr
+  virtRec
 };
