@@ -93,29 +93,29 @@ const Fun = (fname, f, ...cs) => {
 
 const handleFun = (fname, f, [c, ...cs], n) => {
   if (!isStr(fname)) throw new TypeSysError(
-    `handleFun expects argument #1 of type "String" ("${introspect(fname)}" received)`
+    `handleFun expects argument #1 of type String >>> ${introspect(fname)} received`
   );
 
   if (!isFun(f)) throw new TypeSysError(
-    `handleFun expects argument #2 of type "Function" ("${introspect(f)}" received)`
+    `handleFun expects argument #2 of type Function >>> ${introspect(f)} received`
   );
 
   cs.concat(c).forEach((c, m) => {
     if (!isFun(c)) throw new TypeSysError(
-      `handleFun expects argument #3 of type "[Function]" ("${introspect(c)}" received)`
+      `handleFun expects argument #3 of type [Function] >>> ${introspect(c)} received`
     );
 
     if ($("length", of(c), gt(1))) throw new TypeSysError(
-      `handleFun expects argument #3 of type "[Nullary]"/"[Unary]" ("${arityMap[c.length]}" at index #${m} received)`
+      `handleFun expects argument #3 of type [Nullary]/[Unary] >>> ${arityMap[c.length]} at index #${m} received`
     );
 
     if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
-      `handleFun expects argument #3 of type "[() -> ? -> ?]" ("() -> (${repeat(Monoid.arr) (c() . length) ("?") . join(",")}) -> ?" at index #${m} received)`
+      `handleFun expects argument #3 of type [() -> ? -> ?] >>> () -> (${repeat(Monoid.arr) (c() . length) ("?") . join(",")}) -> ? at index #${m} received`
     );
   });
 
   if (!isNat(n)) throw new TypeSysError(
-    `handleFun expects argument #4 of type "Natural" ("${introspect(n)}" received)`
+    `handleFun expects argument #4 of type Natural >>> ${introspect(n)} received`
   );
 
   return {
@@ -129,27 +129,27 @@ const handleFun = (fname, f, [c, ...cs], n) => {
         switch (o.type) {
           case "arity": {
             if (n > 1 || cs.length > 1) e_ = new ArityError(
-              `${fname} excpects ${o.nominal} argument(s) at invocation #${n} (${o.real} received)`
+              `${fname} excpects ${o.nominal} argument(s) at invocation #${n} >>> ${o.real} received`
             );
 
-            else e_ = new ArityError(`${fname} excpects ${o.nominal} argument(s) (${o.real} received)`);
+            else e_ = new ArityError(`${fname} excpects ${o.nominal} argument(s) >>> ${o.real} received`);
             break;
           }
 
           case "type": {
             if (n > 1 || cs.length > 1) e_ = new TypeError(
-              `${fname} excpects argument #${o.pos} of type ${o.nominal} at invocation #${n} (${o.real} received)`
+              `${fname} excpects argument #${o.pos} of type ${o.nominal} at invocation #${n} >>> ${o.real} received`
             );
 
             else e_ = new TypeError(
-              `${fname} excpects argument #${o.pos} of type ${o.nominal} (${o.real} received)`
+              `${fname} excpects argument #${o.pos} of type ${o.nominal} >>> ${o.real} received`
             );
 
             break;
           }
 
           default: throw new TypeSysError(
-            `handleFun received invalid error type "${o.type}" during argument check`
+            `handleFun received invalid error type ${o.type} during argument check`
           );
         }
 
@@ -169,14 +169,14 @@ const handleFun = (fname, f, [c, ...cs], n) => {
           switch (o.type) {
             case "type": {
               e_ = new ReturnTypeError(
-                `${fname} must return value of type "${o.nominal}" ("${o.real}" returned)`
+                `${fname} must return value of type ${o.nominal} >>> ${o.real} returned`
               );
 
               break;
             }
 
             default: throw new TypeSysError(
-              `handleFun received invalid error type "${o.type}" during return value check`
+              `handleFun received invalid error type ${o.type} during return value check`
             );
           }
 
@@ -213,8 +213,7 @@ const extractType = type => {
   const open = type[0], closed = type[type.length - 1];
   return type
    .slice(1, -1).split(",")
-   .filter(s => s.includes(open) || s.includes(closed))
-   // add xor
+   .filter(s => xor(s.includes(open)) (s.includes(closed)))
    .join(",").trim();
 };
 
@@ -223,7 +222,6 @@ const extractType = type => {
 // [a] -> [a]
 
 const virtRec = (type, xs) => xs.map(x => {
-  // broken
   if (isArr(x)) {
     const type_ = extractType(type);
     return new Proxy(virtRec(type_, x), handleProd(type_));
@@ -241,31 +239,31 @@ const virtRec = (type, xs) => xs.map(x => {
 
 const arity = n => {
   if (!(isNat(n) || isInf(n))) throw new TypeSysError(
-    `arity expects argument #1 of type "Natural"/"Infinite" ("${introspect(n)}" received)`
+    `arity expects argument #1 of type Natural/Infinite >>> ${introspect(n)} received`
   );
 
   const arity2 = (...cs) => {
     if (isFin(n)) {
       if (cs.length !== n) throw new TypeSysError(
-        `arity2 expects argument #1 of type "[? -> ?]" of ${n} element(s) ("${introspect(cs.length)}" received)`
+        `arity2 expects argument #1 of type [? -> ?] of ${n} element(s) >>> ${introspect(cs.length)} received`
       );
     }
 
     else {
       if (cs.length !== 1) throw new TypeSysError(
-        `arity2 expects argument #1 of type "[? -> ?]" of 1 element ("${introspect(cs.length)}" received)`
+        `arity2 expects argument #1 of type [? -> ?] of 1 element >>> ${introspect(cs.length)} received`
       );
     }
 
     cs.forEach((c, m) => {
       if (!isUnary(c)) throw new TypeSysError(
-        `arity2 expects argument #1 of type "[? -> ?]" ("(${repeat(Monoid.arr) (c.length) ("?") . join(",")}) -> ?" at index #${m} received)`
+        `arity2 expects argument #1 of type [? -> ?] >>> (${repeat(Monoid.arr) (c.length) ("?") . join(",")}) -> ? at index #${m} received`
       );
     });
 
     const arity3 = args => {
       if (!isArr(args)) throw new TypeSysError(
-        `arity3 expects argument #1 of type "Array" ("${introspect(args)}" received)`
+        `arity3 expects argument #1 of type Array >>> ${introspect(args)} received`
       );
 
       if (isFin(n)) {
@@ -317,7 +315,7 @@ const arity = n => {
 
 const boo = b => {
   if (isBoo(b)) return b;
-  throw new Error(JSON.stringify({type: "type", nominal: "\"Boolean\"", real: `"${introspect(b)}"`}));
+  throw new Error(JSON.stringify({type: "type", nominal: "Boolean", real: `${introspect(b)}`}));
 };
 
 boo.toString = () => "Boolean";
@@ -328,7 +326,7 @@ boo.toString = () => "Boolean";
 
 const num = n => {
   if (isNum(n)) return n;
-  throw new Error(JSON.stringify({type: "type", nominal: "\"Number\"", real: `"${introspect(n)}"`}));
+  throw new Error(JSON.stringify({type: "type", nominal: "Number", real: `${introspect(n)}`}));
 };
 
 num.toString = () => "Number";
@@ -339,7 +337,7 @@ num.toString = () => "Number";
 
 const str = s => {
   if (isStr(s)) return s;
-  throw new Error(JSON.stringify({type: "type", nominal: "\"String\"", real: `"${introspect(s)}"`}));
+  throw new Error(JSON.stringify({type: "type", nominal: "String", real: `${introspect(s)}`}));
 };
 
 str.toString = () => "String";
@@ -361,7 +359,7 @@ any.toString = () => "any";
 
 const arr = xs => {
   if (isArr(xs)) return xs;
-  throw new Error(JSON.stringify({type: "type", nominal: "\"Array\"", real: `"${introspect(s)}"`}));
+  throw new Error(JSON.stringify({type: "type", nominal: "Array", real: `${introspect(s)}`}));
 };
 
 arr.toString = () => "Array";
@@ -380,21 +378,21 @@ tup.toString = () => "Tuple";
 
 const arrOf = c => {
   if (!isFun(c)) throw new TypeSysError(
-    `arrOf expects argument #1 of type "Function" ("${introspect(c)}" received)`
+    `arrOf expects argument #1 of type Function >>> ${introspect(c)} received`
   );
 
   if (!isUnary(c)) throw new TypeSysError(
-    `arrOf expects argument #1 of type "Unary" ("${arityMap[c.length]}" received)`
+    `arrOf expects argument #1 of type Unary >>> ${arityMap[c.length]} received`
   );
 
   const arrOf2 = xs => {
     if (!isArr(xs)) throw new Error(
-      JSON.stringify({type: "type", nominal: "\"Array\"", real: `"${introspect(xs)}"`})
+      JSON.stringify({type: "type", nominal: "Array", real: `${introspect(xs)}`})
     );
 
     if ($type in xs) {
       if (xs[$type] === type) return xs;
-      else throw new Error(JSON.stringify({type: "type", nominal: `"${type}"`, real: `"${xs[$type]}"`}));
+      else throw new Error(JSON.stringify({type: "type", nominal: `${type}`, real: `${xs[$type]}`}));
     }
 
     xs.forEach((x, n) => {
@@ -402,7 +400,7 @@ const arrOf = c => {
 
       catch (e) {
         const o = JSON.parse(e.message);
-        o.nominal = `"${type}"`;
+        o.nominal = `${type}`;
         o.real = `${o.real} at index #${n}`;
         const e_ = new Error(JSON.stringify(o));
         e_.stack = e.stack;
@@ -426,19 +424,19 @@ arrOf.toString = () => "[a]";
 const tupOf = cs => {
   cs.forEach((c, n) => {
     if (!isFun(c)) throw new TypeSysError(
-      `tupOf expects argument #1 of type "[Function]" ("${introspect(c)}" at index #${n} received)`
+      `tupOf expects argument #1 of type [Function] >>> ${introspect(c)} at index #${n} received`
     );
   });
   
   cs.forEach((c, n) => {
     if (!isUnary(c)) throw new TypeSysError(
-      `tupOf expects argument #1 of type "[Unary]" ("${arityMap[c.length]}" at index #${n} received)`
+      `tupOf expects argument #1 of type [Unary] >>> ${arityMap[c.length]} at index #${n} received`
     );
   });
 
   const tupOf2 = xs => {
     if (!isArr(xs)) throw new Error(
-      JSON.stringify({type: "type", nominal: "\"Array\"", real: `"${introspect(xs)}"`})
+      JSON.stringify({type: "type", nominal: "Array", real: `${introspect(xs)}`})
     );
 
     if (cs.length !== xs.length) throw new Error(
@@ -447,7 +445,7 @@ const tupOf = cs => {
 
     if ($type in xs) {
       if (xs[$type] === type) return xs;
-      else throw new Error(JSON.stringify({type: "type", nominal: `"${type}"`, real: `"${xs[$type]}"`}));
+      else throw new Error(JSON.stringify({type: "type", nominal: `${type}`, real: `${xs[$type]}`}));
     }
 
     cs.forEach((c, n) => {
@@ -455,11 +453,26 @@ const tupOf = cs => {
 
       catch (e) {
         const o = JSON.parse(e.message);
-        o.nominal = `"${type}"`;
-        o.real = `${o.real} at index #${n}`;
-        const e_ = new Error(JSON.stringify(o));
-        e_.stack = e.stack;
-        throw e_;
+        let e_;
+
+        switch (o.type) {
+          case "length": {
+            o.real = `length ${o.real} at index #${n}`;
+            e_ = new Error(JSON.stringify(o));
+            e_.stack = e.stack;
+            throw e_;
+          }
+
+          case "type": {
+            o.nominal = `${type}`;
+            o.real = `${o.real} at index #${n}`;
+            e_ = new Error(JSON.stringify(o));
+            e_.stack = e.stack;
+            throw e_;
+          }
+
+          default: TypeSysError(`tupOf2 received invalid error type ${o.type}`);
+        }
       }
     });
 
@@ -825,7 +838,7 @@ const handleProd = type => ({
       
       default: {
         if (!(k in o)) throw new TypeError(
-          `value of type "${type}" received invalid get operation for unknown ${isNumStr(k) ? `index #${k}` : `property "${k}"`}`
+          `value of type ${type} received invalid get operation for unknown ${isNumStr(k) ? `index #${k}` : `property "${k}"`}`
         );
 
         return o[k];
@@ -837,7 +850,7 @@ const handleProd = type => ({
     if (isStr(v)) v = `"${v}"`;
 
     throw new TypeError(
-      `immutable value of type "${type}" received invalid set operation for ${isNumStr(k) ? `index #${k}` : `property "${k}"`} with value ${v}`
+      `immutable value of type ${type} received invalid set operation for ${isNumStr(k) ? `index #${k}` : `property "${k}"`} with value ${v}`
     );
   }
 });
@@ -855,24 +868,24 @@ const Tup = (cs, xs) => {
   if (TYPE_CHECK) {
     cs.forEach((c, n) => {
       if (!isFun(c)) throw new TypeSysError(
-        `Tup expects argument #1 of type "[Function]" ("${introspect(c)}" at index #${n} received)`
+        `Tup expects argument #1 of type [Function] >>> ${introspect(c)} at index #${n} received`
       );
 
       if ($("length", of(c), gt(1))) throw new TypeSysError(
-        `Tup expects argument #1 of type "[Nullary]"/"[Unary]" ("${arityMap[c.length]}" at index #${n} received)`
+        `Tup expects argument #1 of type [Nullary]/[Unary] >>> ${arityMap[c.length]} at index #${n} received`
       );
 
       if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
-        `Tup expects argument #1 of type "[() -> ? -> ?]" ("() -> (${repeat(Monoid.arr) (c() . length) ("?") . join(",")}) -> ?" at index #${n} received)`
+        `Tup expects argument #1 of type [() -> ? -> ?] >>> () -> (${repeat(Monoid.arr) (c() . length) ("?") . join(",")}) -> ? at index #${n} received`
       );
     });
 
     if (!isArr(xs)) throw new TypeError(
-      `Tup expects argument #2 of type "Array" ("${introspect(xs)}" received)`
+      `Tup expects argument #2 of type Array >>> ${introspect(xs)} received`
     );
 
     if (cs.length !== xs.length) throw new LengthError(
-      `Tup expects "Array" of length ${cs.length} (${xs.length} received)`
+      `Tup expects argument #2 of type Array of length ${cs.length} >>> length ${xs.length} received`
     );
 
     cs = cs.map(c => isNullary(c) ? c() : c);
@@ -881,8 +894,22 @@ const Tup = (cs, xs) => {
 
     catch (e) {
       const o = JSON.parse(e.message);
-      // switch length/type error
-      const e_ = new TypeError(`Tup expects argument #2 of type "${type}" (${o.real} received)`);
+      let e_;
+
+      switch (o.type) {
+        case "length": {
+          e_ = new LengthError(`Tup expects argument #2 of type Array of length ${o.nominal} >>> ${o.real} received`);
+          break;
+        }
+
+        case "type": {
+          e_ = new TypeError(`Tup expects argument #2 of type ${o.nominal} >>> ${o.real} received`);
+          break;
+        }
+
+        default: throw new TypeSysError(`Tup received invalid error type ${o.type}`);
+      }
+
       e_.stack = e.stack;
       throw e_;
     }
@@ -917,19 +944,19 @@ Tup.from = (cs, iter) => Tup(cs, Array.from(iter));
 const Arr = (c, xs) => {
   if (TYPE_CHECK) {
     if (!isFun(c)) throw new TypeSysError(
-      `Arr expects argument #1 of type "Function" ("${introspect(xs)}" received)`
+      `Arr expects argument #1 of type Function >>> ${introspect(xs)} received`
     );
 
     if ($("length", of(c), gt(1))) throw new TypeSysError(
-      `Arr expects argument #1 of type "Nullary"/"Unary" ("${arityMap[c.length]}" received)`
+      `Arr expects argument #1 of type Nullary/Unary >>> ${arityMap[c.length]} received`
     );
 
     if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
-      `Arr expects argument #1 of type "() -> ? -> ?" ("() -> (${repeat(Monoid.arr) (c() . length) ("?") . join(",")}) -> ?" received)`
+      `Arr expects argument #1 of type () -> ? -> ? >>> () -> (${repeat(Monoid.arr) (c() . length) ("?") . join(",")}) -> ? received`
     );
 
     if (!isArr(xs)) throw new TypeError(
-      `Arr expects argument #2 of type "Array" ("${introspect(xs)}" received)`
+      `Arr expects argument #2 of type Array >>> ${introspect(xs)} received`
     );
 
     if (isNullary(c)) c = c();
@@ -938,7 +965,7 @@ const Arr = (c, xs) => {
 
     catch (e) {
       const o = JSON.parse(e.message);
-      const e_ = new TypeError(`Arr expects argument #2 of type "${type}" (${o.real} received)`);
+      const e_ = new TypeError(`Arr expects argument #2 of type ${type} >>> ${o.real} received`);
       e_.stack = e.stack;
       throw e_;
     }
