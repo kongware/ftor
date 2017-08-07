@@ -208,8 +208,10 @@ const arityMap = ["Nullary", "Unary", "Binary", "Ternary", "4-ary", "5-ary"];
 
 // extract type (rev 0.2)
 // String -> String
+// TODO: use JSON as type representation
 
 const extractType = type => {
+  // broken
   const open = type[0], closed = type[type.length - 1];
   return type
    .slice(1, -1).split(",")
@@ -348,6 +350,7 @@ str.toString = () => "String";
 
 // any (rev 0.2)
 // a -> a
+// TODO: distinguish type variables!!!
 
 const any = x => x;
 
