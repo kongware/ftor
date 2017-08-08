@@ -206,31 +206,56 @@ const handleFun = (fname, f, [c, ...cs], n) => {
 const arityMap = ["Nullary", "Unary", "Binary", "Ternary", "4-ary", "5-ary"];
 
 
-// extract type (rev 0.2)
-// String -> String
-// TODO: use JSON as type representation
+// parse type (rev 0.2)
+// String -> [String]
 
-const extractType = type => {
-  // broken
-  const open = type[0], closed = type[type.length - 1];
-  return type
-   .slice(1, -1).split(",")
-   .filter(s => xor(s.includes(open)) (s.includes(closed)))
-   .join(",").trim();
+const parseType = s => {
+  const open = {"(": 0, "[": 1, "{": 2},
+   closed = {")": 0, "]": 1, "}": 2};
+
+  if (!isStr(s)) throw new TypeSysError(
+    `parseType expects argument #1 of type String >>> ${introspect(s)} received`
+  );
+
+  const aux = ([c, ...s], acc, stack, inter, n) => {
+    if (c === undefined) return acc;
+    else if (c in open) return aux(s, acc, stack.map(job => job + c).concat(c), inter, n + 1);
+
+    else if (c in closed) {
+      stack = stack.map(job => job + c);
+      const job = stack.pop();
+      if (n === 1) return aux(s, acc.concat(job, inter), stack, [], n - 1);
+      else return aux(s, acc, stack, [job].concat(inter), n - 1);
+    }
+
+    else {
+      return aux(s, acc, stack.map(job => job + c), inter, n);
+    }
+  };
+
+  return aux(s.slice(1, -1), [], [], [], 0);
 };
 
 
 // virtualize recursive (rev 0.2)
-// [a] -> [a]
+// ([String], [a]) -> [a]
 
-const virtRec = (type, xs) => xs.map(x => {
-  if (isArr(x)) {
-    const type_ = extractType(type);
-    return new Proxy(virtRec(type_, x), handleProd(type_));
-  }
+const virtRec = ([type, ...types], xs) => {
+  types.forEach((type, n) => {
+    if (!isStr(type)) throw new TypeSysError(
+    `virtRec expects argument #1 of type [String] >>> ${introspect(type)} at index #${n} received`
+    );
+  });
 
-  return x;
-});
+  if (!isArr(xs)) throw new TypeSysError(
+    `virtRec expects argument #2 of type Array >>> ${introspect(xs)} received`
+  );
+
+  return xs.map(x => {
+    if (isArr(x)) return new Proxy(virtRec(types, x), handleProd(type));
+    return x;
+  });
+};
 
 
 // --[ ARITY CONTRACTS ]-------------------------------------------------------
@@ -917,7 +942,7 @@ const Tup = (cs, xs) => {
       throw e_;
     }
 
-    return new Proxy(virtRec(type, xs), handleProd(type));
+    return new Proxy(virtRec(parseType(type), xs), handleProd(type));
   }
 
   return xs;
@@ -973,7 +998,7 @@ const Arr = (c, xs) => {
       throw e_;
     }
 
-    return new Proxy(virtRec(type, xs), handleProd(type));
+    return new Proxy(virtRec(parseType(type), xs), handleProd(type));
   }
 
   return xs;
@@ -1438,7 +1463,6 @@ module.exports = {
   contra,
   contra2,
   contra3,
-  extractType,
   flip,
   Fun,
   get$,
@@ -1480,6 +1504,7 @@ module.exports = {
   nullary,
   num,
   of,
+  parseType,
   range,
   ranger,
   ReturnTypeError,
