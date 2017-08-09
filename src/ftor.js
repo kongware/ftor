@@ -318,7 +318,7 @@ const arity = n => {
       return args;
     };
 
-    arity3.toString = cs + "";
+    arity3.toString = () => cs.join(",");
     return arity3;
   };
 
