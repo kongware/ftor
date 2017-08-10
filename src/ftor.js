@@ -157,7 +157,7 @@ const handleFun = (fname, f, [c, ...cs], n, tvars) => {
         throw e_;
       }
 
-      const tvars_ = bindTypeVars(isNullary(c) ? c() : c, tvars, args, fname);
+      const tvars_ = bindTypeVars((isNullary(c) ? c() : c).toString(), tvars, args, fname);
 
       if (cs.length === 1) {
         const r = g(...args);
@@ -186,7 +186,7 @@ const handleFun = (fname, f, [c, ...cs], n, tvars) => {
           throw e_;
         }
 
-        bindTypeVars(cs[0], Object.assign({}, tvars, tvars_), [r], fname);
+        bindTypeVars(cs[0].toString(), Object.assign({}, tvars, tvars_), [r], fname);
         return r;
       }
 
@@ -215,38 +215,36 @@ const arityMap = ["Nullary", "Unary", "Binary", "Ternary", "4-ary", "5-ary"];
 const arityType = c => repeat(Monoid.arr) (c.length) ("?") . join(",");
 
 
-// bind type variables (rev 0.2)
-// (? -> ?, Object, Array, String) -> Object
+// bind type variables (rev 0.1)
+// (String, Object, Array, String) -> Object
 
-const bindTypeVars = (c, tvars, args, fname) => {
-  const types = c.toString().split(",");
+const bindTypeVars = (nestedPolyTypes, tvars, args, fname) => {
+  const polyTypes = replaceNested(nestedPolyTypes).split(",");
 
-  return types.reduce((acc, s, n) => {
+  return polyTypes.reduce((acc, s, n) => {
+    if (s === "?") return bindTypeVars(parseType(nestedPolyTypes) [0], acc, args[n], fname);
+
     if (isLC(s)) {
       const type = introspect(args[n]);
-
-      if (s in tvars && tvars[s] !== type) throw new TypeError(
-        `${fname} expects bounded type variable "${s}" of type ${tvars[s]} \u2BC8\u2BC8\u2BC8 ${type} received`
-      )
 
       if (s in acc && acc[s] !== type) throw new TypeError(
         `${fname} expects bounded type variable "${s}" of type ${acc[s]} \u2BC8\u2BC8\u2BC8 ${type} received`
       )
 
-      acc[s] = type;
+      return (acc[s] = type, acc);
     }
 
     return acc;
-  }, {});
+  }, Object.assign({}, tvars));
 };
 
 
-// parse type (rev 0.2)
+// parse type (rev 0.1)
 // String -> [String]
 
 const parseType = s => {
-  const open = {"(": 0, "[": 1, "{": 2},
-   closed = {")": 0, "]": 1, "}": 2};
+  const open = {"(": null, "[": null, "{": null},
+   closed = {")": null, "]": null, "}": null};
 
   if (!isStr(s)) throw new TypeSysError(
     `parseType expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
@@ -268,11 +266,70 @@ const parseType = s => {
     }
   };
 
-  return aux(s.slice(1, -1), [], [], [], 0);
+  return aux(s, [], [], [], 0);
 };
 
 
-// virtualize recursive (rev 0.2)
+// split types (rev 0.2)
+// {String} -> String -> [String]
+
+const splitTypes = tokens => s => {
+  if (!isObj(tokens)) throw new TypeSysError(
+    `splitTypes expects argument #1 of type Object \u2BC8\u2BC8\u2BC8 ${introspect(tokens)} received`
+  );
+
+  // TODO: add isObjOf/isDictOf
+
+  if (!isStr(s)) throw new TypeSysError(
+    `splitTypes expects argument #2 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
+  );
+
+  const aux = ([c, ...s_], acc, stack) => {
+    if (c === undefined) {
+      if (!stack.length !== 0) throw new TypeSysError(
+        `splitTypes received an invalid type "${s}" for its argument #1`
+      );
+
+      return acc;
+    }
+
+    if (c in tokens && (stack.length === 0 || stack[0] === tokens[c])) stack.push(tokens[c]);
+    else if (c === stack[0]) stack.pop();
+    if (c === "," && stack.length === 0) return aux(s_, acc.concat(""), stack);
+    return aux(s_, (acc[acc.length - 1] += c, acc), stack);
+  };
+
+  return aux(s, [""], []);
+};
+
+
+// unwrapType (rev 0.2)
+// {String} -> String -> String
+
+const unwrapType = tokens => s => {
+  if (!isObj(tokens)) throw new TypeSysError(
+    `unwrapType expects argument #1 of type Object \u2BC8\u2BC8\u2BC8 ${introspect(tokens)} received`
+  );
+
+  // TODO: add isObjOf/isDictOf
+
+  if (!isStr(s)) throw new TypeSysError(
+    `unwrapType expects argument #2 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
+  );
+
+  if (!(s[0] in tokens)) throw new TypeSysError(
+    `unwrapType expects argument #2 to start with one of "${Object.keys(tokens)}" chars \u2BC8\u2BC8\u2BC8 "${s[0]}" received`
+  );
+
+  if (!tokens.includes(s[s.length - 1])) throw new TypeSysError(
+    `unwrapType expects argument #2 to end with one of "${Object.values(tokens)}" chars \u2BC8\u2BC8\u2BC8 "${s[s.length - 1]}" received`
+  );
+
+  return s.slice(1, -1);
+};
+
+
+// virtualize recursively (rev 0.1)
 // ([String], [a]) -> [a]
 
 const virtRec = ([type, ...types], xs) => {
@@ -307,13 +364,13 @@ const arity = n => {
   const arity2 = (...cs) => {
     if (isFin(n)) {
       if (cs.length !== n) throw new TypeSysError(
-        `arity2 expects argument #1 of type [? -> ?] of ${n} element(s) \u2BC8\u2BC8\u2BC8 ${introspect(cs.length)} received`
+        `arity2 expects argument #1 of type [? -> ?] of ${n} element(s) \u2BC8\u2BC8\u2BC8 ${cs.length} element(s) received`
       );
     }
 
     else {
       if (cs.length !== 1) throw new TypeSysError(
-        `arity2 expects argument #1 of type [? -> ?] of 1 element \u2BC8\u2BC8\u2BC8 ${introspect(cs.length)} received`
+        `arity2 expects argument #1 of type [? -> ?] of 1 element \u2BC8\u2BC8\u2BC8 ${cs.length} element(s) received`
       );
     }
 
@@ -1007,7 +1064,7 @@ const Tup = (cs, xs) => {
       throw e_;
     }
 
-    return new Proxy(virtRec(parseType(type), xs), handleProd(type));
+    return new Proxy(virtRec(parseType(type).slice(1), xs), handleProd(type));
   }
 
   return xs;
@@ -1082,7 +1139,7 @@ Tup.from = (cs, iter) => Tup(cs, Array.from(iter));
       throw e_;
     }
 
-    return new Proxy(virtRec(parseType(type), xs), handleProd(type));
+    return new Proxy(virtRec(parseType(type).slice(1), xs), handleProd(type));
   }
 
   return xs;
@@ -1129,7 +1186,7 @@ const Arr = (c, xs) => {
       throw e_;
     }
 
-    return new Proxy(virtRec(parseType(type), xs), handleProd(type));
+    return new Proxy(virtRec(parseType(type).slice(1), xs), handleProd(type));
   }
 
   return xs;
@@ -1641,6 +1698,7 @@ module.exports = {
   parseType,
   range,
   ranger,
+  removeNested,
   ReturnTypeError,
   rol,
   ror,
