@@ -77,7 +77,7 @@ const $cata = Symbol.for(SYM_PREFIX + "cata");
 
 const Fun = (fname, f, ...cs) => {
   if (TYPE_CHECK) {
-    const g = new Proxy(f, handleFun(fname, f, cs, 1));
+    const g = new Proxy(f, handleFun(fname, f, cs, 1, {}));
     g.toString = Function.prototype.toString.bind(f);
     return g;
   }
@@ -91,7 +91,7 @@ const Fun = (fname, f, ...cs) => {
 // handle apply trap for virtualized function
 // (String, Contract (a), (...Contract (a) -> Contract (a)), Number) -> Function
 
-const handleFun = (fname, f, [c, ...cs], n) => {
+const handleFun = (fname, f, [c, ...cs], n, tvars) => {
   if (!isStr(fname)) throw new TypeSysError(
     `handleFun expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(fname)} received`
   );
@@ -157,6 +157,8 @@ const handleFun = (fname, f, [c, ...cs], n) => {
         throw e_;
       }
 
+      const tvars_ = bindTypeVars(isNullary(c) ? c() : c, tvars, args, fname);
+
       if (cs.length === 1) {
         const r = g(...args);
 
@@ -184,10 +186,11 @@ const handleFun = (fname, f, [c, ...cs], n) => {
           throw e_;
         }
 
+        bindTypeVars(cs[0], Object.assign({}, tvars, tvars_), [r], fname);
         return r;
       }
 
-      const r = new Proxy(f(...args), handleFun(fname, g, cs, n + 1, tvars))
+      const r = new Proxy(f(...args), handleFun(fname, g, cs, n + 1, Object.assign({}, tvars, tvars_)))
       r.toString = Function.prototype.toString.bind(f);
       return r;
     },
@@ -210,6 +213,32 @@ const arityMap = ["Nullary", "Unary", "Binary", "Ternary", "4-ary", "5-ary"];
 // Function -> String
 
 const arityType = c => repeat(Monoid.arr) (c.length) ("?") . join(",");
+
+
+// bind type variables (rev 0.2)
+// (? -> ?, Object, Array, String) -> Object
+
+const bindTypeVars = (c, tvars, args, fname) => {
+  const types = c.toString().split(",");
+
+  return types.reduce((acc, s, n) => {
+    if (isLC(s)) {
+      const type = introspect(args[n]);
+
+      if (s in tvars && tvars[s] !== type) throw new TypeError(
+        `${fname} expects bounded type variable "${s}" of type ${tvars[s]} \u2BC8\u2BC8\u2BC8 ${type} received`
+      )
+
+      if (s in acc && acc[s] !== type) throw new TypeError(
+        `${fname} expects bounded type variable "${s}" of type ${acc[s]} \u2BC8\u2BC8\u2BC8 ${type} received`
+      )
+
+      acc[s] = type;
+    }
+
+    return acc;
+  }, {});
+};
 
 
 // parse type (rev 0.2)
@@ -1559,6 +1588,7 @@ module.exports = {
   arr,
   arrOf,
   binary,
+  bindTypeVars,
   boo,
   $cata,
   co,
