@@ -98,10 +98,9 @@ Arrays and collections:
 Objects, dictionaries and records:
 
 * `Object` represents an untyped `Object` with key/value-pairs of type `String`/untyped
-* `{x: a}` represents a heterogeneous `Object` that includes at least a key/value-pair of type `String`/`a` accessible via the key `x`
-* `{a}` represents a homogenous dictionary with key/value-pairs of type `String`/`a`
-* `{a b}` represents a homogenous dictionary with key/value-pairs of type `a`/`b`
-* `{a, b}` represents a record with two fields and keys of type `String`
+* `Dict(a)` represents a homogenous dictionary with key/value-pairs of type `String`/`a`
+* `Dict(a:b)` represents an ordered, homogenous dictionary with key/value-pairs of type `a`:`b`
+* `{a, b}` represents a record with two fields of type `a` and `b` and keys of type `String`
 
 Input/Output and side effects:
 

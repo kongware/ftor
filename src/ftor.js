@@ -216,7 +216,7 @@ const arityType = c => repeat(Monoid.arr) (c.length) ("?") . join(",");
 
 
 // type tokens (rev 0.2)
-// {String}
+// Object
 
 const typeTokens = {"(": ")", "[": "]", "{": "}"};
 
@@ -224,8 +224,8 @@ const typeTokens = {"(": ")", "[": "]", "{": "}"};
 // --[ PARSING / BINDING ]-----------------------------------------------------
 
 
-// bind type variables types (rev 0.2)
-// ([String], Object(String), Array, String) -> Object(String)
+// bind type variables (rev 0.2)
+// ([String], Dict(String), Array, String) -> Dict(String)
 
 const bindTypeVars = (ss, tvars, args, fname) => ss.reduce((acc, s, n) => {
   if (isPrimitive(s)) return acc;
