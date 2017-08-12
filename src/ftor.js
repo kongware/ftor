@@ -215,36 +215,113 @@ const arityMap = ["Nullary", "Unary", "Binary", "Ternary", "4-ary", "5-ary"];
 const arityType = c => repeat(Monoid.arr) (c.length) ("?") . join(",");
 
 
-// bind type variables (rev 0.1)
-// (String, Object, Array, String) -> Object
+// type tokens (rev 0.2)
+// {String}
 
-const bindTypeVars = (nestedPolyTypes, tvars, args, fname) => {
-  const polyTypes = replaceNested(nestedPolyTypes).split(",");
+const typeTokens = {"(": ")", "[": "]", "{": "}"};
 
-  return polyTypes.reduce((acc, s, n) => {
-    if (s === "?") return bindTypeVars(parseType(nestedPolyTypes) [0], acc, args[n], fname);
 
-    if (isLC(s)) {
-      const type = introspect(args[n]);
+// --[ PARSING / BINDING ]-----------------------------------------------------
 
-      if (s in acc && acc[s] !== type) throw new TypeError(
-        `${fname} expects bounded type variable "${s}" of type ${acc[s]} \u2BC8\u2BC8\u2BC8 ${type} received`
-      )
 
-      return (acc[s] = type, acc);
-    }
+// bind type variables types (rev 0.2)
+// ([String], Object(String), Array, String) -> Object(String)
 
+const bindTypeVars = (ss, tvars, args, fname) => ss.reduce((acc, s, n) => {
+  if (isPrimitive(s)) return acc;
+  if (isComposite(s)) return bindTypeVars(splitTypes(unwrapType(s)), acc, args[n], fname);
+
+  if (s in acc) {
+    if (acc[s] !== typeof args[n]) throw new TypeError(`${fname}'s type var "${s}" already bound to ${acc[s]}`);
     return acc;
-  }, Object.assign({}, tvars));
+  }
+
+  return (acc[s] = typeof args[n], acc);
+}, Object.assign({}, tvars));
+
+
+// split types (rev 0.2)
+// String -> [String]
+
+const splitTypes = s => {
+  const aux = ([c, ...s_], acc, stack) => {
+    if (c === undefined) return acc;
+    if (c in typeTokens && (stack.length === 0 || stack[0] === typeTokens[c])) stack.push(typeTokens[c]);
+    else if (c === stack[0]) stack.pop();
+    if (c === "," && stack.length === 0) return aux(s_, acc.concat(""), stack);
+    return aux(s_, (acc[acc.length - 1] += c, acc), stack);
+  };
+
+  return aux(s, [""], []);
 };
 
 
-// parse type (rev 0.1)
+// split types recursively (rev 0.2)
 // String -> [String]
 
-const parseType = s => {
-  const open = {"(": null, "[": null, "{": null},
-   closed = {")": null, "]": null, "}": null};
+const splitTypesRec = s => {
+  const aux = xs => xs.reduce((acc, s, n) => isComposite(s) 
+   ? acc.concat(s, aux(splitTypes(unwrapType(s))))
+   : acc.concat(s), []);
+
+  return aux(splitTypes(s));
+};
+
+
+// filter types (rev 0.2)
+// (...String -> Boolean) -> [String] -> [String]
+
+const filterTypes = (...preds) => xs => xs.filter(s => preds.some(p => p(s)));
+
+
+// is atomic type (rev 0.2)
+// String -> Boolean
+
+const isAtomic = s => !(s[0] in typeTokens);
+
+
+// is composite type (rev 0.2)
+// String -> Boolean
+
+const isComposite = s => s[0] in typeTokens && typeTokens[s[0]] === s[s.length - 1];
+
+
+// is primitive type (rev 0.2)
+// String -> Boolean
+
+const isPrimitive = s => isAtomic(s) && s[0] !== s[0].toLowerCase();
+
+
+// is type variable (rev 0.2)
+// String -> Boolean
+
+const isTypeVar = s => isAtomic(s) && s.length === 1 && s === s.toLowerCase();
+
+
+// replace types (rev 0.2)
+// String -> (...String -> Boolean) -> [String] -> [String]
+
+const replaceTypes = surrogate => (...preds) => xs => xs.reduce((acc, s) => preds.some(p => p(s))
+ ? acc.concat(surrogate)
+ : acc.concat(s), []);
+
+
+// unwrap type (rev 0.2)
+// String -> Boolean
+
+const unwrapType = s => s.slice(1, -1);
+
+
+/*
+// parse composite types (rev 0.1)
+// String -> [String]
+
+const parseCompTypes = tokens => s => {
+  if (!isObj(tokens)) throw new TypeSysError(
+    `splitTypes expects argument #1 of type Object \u2BC8\u2BC8\u2BC8 ${introspect(tokens)} received`
+  );
+
+  // TODO: add isObjOf/isDictOf
 
   if (!isStr(s)) throw new TypeSysError(
     `parseType expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
@@ -252,7 +329,7 @@ const parseType = s => {
 
   const aux = ([c, ...s], acc, stack, inter, n) => {
     if (c === undefined) return acc;
-    else if (c in open) return aux(s, acc, stack.map(job => job + c).concat(c), inter, n + 1);
+    else if (c in tokens) return aux(s, acc, stack.map(job => job + c).concat(c), inter, n + 1);
 
     else if (c in closed) {
       stack = stack.map(job => job + c);
@@ -327,6 +404,7 @@ const unwrapType = tokens => s => {
 
   return s.slice(1, -1);
 };
+*/
 
 
 // virtualize recursively (rev 0.1)
@@ -1064,7 +1142,7 @@ const Tup = (cs, xs) => {
       throw e_;
     }
 
-    return new Proxy(virtRec(parseType(type).slice(1), xs), handleProd(type));
+    return new Proxy(virtRec(unwrapTypeRec(typeTokens) (type).slice(1), xs), handleProd(type));
   }
 
   return xs;
@@ -1139,7 +1217,7 @@ Tup.from = (cs, iter) => Tup(cs, Array.from(iter));
       throw e_;
     }
 
-    return new Proxy(virtRec(parseType(type).slice(1), xs), handleProd(type));
+    return new Proxy(virtRec(unwrapTypeRec(typeTokens) (type).slice(1), xs), handleProd(type));
   }
 
   return xs;
@@ -1186,7 +1264,7 @@ const Arr = (c, xs) => {
       throw e_;
     }
 
-    return new Proxy(virtRec(parseType(type).slice(1), xs), handleProd(type));
+    return new Proxy(virtRec(unwrapTypeRec(typeTokens) (type).slice(1), xs), handleProd(type));
   }
 
   return xs;
@@ -1695,7 +1773,6 @@ module.exports = {
   nullary,
   num,
   of,
-  parseType,
   range,
   ranger,
   removeNested,
@@ -1703,13 +1780,17 @@ module.exports = {
   rol,
   ror,
   $tag,
+  splitTypes,
   str,
   succ,
   ternary,
   _throw,
   Tup,
   tupOf,
+  typeTokens,
   unary,
+  unwrapType,
+  unwrapTypeRec,
   variadic,
   virtRec
 };
