@@ -111,9 +111,9 @@ Sum Types:
 Please note that sum types are internally encoded by `Object`s. In order to avoid verbose type signatures their types are similar to Haskell's notation.
 
 * `Sum` represents a monomorphic sum type
-* `Sum (a)` represents a polymorphic sum type with an unary type constructor
-* `Sum (a b)` represents a polymorphic sum type with a curried binary type constructor
-* `Sum (a, b)` represents a polymorphic sum type with a (uncurried) binary type constructor
+* `Sum(a)` represents a polymorphic sum type with an unary type constructor
+* `Sum(a b)` represents a polymorphic sum type with a curried binary type constructor
+* `Sum(a,b)` represents a polymorphic sum type with a (uncurried) binary type constructor
 
 As you can see parenthesis are always set, also unnecessarily.
 

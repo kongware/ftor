@@ -91,7 +91,7 @@ const Fun = (fname, f, ...cs) => {
 // handle apply trap for virtualized function
 // (String, Contract (a), (...Contract (a) -> Contract (a)), Number) -> Function
 
-const handleFun = (fname, f, [c, ...cs], n, tvars) => {
+const handleFun = (fname, f, [c, ...cs], n, bindings) => {
   if (!isStr(fname)) throw new TypeSysError(
     `handleFun expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(fname)} received`
   );
@@ -106,7 +106,7 @@ const handleFun = (fname, f, [c, ...cs], n, tvars) => {
     );
 
     if ($("length", of(c), gt(1))) throw new TypeSysError(
-      `handleFun expects argument #3 of type [Nullary]/[Unary] \u2BC8\u2BC8\u2BC8 ${arityMap[c.length]} at index #${m} received`
+      `handleFun expects argument #3 of type [() -> ?]/[? -> ?] \u2BC8\u2BC8\u2BC8 ${arityType(c)} at index #${m} received`
     );
 
     if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
@@ -157,7 +157,7 @@ const handleFun = (fname, f, [c, ...cs], n, tvars) => {
         throw e_;
       }
 
-      const tvars_ = bindTypeVars((isNullary(c) ? c() : c).toString(), tvars, args, fname);
+      const bindings_ = bindTypeVars(splitTypes((isNullary(c) ? c() : c).toString()), bindings, args, fname, n);
 
       if (cs.length === 1) {
         const r = g(...args);
@@ -186,11 +186,11 @@ const handleFun = (fname, f, [c, ...cs], n, tvars) => {
           throw e_;
         }
 
-        bindTypeVars(cs[0].toString(), Object.assign({}, tvars, tvars_), [r], fname);
+        bindTypeVars(splitTypes(cs[0].toString()), Object.assign({}, bindings, bindings_), [r], fname, 0);
         return r;
       }
 
-      const r = new Proxy(f(...args), handleFun(fname, g, cs, n + 1, Object.assign({}, tvars, tvars_)))
+      const r = new Proxy(f(...args), handleFun(fname, g, cs, n + 1, Object.assign({}, bindings, bindings_)))
       r.toString = Function.prototype.toString.bind(f);
       return r;
     },
@@ -203,16 +203,10 @@ const handleFun = (fname, f, [c, ...cs], n, tvars) => {
 // --[ AUXILIARY HELPER ]------------------------------------------------------
 
 
-// arity map (rev 0.2)
-// [String]
-
-const arityMap = ["Nullary", "Unary", "Binary", "Ternary", "4-ary", "5-ary"];
-
-
 // arity type (rev 0.2)
 // Function -> String
 
-const arityType = c => repeat(Monoid.arr) (c.length) ("?") . join(",");
+const arityType = f => repeat(Monoid.arr) (f.length) ("?") . join(",");
 
 
 // type tokens (rev 0.2)
@@ -225,27 +219,71 @@ const typeTokens = {"(": ")", "[": "]", "{": "}"};
 
 
 // bind type variables (rev 0.2)
-// ([String], Dict(String), Array, String) -> Dict(String)
+// ([String], Dict(String), Array, String, Number) -> Dict(String)
 
-const bindTypeVars = (ss, tvars, args, fname) => ss.reduce((acc, s, n) => {
+const bindTypeVars = (ss, bindings, args, fname, nf) => ss.reduce((acc, s, n) => {
+  if (!isArr(ss)) throw new TypeSysError(
+    `bindTypeVars expects argument #1 of type Array \u2BC8\u2BC8\u2BC8 ${introspect(ss)} received`
+  );
+
+  ss.forEach((s, m) => {
+    if (!isStr(s)) throw new TypeSysError(
+      `bindTypeVars expects argument #1 of type [String] \u2BC8\u2BC8\u2BC8 ${introspect(s)} at index #${m} received`
+    );
+  });
+
+  if (!isObj(bindings)) throw new TypeSysError(
+    `bindTypeVars expects argument #2 of type Object \u2BC8\u2BC8\u2BC8 ${introspect(bindings)} received`
+  );
+
+  Object.keys(bindings).forEach(k => {
+    if (!isStr(bindings[k])) throw new TypeSysError(
+      `bindTypeVars expects argument #2 of type Dict(String) \u2BC8\u2BC8\u2BC8 ${introspect(bindings[k])} at prop "#${k}" received`
+    );
+  });
+
+  if (!isArr(args)) throw new TypeSysError(
+    `bindTypeVars expects argument #3 of type Array \u2BC8\u2BC8\u2BC8 ${introspect(args)} received`
+  );
+
+  if (!isStr(fname)) throw new TypeSysError(
+    `bindTypeVars expects argument #4 of type String \u2BC8\u2BC8\u2BC8 ${introspect(fname)} received`
+  );
+
   if (isPrimitive(s)) return acc;
-  if (isComposite(s)) return bindTypeVars(splitTypes(unwrapType(s)), acc, args[n], fname);
+  if (isComposite(s)) return bindTypeVars(splitTypes(unwrapType(s)), acc, args[n], fname, nf);
 
   if (s in acc) {
-    if (acc[s] !== typeof args[n]) throw new TypeError(`${fname}'s type var "${s}" already bound to ${acc[s]}`);
+    if (acc[s] !== introspect(args[n])) throw new TypeError(
+      nf === 0
+       ? `${fname} contains type var "${s}" bound with ${acc[s]} \u2BC8\u2BC8\u2BC8 illegal rebound with ${introspect(acc[s])} at function result`
+       : `${fname} contains type var "${s}" bound with ${acc[s]} \u2BC8\u2BC8\u2BC8 illegal rebound with ${introspect(acc[s])} at invocation #${nf}`
+    );
+
     return acc;
   }
 
-  return (acc[s] = typeof args[n], acc);
-}, Object.assign({}, tvars));
+  return (acc[s] = introspect(args[n]), acc);
+}, Object.assign({}, bindings));
 
 
 // split types (rev 0.2)
 // String -> [String]
 
 const splitTypes = s => {
+  if (!isStr(s)) throw new TypeSysError(
+    `splitTypes expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
+  );
+
   const aux = ([c, ...s_], acc, stack) => {
-    if (c === undefined) return acc;
+    if (c === undefined) {
+      if (stack.length > 0) throw new TypeSysError(
+        `splitTypes received invalid type ${s} as argument #1`
+      );
+
+      return acc;
+    }
+
     if (c in typeTokens && (stack.length === 0 || stack[0] === typeTokens[c])) stack.push(typeTokens[c]);
     else if (c === stack[0]) stack.pop();
     if (c === "," && stack.length === 0) return aux(s_, acc.concat(""), stack);
@@ -260,6 +298,10 @@ const splitTypes = s => {
 // String -> [String]
 
 const splitTypesRec = s => {
+  if (!isStr(s)) throw new TypeSysError(
+    `splitTypesRec expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
+  );
+
   const aux = xs => xs.reduce((acc, s, n) => isComposite(s) 
    ? acc.concat(s, aux(splitTypes(unwrapType(s))))
    : acc.concat(s), []);
@@ -271,140 +313,143 @@ const splitTypesRec = s => {
 // filter types (rev 0.2)
 // (...String -> Boolean) -> [String] -> [String]
 
-const filterTypes = (...preds) => xs => xs.filter(s => preds.some(p => p(s)));
+const filterTypes = (...preds) => {
+  const filterTypes2 = ss => {
+    if (!isArr(ss)) throw new TypeSysError(
+      `filterTypes2 expects argument #1 of type Array \u2BC8\u2BC8\u2BC8 ${introspect(ss)} received`
+    );
+
+    ss.forEach((s, n) => {
+      if (!isStr(s)) throw new TypeSysError(
+        `filterTypes2 expects argument #1 of type [String] \u2BC8\u2BC8\u2BC8 ${introspect(s)} at index #${n} received`
+      );
+    });
+
+    ss.filter(s => preds.some(p => p(s)));
+  };
+
+  preds.forEach((p, n) => {
+    if (!isFun(p)) throw new TypeSysError(
+      `filterTypes expects argument #1 of type [Function] \u2BC8\u2BC8\u2BC8 ${introspect(p)} at index #${n} received`
+    );
+
+    if (!isUnary(p)) throw new TypeSysError(
+      `filterTypes expects argument #1 of type [? -> ?] \u2BC8\u2BC8\u2BC8 ${introspect(arityType(p))} at index #${n} received`
+    );
+  });
+
+  return filterTypes2;
+};
 
 
 // is atomic type (rev 0.2)
 // String -> Boolean
 
-const isAtomic = s => !(s[0] in typeTokens);
+const isAtomic = s => {
+  if (!isStr(s)) throw new TypeSysError(
+    `isAtomic expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
+  );
+
+  return !(s[0] in typeTokens);
+};
 
 
 // is composite type (rev 0.2)
 // String -> Boolean
 
-const isComposite = s => s[0] in typeTokens && typeTokens[s[0]] === s[s.length - 1];
+const isComposite = s => {
+  if (!isStr(s)) throw new TypeSysError(
+    `isComposite expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
+  );
+
+  s[0] in typeTokens && typeTokens[s[0]] === s[s.length - 1];
+};
 
 
 // is primitive type (rev 0.2)
 // String -> Boolean
 
-const isPrimitive = s => isAtomic(s) && s[0] !== s[0].toLowerCase();
+const isPrimitive = s => {
+  if (!isStr(s)) throw new TypeSysError(
+    `isPrimitive expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
+  );
+
+  isAtomic(s) && s[0] !== s[0].toLowerCase();
+};
 
 
 // is type variable (rev 0.2)
 // String -> Boolean
 
-const isTypeVar = s => isAtomic(s) && s.length === 1 && s === s.toLowerCase();
+const isTypeVar = s => {
+  if (!isStr(s)) throw new TypeSysError(
+    `isTypeVar expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
+  );
+
+  isAtomic(s) && s.length === 1 && s === s.toLowerCase();
+};
 
 
 // replace types (rev 0.2)
 // String -> (...String -> Boolean) -> [String] -> [String]
 
-const replaceTypes = surrogate => (...preds) => xs => xs.reduce((acc, s) => preds.some(p => p(s))
- ? acc.concat(surrogate)
- : acc.concat(s), []);
+const replaceTypes = surrogate => {
+  if (!isStr(surrogate)) throw new TypeSysError(
+    `replaceTypes expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(surogate)} received`
+  );
+
+  const replaceTypes2 = (...preds) => {
+    preds.forEach((p, n) => {
+      if (!isFun(p)) throw new TypeSysError(
+        `replaceTypes expects argument #1 of type [Function] \u2BC8\u2BC8\u2BC8 ${introspect(p)} at index #${n} received`
+      );
+
+      if (!isUnary(p)) throw new TypeSysError(
+        `replaceTypes expects argument #1 of type [? -> ?] \u2BC8\u2BC8\u2BC8 ${introspect(arityType(p))} at index #${n} received`
+      );
+    });
+
+    const replaceTypes3 = ss => {
+      if (!isArr(ss)) throw new TypeSysError(
+        `filterTypes2 expects argument #1 of type Array \u2BC8\u2BC8\u2BC8 ${introspect(ss)} received`
+      );
+
+      ss.forEach((s, n) => {
+        if (!isStr(s)) throw new TypeSysError(
+          `filterTypes2 expects argument #1 of type [String] \u2BC8\u2BC8\u2BC8 ${introspect(s)} at index #${n} received`
+        );
+      });
+
+      return ss.reduce((acc, s) => preds.some(p => p(s))
+       ? acc.concat(surrogate)
+       : acc.concat(s), []);
+    };
+
+    return replaceTypes3;
+  };
+
+  return replaceTypes2;
+};
 
 
 // unwrap type (rev 0.2)
 // String -> Boolean
 
-const unwrapType = s => s.slice(1, -1);
-
-
-/*
-// parse composite types (rev 0.1)
-// String -> [String]
-
-const parseCompTypes = tokens => s => {
-  if (!isObj(tokens)) throw new TypeSysError(
-    `splitTypes expects argument #1 of type Object \u2BC8\u2BC8\u2BC8 ${introspect(tokens)} received`
-  );
-
-  // TODO: add isObjOf/isDictOf
-
+const unwrapType = s => {
   if (!isStr(s)) throw new TypeSysError(
-    `parseType expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
+    `unwrapType expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
   );
 
-  const aux = ([c, ...s], acc, stack, inter, n) => {
-    if (c === undefined) return acc;
-    else if (c in tokens) return aux(s, acc, stack.map(job => job + c).concat(c), inter, n + 1);
-
-    else if (c in closed) {
-      stack = stack.map(job => job + c);
-      const job = stack.pop();
-      if (n === 1) return aux(s, acc.concat(job, inter), stack, [], n - 1);
-      else return aux(s, acc, stack, [job].concat(inter), n - 1);
-    }
-
-    else {
-      return aux(s, acc, stack.map(job => job + c), inter, n);
-    }
-  };
-
-  return aux(s, [], [], [], 0);
-};
-
-
-// split types (rev 0.2)
-// {String} -> String -> [String]
-
-const splitTypes = tokens => s => {
-  if (!isObj(tokens)) throw new TypeSysError(
-    `splitTypes expects argument #1 of type Object \u2BC8\u2BC8\u2BC8 ${introspect(tokens)} received`
+  if (!(s[0] in typeTokens)) throw new TypeSysError(
+    `unwrapType expects argument #2 to start with one of "${Object.keys(typeTokens)}" chars \u2BC8\u2BC8\u2BC8 "${s[0]}" received`
   );
 
-  // TODO: add isObjOf/isDictOf
-
-  if (!isStr(s)) throw new TypeSysError(
-    `splitTypes expects argument #2 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
-  );
-
-  const aux = ([c, ...s_], acc, stack) => {
-    if (c === undefined) {
-      if (!stack.length !== 0) throw new TypeSysError(
-        `splitTypes received an invalid type "${s}" for its argument #1`
-      );
-
-      return acc;
-    }
-
-    if (c in tokens && (stack.length === 0 || stack[0] === tokens[c])) stack.push(tokens[c]);
-    else if (c === stack[0]) stack.pop();
-    if (c === "," && stack.length === 0) return aux(s_, acc.concat(""), stack);
-    return aux(s_, (acc[acc.length - 1] += c, acc), stack);
-  };
-
-  return aux(s, [""], []);
-};
-
-
-// unwrapType (rev 0.2)
-// {String} -> String -> String
-
-const unwrapType = tokens => s => {
-  if (!isObj(tokens)) throw new TypeSysError(
-    `unwrapType expects argument #1 of type Object \u2BC8\u2BC8\u2BC8 ${introspect(tokens)} received`
-  );
-
-  // TODO: add isObjOf/isDictOf
-
-  if (!isStr(s)) throw new TypeSysError(
-    `unwrapType expects argument #2 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
-  );
-
-  if (!(s[0] in tokens)) throw new TypeSysError(
-    `unwrapType expects argument #2 to start with one of "${Object.keys(tokens)}" chars \u2BC8\u2BC8\u2BC8 "${s[0]}" received`
-  );
-
-  if (!tokens.includes(s[s.length - 1])) throw new TypeSysError(
-    `unwrapType expects argument #2 to end with one of "${Object.values(tokens)}" chars \u2BC8\u2BC8\u2BC8 "${s[s.length - 1]}" received`
+  if (!typeTokens.includes(s[s.length - 1])) throw new TypeSysError(
+    `unwrapType expects argument #2 to end with one of "${Object.values(typeTokens)}" chars \u2BC8\u2BC8\u2BC8 "${s[s.length - 1]}" received`
   );
 
   return s.slice(1, -1);
 };
-*/
 
 
 // virtualize recursively (rev 0.1)
@@ -588,7 +633,7 @@ const arrOf = c => {
   );
 
   if (!isUnary(c)) throw new TypeSysError(
-    `arrOf expects argument #1 of type Unary \u2BC8\u2BC8\u2BC8 ${arityMap[c.length]} received`
+    `arrOf expects argument #1 of type ? -> ? \u2BC8\u2BC8\u2BC8 ${arityType(c)} received`
   );
 
   const arrOf2 = xs => {
@@ -636,7 +681,7 @@ const tupOf = cs => {
   
   cs.forEach((c, n) => {
     if (!isUnary(c)) throw new TypeSysError(
-      `tupOf expects argument #1 of type [Unary] \u2BC8\u2BC8\u2BC8 ${arityMap[c.length]} at index #${n} received`
+      `tupOf expects argument #1 of type [? -> ?] \u2BC8\u2BC8\u2BC8 ${arityType(c)} at index #${n} received`
     );
   });
 
@@ -812,13 +857,13 @@ const isNaN = x => Number.isNaN(x);
 // is not a number (rev 0.1)
 // a -> Boolean
 
-const isNat = x => isInt(x) && isPos(x);
+const isNat = x => isInt(x) && isPositive(x);
 
 
 // is negative number (rev 0.1)
 // a -> Boolean
 
-const isNeg = x => isNum(x) && x < 0;
+const isNegative = x => isNum(x) && x < 0;
 
 
 // is null (rev 0.1)
@@ -854,7 +899,7 @@ const isObj = instanceOf(Object);
 // is positive number (rev 0.1)
 // a -> Boolean
 
-const isPos = x => x >= 0;
+const isPositive = x => x >= 0;
 
 
 // is scalar value (rev 0.1)
@@ -1100,7 +1145,7 @@ const Tup = (cs, xs) => {
       );
 
       if ($("length", of(c), gt(1))) throw new TypeSysError(
-        `Tup expects argument #1 of type [Nullary]/[Unary] \u2BC8\u2BC8\u2BC8 ${arityMap[c.length]} at index #${n} received`
+        `Tup expects argument #1 of type [Nullary]/[Unary] \u2BC8\u2BC8\u2BC8 ${arityType(c)} at index #${n} received`
       );
 
       if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
@@ -1242,7 +1287,7 @@ const Arr = (c, xs) => {
     );
 
     if ($("length", of(c), gt(1))) throw new TypeSysError(
-      `Arr expects argument #1 of type Nullary/Unary \u2BC8\u2BC8\u2BC8 ${arityMap[c.length]} received`
+      `Arr expects argument #1 of type () -> ?/? -> ? \u2BC8\u2BC8\u2BC8 ${arityType(c)} received`
     );
 
     if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
@@ -1717,7 +1762,6 @@ module.exports = {
   any,
   arity,
   ArityError,
-  arityMap,
   arityType,
   Arr,
   arr,
@@ -1732,6 +1776,7 @@ module.exports = {
   contra,
   contra2,
   contra3,
+  filterTypes,
   flip,
   Fun,
   get$,
@@ -1741,11 +1786,13 @@ module.exports = {
   hasLen,
   instanceOf,
   interpolate,
+  isAtomic,
   isArr,
   isArrOf,
   isBinary,
   isBoo,
   isChr,
+  isComposite
   isEmpty,
   isFin,
   isFloat,
@@ -1754,18 +1801,20 @@ module.exports = {
   isInt,
   isNaN,
   isNat,
-  isNeg,
+  isNegative,
   isNull,
   isNullary,
   isNum,
   isNumStr,
   isObj,
-  isPos,
+  isPositive,
+  isPrimitive,
   isSca,
   isStr,
   isSumOf,
   isSym,
   isTernary,
+  isTypeVar,
   isUnary,
   isUndef,
   isValue,
@@ -1776,11 +1825,13 @@ module.exports = {
   range,
   ranger,
   removeNested,
+  replaceTypes,
   ReturnTypeError,
   rol,
   ror,
   $tag,
   splitTypes,
+  splitTypesRec,
   str,
   succ,
   ternary,
@@ -1790,7 +1841,6 @@ module.exports = {
   typeTokens,
   unary,
   unwrapType,
-  unwrapTypeRec,
   variadic,
   virtRec
 };
