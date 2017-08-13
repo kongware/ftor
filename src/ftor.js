@@ -255,9 +255,8 @@ const bindTypeVars = (ss, bindings, args, fname, nf) => ss.reduce((acc, s, n) =>
 
   if (s in acc) {
     if (acc[s] !== introspect(args[n])) throw new TypeError(
-      nf === 0
-       ? `${fname} contains type var "${s}" bound with ${acc[s]} \u2BC8\u2BC8\u2BC8 illegal rebound with ${introspect(acc[s])} at function result`
-       : `${fname} contains type var "${s}" bound with ${acc[s]} \u2BC8\u2BC8\u2BC8 illegal rebound with ${introspect(acc[s])} at invocation #${nf}`
+      `${fname} contains type var "${s}" bound with ${acc[s]} \u2BC8\u2BC8\u2BC8 illegal rebound with ${introspect(args[n])} `
+      + nf === 0 ? `at invocation #${nf}` : "at function result"
     );
 
     return acc;
@@ -362,7 +361,15 @@ const isComposite = s => {
     `isComposite expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
   );
 
-  s[0] in typeTokens && typeTokens[s[0]] === s[s.length - 1];
+  if (s[0] in typeTokens && typeTokens[s[0]] === s[s.length - 1]) return true
+
+  if (xor(s[0] in typeTokens) (typeTokens[s[0]] === s[s.length - 1])) {
+    throw new TypeSysError(
+      `isComposite expects argument #1 of type String to start/end with valid type tokens \u2BC8\u2BC8\u2BC8 "${s}" received`
+    );
+  }
+
+  return false;
 };
 
 
@@ -374,7 +381,7 @@ const isPrimitive = s => {
     `isPrimitive expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
   );
 
-  isAtomic(s) && s[0] !== s[0].toLowerCase();
+  return isAtomic(s) && s[0] !== s[0].toLowerCase();
 };
 
 
@@ -386,7 +393,7 @@ const isTypeVar = s => {
     `isTypeVar expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
   );
 
-  isAtomic(s) && s.length === 1 && s === s.toLowerCase();
+  return isAtomic(s) && s.length === 1 && s === s.toLowerCase();
 };
 
 
@@ -440,12 +447,8 @@ const unwrapType = s => {
     `unwrapType expects argument #1 of type String \u2BC8\u2BC8\u2BC8 ${introspect(s)} received`
   );
 
-  if (!(s[0] in typeTokens)) throw new TypeSysError(
-    `unwrapType expects argument #2 to start with one of "${Object.keys(typeTokens)}" chars \u2BC8\u2BC8\u2BC8 "${s[0]}" received`
-  );
-
-  if (!typeTokens.includes(s[s.length - 1])) throw new TypeSysError(
-    `unwrapType expects argument #2 to end with one of "${Object.values(typeTokens)}" chars \u2BC8\u2BC8\u2BC8 "${s[s.length - 1]}" received`
+  if (xor(s[0] in typeTokens) (typeTokens[s[0]] === s[s.length - 1])) throw new TypeSysError(
+    `unwrapType expects argument #2 of type String to start/end with valid type tokens \u2BC8\u2BC8\u2BC8 "${s[0]}"/"${s[s.length - 1]}" received`
   );
 
   return s.slice(1, -1);
