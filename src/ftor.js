@@ -255,8 +255,9 @@ const bindTypeVars = (ss, bindings, args, fname, nf) => ss.reduce((acc, s, n) =>
 
   if (s in acc) {
     if (acc[s] !== introspect(args[n])) throw new TypeError(
-      `${fname} contains type var "${s}" bound with ${acc[s]} \u2BC8\u2BC8\u2BC8 illegal rebound with ${introspect(args[n])} `
-      + nf === 0 ? `at invocation #${nf}` : "at function result"
+      nf === 0
+       ? `${fname} expects bound type var "${s}" of type ${acc[s]} \u2BC8\u2BC8\u2BC8 ${introspect(args[n])} returned`
+       : `${fname} has the type signature "${ss.join(",")}" at function call #${nf} and expects bound type var "${s}" of type ${acc[s]} \u2BC8\u2BC8\u2BC8 ${introspect(args[n])} received for argument #${n + 1}`
     );
 
     return acc;
