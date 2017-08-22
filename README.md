@@ -92,15 +92,15 @@ Multi-argument functions variadic functions and tuples:
 Arrays and collections:
 
 * `Array` represents an untyped `Array` collection
-* `[a, b]` represents an heterogeneous `Array` that acts like a pair tuple
-* `[a, b, c]` represents an heterogeneous `Array` that acts like a triple tuple
+* `[a,b]` represents an heterogeneous `Array` that acts like a pair tuple
+* `[a,b,c]` represents an heterogeneous `Array` that acts like a triple tuple
 
 Objects, dictionaries and records:
 
 * `Object` represents an untyped `Object` with key/value-pairs of type `String`/untyped
-* `Dict(a)` represents a homogenous dictionary with key/value-pairs of type `String`/`a`
-* `Dict(a:b)` represents an ordered, homogenous dictionary with key/value-pairs of type `a`:`b`
-* `{a, b}` represents a record with two fields of type `a` and `b` and keys of type `String`
+* `{a}` represents an unordered, homogenous dictionary with key/value-pairs of type `String`/`a`
+* `{prop1:a,prop2:b}` represents an unordered record with two properties `prop1` and `prop2` of type `String`/`a` and `String`/`b`
+* `{a:b}` represents an ordered, homogenous dictionary with key/value-pairs of type `a`:`b`
 
 Input/Output and side effects:
 
@@ -112,7 +112,7 @@ Please note that sum types are internally encoded by `Object`s. In order to avoi
 
 * `Sum` represents a monomorphic sum type
 * `Sum(a)` represents a polymorphic sum type with an unary type constructor
-* `Sum(a b)` represents a polymorphic sum type with a curried binary type constructor
+* `Sum(a)(b)` represents a polymorphic sum type with a curried binary type constructor
 * `Sum(a,b)` represents a polymorphic sum type with a (uncurried) binary type constructor
 
 As you can see parenthesis are always set, also unnecessarily.
