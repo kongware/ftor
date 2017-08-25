@@ -151,6 +151,14 @@ Instead of a static type checker ftor offers a plugable, runtime type system for
 
 The next sections are going to cover the different type families like primitves, exponential (functional) types, product types and sum types.
 
+Domain specific issues:
+
+* having the right type doesn't mean to automatically have the right implementation
+* note the primitive type gap
+* use of bounded polymorphism without prototypes
+* don't be afraid of rest parameters
+* but avoid optional one
+
 ### 1.3.1. Functional types
 
 ...
@@ -175,7 +183,11 @@ Parametric polymorphism
 
 ...
 
-Ad-hoc polymorphism
+Bounded polymorphism
+
+...
+
+Return type polymorphism
 
 ...
 
@@ -187,19 +199,19 @@ Ad-hoc polymorphism
 
 ...
 
-#### 1.3.3.1. Tuple
+#### 1.3.3.1. Array
 
 ...
 
-#### 1.3.3.2. Record
+#### 1.3.3.2. Dict
 
 ...
 
-#### 1.3.3.3. Array
+#### 1.3.3.3. Tuple
 
 ...
 
-#### 1.3.3.4. Dictionary
+#### 1.3.3.4. Record
 
 ...
 

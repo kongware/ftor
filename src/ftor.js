@@ -157,16 +157,28 @@ const handleFun = (fname, f, anno, [c, ...cs], bindings, nf) => {
 
         switch (o.type) {
           case "arity": {
+            const atLeast = "rest" in o && o.rest > 0 ? ` at least` : "";
+
             e_ = new ArityError(
-              `${fname} expects ${numIndex[o.nominal]} argument(s)\n\n${anno}\n${ulAtCall(anno, nf)}\n\n${numIndex[o.real]} argument(s) received\n`
+              `${fname} expects${atLeast} ${numIndex[o.nominal]} argument(s)\n\n${anno}\n${ulAtCall(anno, nf)}\n\n${numIndex[o.real]} argument(s) received\n`
             );
 
             break;
           }
 
           case "type": {
+            let atIdx = "";
+
+            if ("idx" in o) {
+              if ("rest" in o) {
+                if (o.idx >= o.rest) atIdx = ` at index #${o.idx}`;
+              }
+
+              else atIdx = ` at index #${o.idx}`;
+            }
+
             e_ = new TypeError(
-              `${fname} expects\n\n${anno}\n${ulAtArg(anno, nf, o.idx)}\n\n${o.real} received\n`
+              `${fname} expects\n\n${anno}\n${ulAtArgOff(anno, nf, o.pos, o.offL, o.offR)}\n\n${o.real}${atIdx} received\n`
             );
 
             break;
@@ -235,7 +247,7 @@ const handleFun = (fname, f, anno, [c, ...cs], bindings, nf) => {
 // internal
 // {{f: ? -> ?, s: String}}
 
-const arityIndex = ["nullary", "unary", "binary", "ternary", "4-ary", "5-ary"];
+const arityIdx = ["nullary", "unary", "binary", "ternary", "4-ary", "5-ary"];
 
 
 // openBrackets (rev 1)
@@ -304,7 +316,7 @@ const ul = (n, m) => Array(n + 1).join(" ") + Array(m + 1).join("^");
 // internal
 // (String, PositiveInteger) -> String
 
-const ulAtCall = (s, n) => splitFunA(s).reduce((acc, t, n_) => {
+const ulAtCall = (s, n) => splitFunAnno(s).reduce((acc, t, n_) => {
   if (n_ < n) return acc + ul(t.length + 4, 0);
 
   else if (n_ === n) {
@@ -316,11 +328,27 @@ const ulAtCall = (s, n) => splitFunA(s).reduce((acc, t, n_) => {
 }, "");
 
 
+// underline at call with offset (rev 1)
+// internal
+// (String, PositiveInteger, Integer, Integer) -> String
+
+const ulAtCallOff = (s, n, offL, offR) => splitFunAnno(s).reduce((acc, t, n_) => {
+  if (n_ < n) return acc + ul(t.length + 4, 0);
+
+  else if (n_ === n) {
+    if (t[0] === "(") return acc + ul(1 + offL, t.length - 2 + offR - offL);
+    else return acc + ul(0 + offL, t.length + offR - offL);
+  }
+  
+  else return acc;
+}, "");
+
+
 // underline at argument (rev 1)
 // internal
 // (String, PositiveInteger, PositiveInteger) -> String
 
-const ulAtArg = (s, n, m) => splitFunA(s).reduce((acc, t, n_) => {
+const ulAtArg = (s, n, m) => splitFunAnno(s).reduce((acc, t, n_) => {
   if (n_ < n) return acc + ul(t.length + 4, 0);
   
   else if (n_ === n) return t.split(", ").reduce((acc_, t_, m_) => {
@@ -339,10 +367,33 @@ const ulAtArg = (s, n, m) => splitFunA(s).reduce((acc, t, n_) => {
 }, "");
 
 
+// underline at argument with offset (rev 1)
+// internal
+// (String, PositiveInteger, PositiveInteger, Integer, Integer) -> String
+
+const ulAtArgOff = (s, n, m, offL, offR) => splitFunAnno(s).reduce((acc, t, n_) => {
+  if (n_ < n) return acc + ul(t.length + 4, 0);
+  
+  else if (n_ === n) return t.split(", ").reduce((acc_, t_, m_) => {
+    if (m_ < m) return acc_ + ul(t_.length + 2, 0);
+
+    else if (m_ === m) {
+      if (t_[0] === "(") return acc_ + ul(1 + offL, t_.length - 1 + offR - offL);
+      else if (t_[t_.length - 1] === ")") return acc_ + ul(0 + offL, t_.length - 1 + offR - offL);
+      else return acc_ + ul(0 + offL, t_.length + offR - offL);
+    }
+    
+    else return acc_;
+  }, acc);
+  
+  else return acc;
+}, "");
+
+
 // --[ PARSING / BINDING ]-----------------------------------------------------
 
 
-// validate annotation (ref 1)
+// validate annotation (rev 1)
 // internal
 // String -> String
 
@@ -364,9 +415,11 @@ const validateAnno = s => {
     }
 
     else if (c in openBrackets) {
-      if (c === "(" && prev.search(/[a-z]/i) !== -1) isCons = true;
+      if (c === "(") {
+        if (isLetter(prev)) isCons = true;
+      }
 
-      else if (prev.search(/[a-z]/i) !== -1) throw new TypeSysError(
+      else if (isLetter(prev)) throw new TypeSysError(
         `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nillegal bracket\n`
       );
 
@@ -374,29 +427,32 @@ const validateAnno = s => {
     }
 
     else if (c in closedBrackets) {
-      if (stack.length === 0) throw new TypeSysError(
-        `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nunnecessary "${c}" bracket\n`
-      );
+      if (c === ")") isCons = false;
 
       if (c !== last) throw new TypeSysError(
         `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\n"${last}" bracket expected\n`
       );
 
-      if (stack.length === 1 && !end) {
-        if (next === ",") throw new TypeSysError(
-          `validateAnno received an invalid type annotation\n\n${s}\n${ul(n + 1, 1)}\n\nillegal type enumeration\n`
-        );
+      if (stack.length === 0) throw new TypeSysError(
+        `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nunnecessary "${c}" bracket\n`
+      );
 
-        else throw new TypeSysError(
-          `validateAnno received an invalid type annotation\n\n${s}\n${ul(n + 1, s.length - n - 1)}\n\nillegal trailing chars\n`
-        );
+      else if (stack.length === 1) {
+        if (!end && s[n + 2] !== "-") {
+          if (next === ",") throw new TypeSysError(
+            `validateAnno received an invalid type annotation\n\n${s}\n${ul(n + 1, 1)}\n\nillegal type enumeration\n`
+          );
+
+          else throw new TypeSysError(
+            `validateAnno received an invalid type annotation\n\n${s}\n${ul(n + 1, s.length - n - 1)}\n\nillegal trailing chars\n`
+          );
+        }
       }
 
-      if (next.search(/[a-z]/i) !== -1) throw new TypeSysError(
+      if (isLetter(next)) throw new TypeSysError(
         `validateAnno received an invalid type annotation\n\n${s}\n${ul(n + 1, 1)}\n\nillegal char\n`
       );
 
-      if (c === ")") isCons = false;
       return aux(n + 1, stack.slice(0, -1), isCons, dots);
     }
 
@@ -432,12 +488,32 @@ const validateAnno = s => {
       );
     }
 
+    else if (c === "-") {
+      if (prev !== " ") throw new TypeSysError(
+        `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nmissing " "\n`
+      );
+
+      if (next !== ">") throw new TypeSysError(
+        `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nmissing ">"\n`
+      );
+    }
+
+    else if (c === ">") {
+      if (prev !== "-") throw new TypeSysError(
+        `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nmissing "-"\n`
+      );
+
+      if (next !== " ") throw new TypeSysError(
+        `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nmissing " "\n`
+      );
+    }
+
     else if (c === ":") {
       if (stack.length === 0 || last !== "}")  throw new TypeSysError(
         `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nillegal ":"\n`
       );
 
-      if (prev.search(/[a-z]/i) === -1)  throw new TypeSysError(
+      if (isLetter(prev))  throw new TypeSysError(
         `validateAnno received an invalid type annotation\n\n${s}\n${ul(n - 1, 1)}\n\nillegal char\n`
       );
 
@@ -457,31 +533,11 @@ const validateAnno = s => {
         `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nmissing "."\n`
       );
 
-      if (dots === 3 && next.search(/[a-z]/i) === -1) throw new TypeSysError(
+      if (dots === 3 && !isLetter(next)) throw new TypeSysError(
         `validateAnno received an invalid type annotation\n\n${s}\n${ul(n + 1, 1)}\n\nillegal char\n`
       );
 
       if (dots === 3) aux(n + 1, stack, isCons, 0);
-    }
-
-    else if (c === "-") {
-      if (prev !== " ") throw new TypeSysError(
-        `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nmissing " "\n`
-      );
-
-      if (next !== ">") throw new TypeSysError(
-        `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nmissing ">"\n`
-      );
-    }
-
-    else if (c === ">") {
-      if (prev !== "-") throw new TypeSysError(
-        `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nmissing "-"\n`
-      );
-
-      if (next !== " ") throw new TypeSysError(
-        `validateAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nmissing " "\n`
-      );
     }
 
     else if (c.search(/[a-z\[\](){}\.,\->: ]/i) === -1) throw new TypeSysError(
@@ -511,7 +567,7 @@ const validateAnno = s => {
 };
 
 
-// is literal annotation (ref 1)
+// is literal annotation (rev 1)
 // internal
 // {String} -> String -> Boolean
 
@@ -538,28 +594,28 @@ const isLiteralA = tokens => s => {
 };
 
 
-// is array literal annotation (ref 1)
+// is array literal annotation (rev 1)
 // internal
 // {String} -> String -> Boolean
 
 const isArrA = isLiteralA(squareBrackets);
 
 
-// is tuple literal annotation (ref 1)
+// is tuple literal annotation (rev 1)
 // internal
 // {String} -> String -> Boolean
 
 const isTupA = isLiteralA(squareBrackets);
 
 
-// is object literal annotation (ref 1)
+// is object literal annotation (rev 1)
 // internal
 // {String} -> String -> Boolean
 
 const isObjA = isLiteralA(curlyBrackets);
 
 
-// get object type (ref 1)
+// get object type (rev 1)
 // internal
 // String -> String
 
@@ -594,21 +650,21 @@ const getObjT = s => {
 };
 
 
-// is dictionary literal annotation (ref 1)
+// is dictionary literal annotation (rev 1)
 // internal
 // String -> Boolean
 
 const isDictA = s => getObjT(s) === "Dict";
 
 
-// is record literal annotation (ref 1)
+// is record literal annotation (rev 1)
 // internal
 // String -> Boolean
 
 const isRecA = s => getObjT(s) === "Record";
 
 
-// is constrcutor annotation (ref 1)
+// is constrcutor annotation (rev 1)
 // internal
 // String -> Boolean
 
@@ -643,7 +699,7 @@ const isConsA = s => {
 };
 
 
-// is function annotation (ref 1)
+// is function annotation (rev 1)
 // internal
 // String -> Boolean
 
@@ -670,35 +726,48 @@ const isFunA = s => {
 };
 
 
-// is polymorphic annotation (ref 1)
+// is multi argument annotation (rev 1)
+// internal
+// String -> Boolean
+
+const isMultiArg = s => {
+  const aux = (n, stack) => {
+    const c = s[n];
+
+    if (c === undefined) return true;
+
+    if (n === 0) {
+      if (c !== "(") return false;
+      else return aux(n + 1, stack.concat(c));
+    }
+
+    else {
+      if (c in openBrackets) return aux(n + 1, stack.concat(c));
+      else if (c === openBrackets[stack[stack.length - 1]]) return aux(n + 1, stack.slice(0, -1));
+      else if (c === "-" && stack.length === 0) return false;
+      else return aux(n + 1, stack);
+    }
+  };
+
+  return aux(0, []);
+};
+
+
+// is polymorphic annotation (rev 1)
 // internal
 // Char -> Boolean
 
-const isPolyA = c => c.search(/^[a-z]$/) !== -1;
+const isPolyA = c => c.search(/^(?:...)?[a-z]$/) !== -1;
 
 
-// is monomorphic annotation (ref 1)
+// is monomorphic annotation (rev 1)
 // internal
 // String -> Boolean
 
-const isMonoA = s => s.search(/^[A-Z][a-z]*$/) !== -1;
+const isMonoA = s => s.search(/^(?:...)?[A-Z][a-z]*$/) !== -1;
 
 
-// is value type annotation (ref 1)
-// internal
-// String -> Boolean
-
-const isValTypeA = s => isMonoA(s);
-
-
-// is reference type annotation (ref 1)
-// internal
-// String -> Boolean
-
-const isRefTypeA = s => !(isMonoA(s) || isPolyA(s));
-
-
-// is composite type annotation (ref 1)
+// is composite type annotation (rev 1)
 // internal
 // String -> Boolean
 
@@ -722,31 +791,106 @@ const parseTypeSig = s => {
 };
 
 
-// parse annotation (ref 1)
+// parse annotation (rev 1)
 // internal
 // String -> String
 
 const parseAnno = s => {
   const c = s[0];
 
-  if (c in openBrackets && s[s.length - 1] === openBrackets[c] && isLiteralA(s)) {
-    if (c in squareBrackets && isArrA(s)) return "Array";
-    if (c in squareBrackets && isTupA(s)) return "Tuple";
-    if (c in curlyBrackets && isObjA(s)) return getObjT(s);
+  if (c in openBrackets) {
+    if (s[s.length - 1] === openBrackets[c] && isLiteralA(s)) {
+      if (c in squareBrackets && isArrA(s)) return "Array";
+      if (c in squareBrackets && isTupA(s)) return "Tuple";
+      if (c in curlyBrackets && isObjA(s)) return getObjT(s);
+      if (c === "(" && isMultiArg(s)) return "MultiArg";
+    }
   }
 
-  if (isUC(s[0])) {
+  else if (c === ".") {
+    if (isMonoA(s)) return "Mono";
+    if (isPolyA(s)) return "Poly";
+  }
+
+  else if (isUC(c)) {
     if (isMonoA(s)) return "Mono";
     if (isConsA(s)) return "Cons";
   }
 
-  if (isPolyA(s) && s.length === 1) return "Poly";
+  if (isPolyA(s)) return "Poly";
   if (isFunA(s)) return "Function";
   throw new TypeSysError(`parseAnno received an unknown type annotation\n\n${s}\n`);
 };
 
 
-// split annotation enumeration (ref 1)
+// decompose annotation (rev 1)
+// internal
+// String -> String
+
+const decomposeAnno = s => {
+  const type = parseAnno(s);
+
+  switch (type) {
+    case "Array": return decompArrAnno(s);
+    case "Tuple": return decompTupAnno(s);
+    case "Dict": return decompDictAnno(s);
+    case "MultiArg": return decompMultiArgAnno(s);
+    case "Record": return decompRecAnno(s);
+    case "Cons": return decompConsAnno(s);
+    case "Function":
+    case "Poly":
+    case "Mono": return s;
+
+    default: throw new TypeSysError(
+      `decomposeAnno received unknown type\n\n${type}\n`
+    );
+  }
+};
+
+
+// decompose array annotation (rev 1)
+// internal
+// String -> String
+
+const decompArrAnno = s => s.slice(1, -1);
+
+
+// decompose tuple annotation (rev 1)
+// internal
+// String -> String
+
+const decompTupAnno = s => s.slice(1, -1);
+
+
+// decompose dict annotation (rev 1)
+// internal
+// String -> String
+
+const decompDictAnno = s => s.slice(1, -1);
+
+
+// decompose multi argument annotation (rev 1)
+// internal
+// String -> String
+
+const decompMultiArgAnno = s => s.slice(1, -1);
+
+
+// decompose record annotation (rev 1)
+// internal
+// String -> String
+
+const decompRecAnno = s => s.slice(1, -1).replace(/[a-z]+: /gi, "");
+
+
+// decompose constructor annotation (rev 1)
+// internal
+// String -> String
+
+const decompConsAnno = s => s.slice(s.indexOf("(") + 1, -1);
+
+
+// split annotation enumeration (rev 1)
 // internal
 // String -> [String]
 
@@ -779,11 +923,11 @@ const splitAnnoEnum = s => {
 };
 
 
-// split function annotation (ref 1)
+// split function annotation (rev 1)
 // internal
 // String -> [String]
 
-const splitFunA = s => {
+const splitFunAnno = s => {
   const aux = (n, acc, stack) => {
     const c = s[n],
      next = n === s.length - 1 ? "" : s[n + 1];
@@ -805,45 +949,31 @@ const splitFunA = s => {
 };
 
 
-// deconstruct argument annotation (ref 1)
+// parse argument annotation (rev 1)
 // internal
-// String -> {args: [String], arity: PositiveNumber}
+// String -> {annos: [String], arity: PositiveNumber}
 
-const deconsArgA = s => {
-  if (s.indexOf("...") === 0) return {args: [s.slice(3)], arity: Infinity};
-  else if (s === "()") return {args: [], arity: 0};
-  else if (s[0] === "(")  return {args: s.slice(1, -1).split(", "), arity: s.split(",").length};
-  else return {args: [s], arity: 1};
-}
+const parseArgAnno = s => {
+  const s_ = isMultiArg(s) ? splitAnnoEnum(decompMultiArgAnno(s)) : [s];
 
+  return s_.reduce((acc, anno, n, ss) => {
+    if (n === ss.length - 1) {
+      if (anno.indexOf("...") === 0) return {annos: acc.annos.concat(anno.slice(3)), arity: Infinity};
+      else return {annos: acc.annos.concat(anno), arity: ss.length};
+    }
 
-// decompose annotation (ref 1)
-// internal
-// String -> String
-
-const decomposeAnno = s => {
-  const type = parseAnno(s);
-
-  switch (type) {
-    case "Array":
-    case "Tuple":
-    case "Dict": return s.slice(1, -1);
-    case "Record": return s.slice(1, -1).replace(/[a-z]+: /gi, "");
-    case "Cons": return s.slice(s.indexOf("(") + 1, -1);
-    case "Function":
-    case "Poly":
-    case "Mono": return "";
-
-    default: throw new TypeSysError(
-      `decomposeAnno received unknown type\n\n${type}\n`
+    else if (anno.indexOf("...") === 0) throw new TypeSysError(
+      `parseArgAnno received invalid argument annotation\n\n${s}\n${ul(0, 3)}\n\ninvalid variadic notation`
     );
-  }
+
+    else return acc.annos.push(anno), acc;
+  }, {annos: [], arity: null});
 };
 
 
-// define contract (ref 1)
+// define contract (rev 1)
 // internal
-// String -> ? -> ?
+// String -> (? -> ?)
 
 const defineContract = s => {
   const type = parseAnno(s);
@@ -859,16 +989,16 @@ const defineContract = s => {
 
     case "Poly": return anyC(s);
 
-    case "Function": return splitFunA(s).map(s_ => {
-      const {args, arity} = deconsArgA(s_);
-      return arityC(arity) (...args.map(anno => defineContract(anno)));
+    case "Function": return splitFunAnno(s).map(s_ => {
+      const {annos, arity} = parseArgAnno(s_);
+      return arityC(arity) (...annos.map(anno => defineContract(anno)));
     });
 
-    case "Array": return arrOfC;
-    case "Tuple": return tupOfC;
-    case "Dict": return dictOfC;
-    case "Record": return recOfC;
-    case "Cons": return consOfC;
+    case "Array": return arrOfC(defineContract(decompArrAnno(s)));
+    //case "Tuple": return tupOfC;
+    //case "Dict": return dictOfC;
+    //case "Record": return recOfC;
+    //case "Cons": return consOfC;
 
     default: throw new TypeSysError(
       `defineContract received unknown type\n\n${type}\n`
@@ -885,7 +1015,7 @@ const bindTypeVars = (fname, type, ss, args, bindings, acc, nf) => ss.reduce((ac
   if (isPolyA(s)) {
     if (s in acc) {
       if (acc[s] !== introspect(args[narg])) throw new TypeError(
-        `${fname} expects bounded type variable\n\n${s}\n\nto be of type\n\n${acc[s]}\n\nfor all occurances in\n\n${type}\n${ulAtArg(type, nf, narg)}\n\nbut attempted to bind ${introspect(args[narg])}\n`
+        `${fname} expects bounded type variable "${s}"\n\nto be of type ${acc[s]}\n\nfor all occurances in\n\n${type}\n${ulAtArg(type, nf, narg)}\n\ninvalid attempt to bind ${introspect(args[narg])} received\n`
       );
 
       else return acc;
@@ -908,18 +1038,39 @@ const bindTypeVars = (fname, type, ss, args, bindings, acc, nf) => ss.reduce((ac
 
 const arityC = n => (...cs) => {
   const arityC2 = args => {
-    if (isFinite(n)) {
+    if (isFinite_) {
       if (args.length !== n) throw new Error(JSON.stringify({type: "arity", nominal: n, real: args.length}));
     }
 
+    else if (cs.length > 1 && args.length < cs.length - 1) throw new Error(JSON.stringify({type: "arity", nominal: cs.length - 1, real: args.length, rest: cs.length - 1}));
+
     args.forEach((x, m) => {
-      try {isFinite(n) ? cs[m] (x) : cs[0] (x)}
+      try {m < cs.length ? cs[m] (x) : cs[cs.length - 1] (x)}
+      
 
       catch (e) {
         const o = JSON.parse(e.message);
         let e_;
 
-        o.idx = m;
+        if (isFinite_) o.pos = m;
+        
+        else {
+          if (cs.length > 1) {
+            if (m < cs.length - 1) o.pos = m;
+            else o.pos = cs.length - 1;
+            o.rest = cs.length - 1;
+          }
+        
+          else {
+            o.pos = 0;
+            o.rest = 0;
+          }
+
+          o.idx = m - o.rest;
+        }
+        
+        if (!("offL" in o)) o.offL = 0;
+        if (!("offR" in o)) o.offR = 0;
         e_ = new Error(JSON.stringify(o));
         e_.stack = e.stack;
         throw e_;
@@ -929,30 +1080,44 @@ const arityC = n => (...cs) => {
     return args;
   };
 
-  arityC2.toString = () => cs.join(", ");
+  const isFinite_ = isFinite(n);
+  
+  arityC2.toString = () => {
+    if (isFinite_) {
+      if (cs.length === 0) return`()`;
+      else if (cs.length === 1) return `${cs[0]}`;
+      else return`(${cs.join(", ")})`;
+    }
+
+    else {
+      if (cs.length === 1) return `...${cs[0]}`;
+      else return `(${cs.slice(0, -1).join(", ")}, ...${cs[cs.length - 1]})`;
+    }
+  };
+
   return arityC2;
 };
 
 
-// nullary see @ section XX. DERIVED
+// nullaryC see @ section XX. DERIVED
 
 
-// unary see @ section XX. DERIVED
+// unaryC see @ section XX. DERIVED
 
 
-// binary see @ section XX. DERIVED
+// binaryC see @ section XX. DERIVED
 
 
-// ternary see @ section XX. DERIVED
+// ternaryC see @ section XX. DERIVED
 
 
-// _4ary see @ section XX. DERIVED
+// _4aryC see @ section XX. DERIVED
 
 
-// _5ary see @ section XX. DERIVED
+// _5aryC see @ section XX. DERIVED
 
 
-// variadic see @ section XX. DERIVED
+// variadicC see @ section XX. DERIVED
 
 
 // --[ MONOMORPHIC CONTRACTS ]-------------------------------------------------
@@ -1069,6 +1234,8 @@ const arrOfC = c => {
 
         o.nominal = type;
         o.idx = n;
+        o.offL = 1;
+        o.offR = -1;
         e_ = new Error(JSON.stringify(o));
         e_.stack = e.stack;
         throw e_;
@@ -1646,7 +1813,7 @@ const _throw = cons => s => {throw new cons(s)};
 // handle get/set traps for virtualized product types
 // (String, String) -> Array
 
-const handleProd = type => ({
+/*const handleProd = type => ({
   get: (o, k, _) => {
     switch (k) {
       case $type: return type;
@@ -1670,7 +1837,7 @@ const handleProd = type => ({
       `immutable value of type ${type} received invalid set operation for ${isNumStr(k) ? `index #${k}` : `property "${k}"`} with value ${v}`
     );
   }
-});
+});*/
 
 
 /******************************************************************************
@@ -1681,7 +1848,7 @@ const handleProd = type => ({
 // Tuple (rev 0.1)
 // ([? -> ?], Array) -> Array
 
-const Tup = (cs, xs) => {
+/*const Tup = (cs, xs) => {
   if (TYPE_CHECK) {
     if (!isArr(cs)) throw new TypeError(
       `Tup expects argument #1 of type Array \u2BC8\u2BC8\u2BC8 ${introspect(cs)} received`
@@ -1743,7 +1910,7 @@ const Tup = (cs, xs) => {
 
 Tup.of = (cs, ...xs) => Tup(cs, xs);
 
-Tup.from = (cs, iter) => Tup(cs, Array.from(iter));
+Tup.from = (cs, iter) => Tup(cs, Array.from(iter));*/
 
 
 /******************************************************************************
@@ -1762,7 +1929,7 @@ Tup.from = (cs, iter) => Tup(cs, Array.from(iter));
 // Array (rev 0.1)
 // ((a -> a), [a]) -> [a]
 
-const Arr = (c, xs) => {
+/*const Arr = (c, xs) => {
   if (TYPE_CHECK) {
     if (!isFun(c)) throw new TypeSysError(
       `Arr expects argument #1 of type Function \u2BC8\u2BC8\u2BC8 ${introspect(xs)} received`
@@ -1799,7 +1966,7 @@ const Arr = (c, xs) => {
 
 Arr.of = (c, ...xs) => Arr(c, xs);
 
-Arr.from = (c, iter) => Arr(c, Array.from(iter));
+Arr.from = (c, iter) => Arr(c, Array.from(iter));*/
 
 
 // --[ MONOID ]----------------------------------------------------------------
@@ -1859,7 +2026,7 @@ const range_ = (p, step) => x => {
 // --[ CONSTRUCTOR ]-----------------------------------------------------------
 
 
-const Tcons = (name, o) => {
+/*const Tcons = (name, o) => {
   const r = Object.keys(o).reduce((p, k) => {
     p[k] = o[k] (name, k);
     return p;
@@ -2008,7 +2175,7 @@ const handleConst = (c, name, tag) => ({
   set: (o, k, v, _) => {
     throw new TypeError("illegal mutation");
   }
-});
+});*/
 
 
 /******************************************************************************
@@ -2205,53 +2372,53 @@ const get$ = s => o => o[Symbol.for(SYM_PREFIX + s)];
 // --[ ARITY CONTRACTS ]-------------------------------------------------------
 
 
-// nullary (rev 1)
+// nullary contract (rev 1)
 // internal
 // [a] -> {status: String -> Error}
 
-const nullary = arityC(0);
+const nullaryC = arityC(0);
 
 
-// unary (rev 1)
+// unary contract (rev 1)
 // internal
 // (...? -> ?) -> [a] -> {status: String -> Error}
 
-const unary = arityC(1);
+const unaryC = arityC(1);
 
 
-// binary (rev 1)
+// binary contract (rev 1)
 // internal
 // (...? -> ?) -> [a, b] -> {status: String -> Error}
 
-const binary = arityC(2);
+const binaryC = arityC(2);
 
 
-// ternary (rev 1)
+// ternary contract (rev 1)
 // internal
 // (...? -> ?) -> [a, b, c] -> {status: String -> Error}
 
-const ternary = arityC(3);
+const ternaryC = arityC(3);
 
 
-// 4-ary (rev 1)
+// 4-ary contract (rev 1)
 // internal
 // (...? -> ?) -> [a, b, c, d] -> {status: String -> Error}
 
-const _4ary = arityC(4);
+const _4aryC = arityC(4);
 
 
-// 5-ary (rev 1)
+// 5-ary contract (rev 1)
 // internal
 // (...? -> ?) -> [a, b, c, d, e] -> {status: String -> Error}
 
-const _5ary = arityC(5);
+const _5aryC = arityC(5);
 
 
-// variadic (rev 1)
+// variadic contract (rev 1)
 // internal
 // (...? -> ?) -> [a, b, c] -> {status: String -> Error}
 
-const variadic = arityC(Infinity);
+const variadicC = arityC(Infinity);
 
 
 // --[ AUXILLIARY HELPER ]-----------------------------------------------------
