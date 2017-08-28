@@ -40,7 +40,7 @@ const TYPE_CHECK = true;
 const $cons = Symbol.for(SYM_PREFIX + "cons");
 
 
-// monomorphic type (rev 1)
+// annotation (rev 1)
 // internal
 
 const $anno = Symbol.for(SYM_PREFIX + "type");
@@ -253,7 +253,20 @@ const handleFun = (fname, nf, funA, [argA, ...argAs], bindings) => {
       return r;
     },
 
-    get: (o, k, _) => k === "name" ? fname : o[k]
+    get: (o, k, _) => {
+      switch (k) {
+        case "name": return fname;
+        case $anno: return funA;
+        
+        default: {
+          if (!(k in o)) throw new TypeError(
+            `${fname} received an invalid get operation for\n\n${k}\n\nunknown property\n`
+          );
+
+          return o[k];
+        };
+      }
+    }
   };
 };
 
@@ -838,8 +851,8 @@ const defineContract = (type, anno, bindings) => {
     }
 
     case "Poly": return anyC(bindings) (anno);
-    //case "Fun": return ???
-    case "Arr": return A(s => arrOfC(defineContract(parseAnno(s), s, bindings))) (decompArrAnno(anno));
+    case "Fun": return funC;
+    case "Arr": return A(anno_ => arrOfC(defineContract(parseAnno(anno_), anno_, bindings))) (decompArrAnno(anno));
     //case "Tup": return tupOfC;
     //case "Dict": return dictOfC;
     //case "Rec": return recOfC;
@@ -1066,8 +1079,8 @@ const arrOfC = c => {
       catch (e) {
         const o = JSON.parse(e.message);
         let e_;
-        o.offL = 1;
-        o.offR = -1;
+        o.offL = "offL" in o ? o.offL + 1 : 1;
+        o.offR = "offR" in o ? o.offR - 1 : -1;
         e_ = new Error(JSON.stringify(o));
         e_.stack = e.stack;
         throw e_;
@@ -1151,6 +1164,21 @@ tupOfC.toString = () => "Tuple";
 
 
 // const consOfC
+
+
+const funC = x => {
+  if (!isFun(x)) throw new Error(
+    JSON.stringify({type: "type", nominal: "Function", real: introspect(x)})
+  );
+
+  else if (!($anno in x)) throw new TypeError(
+    `funC received the untyped function\n\n${x}\n`
+  );
+
+  else return x;
+};
+
+funC.toString = () => "Function";
 
 
 // --[ REFLECTION ]------------------------------------------------------------
