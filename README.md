@@ -153,11 +153,12 @@ The next sections are going to cover the different type families like primitves,
 
 Domain specific issues:
 
-* having the right type doesn't mean to automatically have the right implementation
-* note the primitive type gap
-* use of bounded polymorphism without prototypes
-* don't be afraid of rest parameters
-* but avoid optional one
+* there is no type/implementation check
+* there is a primitive type gap
+* ftor uses bounded polymorphism without prototypes
+* rest parameters are type safe but optional ones are not
+* there is no single tuple/record
+* there are no tuples/records where all elemments are of the same type
 
 ### 1.3.1. Functional types
 
@@ -215,7 +216,7 @@ Return type polymorphism
 
 ...
 
-### 1.3.4. Sum types
+### 1.3.4. Constructor types
 
 ...
 
