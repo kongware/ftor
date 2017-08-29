@@ -159,13 +159,14 @@ const handleFun = (fname, nf, funA, [argA, ...argAs], bindings) => {
       try {arityC(arity) (annos.map(anno => defineContract(parseAnno(anno), anno, bindings))) (args)}
 
       catch (e) {
+        if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
         const o = JSON.parse(e.message);
         let e_;
 
         switch (o.type) {
           case "n-ary": {
             e_ = new ArityError(
-              `${fname} expects${atLeast} ${numIndex[o.nominal]} argument(s)\n\n${funA}\n${ulAtCall(funA, nf)}\n\n${numIndex[o.real]} argument(s) received\n`
+              `${fname} expects ${numIndex[o.nominal]} argument(s)\n\n${funA}\n${ulAtCall(funA, nf)}\n\n${numIndex[o.real]} argument(s) received\n`
             );
 
             break;
@@ -211,6 +212,7 @@ const handleFun = (fname, nf, funA, [argA, ...argAs], bindings) => {
         try {c(r)}
 
         catch (e) {
+          if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
           const o = JSON.parse(e.message);
           let e_;
 
@@ -253,10 +255,20 @@ const handleFun = (fname, nf, funA, [argA, ...argAs], bindings) => {
       return r;
     },
 
+    has: (o, k, _) => {
+      switch (k) {
+        case $anno: return true;
+        default: return k in o;
+      }
+    },
+
     get: (o, k, _) => {
       switch (k) {
-        case "name": return fname;
         case $anno: return funA;
+        case "bindings": return bindings;
+        case "name": return fname;
+        case Symbol.toPrimitive: return o[k];
+        case "toString": return o[k];
         
         default: {
           if (!(k in o)) throw new TypeError(
@@ -265,6 +277,19 @@ const handleFun = (fname, nf, funA, [argA, ...argAs], bindings) => {
 
           return o[k];
         };
+      }
+    },
+
+    set: (o, k, v, _) => {
+      switch (k) {
+        case "toString": return o[k] = v, true;
+        case "bindings": return bindings = v, true;
+
+        default: {
+          throw new TypeError(
+            `${fname} received an invalid set operation for\n\n${k}\n\nwith the value\n\n${v}\n\nfunction objects are immutable`
+          );
+        }
       }
     }
   };
@@ -475,13 +500,18 @@ const parseAnno = s => {
         }
       }
 
-      return aux(n + 1, stack.concat(openBrackets[c]), "", type);
+      return aux(n + 1, stack.concat(openBrackets[c]), cache, type);
     }
 
     else if (c in closedBrackets) {
       if (stackLen === 0) throw new TypeSysError(
         `parseAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nunexpected "${c}" bracket\n`
       );
+
+      else if (stackLen === 1 && stackLast === ")" && cache.arg !== "") {
+        type = cache.arg;
+        cache.arg = "";
+      }
 
       if (c !== stackLast) throw new TypeSysError(
         `parseAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\n"${stackLast}" bracket expected\n`
@@ -491,7 +521,7 @@ const parseAnno = s => {
         `parseAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nillegal bracket\n`
       );
 
-      return aux(n + 1, stack.slice(0, -1), "", type);
+      return aux(n + 1, stack.slice(0, -1), cache, type);
     }
 
     else if (c === ",") {
@@ -503,7 +533,10 @@ const parseAnno = s => {
         `parseAnno received an invalid type annotation\n\n${s}\n${ul(n, 1)}\n\nillegal ","\n`
       );
 
-      if (stackLen === 1 && last === "]" && type !== "Fun") type = "Tup";
+      if (stackLen === 1) {
+        if (stackLast === ")") cache.arg = "MultiArg";
+        else if (stackLast === "]" && type !== "Fun") type = "Tup";
+      }
     }
 
     else if (c === " ") {
@@ -548,6 +581,10 @@ const parseAnno = s => {
       );
 
       if (stackLen === 0) type = "Fun";
+
+      else if (stackLen === 1) {
+        if (stackLast === ")" && cache.arg === "") cache.arg = "FunArg";
+      }
     }
 
     else if (c === ":") {
@@ -567,33 +604,33 @@ const parseAnno = s => {
     }
 
     else if (c === ".") {
-      cache += c;
+      cache.dots += c;
 
-      if (cache === ".") {
+      if (cache.dots === ".") {
         if (!(prev === "" || prev === " ")) throw new TypeSysError(
           `parseAnno received an invalid type annotation\n\n${s}\n${ul(n - 1, 1)}\n\nillegal char\n`
         );
       }
 
-      else if (cache === "..") {
+      else if (cache.dots === "..") {
         if (next !== ".") throw new TypeSysError(
           `parseAnno received an invalid type annotation\n\n${s}\n${ul(n - 1, 2)}\n\nmissing "."\n`
         );
       }
 
-      else if (cache === "...") {
+      else if (cache.dots === "...") {
         if (!isLetter(next)) throw new TypeSysError(
           `parseAnno received an invalid type annotation\n\n${s}\n${ul(n - 2, 3)}\n\nillegal variadic notation\n`
         );
 
-        else cache = "";
+        else cache.dots = "";
       }
     }
 
     return aux(n + 1, stack, cache, type);
   };
 
-  return aux(0, [], false, 0);
+  return aux(0, [], {dots: "", arg: ""}, "");
 };
 
 
@@ -637,6 +674,13 @@ const isConsA = s => parseAnno(s) === "Cons";
 // String -> Boolean
 
 const isFunA = s => parseAnno(s) === "Fun";
+
+
+// is function argument annotation (rev 1)
+// internal
+// String -> Boolean
+
+const isFunArgA = s => parseAnno(s) === "FunArg";
 
 
 // is multi argument annotation (rev 1)
@@ -693,6 +737,7 @@ const decomposeAnno = (anno, type) => {
     case "Arr": return decompArrAnno(anno);
     case "Tup": return decompTupAnno(anno);
     case "Dict": return decompDictAnno(anno);
+    case "FunArg": return decompFunArgAnno(anno);
     case "MultiArg": return decompMultiArgAnno(anno);
     case "Rec": return decompRecAnno(anno);
     case "Cons": return decompConsAnno(anno);
@@ -728,6 +773,13 @@ const decompTupAnno = s => s.slice(1, -1);
 const decompDictAnno = s => s.slice(1, -1);
 
 
+// decompose funcation argument annotation (rev 1)
+// internal
+// String -> String
+
+const decompFunArgAnno = s => s.slice(1, -1);
+
+
 // decompose multi argument annotation (rev 1)
 // internal
 // String -> String
@@ -753,11 +805,11 @@ const decompConsAnno = s => s.slice(s.indexOf("(") + 1, -1);
 // internal
 // String -> [String]
 
-const splitAnnoEnum = s => {
+const splitAnnoEnum = anno => {
   const aux = (n, acc, stack) => {
-    const c = s[n],
-     prev = n === 0 ? "" : s[n - 1],
-     next = n === s.length - 1 ? "" : s[n + 1];
+    const c = anno[n],
+     prev = n === 0 ? "" : anno[n - 1],
+     next = n === anno.length - 1 ? "" : anno[n + 1];
 
     if (c === undefined) return acc;
 
@@ -786,21 +838,22 @@ const splitAnnoEnum = s => {
 // internal
 // String -> [String]
 
-const splitFunAnno = s => {
+const splitFunAnno = anno => {
   const aux = (n, acc, stack) => {
-    const c = s[n],
-     next = n === s.length - 1 ? "" : s[n + 1];
+    const c = anno[n],
+     next = n === anno.length - 1 ? "" : anno[n + 1];
 
     if (c === undefined) {
       if (acc.length < 2) throw new TypeSysError(
         `splitFunAnno received a non-functional type annotation\n\n${type}\n`
       );
 
-      return acc;
+      else return acc;
     }
 
     else if (c === " " && next === "-") {
       if (stack.length === 0) return aux(n + 4, acc.concat(""), stack);
+      else acc[acc.length - 1] += c;
     }
     
     else acc[acc.length - 1] += c;
@@ -819,7 +872,14 @@ const splitFunAnno = s => {
 // String -> {annos: [String], arity: PositiveNumber}
 
 const parseArgAnno = argA => {
-  const annos = isMultiArgA(parseAnno(argA)) ? splitAnnoEnum(decompMultiArgAnno(argA)) : [argA];
+  const type = parseAnno(argA);
+  let annos;
+
+  switch (type) {
+    case "FunArg": annos = [decompFunArgAnno(argA)]; break;
+    case "MultiArg": annos = splitAnnoEnum(decompMultiArgAnno(argA)); break;
+    default: annos = [argA];
+  }
 
   return annos.reduce((acc, anno, n, ref) => {
     if (n === ref.length - 1) {
@@ -887,6 +947,7 @@ const arityC = n => cs => {
       try {m < cs.length ? cs[m] (x) : cs[cs.length - 1] (x)}
 
       catch (e) {
+        if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
         const o = JSON.parse(e.message);
         let e_;
 
@@ -1077,6 +1138,7 @@ const arrOfC = c => {
       try {c(x)}
 
       catch (e) {
+        if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
         const o = JSON.parse(e.message);
         let e_;
         o.offL = "offL" in o ? o.offL + 1 : 1;
@@ -1130,6 +1192,7 @@ const tupOfC = cs => {
       try {c(xs[n])}
 
       catch (e) {
+        if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
         const o = JSON.parse(e.message);
         let e_;
         e_ = new Error(JSON.stringify(o));
@@ -1171,8 +1234,8 @@ const funC = x => {
     JSON.stringify({type: "type", nominal: "Function", real: introspect(x)})
   );
 
-  else if (!($anno in x)) throw new TypeError(
-    `funC received the untyped function\n\n${x}\n`
+  else if (!($anno in x)) throw new TypeSysError(
+    `funC received the untyped function\n\n${x.name}\n`
   );
 
   else return x;
@@ -2347,4 +2410,4 @@ const isObj = isRef;
 
 // now public API yet...
 
-module.exports = {};
+// module.exports = {};
