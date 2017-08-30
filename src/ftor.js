@@ -156,6 +156,26 @@ const handleFun = (fname, nf, funA, [argA, ...argAs], bindings) => {
     apply: (f, _, args) => {
       const {annos, arity} = parseArgAnno(argA);
       if (nf === 0) bindings = {};
+
+      annos.forEach((anno, n) => {
+        if (isFunA(anno)) {
+          const higherOrderAs = splitFunAnno(anno),
+           funArgAs = splitFunAnno(args[n] [$anno]);
+
+          higherOrderAs.forEach((anno_, n_) => {
+            if (isPolyA(anno_)) {
+              if (!(anno_ in bindings)) bindings[anno_] = funArgAs[n];
+
+              else if (bindings[anno_] !== funArgAs[n]) new TypeError(
+                `${fname} expects bounded type variable "${anno_}" to be of type\n\n${bindings[anno_]}\n\nfor all occurrences in\n\n${funA}\n${ulAtArg(funA, nf, n)}\n\n${funArgAs[n]} received\n`
+              );
+            }
+
+            Object.keys(bindings).forEach(k => bindings[k] = bindings[k].replace(new RegExp(`\\b${k}\\b`, "g"), bindings[k]));
+          });
+        }
+      });
+
       try {arityC(arity) (annos.map(anno => defineContract(parseAnno(anno), anno, bindings))) (args)}
 
       catch (e) {
@@ -370,7 +390,7 @@ const ul = (n, m) => Array(n + 1).join(" ") + Array(m + 1).join("^");
 
 // underline at call with offset (rev 1)
 // internal
-// (String, PositiveInteger, Integer, Integer) -> String
+// (Integer, Integer) -> (String, PositiveInteger) -> String
 
 const ulAtCallOff = (offL, offR) => (s, n) => splitFunAnno(s).reduce((acc, t, n_) => {
   if (n_ < n) return acc + ul(t.length + 4, 0);
@@ -393,7 +413,7 @@ const ulAtCall = ulAtCallOff(0, 0);
 
 // underline at argument with offset (rev 1)
 // internal
-// (String, PositiveInteger, PositiveInteger, Integer, Integer) -> String
+// (Integer, Integer) -> (String, PositiveInteger, PositiveInteger) -> String
 
 const ulAtArgOff = (offL, offR) => (s, n, m) => splitFunAnno(s).reduce((acc, t, n_) => {
   if (n_ < n) return acc + ul(t.length + 4, 0);
@@ -1089,11 +1109,19 @@ const anyC = bindings => {
       const anno = introspect(x);
 
       if (name in bindings) {
-        if (bindings[name] !== anno) throw new Error(
-          JSON.stringify({type: "binding", nominal: bindings[name], real: anno, name: name})
-        );
+        if (bindings[name].search(/\b[a-z]\b/) === -1) {
+          if (bindings[name] !== anno) throw new Error(
+            JSON.stringify({type: "binding", nominal: bindings[name], real: anno, name: name})
+          );
 
-        else return x;
+          return x;
+        }
+
+        else {
+          // 1. check if the argument matches the corresponding polymorphic binding
+          // 2. replace the polymorphic portion of the binding with the corresponding concrete type of the argument
+          throw new TypeSysError("ftor cannot handle polymorphic function arguments yet");
+        }
       }
 
       else return bindings[name] = anno, x;
