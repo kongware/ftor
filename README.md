@@ -15,7 +15,7 @@ ftor is a library enabling type-directed, functional programming in Javascript.
 
 ftor teaches you type-directed, functional programming, which includes extremely generalized and language agnostic concepts. That means you can use this knowledge with different languages in various scenarios.
 
-With ftor you develop a good feel for
+With ftor you develop a good feeling for
 
 * types
 * purity
@@ -61,14 +61,16 @@ Arrays:
 
 Tuples:
 
-* `[a,b]` represents a pair Tuple
-* `[a,b,c]` represents a triple Tuple
+* `[a, b]` represents a pair Tuple of type `a`/`b`
+* `[?, ?]` represents a pair Tuple of type unknown type
+* `[a, b, c]` represents a triple Tuple of type `a`/`b`/`c`
 
 Dictionaries and Records:
 
 * `Object` represents an untyped `Object` of any shape
 * `{a}` represents an unordered, homogenous dictionary with key/value-pairs of type `String`/`a`
-* `{prop1:a,prop2:b}` represents an unordered, heterogeneous with two properties `prop1` and `prop2` of type `String`/`a` and `String`/`b`
+* `{prop1: a, prop2: b}` represents an unordered, heterogeneous with two properties `prop1` and `prop2` of type `String`/`a` and `String`/`b`
+* `{prop1: ?, prop2: ?}` represents an unordered, heterogeneous with two properties `prop1` and `prop2` of type `String`/unknown and `String`/unknown
 
 Input/Output and side effects:
 
@@ -175,6 +177,30 @@ Return type polymorphism
 
 ...
 
+#### 1.3.2.1 Number
+
+...
+
+#### 1.3.2.2 String
+
+...
+
+#### 1.3.2.3 Boolean
+
+...
+
+#### 1.3.2.4 Symbol
+
+...
+
+#### 1.3.2.5 Null
+
+...
+
+#### 1.3.2.6 Undefined
+
+...
+
 ### 1.3.3. Product types
 
 ...
@@ -216,5 +242,21 @@ Abstract data types
 ...
 
 ### 1.3.7. Iterators
+
+...
+
+### 1.3.8. Subtypes
+
+...
+
+### 1.3.8.1 Char
+
+...
+
+### 1.3.8.2 Integer
+
+...
+
+### 1.3.8.3 Float
 
 ...
