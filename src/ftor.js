@@ -930,6 +930,11 @@ const defineContract = (type, anno, bindings) => {
 };
 
 
+// unify type variables (rev 1)
+// internal
+// performs a side effect by mutating bindings
+// (String, PositiveInteger, PositiveInteger, String, [String], [String], {String} => Undefined
+
 const unifyTypeVars = (fname, nf, n, funA, refAs, actualAs, bindings) => {
   const aux = (refAs, actualAs) => {
     refAs.forEach(((refA, m) => {

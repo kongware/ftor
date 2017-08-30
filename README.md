@@ -9,113 +9,81 @@ This library is experimental and still work in progress.
 
 ## What
 
-ftor is a functional programming library that adapts the functional paradigm sensibly for untyped environments.
+ftor is a library enabling type-directed, functional programming in Javascript.
 
 ## Why
 
-ftor teaches you type-directed programming and fundamental functional idioms, which are extremely generalized concepts and language agnostic. That means you can use this knowledge in various scenarios, regardless of the programming language you're working with. In doing so ftor neither introduces a new language (and treats Javascript merely as a compile target) nor relies on new syntax (by macros), but simply sticks to vanilla Javascript.
+ftor teaches you type-directed, functional programming, which includes extremely generalized and language agnostic concepts. That means you can use this knowledge with different languages in various scenarios.
 
-With ftor you develop a feel for
+With ftor you develop a good feel for
 
 * types
-* effects
 * purity
-* compositon
+* effects
+* currying
+* composition
+* combinators
 * polymorphism
 * immutability
-* currying
 * co-/recursion
 * lazy evaluation
 
-## Design Principles
-
-* abstraction/generalization vs. comprehensibility
-* advanced techniques vs. low barrier to entry
-* functional purity vs. performance
-* idiomatic code vs. thinking outside the box
-
-## Programming Guidelines
-
-* first get the types right before you start implementing
-* whenever you can do it with a pure function, just do it with a pure function
-* reify effects to first class values
-* defer the execution of effects as long as possible
-* avoid visible mutations but learn to appreciate private ones
-* model your domain with alternatives instead of hierarchies
-* prefer tail recursive algorithms over loops
-* transform statements into first class expressions
-
-
-All of these guidelines have the same purpose, which is somehow the fetish of functional programming:
-
-**Everything must be composable!**
-
-## Terminology
-
-* composable function: A pure function that is partially applicable in its last argument
-* first order function: A function that neither accepts function types as arguments nor returns them
-* higher order function: A function that accepts function types as arguments and/or returns them
-* action: An impure and regularly nullary function that performs side effects
-* Church encoding: Data types that are encoded by higher order functions
-* Arrows: The type class that abstracts over function types (not ES2015 arrow functions)
-
-## Naming conventions
-
-The following conventions for name bindings are used:
-
-* `name_` indicates a slightly modified variant of an existing function `name`
-* `_name` just avoids name conflicts with reserved keywords or native functions
-* `nameBy` or `nameWith` indicates a more general version of an existing function `name`
-* `$name` regularly represents a `Symbol`
-
-Otherwise I tend to use the first letter of a type for name bindings, e.g. `f` for functions. When I need to name several functions, I fall back to alphabetically following letters, e.g. `g`, `h` etc. for functions.
-
-For more specific functions I also use descriptive names sometimes. Since ftor is a generic library it doesn't happen often, though.
+Additionally you can explore how monodial, functorial, applicative, monadic and other common structures can be useful in a strictly evaluated, impure language like Javascript.
 
 ## Type signature extension
 
-The following type signature extension is neccesary given the fact that Javascript is dynamically typed. Please note that `?` represents the lack of a type.
+The following type signature extensions are neccesary considering Javascript's dynamic type system. Please note that `?` denotes the lack of a type.
 
 Functions:
 
 * `Function` represents an untyped function with unknown arity
-* `? -> ?` represents an untyped unary function
-* `? -> ? -> ?` represents an untyped binary function
+* `() -> ...` represents a nullary function
 
-Multi-argument functions variadic functions and tuples:
 
-* `(a, b) -> a` represents either a multi-argument function or a tuple (pair) of type `a` and `b`
-* `(...a) -> a` represents a variadic function (rest syntax)
-* `(...?) -> ?` represents an untyped variadic function (rest syntax)
-* `() -> a` represents a nullary function
+Curried functions:
 
-Arrays and collections:
+* `? -> ?` represents an unary function whose argument/return value are of unknown type
+* `? -> ? -> ?` represents a binary function whose arguments/return value are of unknown type
 
-* `Array` represents an untyped `Array` collection
-* `[a,b]` represents an heterogeneous `Array` that acts like a pair tuple
-* `[a,b,c]` represents an heterogeneous `Array` that acts like a triple tuple
+Multi-argument functions:
 
-Objects, dictionaries and records:
+* `(a, b) -> ...` represents a multi-argument function comprising two arguments of type `a`/`b`
+* `(?, ?) -> ...` represents a multi-argument function comprising two arguments of unknown type
 
-* `Object` represents an untyped `Object` with key/value-pairs of type `String`/untyped
+Variadic functions:
+
+* `(a, ...bs) -> ...` represents a variadic function including one mandatory and one rest parameter of type `a`/`bs`
+* `(?, ...?) -> ...` represents a variadic function including one mandatory and one rest parameter of unknown type
+
+Arrays:
+
+* `Array` represents an untyped `Array` that may be homogeneous or heterogeneous
+
+Tuples:
+
+* `[a,b]` represents a pair Tuple
+* `[a,b,c]` represents a triple Tuple
+
+Dictionaries and Records:
+
+* `Object` represents an untyped `Object` of any shape
 * `{a}` represents an unordered, homogenous dictionary with key/value-pairs of type `String`/`a`
-* `{prop1:a,prop2:b}` represents an unordered record with two properties `prop1` and `prop2` of type `String`/`a` and `String`/`b`
-* `{a:b}` represents an ordered, homogenous dictionary with key/value-pairs of type `a`:`b`
+* `{prop1:a,prop2:b}` represents an unordered, heterogeneous with two properties `prop1` and `prop2` of type `String`/`a` and `String`/`b`
 
 Input/Output and side effects:
 
-* `IO` represents an interaction with the real world (side effect)
+* `IO` represents an interaction with the real world (side effects)
 
-Sum Types:
+Constructor Types:
 
-Please note that sum types are internally encoded by `Object`s. In order to avoid verbose type signatures their types are similar to Haskell's notation.
+Constructor types can be either sum types, product types or abstract data types. The final signatures are not defined yet. Here are some examples:
 
-* `Sum` represents a monomorphic sum type
-* `Sum(a)` represents a polymorphic sum type with an unary type constructor
-* `Sum(a b)` represents a polymorphic sum type with a curried binary type constructor
-* `Sum(a,b)` represents a polymorphic sum type with a (uncurried) binary type constructor
-
-As you can see parenthesis are always set, also unnecessarily.
+* `Cons` represents a monomorphic constructor type with a nullary type constructor
+* `Cons(a)` represents a polymorphic constructor type with an unary type constructor
+* `Cons(a b)` represents a polymorphic constructor type with a curried binary type constructor
+* `Cons(a,b)` represents a polymorphic constructor type with a (uncurried) binary type constructor
+* `Map(k, v)` represents an ordered Map type with key/value-pairs of type `k`/`v`
+* `Map(?, ?)` represents an ordered Map type with key/value-pairs of unknown type
 
 ## ES2015 modules
 
@@ -153,7 +121,7 @@ The next sections are going to cover the different type families like primitves,
 
 Domain specific issues:
 
-* there is a primitive type gap due to Javascript's poor type system
+* there is a primitive type gap due to Javascript's insufficient type system
 * ftor uses bounded polymorphism without prototypes but explicit dictionery passing
 * rest parameters are type safe but optional ones are not
 * there is no single tuple/record
@@ -179,6 +147,14 @@ Domain specific issues:
 
 ...
 
+First order functions
+
+...
+
+Higher order functions
+
+...
+
 Parametric polymorphism
 
 ...
@@ -188,6 +164,10 @@ Bounded polymorphism
 ...
 
 Return type polymorphism
+
+...
+
+#### 1.3.1.4. Generator functions
 
 ...
 
@@ -219,6 +199,22 @@ Return type polymorphism
 
 ...
 
+Sum types
+
+...
+
+Abstract data types
+
+...
+
 ### 1.3.5. Prototypes
+
+...
+
+### 1.3.6. Promises
+
+...
+
+### 1.3.7. Iterators
 
 ...
