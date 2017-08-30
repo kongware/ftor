@@ -177,27 +177,27 @@ Return type polymorphism
 
 ...
 
-#### 1.3.2.1 Number
+#### 1.3.2.1. Number
 
 ...
 
-#### 1.3.2.2 String
+#### 1.3.2.2. String
 
 ...
 
-#### 1.3.2.3 Boolean
+#### 1.3.2.3. Boolean
 
 ...
 
-#### 1.3.2.4 Symbol
+#### 1.3.2.4. Symbol
 
 ...
 
-#### 1.3.2.5 Null
+#### 1.3.2.5. Null
 
 ...
 
-#### 1.3.2.6 Undefined
+#### 1.3.2.6. Undefined
 
 ...
 
@@ -225,11 +225,11 @@ Return type polymorphism
 
 ...
 
-Sum types
+#### 1.3.4.1. Sum types
 
 ...
 
-Abstract data types
+#### 1.3.4.2. Abstract data types
 
 ...
 
@@ -249,14 +249,14 @@ Abstract data types
 
 ...
 
-### 1.3.8.1 Char
+#### 1.3.8.1. Char
 
 ...
 
-### 1.3.8.2 Integer
+#### 1.3.8.2. Integer
 
 ...
 
-### 1.3.8.3 Float
+#### 1.3.8.3. Float
 
 ...
