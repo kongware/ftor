@@ -158,24 +158,7 @@ const handleFun = (fname, nf, funA, [argA, ...argAs], bindings) => {
       if (nf === 0) bindings = {};
 
       annos.forEach((anno, n) => {
-        if (isFunA(anno)) {
-          const higherOrderAs = splitFunAnno(anno),
-           funArgAs = splitFunAnno(args[n] [$anno]);
-
-          higherOrderAs.forEach((anno_, n_) => {
-            if (isPolyA(anno_)) {
-              if (!(anno_ in bindings)) bindings[anno_] = funArgAs[n];
-
-              else if (bindings[anno_] !== funArgAs[n]) new TypeError(
-                `${fname} expects bounded type variable "${anno_}" to be of type\n\n${bindings[anno_]}\n\nfor all occurrences in\n\n${funA}\n${ulAtArg(funA, nf, n)}\n\n${funArgAs[n]} received\n`
-              );
-            }
-
-            Object.keys(bindings).forEach(k => {
-              Object.keys(bindings).forEach(l => bindings[k] = bindings[l].replace(new RegExp(`\\b${k}\\b`, "g"), bindings[k]));
-            });
-          });
-        }
+        if (isFunA(anno)) unifyTypeVars(fname, nf, n, funA, splitFunAnno(anno), splitFunAnno(args[n] [$anno]), bindings);
       });
 
       try {arityC(arity) (annos.map(anno => defineContract(parseAnno(anno), anno, bindings))) (args)}
@@ -443,7 +426,7 @@ const ulAtArgOff = (offL, offR) => (s, n, m) => splitFunAnno(s).reduce((acc, t, 
 const ulAtArg = ulAtArgOff(0, 0);
 
 
-// --[ PARSING / BINDING ]-----------------------------------------------------
+// --[ PARSING / BINDING / UNIFICATION]----------------------------------------
 
 
 // parse annotation (rev 1)
@@ -947,6 +930,34 @@ const defineContract = (type, anno, bindings) => {
 };
 
 
+const unifyTypeVars = (fname, nf, n, funA, refAs, actualAs, bindings) => {
+  const aux = (refAs, actualAs) => {
+    refAs.forEach(((refA, m) => {
+      const refType = parseAnno(refA),
+       actualType = parseAnno(actualAs[m]),
+       actualA = actualAs[m];
+
+      if (refAs.length !== actualAs.length) throw new TypeError(
+        `${fname} expects\n\n${funA}\n${ulAtArg(funA, nf, n)}\n\n${actualAs.join(" => ")} received\n`
+      );
+
+      if (refType !== "Poly" && refType !== actualType) throw new TypeError(
+        `${fname} expects\n\n${funA}\n${ulAtArg(funA, nf, n)}\n\n${actualAs.join(" => ")} received\n`
+      );
+
+      switch (refType) {
+        case "Mono": break;
+        case "Poly": bindings[refA] = actualA; break;
+        case "Fun": aux(splitFunAnno(refA), splitFunAnno(actualA)); break;
+        default: aux(splitAnnoEnum(decomposeAnno(refA, refType)), splitAnnoEnum(decomposeAnno(actualA, actualType)));
+      }
+    }));
+  };
+
+  aux(refAs, actualAs);
+};
+
+
 // --[ ARITY CONTRACTS ]-------------------------------------------------------
 
 
@@ -1109,25 +1120,16 @@ const anyC = bindings => {
   const anyC2 = name => {
     const anyC3 = x => {
       const anno = introspect(x);
+      Object.keys(bindings).forEach(k => bindings[k] = bindings[k].replace(new RegExp(`\\b${name}\\b`, "g"), anno));
 
       if (name in bindings) {
-        if (bindings[name].search(/\b[a-z]\b/) === -1) {
+//      if (bindings[name].search(/\b[a-z]\b/) === -1) {
           if (bindings[name] !== anno) throw new Error(
             JSON.stringify({type: "binding", nominal: bindings[name], real: anno, name: name})
           );
+//      }
 
-          return x;
-        }
-
-        else {
-          bindings[name] = bindings[name].replace(new RegExp(`\\b${name}\\b`, "g"), anno);
-
-          Object.keys(bindings).forEach(k => {
-            Object.keys(bindings).forEach(l => bindings[k] = bindings[l].replace(new RegExp(`\\b${k}\\b`, "g"), bindings[k]));
-          });
-
-          return x;
-        }
+        return x;
       }
 
       else return bindings[name] = anno, x;
