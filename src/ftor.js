@@ -171,7 +171,9 @@ const handleFun = (fname, nf, funA, [argA, ...argAs], bindings) => {
               );
             }
 
-            Object.keys(bindings).forEach(k => bindings[k] = bindings[k].replace(new RegExp(`\\b${k}\\b`, "g"), bindings[k]));
+            Object.keys(bindings).forEach(k => {
+              Object.keys(bindings).forEach(l => bindings[k] = bindings[l].replace(new RegExp(`\\b${k}\\b`, "g"), bindings[k]));
+            });
           });
         }
       });
@@ -1118,9 +1120,13 @@ const anyC = bindings => {
         }
 
         else {
-          // 1. check if the argument matches the corresponding polymorphic binding
-          // 2. replace the polymorphic portion of the binding with the corresponding concrete type of the argument
-          throw new TypeSysError("ftor cannot handle polymorphic function arguments yet");
+          bindings[name] = bindings[name].replace(new RegExp(`\\b${name}\\b`, "g"), anno);
+
+          Object.keys(bindings).forEach(k => {
+            Object.keys(bindings).forEach(l => bindings[k] = bindings[l].replace(new RegExp(`\\b${k}\\b`, "g"), bindings[k]));
+          });
+
+          return x;
         }
       }
 
