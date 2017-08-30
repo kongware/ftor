@@ -112,7 +112,7 @@ Please note that sum types are internally encoded by `Object`s. In order to avoi
 
 * `Sum` represents a monomorphic sum type
 * `Sum(a)` represents a polymorphic sum type with an unary type constructor
-* `Sum(a)(b)` represents a polymorphic sum type with a curried binary type constructor
+* `Sum(a b)` represents a polymorphic sum type with a curried binary type constructor
 * `Sum(a,b)` represents a polymorphic sum type with a (uncurried) binary type constructor
 
 As you can see parenthesis are always set, also unnecessarily.
@@ -153,9 +153,8 @@ The next sections are going to cover the different type families like primitves,
 
 Domain specific issues:
 
-* there is no type/implementation check
-* there is a primitive type gap
-* ftor uses bounded polymorphism without prototypes
+* there is a primitive type gap due to Javascript's poor type system
+* ftor uses bounded polymorphism without prototypes but explicit dictionery passing
 * rest parameters are type safe but optional ones are not
 * there is no single tuple/record
 * there are no tuples/records where all elemments are of the same type
