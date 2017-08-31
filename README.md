@@ -89,7 +89,7 @@ const sqr = Fun("sqr :: Number -> Number", n => n * n + "");
 sqr(5); // ReturnTypeError
 ```
 
-#### 1.3.1.1. Curried functions
+#### 1.3.3.1. Curried functions
 
 ```JS
 const add = Fun("add :: Number -> Number -> Number", n => m => n + m);
@@ -100,7 +100,7 @@ add(2, 3); // ArityError
 add() (3); // ArityError
 ```
 
-#### 1.3.1.2. Multi-argument functions
+#### 1.3.3.2. Multi-argument functions
 
 ```JS
 const add = Fun("add :: (Number, Number) -> Number", (n, m) => n + m);
@@ -111,7 +111,7 @@ add(2, 3, 4); // ArityError
 add(2); // ArityError
 ```
 
-#### 1.3.1.3. Variadic functions
+#### 1.3.3.3. Variadic functions
 
 Since Ecmascript 2015 variadic functions are defined with rest parameters in Javascript:
 
@@ -133,31 +133,68 @@ sum(1); // 1
 sum(1, 2, 3, 4, 5); // 15
 ```
 
-#### 1.3.1.4. Polymorphic functions
+#### 1.3.3.4. Parametric polymorphic functions
 
-...
+Please note the section about polymorphism to learn more about this concept.
 
-First order functions
+ftor can handle polymorphic first order functions:
 
-...
+```JS
+const id = Fun("id :: a -> a", x => x);
 
-Higher order functions
+id(5); // 5
+id("foo"); // "foo"
+id(new Map()); // Map
+```
 
-...
+Type variables are bound to concrete types, consequenlty invalid implementations of polymorphic types doesn't work:
 
-Parametric polymorphism
+```JS
+const id = Fun("id :: a -> a", x => x + "");
+id(5); // ReturnTypeError
+```
 
-...
+Here is a parametric polymorphic function with a composite type:
 
-Bounded polymorphism
+```JS
+const append = Fun("append :: [a] -> [a] -> [a]", xs => ys => xs.concat(ys));
 
-...
+append([1, 2]) ([3, 4]); // [1, 2, 3, 4]
+append(["a", "b"]) (["c", "d"]); // ["a", "b", "c", "d"]
+append([1, 2]) (["c", "d"]); // TypeError
+append([1, 2]) ([3, "d"]); // TypeError
+append([1, 2]) (3); // TypeError
+```
 
-Return type polymorphism
+ftor can handle polymorphic higher order functions as well, where function arguments are monomorphic or polymorphic themselves:
 
-...
+```JS
+const map = Fun("map :: (a -> b) -> [a] -> [b]", f => xs => xs.map(x => f(x)));
+const sqr = Fun("sqr :: Number -> Number", n => n * n);
+const id = Fun("id :: a -> a", x => x + "");
 
-#### 1.3.1.4. Generator functions
+map(sqr) ([1, 2, 3]); // [1, 4, 9]
+map(sqr) (5); // TypeError
+map(sqr) ([1, 2, "3"]); // TypeError
+
+map(id) ([1, 2, 3]); // [1, 2, 3]
+map(id) (["a", "b", "c"]); // ["a", "b", "c"]
+```
+
+Invalid implementations of polymorphic types throw corresponding errors at run-time:
+
+```JS
+const map = Fun("map :: (a -> b) -> [a] -> [b]", f => xs => xs.map(x => f(x) + ""));
+const sqr = Fun("sqr :: Number -> Number", n => n * n);
+const id = Fun("id :: a -> a", x => x + "");
+
+map(sqr) ([1, 2, 3]); // TypeError
+map(id) ([1, 2, 3]); // TypeError
+```
+
+ftor uses an unification algorithm that is based on simple substitution to achieve this.
+
+#### 1.3.3.5. Generator functions
 
 ...
 
