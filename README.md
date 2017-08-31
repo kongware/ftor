@@ -181,7 +181,7 @@ map(id) ([1, 2, 3]); // [1, 2, 3]
 map(id) (["a", "b", "c"]); // ["a", "b", "c"]
 ```
 
-Invalid implementations of polymorphic types throw corresponding errors at run-time:
+Again, invalid implementations of polymorphic types throw corresponding errors at run-time:
 
 ```JS
 const map = Fun("map :: (a -> b) -> [a] -> [b]", f => xs => xs.map(x => f(x) + ""));
@@ -198,95 +198,95 @@ ftor uses an unification algorithm that is based on simple substitution to achie
 
 ...
 
-### 1.3.2. Primitive types
+### 1.3.4. Primitive types
 
 ...
 
-#### 1.3.2.1. Number
+#### 1.3.4.1. Number
 
 ...
 
-#### 1.3.2.2. String
+#### 1.3.4.2. String
 
 ...
 
-#### 1.3.2.3. Boolean
+#### 1.3.4.3. Boolean
 
 ...
 
-#### 1.3.2.4. Symbol
+#### 1.3.4.4. Symbol
 
 ...
 
-#### 1.3.2.5. Null
+#### 1.3.4.5. Null
 
 ...
 
-#### 1.3.2.6. Undefined
+#### 1.3.4.6. Undefined
 
 ...
 
-### 1.3.3. Product types
+### 1.3.5. Product types
 
 ...
 
-#### 1.3.3.1. Array
+#### 1.3.5.1. Array
 
 ...
 
-#### 1.3.3.2. Dict
+#### 1.3.5.2. Dict
 
 ...
 
-#### 1.3.3.3. Tuple
+#### 1.3.5.3. Tuple
 
 ...
 
-#### 1.3.3.4. Record
+#### 1.3.5.4. Record
 
 ...
 
-### 1.3.4. Constructor types
+### 1.3.6. Constructor types
 
 ...
 
-#### 1.3.4.1. Sum types
+#### 1.3.6.1. Sum types
 
 ...
 
-#### 1.3.4.2. Abstract data types
+#### 1.3.6.2. Abstract data types
 
 ...
 
-### 1.3.5. Prototypes
+#### 1.3.6.3. Promises
 
 ...
 
-### 1.3.6. Promises
+### 1.3.7. Prototypes
 
 ...
 
-### 1.3.7. Iterators
+### 1.3.8. Iterators
 
 ...
 
-### 1.3.8. Subtypes
+### 1.3.9. Subtypes
 
 ...
 
-#### 1.3.8.1. Char
+#### 1.3.9.1. Char
 
 ...
 
-#### 1.3.8.2. Integer
+#### 1.3.9.2. Integer
 
 ...
 
-#### 1.3.8.3. Float
+#### 1.3.9.3. Float
 
 ...
 
-#### 1.3.9. Domain specific issues
+#### 1.3.10. Domain specific issues
 
 * lazy type checking leads to deferred throwing
 * limited primitive types jeopardize type safety
