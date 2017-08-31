@@ -194,6 +194,7 @@ Return type polymorphism
 
 #### 1.3.9. Domain specific issues
 
+* ftor may change the identity of reference types
 * lazy type checking leads to deferred throwing
 * limited primitive types jeopardize type safety
 * ftor uses bounded polymorphism without prototypes but explicit dictionery passing
