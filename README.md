@@ -72,30 +72,66 @@ As ftor virtualizes functions and object types with proxies, identities change. 
 
 Functions are virtualized by the `Fun` function:
 
-    const sqr = Fun("sqr :: Number -> Number", n => n * n);
-    
-    sqr(5); // 25
-    sqr("5"); // TypeError
-    sqr(new Number(5)); // TypeError
-    sqr(5, 6); // ArityError
-    sqr(); // ArityError
+```js
+const sqr = Fun("sqr :: Number -> Number", n => n * n);
+
+sqr(5); // 25
+sqr("5"); // TypeError
+sqr(new Number(5)); // TypeError
+sqr(5, 6); // ArityError
+sqr(); // ArityError
+```
+
+If the implementation of a virtualized function doesn't produce the specified return value, a respecitve error is thrown:
+
+```js
+const sqr = Fun("sqr :: Number -> Number", n => n * n + "");
+sqr(5); // ReturnTypeError
+```
 
 #### 1.3.1.1. Curried functions
 
-    const add = Fun("add :: Number -> Number -> Number", n => m => n + m);
-    
-    add(2) (3); // 5
-    add(2) ("3"); // TypeError
-    add(2, 3); // ArityError
-    add() (3); // ArityError
+```JS
+const add = Fun("add :: Number -> Number -> Number", n => m => n + m);
+
+add(2) (3); // 5
+add(2) ("3"); // TypeError
+add(2, 3); // ArityError
+add() (3); // ArityError
+```
 
 #### 1.3.1.2. Multi-argument functions
 
-...
+```JS
+const add = Fun("add :: (Number, Number) -> Number", (n, m) => n + m);
+
+add(2, 3); // 5
+add(2, "3"); // TypeError
+add(2, 3, 4); // ArityError
+add(2); // ArityError
+```
 
 #### 1.3.1.3. Variadic functions
 
-...
+Since Ecmascript 2015 variadic functions are defined with rest parameters in Javascript:
+
+```JS
+const sum = Fun("sum :: ...Number -> Number", (...ns) => ns.reduce((acc, n) => acc + n, 0));
+
+sum(); // 0
+sum(1, 2, 3, 4, 5); // 15
+sum(1, 2, "3", 4, 5); // TypeError
+```
+
+ftor can handle variadic functions with mandatory parameters as well:
+
+```JS
+const sum = Fun("sum :: (Number, ...Number) -> Number", (n, ...ns) => ns.reduce((acc, m) => acc + m, n));
+
+sum(); // ArityError
+sum(1); // 1
+sum(1, 2, 3, 4, 5); // 15
+```
 
 #### 1.3.1.4. Polymorphic functions
 
