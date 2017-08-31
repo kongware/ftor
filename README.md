@@ -60,13 +60,34 @@ I believe that a strong type system makes it a lot easier to write complex progr
 
 Instead of a static type checker ftor offers a plugable, run-time type system for the development stage, which extends Javascript's dynamic type system with non-trivial features. Since ftor is a development tool, it only maintains a minimal footprint on production systems. It relies heavily on proxy virtualization, that is to say functions and composite data types are replaced by their corresponding proxy objects, which handle the additional behavior.
 
-### 1.3.1. Functional types
+### 1.3.1. Unplugging
 
-...
+To unplug the extended type system in production just set the `TYPE_CHECK` constant to `false`. Beyond that it is important to avoid creating unintended dependencies to ftor. I will add a section on this topic soon, which describes common pitalls.
+
+### 1.3.2. Identity of reference types
+
+As ftor virtualizes functions and object types with proxies, identities change. If your code depends on identity, because you use a `Map` abstract data type with objects as keys for instance, you must take care of not mixing virtualized entities with their normal counterparts.
+
+### 1.3.3. Functional types
+
+Functions are virtualized by the `Fun` function:
+
+    const sqr = Fun("sqr :: Number -> Number", n => n * n);
+    
+    sqr(5); // 25
+    sqr("5"); // TypeError
+    sqr(new Number(5)); // TypeError
+    sqr(5, 6); // ArityError
+    sqr(); // ArityError
 
 #### 1.3.1.1. Curried functions
 
-...
+    const add = Fun("add :: Number -> Number -> Number", n => m => n + m);
+    
+    add(2) (3); // 5
+    add(2) ("3"); // TypeError
+    add(2, 3); // ArityError
+    add() (3); // ArityError
 
 #### 1.3.1.2. Multi-argument functions
 
@@ -194,7 +215,6 @@ Return type polymorphism
 
 #### 1.3.9. Domain specific issues
 
-* ftor may change the identity of reference types
 * lazy type checking leads to deferred throwing
 * limited primitive types jeopardize type safety
 * ftor uses bounded polymorphism without prototypes but explicit dictionery passing
