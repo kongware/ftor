@@ -56,7 +56,7 @@ Usually one maintains countless unit tests to get a sort of guarantee that a pro
 
 ## 1.3. Extended run-time type system
 
-I believe that a strong type system makes it a lot easier to write complex programs. Software designs are very clearly expressed using types, because they provide a high level of abstraction. When a lot of distracting and confusing details are omitted the mental burden is lowered to comprehend the intention of the author. For example, when you encounter a function, it is pretty easy to cut down the space of possible code you could write to a very small number of candidates just by looking at its type signature. This is a big win.
+I believe that a strong type system makes it a lot easier to write complex programs. Software designs are very clearly expressed using types, because they provide a high level of abstraction. When a lot of distracting and confusing details are omitted, the mental burden is lowered to comprehend the intention of the author. For example, when you encounter a function, it is pretty easy to cut down the space of possible code you could write to a very small number of candidates just by looking at its type signature. This is a big win.
 
 Instead of a static type checker ftor offers a plugable, run-time type system for the development stage, which extends Javascript's dynamic type system with non-trivial features. Since ftor is a development tool, it only maintains a minimal footprint on production systems. It relies heavily on proxy virtualization, that is to say functions and composite data types are replaced by their corresponding proxy objects, which handle the additional behavior.
 
@@ -237,7 +237,7 @@ Arrays:
 Tuples:
 
 * `[a, b]` represents a pair Tuple of type `a`/`b`
-* `[?, ?]` represents a pair Tuple of type unknown type
+* `[?, ?]` represents a pair Tuple of unknown type
 * `[a, b, c]` represents a triple Tuple of type `a`/`b`/`c`
 
 Dictionaries and Records:
