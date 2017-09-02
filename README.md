@@ -30,10 +30,16 @@ With ftor you develop a good feeling for
 
 Additionally you can explore how monodial, functorial, applicative, monadic and other common structures can be useful in a strictly evaluated, impure language like Javascript.
 
-## Todo
+## Todo (readme)
 
-[ ] Give reason why ftor has only limited support for subtyping
-[ ] Add variadic functions via `arguments` warning
+[ ] describe nominal and structural typing and why ftor prefers the latter
+[ ] describe data kinds and why ftor supports them
+[ ] describe how ftor enforces typed functions in most cases
+[ ] describe how ftor handles type variants
+[ ] describe how ftor handles bounded polymorphism and type families
+[ ] describe how ftor tries to restrict the use of side effects
+[ ] give reason why ftor has only limited support for subtyp polymorphism (subtyping)
+[ ] add variadic functions via `arguments` warning
 
 # 1. Type systems
 

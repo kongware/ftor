@@ -2667,4 +2667,6 @@ const monoMap = {
 
 // now public API yet...
 
-// module.exports = {};
+module.exports = {
+  Fun
+};
