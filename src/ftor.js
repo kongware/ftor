@@ -17,11 +17,40 @@
 // --[ GENERAL ]---------------------------------------------------------------
 
 
+
+// record min length (rev 1)
+// internal
+// PositiveInteger
+
+const REC_MIN_LEN = 2;
+
+
+// record max length (rev 1)
+// internal
+// PositiveInteger
+
+const REC_MAX_LEN = 8;
+
+
 // symbol prefix (rev 1)
 // internal
 // String
 
 const SYM_PREFIX = "ftor/";
+
+
+// tuple min length (rev 1)
+// internal
+// PositiveInteger
+
+const TUP_MIN_LEN = 2;
+
+
+// tuple max length (rev 1)
+// internal
+// PositiveInteger
+
+const TUP_MAX_LEN = 8;
 
 
 // type check (rev 1)
@@ -1058,9 +1087,9 @@ const arityC = n => cs => {
 // internal
 // Boolean -> Boolean
 
-const booC = x => {
-  if (isBoo(x)) return x;
-  throw new Error(JSON.stringify({type: "type", nominal: "Boolean", real: introspect(x)}));
+const booC = b => {
+  if (isBoo(b)) return b;
+  throw new Error(JSON.stringify({type: "type", nominal: "Boolean", real: introspect(b)}));
 };
 
 booC.toString = () => "Boolean";
@@ -1070,9 +1099,9 @@ booC.toString = () => "Boolean";
 // internal
 // Null -> Null
 
-const nullC = x => {
-  if (isNull(x)) return x;
-  throw new Error(JSON.stringify({type: "type", nominal: "Null", real: introspect(x)}));
+const nullC = n => {
+  if (isNull(n)) return n;
+  throw new Error(JSON.stringify({type: "type", nominal: "Null", real: introspect(n)}));
 };
 
 nullC.toString = () => "Null";
@@ -1082,9 +1111,9 @@ nullC.toString = () => "Null";
 // internal
 // Number -> Number
 
-const numC = x => {
-  if (isNum(x)) return x;
-  throw new Error(JSON.stringify({type: "type", nominal: "Number", real: introspect(x)}));
+const numC = n => {
+  if (isNum(n)) return n;
+  throw new Error(JSON.stringify({type: "type", nominal: "Number", real: introspect(n)}));
 };
 
 numC.toString = () => "Number";
@@ -1094,9 +1123,9 @@ numC.toString = () => "Number";
 // internal
 // String -> String
 
-const strC = x => {
-  if (isStr(x)) return x;
-  throw new Error(JSON.stringify({type: "type", nominal: "String", real: introspect(x)}));
+const strC = s => {
+  if (isStr(s)) return s;
+  throw new Error(JSON.stringify({type: "type", nominal: "String", real: introspect(s)}));
 };
 
 strC.toString = () => "String";
@@ -1106,9 +1135,9 @@ strC.toString = () => "String";
 // internal
 // Symbol -> Symbol
 
-const symC = x => {
-  if (isSym(x)) return x;
-  throw new Error(JSON.stringify({type: "type", nominal: "Symbol", real: introspect(x)}));
+const symC = s => {
+  if (isSym(s)) return s;
+  throw new Error(JSON.stringify({type: "type", nominal: "Symbol", real: introspect(s)}));
 };
 
 symC.toString = () => "Symbol";
@@ -1128,11 +1157,9 @@ const anyC = bindings => {
       Object.keys(bindings).forEach(k => bindings[k] = bindings[k].replace(new RegExp(`\\b${name}\\b`, "g"), anno));
 
       if (name in bindings) {
-//      if (bindings[name].search(/\b[a-z]\b/) === -1) {
-          if (bindings[name] !== anno) throw new Error(
-            JSON.stringify({type: "binding", nominal: bindings[name], real: anno, name: name})
-          );
-//      }
+        if (bindings[name] !== anno) throw new Error(
+          JSON.stringify({type: "binding", nominal: bindings[name], real: anno, name: name})
+        );
 
         return x;
       }
@@ -1154,7 +1181,7 @@ const anyC = bindings => {
 
 const arrC = xs => {
   if (isArr(xs)) return xs;
-  throw new Error(JSON.stringify({type: "type", nominal: "Array", real: introspect(s)}));
+  else throw new Error(JSON.stringify({type: "type", nominal: "Array", real: introspect(xs)}));
 };
 
 arrC.toString = () => "Array";
@@ -1162,7 +1189,10 @@ arrC.toString = () => "Array";
 
 // array of contract (rev 1)
 // internal
-// (a -> a) -> [a] -> [a]
+// TODO: add ulAtDiff for errors caused by $anno
+// TODO: change type to anno
+// TODO: add $anno to xs when missing
+// Function -> [a] -> [a]
 
 const arrOfC = c => {
   const arrOfC2 = xs => {
@@ -1194,7 +1224,6 @@ const arrOfC = c => {
   };
 
   const type = `[${c}]`;
-
   return arrOfC2.toString = () => type, arrOfC2;
 };
 
@@ -1203,22 +1232,30 @@ arrOfC.toString = () => "[a]";
 
 // tuple contract (rev 1)
 // internal
-// Array -> Array
+// Tuple -> Tuple
 
-const tupC = arrC;
+const tupC = xs => {
+  if (isTup(xs)) return xs;
+  else throw new Error(JSON.stringify({type: "type", nominal: "Tuple", real: introspect(xs)}));
+};
 
 tupC.toString = () => "Tuple";
 
 
 // tuple of contract (rev 1)
 // internal
-// [? -> ?] -> Array -> Array
+// TODO: add ulAtDiff for errors caused by $anno
+// [Function] -> Tuple -> Tuple
 
 const tupOfC = cs => {
   const tupOfC2 = xs => {
     if (!isArr(xs)) throw new Error(
       JSON.stringify({type: "type", nominal: type, real: introspect(xs)})
     );
+
+    if (xs.length <= TUP_MIN_LEN || xs.length >= TUP_MAX_LEN) {
+      throw new Error(JSON.stringify({type: "type", nominal: "Tuple", real: introspect(xs)}));
+    }
 
     if (cs.length !== xs.length) throw new Error(
       JSON.stringify({type: "length", nominal: cs.length, real: xs.length})
@@ -1236,6 +1273,8 @@ const tupOfC = cs => {
         if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
         const o = JSON.parse(e.message);
         let e_;
+        o.offL = "offL" in o ? o.offL + 1 : 1;
+        o.offR = "offR" in o ? o.offR - 1 : -1;
         e_ = new Error(JSON.stringify(o));
         e_.stack = e.stack;
         throw e_;
@@ -1245,41 +1284,161 @@ const tupOfC = cs => {
     return xs;
   };
 
-  const type = `(${cs.map(c => c.toString()).join(", ")})`;
+  const type = `(${cs.join(", ")})`;
   return tupOfC2.toString = () => type, tupOfC2;
 };
 
 tupOfC.toString = () => "Tuple";
 
 
-// const dictC
+// object contract (rev 1)
+// internal
+// Object -> Object
+
+const objC = o => {
+  if (isObj(o)) return o;
+  else throw new Error(JSON.stringify({type: "type", nominal: "Object", real: introspect(o)}));
+};
+
+objC.toString = () => "Object";
 
 
-// const dictOfC
+// dict contract (rev 1)
+// internal
+// Dict -> Dict
+
+const dictC = o => {
+  if (isDict(o)) return o;
+  else throw new Error(JSON.stringify({type: "type", nominal: "Dict", real: introspect(o)}));
+};
+
+dictC.toString = () => "Dict";
 
 
-// const recC
+// dict of contract (rev 1)
+// internal
+// TODO: add ulAtDiff for errors caused by $anno
+// Function -> {a} -> {a}
+
+const dictOfC = c => {
+  const dictOfC2 = o => {
+    if (!isObj(o)) throw new Error(
+      JSON.stringify({type: "type", nominal: type, real: introspect(o)})
+    );
+
+    if ($anno in o) {
+      if (o[$anno] === type) return o;
+      else throw new Error(JSON.stringify({type: "type", nominal: type, real: o[$anno]}));
+    }
+
+    Object.keys(o).forEach((k, n) => {
+      try {c(o[k])}
+
+      catch (e) {
+        if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
+        const p = JSON.parse(e.message);
+        let e_;
+        p.offL = "offL" in p ? p.offL + 1 : 1;
+        p.offR = "offR" in p ? p.offR - 1 : -1;
+        e_ = new Error(JSON.stringify(p));
+        e_.stack = e.stack;
+        throw e_;
+      }
+    });
+
+    return o;
+  };
+
+  const type = `{${c}}`;
+  return dictOfC2.toString = () => type, dictOfC2;
+};
+
+dictOfC.toString = () => "{a}";
 
 
-// const recOfC
+// record contract (rev 1)
+// internal
+// Record -> Record
+
+const recC = o => {
+  if (isRec(o)) return o;
+  else throw new Error(JSON.stringify({type: "type", nominal: "Record", real: introspect(o)}));
+};
+
+recC.toString = () => "Record";
 
 
-// const consC
+// record of contract (rev 1)
+// internal
+// TODO: add ulAtDiff for errors caused by $anno
+// [Function] -> Record -> Record
+
+const recOfC = cs => {
+  const recOfC2 = o => {
+    const ks = Object.keys(o);
+
+    if (!isObj(o)) throw new Error(
+      JSON.stringify({type: "type", nominal: type, real: introspect(o)})
+    );
+
+    if (ks.length <= REC_MIN_LEN || ks.length >= REC_MAX_LEN) {
+      throw new Error(JSON.stringify({type: "type", nominal: "Record", real: introspect(o)}));
+    }
+
+    if (cs.length !== ks.length) throw new Error(
+      JSON.stringify({type: "length", nominal: cs.length, real: xs.length})
+    );
+
+    if ($anno in o) {
+      if (o[$anno] === type) return o;
+      else throw new Error(JSON.stringify({type: "type", nominal: type, real: o[$anno]}));
+    }
+
+    cs.forEach((c, n) => {
+      try {c(o[ks[n]])}
+
+      catch (e) {
+        if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
+        const p = JSON.parse(e.message);
+        let e_;
+        p.offL = "offL" in p ? p.offL + ks[n].length + 1 : ks[n].length + 1;
+        p.offR = "offR" in p ? p.offR - ks[n].length - 1 : -ks[n].length - 1;
+        e_ = new Error(JSON.stringify(p));
+        e_.stack = e.stack;
+        throw e_;
+      }
+    });
+
+    return o;
+  };
+
+  const type = "{" + cs.map((c, n) => `${ks[n]}: ${c}`).join(", ") + "}";
+  return recOfC2.toString = () => type, recOfC2;
+};
+
+recOfC.toString = () => "Record";
 
 
-// const consOfC
+// TODO: consC
 
 
-const funC = x => {
-  if (!isFun(x)) throw new Error(
-    JSON.stringify({type: "type", nominal: "Function", real: introspect(x)})
+// TODO: consOfC
+
+
+// function contract (rev 1)
+// internal
+// Function -> Function
+
+const funC = f => {
+  if (!isFun(f)) throw new Error(
+    JSON.stringify({type: "type", nominal: "Function", real: introspect(f)})
   );
 
-  else if (!($anno in x)) throw new TypeSysError(
-    `funC received the untyped function\n\n${x.name}\n`
+  else if (!($anno in f)) throw new TypeSysError(
+    `funC expects typed function\n\nunvirtualized function\n\n${f.name} received\n`
   );
 
-  else return x;
+  else return f;
 };
 
 funC.toString = () => "Function";
@@ -1289,291 +1448,347 @@ funC.toString = () => "Function";
 
 
 // get string tag (rev 1)
+// internal
 // a -> String
 
 const getStringTag = x => Object.prototype.toString.call(x).split(" ")[1].slice(0, -1);
 
 
 // instance of (rev 1)
+// internal
 // Function -> Object -> Boolean
 
 const instanceOf = cons => o => cons.prototype.isPrototypeOf(o);
 
 
 // has (rev 1)
+// internal
 // String -> Object -> Boolean
 
 const has = k => o => o[k] !== undefined;
 
 
 // has all (rev 1)
+// internal
 // (...String) -> Object -> Boolean
 
 const hasAll = (...ks) => o => ks.every(k => o[k] !== undefined);
 
 
 // has of (rev 1)
+// internal
 // (a -> Boolean, String) -> Object -> Boolean
 
-const hasOf = (p, k) => o => o[k] !== undefined && p(o[k]);
+const hasOf = (p, k) => o => p(o[k]);
 
 
 // has all of (rev 1)
+// internal
 // {a -> Boolean} -> Object -> Boolean
 
-const hasAllOf = pattern => o => Object.keys(pattern).every(k => hasOf(pattern[k], k) (o));
+const hasAllOf = p => o => Object.keys(p).every(k => hasOf(p[k], k) (o));
 
 
 // is array (rev 1)
+// internal
 // a -> Boolean
 
 const isArr = x => Array.isArray(x);
 
 
 // isArrLike (rev 1)
+// internal
 // a -> Boolean
 
 const isArrLike = x => isObj(x) && has("length") (x);
 
 
 // is array of (rev 1)
+// internal
 // (b -> Boolean) -> a -> Boolean
 
 const isArrOf = p => x => isArr(x) && x.every(y => p(y));
 
 
 // is assigned (rev 1)
+// internal
 // a -> Boolean
 
 const isAssigned = x => !(isUndef(x) || isNull(x));
 
 
 // is binary (rev 1)
+// internal
 // a -> Boolean
 
 const isBinary = x => isFun(x) && x.length === 2;
 
 
 // is boolean (rev 1)
+// internal
 // a -> Boolean
 
 const isBoo = x => typeof x === "boolean";
 
 
 // is boolean string (rev 1)
+// internal
 // a -> Boolean
 
 const isBooStr = x => isStr(x) && (x === "true" || x === "false");
 
 
 // is char (rev 1)
+// internal
 // a -> Boolean
 
 const isChr = x => isStr(x) && x.length === 1;
 
 
 // is composite type (rev 1)
+// internal
 // a -> Boolean
 
 const isComposite = x => isObj(x) && !isFun(x);
 
 
-// const isCons
+// TODO: isCons
 
 
-// const isConsOf
+// TODO: isConsOf
 
 
-// const isDict
+// is dict (rev 1)
+// internal
+// a -> Boolean
+
+const isDict = x => isObj(x) && isDictA(introspect(x)) ? true : false;
 
 
-// const isDictOf
+// TODO: isDictOf
 
 
 // is finite number (rev 1)
+// internal
 // a -> Boolean
 
 const isFinite = x => Number.isFinite(x);
 
 
 // is float (rev 1)
+// internal
 // a -> Boolean
 
 const isFloat = x => x % 1 > 0;
 
 
 // is function (rev 1)
+// internal
 // a -> Boolean
 
 const isFun = x => typeof x === "function";
 
 
 // is infinite number (rev 1)
+// internal
 // a -> Boolean
 
 const isInfinite = x => x === Number.POSITIVE_INFINITY || x === Number.NEGATIVE_INFINITY;
 
 
 // is integer (rev 1)
+// internal
 // a -> Boolean
 
 const isInt = x => Number.isInteger(x);
 
 
 // is lower case (rev 1)
+// internal
 // a -> Boolean
 
 const isLC = x => isLetter(x) && x.toLowerCase() === x;
 
 
 // is letter (rev 1)
+// internal
 // a -> Boolean
 
 const isLetter = x => isChr(x) && x.search(/[a-z]/i) === 0;
 
 
 // is map (rev 1)
+// internal
 // a -> Boolean
 
 const isMap = x => getStringTag(x) === "Map";
 
 
-// const isMapOf
+// TODO: isMapOf
 
 
 // is not a number (rev 1)
+// internal
 // a -> Boolean
 
 const isNaN = x => Number.isNaN(x);
 
 
 // is negative number (rev 1)
+// internal
 // a -> Boolean
 
 const isNegative = x => isNum(x) && x < 0;
 
 
 // is negative float (rev 1)
+// internal
 // a -> Boolean
 
 const isNegativeFloat = x => isFloat(x) && x < 0;
 
 
 // is negative integer (rev 1)
+// internal
 // a -> Boolean
 
 const isNegativeInt = x => isInt(x) && x < 0;
 
 
 // is negative infinite number (rev 1)
+// internal
 // a -> Boolean
 
 const isNegativeInfinite = x => x === Number.NEGATIVE_INFINITY;
 
 
 // is non zero number (rev 1)
+// internal
 // a -> Boolean
 
 const isNonZero = x => isNum(x) && x !== 0;
 
 
 // is non zero float (rev 1)
+// internal
 // a -> Boolean
 
 const isNonZeroFloat = x => isFloat(x) && x !== 0;
 
 
 // is non zero integer (rev 1)
+// internal
 // a -> Boolean
 
 const isNonZeroInt = x => isInt(x) && x !== 0;
 
 
 // is non zero positive number (rev 1)
+// internal
 // a -> Boolean
 
 const isNonZeroPositive = x => isNum(x) && x > 0;
 
 
 // is non zero positive float (rev 1)
+// internal
 // a -> Boolean
 
 const isNonZeroPositiveFloat = x => isFloat(x) && x > 0;
 
 
 // is non zero positive integer (rev 1)
+// internal
 // a -> Boolean
 
 const isNonZeroPositiveInt = x => isInt(x) && x > 0;
 
 
 // is null (rev 1)
+// internal
 // a -> Boolean
 
 const isNull = x => x === null;
 
 
 // is nullary (rev 1)
+// internal
 // a -> Boolean
 
 const isNullary = x => isFun(x) && x.length === 0;
 
 
 // is number (rev 1)
+// internal
 // a -> Boolean
 
 const isNum = x => typeof x === "number" && !isNaN(x);
 
 
 // is number string (rev 1)
+// internal
 // a -> Boolean
 
 const isNumStr = x => isStr(x) && x * 1 + "" === x;
 
 
-// isObj see @ section XX. DERIVED
+// is object (rev 1)
+// internal
+// a -> Boolean
+
+const isObj = x => Object(x) === x;
 
 
-// const isObjOf
+// TODO: isObjOf
 
 
 // is positive number (rev 1)
+// internal
 // a -> Boolean
 
 const isPositive = x => isNum(x) && x >= 0;
 
 
 // is positive float (rev 1)
+// internal
 // a -> Boolean
 
 const isPositiveFloat = x => isFloat(x) && x >= 0;
 
 
 // is positive integer (rev 1)
+// internal
 // a -> Boolean
 
 const isPositiveInt = x => isInt(x) && x >= 0;
 
 
 // is positive infinite number (rev 1)
+// internal
 // a -> Boolean
 
 const isPositiveInfinite = x => x === Number.POSITIVE_INFINITY;
 
 
-// const isRec
+// is record (rev 1)
+// internal
+// a -> Boolean
+
+const isRec = x => isObj(x) && isRecA(introspect(x)) ? true : false;
 
 
-// const isRecOf
+// TODO: isRecOf
 
 
 // is reference type (rev 1)
+// internal
 // a -> Boolean
 
-const isRef = x => Object(x) === x;
+const isRef = isObj;
 
 
 // is set (rev 1)
+// internal
 // a -> Boolean
 
 const isSet = x => getStringTag(x) === "Set";
@@ -1583,84 +1798,94 @@ const isSet = x => getStringTag(x) === "Set";
 
 
 // is string (rev 1)
+// internal
 // a -> Boolean
 
 const isStr = x => typeof x === "string";
 
 
 // is string of (rev 1)
+// internal
 // a -> Boolean
 
 const isStrOf = p => x => isStr(x) && x.every(y => p(y));
 
 
 // is symbol (rev 1)
+// internal
 // a -> Boolean
 
 const isSym = x => typeof x === "symbol";
 
 
 // is ternary (rev 1)
+// internal
 // a -> Boolean
 
 const isTernary = x => isFun(x) && x.length === 3;
 
 
-// const isTup
+// is tuple (rev 1)
+// internal
+// a -> Boolean
+
+const isTup = x => isObj(x) && isTupA(introspect(x)) ? true : false;
 
 
-// const isTupOf
+// TODO: isTupOf
 
 
 // is upper case (rev 1)
+// internal
 // a -> Boolean
 
 const isUC = x => isLetter(x) && x.toUpperCase() === x;
 
 
 // is unary (rev 1)
+// internal
 // a -> Boolean
 
 const isUnary = x => isFun(x) && x.length === 1;
 
 
 // is undefined (rev 1)
+// internal
 // a -> Boolean
 
 const isUndef = x => x === undefined;
 
 
 // is value type (rev 1)
+// internal
 // a -> Boolean
 
 const isValue = x => !isObj(x);
 
 
 // is variadic (rev 1)
+// internal
 // a -> Boolean
 
 const isVariadic = isNullary;
 
 
 // is weak map (rev 1)
+// internal
 // a -> Boolean
 
 const isWeakMap = x => getStringTag(x) === "WeakMap";
 
 
 // is weak set (rev 1)
+// internal
 // a -> Boolean
 
 const isWeakSet = x => getStringTag(x) === "WeakSet";
 
 
-// of (rev 1)
-// a -> String -> (b -> Boolean) -> Boolean
-
-const of = x => k => p => p(x[k]);
-
-
 // introspect (rev 1)
+// internal
 // TODO: add subtypes
 // TODO: add abstract data types
 // a -> String
@@ -1684,7 +1909,7 @@ const introspect = x => {
       else if ($anno in x) return x[$anno];
 
       else if (Array.isArray(x)) {
-        if (x.length <= 8) {
+        if (x.length <= TUP_MAX_LEN) {
           const annos = x.map(x_ => `${introspect(x_)}`);
           return `[${Array.from(annos.reduce((acc, x_) => acc.add(x_), new Set())).join(", ")}]`;
         }
@@ -1702,7 +1927,7 @@ const introspect = x => {
           else {
             const ks = Object.keys(x);
 
-            if (ks.length <= 8) {
+            if (ks.length <= REC_MAX_LEN) {
               const rec = ks.map(k => `${k}: ${introspect(x[k])}`),
                dict = `{${introspect(x[ks[0]])}}`,
                annos = Array.from(rec.reduce((acc, x_) => acc.add(x_.split(": ") [1]), new Set()));
@@ -2435,15 +2660,6 @@ const monoMap = {
   String: strC,
   Symbol: symC,
 };
-
-
-// --[ REFLECTION ]------------------------------------------------------------
-
-
-// is object (rev 1)
-// a -> Boolean
-
-const isObj = isRef;
 
 
 // API

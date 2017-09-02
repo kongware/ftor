@@ -30,6 +30,11 @@ With ftor you develop a good feeling for
 
 Additionally you can explore how monodial, functorial, applicative, monadic and other common structures can be useful in a strictly evaluated, impure language like Javascript.
 
+## Todo
+
+[ ] Give reason why ftor has only limited support for subtyping
+[ ] Add variadic functions via `arguments` warning
+
 # 1. Type systems
 
 ftor ships with an extended run-time type system that guides your developing and leads to improved productivity and more robust programms. Let's make a short detour to static type systems to get an idea why such a system is useful in the context of untyped languages.
