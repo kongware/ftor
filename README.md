@@ -32,14 +32,14 @@ Additionally you can explore how monodial, functorial, applicative, monadic and 
 
 ## Todo (readme)
 
-[ ] describe nominal and structural typing and why ftor prefers the latter
-[ ] describe data kinds and why ftor supports them
-[ ] describe how ftor enforces typed functions in most cases
-[ ] describe how ftor handles type variants
-[ ] describe how ftor handles bounded polymorphism and type families
-[ ] describe how ftor tries to restrict the use of side effects
-[ ] give reason why ftor has only limited support for subtyp polymorphism (subtyping)
-[ ] add variadic functions via `arguments` warning
+- [ ] describe nominal and structural typing and why ftor prefers the latter
+- [ ] describe how ftor enforces typed functions in most cases
+- [ ] describe data kinds and why ftor supports them
+- [ ] describe how ftor handles type variants
+- [ ] describe how ftor handles bounded polymorphism along with functions and data types
+- [ ] describe how ftor tries to restrict the use of side effects
+- [ ] give reason why ftor has only limited support for subtyp polymorphism (subtyping)
+- [ ] add variadic functions via `arguments` warning
 
 # 1. Type systems
 
