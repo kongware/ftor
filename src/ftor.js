@@ -1483,16 +1483,6 @@ const introspect = x => {
 // --[ PREDICATES ]------------------------------------------------------------
 
 
-// refine type (rev 1)
-// [a -> Boolean] -> a -> Boolean
-
-const refine = (...ps) => {
-  const refine2 = x => ps.every(p => p(x));
-  refine2.toString = () => ps.join("");
-  return refine2;
-};
-
-
 // get string tag (rev 1)
 // internal
 // a -> String
@@ -1505,34 +1495,6 @@ const getStringTag = x => Object.prototype.toString.call(x).split(" ")[1].slice(
 // Function -> Object -> Boolean
 
 const instanceOf = cons => o => cons.prototype.isPrototypeOf(o);
-
-
-// has (rev 1)
-// internal
-// String -> Object -> Boolean
-
-const has = k => o => o[k] !== undefined;
-
-
-// has all (rev 1)
-// internal
-// (...String) -> Object -> Boolean
-
-const hasAll = (...ks) => o => ks.every(k => o[k] !== undefined);
-
-
-// has of (rev 1)
-// internal
-// (a -> Boolean, String) -> Object -> Boolean
-
-const hasOf = (p, k) => o => p(o[k]);
-
-
-// has all of (rev 1)
-// internal
-// {a -> Boolean} -> Object -> Boolean
-
-const hasAllOf = p => o => Object.keys(p).every(k => hasOf(p[k], k) (o));
 
 
 // is array (rev 1)
@@ -1788,13 +1750,6 @@ const isObj = x => Object(x) === x;
 // TODO: isObjOf
 
 
-// is positive number (rev 1)
-// internal
-// a -> Boolean
-
-const isPositive = x => isNum(x) && x >= 0;
-
-
 // is positive float (rev 1)
 // internal
 // a -> Boolean
@@ -1930,65 +1885,74 @@ const isWeakMap = x => getStringTag(x) === "WeakMap";
 const isWeakSet = x => getStringTag(x) === "WeakSet";
 
 
-// introspect (rev 1)
-// internal
-// TODO: add subtypes
-// TODO: add abstract data types
-// a -> String
+// --[ REFINEMENTS ]-----------------------------------------------------------
 
-const introspect = x => {
-  switch (typeof x) {
-    case "undefined": return "Undefined";
 
-    case "number": {
-      if (isNaN(x)) return "NaN";
-      else return "Number";
-    }
+// refine type (rev 1)
+// [a -> Boolean] -> a -> Boolean
 
-    case "string": return "String";
-    case "boolean": return "Boolean";
-    case "symbol": return "Symbol";
-    case "function": return "Function";
-
-    case "object": {
-      if (x === null) return "Null";
-      else if ($anno in x) return x[$anno];
-
-      else if (Array.isArray(x)) {
-        if (x.length <= TUP_MAX_LEN) {
-          const annos = x.map(x_ => `${introspect(x_)}`);
-          return `[${Array.from(annos.reduce((acc, x_) => acc.add(x_), new Set())).join(", ")}]`;
-        }
-
-        else return `[${introspect(x[0])}]`;
-      }
-
-      else {
-        if ("constructor" in x && x.constructor.name !== "Object") return x.constructor.name;
-
-        else {
-          const tag = getStringTag(x);
-          if (tag !== "Object") return tag;
-
-          else {
-            const ks = Object.keys(x);
-
-            if (ks.length <= REC_MAX_LEN) {
-              const rec = ks.map(k => `${k}: ${introspect(x[k])}`),
-               dict = `{${introspect(x[ks[0]])}}`,
-               annos = Array.from(rec.reduce((acc, x_) => acc.add(x_.split(": ") [1]), new Set()));
-
-              if (annos.length === 1) return dict;
-              else return `{${rec.join(", ")}}`;
-            }
-
-            else return `{${introspect(x[k[0]])}}`;
-          }
-        }
-      }
-    }
-  }
+const refine = (...ps) => {
+  const refine2 = x => ps.every(p => p(x));
+  refine2.toString = () => ps.join("");
+  return refine2;
 };
+
+
+// is positive number (rev 1)
+// Number -> Boolean
+
+const isPos = n => n >= 0;
+isPos.toString = () => "Positive";
+
+
+// is negative number (rev 1)
+// Number -> Boolean
+
+const isNeg = n => n < 0;
+isNeg.toString = () => "Negative";
+
+
+// is finite (rev 1)
+// Number -> Boolean
+
+const isFin = n => Number.isFin(n);
+isFin.toString = () => "Finite";
+
+
+// is infinite (rev 1)
+// Number -> Boolean
+
+const isInf = n => n === Number.POSITIVE_INFINITY || n === Number.NEGATIVE_INFINITY;
+isInf.toString = () => "Infinite";
+
+
+// is zero (rev 1)
+// Number -> Boolean
+
+const isZero = n => n === 0;
+isZero.toString = () => "Zero";
+
+
+// is non-zero (rev 1)
+// Number -> Boolean
+
+const isNZ = n => n !== 0;
+isNZ.toString = () => "NonZero";
+
+
+// length (rev 1)
+// polymorphic for all object types
+// PositiveFiniteInteger -> Object -> Boolean
+
+const len = n => {
+  const len2 = o => {
+    if ("length" in o) return o.length === n;
+    else if ("size" in o) return o.size === n;
+    else return Object.keys(o).length === n;
+  };
+
+  len2.toString = () => `Length_${n}_`;
+}
 
 
 /******************************************************************************

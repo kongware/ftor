@@ -32,13 +32,15 @@ Additionally you can explore how monodial, functorial, applicative, monadic and 
 
 ## Todo (readme)
 
+- [ ] run-time type systems can have predicative types (explicit type refinements)
+- [ ] limited support of subtype polymorphism (prototyping) and no support of type variants at all
 - [ ] nominal and structural typing and why to prefer the latter
 - [ ] bounded polymorphism without the prototype system
 - [ ] typed functions and data types are enforced in most cases
+- [ ] no typed const/let declarations possible
+- [ ] how to avoid building dependencies on ftor
 - [ ] constructor types, tagged unions and enums
-- [ ] no type literals but type refinements
 - [ ] restrict the use of side effects with a special IO type
-- [ ] limited support of subtype polymorphism (prototyping) and no support of type variants at all
 - [ ] variadic functions only via rest parameter (not `arguments`)
 - [ ] built-in operators are not type safe
 - [ ] explicit type casts
