@@ -32,14 +32,18 @@ Additionally you can explore how monodial, functorial, applicative, monadic and 
 
 ## Todo (readme)
 
-- [ ] describe nominal and structural typing and why ftor prefers the latter
-- [ ] describe how ftor enforces typed functions in most cases
-- [ ] describe data kinds and why ftor supports them
-- [ ] describe how ftor handles type variants
-- [ ] describe how ftor handles bounded polymorphism along with functions and data types
-- [ ] describe how ftor tries to restrict the use of side effects
-- [ ] give reason why ftor has only limited support for subtyp polymorphism (subtyping)
-- [ ] add variadic functions via `arguments` warning
+- [ ] nominal and structural typing and why to prefer the latter
+- [ ] bounded polymorphism without the prototype system
+- [ ] typed functions and data types are enforced in most cases
+- [ ] constructor types, tagged unions and enums
+- [ ] no type literals but type refinements
+- [ ] restrict the use of side effects with a special IO type
+- [ ] limited support of subtype polymorphism (prototyping) and no support of type variants at all
+- [ ] variadic functions only via rest parameter (not `arguments`)
+- [ ] built-in operators are not type safe
+- [ ] explicit type casts
+- [ ] intersection/differ types
+- [ ] type aliases
 
 # 1. Type systems
 

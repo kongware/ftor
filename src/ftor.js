@@ -97,51 +97,6 @@ const $cata = Symbol.for(SYM_PREFIX + "cata");
 ******************************************************************************/
 
 
-// --[ SUBTYPING ]-------------------------------------------------------------
-
-
-// Char (rev 1)
-// Char -> Char
-
-class Char extends String {
-  constructor(x) {
-    if (!isChr(x)) throw new TypeError(
-      `Char expects\n\nChar -> Char\n${ulAtCall("Char -> Char", 0)}\n\n${introspect(x)} received\n`
-    );
-
-    super(x);
-  }
-}
-
-
-// Float (rev 1)
-// Float -> Float
-
-class Float extends Number {
-  constructor(x) {
-    if (!isFloat(x)) throw new TypeError(
-      `Float expects\n\nFloat -> Float\n${ulAtCall("Float -> Float", 0)}\n\n${introspect(x)} received\n`
-    );
-
-    super(x);
-  }
-}
-
-
-// Integer (rev 1)
-// Integer -> Integer
-
-class Integer extends Number {
-  constructor(x) {
-    if (!isInt(x)) throw new TypeError(
-      `Integer expects\n\nInteger -> Integer\n${ulAtCall("Integer -> Integer", 0)}\n\n${introspect(x)} received\n`
-    );
-
-    super(x);
-  }
-}
-
-
 // --[ FUNCTION VIRTUALIZATION ]-----------------------------------------------
 
 
@@ -1143,6 +1098,23 @@ const symC = s => {
 symC.toString = () => "Symbol";
 
 
+// refine contract (rev 1)
+// internal
+// (a -> Boolean) -> (a -> a) -> a -> a
+
+const refineC = p => c => {
+  const refineC2 = x => {
+    c(x);
+
+    if (p(x)) return x;
+    else throw new Error(JSON.stringify({type: "type", nominal: type, real: `${introspect(x)}/${x}`}));
+  }, type = p + c;
+
+  refineC2.toString = () => type;
+  return refineC2;
+}
+
+
 // --[ POLYMORPHIC CONTRACTS ]-------------------------------------------------
 
 
@@ -1444,7 +1416,81 @@ const funC = f => {
 funC.toString = () => "Function";
 
 
-// --[ REFLECTION ]------------------------------------------------------------
+// --[ INTROSPECTION ]---------------------------------------------------------
+
+
+// introspect (rev 1)
+// internal
+// TODO: add subtypes
+// TODO: add abstract data types
+// a -> String
+
+const introspect = x => {
+  switch (typeof x) {
+    case "undefined": return "Undefined";
+
+    case "number": {
+      if (isNaN(x)) return "NaN";
+      else return "Number";
+    }
+
+    case "string": return "String";
+    case "boolean": return "Boolean";
+    case "symbol": return "Symbol";
+    case "function": return "Function";
+
+    case "object": {
+      if (x === null) return "Null";
+      else if ($anno in x) return x[$anno];
+
+      else if (Array.isArray(x)) {
+        if (x.length <= TUP_MAX_LEN) {
+          const annos = x.map(x_ => `${introspect(x_)}`);
+          return `[${Array.from(annos.reduce((acc, x_) => acc.add(x_), new Set())).join(", ")}]`;
+        }
+
+        else return `[${introspect(x[0])}]`;
+      }
+
+      else {
+        if ("constructor" in x && x.constructor.name !== "Object") return x.constructor.name;
+
+        else {
+          const tag = getStringTag(x);
+          if (tag !== "Object") return tag;
+
+          else {
+            const ks = Object.keys(x);
+
+            if (ks.length <= REC_MAX_LEN) {
+              const rec = ks.map(k => `${k}: ${introspect(x[k])}`),
+               dict = `{${introspect(x[ks[0]])}}`,
+               annos = Array.from(rec.reduce((acc, x_) => acc.add(x_.split(": ") [1]), new Set()));
+
+              if (annos.length === 1) return dict;
+              else return `{${rec.join(", ")}}`;
+            }
+
+            else return `{${introspect(x[k[0]])}}`;
+          }
+        }
+      }
+    }
+  }
+};
+
+
+// --[ PREDICATES ]------------------------------------------------------------
+
+
+// refine type (rev 1)
+// [a -> Boolean] -> a -> Boolean
+
+const refine = (...ps) => {
+  const refine2 = x => ps.every(p => p(x));
+  refine2.toString = () => ps.join("");
+  return refine2;
+};
 
 
 // get string tag (rev 1)
@@ -1947,17 +1993,60 @@ const introspect = x => {
 
 /******************************************************************************
 *******************************************************************************
-*******************************[ 3. PROTOTYPES ]*******************************
+*******************************[ 3. PRIMITIVES ]*******************************
 *******************************************************************************
 ******************************************************************************/
 
 
 /******************************************************************************
-********************************[ 3.1. ERROR ]*********************************
+********************************[ 3.1. NUMBER ]********************************
 ******************************************************************************/
 
 
-// --[ SUBCLASSING ]-----------------------------------------------------------
+/******************************************************************************
+********************************[ 3.2. STRING ]********************************
+******************************************************************************/
+
+
+// interpolate
+// Object -> String -> String
+
+const interpolate = o => s => s.replace(/\${(\w+)}/g, (_, k) => o[k]);
+
+
+// successor (rev 0.1)
+// String -> String
+
+const succ = x => String.fromCharCode(x.charCodeAt(0) + 1);
+
+
+/******************************************************************************
+*******************************[ 3.3. BOOLEAN ]********************************
+******************************************************************************/
+
+
+// greater than
+// a -> a -> Boolean
+
+const gt = y => x => x > y;
+
+
+// xor
+// Boolean -> Boolean -> Boolean
+
+const xor = x => y => !x === !y ? false : true;
+
+
+/******************************************************************************
+*******************************************************************************
+*************************[ 4. PROTOTYPES (SUBTYPING) ]*************************
+*******************************************************************************
+******************************************************************************/
+
+
+/******************************************************************************
+********************************[ 4.1. ERROR ]*********************************
+******************************************************************************/
 
 
 // Arity Error (rev 1)
@@ -2019,7 +2108,7 @@ const _throw = cons => s => {throw new cons(s)};
 
 /******************************************************************************
 *******************************************************************************
-*****************************[ 4. PRODUCT TYPES ]******************************
+*****************************[ 5. PRODUCT TYPES ]******************************
 *******************************************************************************
 ******************************************************************************/
 
@@ -2032,7 +2121,7 @@ const _throw = cons => s => {throw new cons(s)};
 // handle get/set traps for virtualized product types
 // (String, String) -> Array
 
-/*const handleProd = type => ({
+const handleProd = type => ({
   get: (o, k, _) => {
     switch (k) {
       case $anno: return type;
@@ -2056,89 +2145,11 @@ const _throw = cons => s => {throw new cons(s)};
       `immutable value of type ${type} received invalid set operation for ${isNumStr(k) ? `index #${k}` : `property "${k}"`} with value ${v}`
     );
   }
-});*/
+});
 
 
 /******************************************************************************
-********************************[ 4.1. TUPLE ]*********************************
-******************************************************************************/
-
-
-// Tuple (rev 0.1)
-// ([? -> ?], Array) -> Array
-
-/*const Tup = (cs, xs) => {
-  if (TYPE_CHECK) {
-    if (!isArr(cs)) throw new TypeError(
-      `Tup expects argument #1 of type Array \u2BC8\u2BC8\u2BC8 ${introspect(cs)} received`
-    );
-
-    cs.forEach((c, n) => {
-      if (!isFun(c)) throw new TypeSysError(
-        `Tup expects argument #1 of type [Function] \u2BC8\u2BC8\u2BC8 ${introspect(c)} at index #${n} received`
-      );
-
-      if ($("length", of(c), gt(1))) throw new TypeSysError(
-        `Tup expects argument #1 of type [Nullary]/[Unary] \u2BC8\u2BC8\u2BC8 ${arityScheme(c)} at index #${n} received`
-      );
-
-      if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
-        `Tup expects argument #1 of type [() -> ? -> ?] \u2BC8\u2BC8\u2BC8 () -> (${arityScheme(c())}) -> ? at index #${n} received`
-      );
-    });
-
-    if (!isArr(xs)) throw new TypeError(
-      `Tup expects argument #2 of type Array \u2BC8\u2BC8\u2BC8 ${introspect(xs)} received`
-    );
-
-    if (cs.length !== xs.length) throw new LengthError(
-      `Tup expects argument #2 of type Array of length ${cs.length} \u2BC8\u2BC8\u2BC8 length ${xs.length} received`
-    );
-
-    cs = cs.map(c => isNullary(c) ? c() : c);
-    const type = `(${cs})`;
-    try{tupOf(cs) (xs)}
-
-    catch (e) {
-      const o = JSON.parse(e.message);
-      let e_;
-
-      switch (o.type) {
-        case "length": {
-          e_ = new LengthError(`Tup expects argument #2 of type Array of length ${o.nominal} \u2BC8\u2BC8\u2BC8 ${o.real} received`);
-          break;
-        }
-
-        case "type": {
-          e_ = new TypeError(`Tup expects argument #2 of type ${o.nominal} \u2BC8\u2BC8\u2BC8 ${o.real} received`);
-          break;
-        }
-
-        default: throw new TypeSysError(`Tup received invalid error type ${o.type}`);
-      }
-
-      e_.stack = e.stack;
-      throw e_;
-    }
-
-    return new Proxy(virtRec(unwrapTypeRec(typeTokens) (type).slice(1), xs), handleProd(type));
-  }
-
-  return xs;
-};
-
-Tup.of = (cs, ...xs) => Tup(cs, xs);
-
-Tup.from = (cs, iter) => Tup(cs, Array.from(iter));*/
-
-
-/******************************************************************************
-********************************[ 4.2. RECORD ]********************************
-******************************************************************************/
-
-
-/******************************************************************************
-********************************[ 4.3. ARRAY ]*********************************
+********************************[ 5.1. ARRAY ]*********************************
 ******************************************************************************/
 
 
@@ -2231,18 +2242,98 @@ const range_ = (p, step) => x => {
 
 
 /******************************************************************************
-******************************[ 4.4. DICTIONARY ]******************************
+********************************[ 5.2. TUPLE ]*********************************
+******************************************************************************/
+
+
+// Tuple (rev 0.1)
+// ([? -> ?], Array) -> Array
+
+/*const Tup = (cs, xs) => {
+  if (TYPE_CHECK) {
+    if (!isArr(cs)) throw new TypeError(
+      `Tup expects argument #1 of type Array \u2BC8\u2BC8\u2BC8 ${introspect(cs)} received`
+    );
+
+    cs.forEach((c, n) => {
+      if (!isFun(c)) throw new TypeSysError(
+        `Tup expects argument #1 of type [Function] \u2BC8\u2BC8\u2BC8 ${introspect(c)} at index #${n} received`
+      );
+
+      if ($("length", of(c), gt(1))) throw new TypeSysError(
+        `Tup expects argument #1 of type [Nullary]/[Unary] \u2BC8\u2BC8\u2BC8 ${arityScheme(c)} at index #${n} received`
+      );
+
+      if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
+        `Tup expects argument #1 of type [() -> ? -> ?] \u2BC8\u2BC8\u2BC8 () -> (${arityScheme(c())}) -> ? at index #${n} received`
+      );
+    });
+
+    if (!isArr(xs)) throw new TypeError(
+      `Tup expects argument #2 of type Array \u2BC8\u2BC8\u2BC8 ${introspect(xs)} received`
+    );
+
+    if (cs.length !== xs.length) throw new LengthError(
+      `Tup expects argument #2 of type Array of length ${cs.length} \u2BC8\u2BC8\u2BC8 length ${xs.length} received`
+    );
+
+    cs = cs.map(c => isNullary(c) ? c() : c);
+    const type = `(${cs})`;
+    try{tupOf(cs) (xs)}
+
+    catch (e) {
+      const o = JSON.parse(e.message);
+      let e_;
+
+      switch (o.type) {
+        case "length": {
+          e_ = new LengthError(`Tup expects argument #2 of type Array of length ${o.nominal} \u2BC8\u2BC8\u2BC8 ${o.real} received`);
+          break;
+        }
+
+        case "type": {
+          e_ = new TypeError(`Tup expects argument #2 of type ${o.nominal} \u2BC8\u2BC8\u2BC8 ${o.real} received`);
+          break;
+        }
+
+        default: throw new TypeSysError(`Tup received invalid error type ${o.type}`);
+      }
+
+      e_.stack = e.stack;
+      throw e_;
+    }
+
+    return new Proxy(virtRec(unwrapTypeRec(typeTokens) (type).slice(1), xs), handleProd(type));
+  }
+
+  return xs;
+};
+
+Tup.of = (cs, ...xs) => Tup(cs, xs);
+
+Tup.from = (cs, iter) => Tup(cs, Array.from(iter));*/
+
+
+/******************************************************************************
+******************************[ 5.3. DICTIONARY ]******************************
+******************************************************************************/
+
+
+/******************************************************************************
+********************************[ 5.4. RECORD ]********************************
 ******************************************************************************/
 
 
 /******************************************************************************
 *******************************************************************************
-*******************************[ 5. SUM TYPES ]********************************
+****************************[ 6. CONSTRUCTOR TYPES]****************************
 *******************************************************************************
 ******************************************************************************/
 
 
-// --[ CONSTRUCTOR ]-----------------------------------------------------------
+/******************************************************************************
+****************************[ 6.1. TAGGED UNIONS ]*****************************
+******************************************************************************/
 
 
 /*const Tcons = (name, o) => {
@@ -2398,56 +2489,42 @@ const handleConst = (c, name, tag) => ({
 
 
 /******************************************************************************
+*************************[ 6.2. ABSTRACT DATA TYPES ]**************************
+******************************************************************************/
+
+
+/******************************************************************************
+*******************************[ 6.3. PROMISE ]********************************
+******************************************************************************/
+
+
+/******************************************************************************
 *******************************************************************************
-**************************[ 6. ABSTRACT DATA TYPES ]***************************
+*******************************[ 7. PROTOCOLS ]********************************
+*******************************************************************************
+******************************************************************************/
+
+
+/******************************************************************************
+*******************************[ 7.1. ITERABLE ]*******************************
+******************************************************************************/
+
+
+/******************************************************************************
+*******************************[ 7.2. ITERATOR ]*******************************
+******************************************************************************/
+
+
+/******************************************************************************
+*******************************************************************************
+****************************[ 8. DEPENDENT TYPES ]*****************************
 *******************************************************************************
 ******************************************************************************/
 
 
 /******************************************************************************
 *******************************************************************************
-*******************************[ 7. PRIMITIVES ]*******************************
-*******************************************************************************
-******************************************************************************/
-
-
-// greater than
-// a -> a -> Boolean
-
-const gt = y => x => x > y;
-
-
-/******************************************************************************
-********************************[ 7.1. BOOLEAN ]*******************************
-******************************************************************************/
-
-
-// xor
-// Boolean -> Boolean -> Boolean
-
-const xor = x => y => !x === !y ? false : true;
-
-
-/******************************************************************************
-********************************[ 7.2. STRING ]********************************
-******************************************************************************/
-
-
-// interpolate
-// Object -> String -> String
-
-const interpolate = o => s => s.replace(/\${(\w+)}/g, (_, k) => o[k]);
-
-
-// successor (rev 0.1)
-// String -> String
-
-const succ = x => String.fromCharCode(x.charCodeAt(0) + 1);
-
-
-/******************************************************************************
-*******************************************************************************
-******************************[ 8. POLYMORPHIC ]*******************************
+********************[ 9. PARAMETRIC POLYMORPHIC FUNCTIONS ]********************
 *******************************************************************************
 ******************************************************************************/
 
@@ -2541,14 +2618,7 @@ const ror = f => z => x => y => f(x) (y) (z);
 
 /******************************************************************************
 *******************************************************************************
-*********************************[ 9. ARROWS ]*********************************
-*******************************************************************************
-******************************************************************************/
-
-
-/******************************************************************************
-*******************************************************************************
-**************************[ 10. TYPE REPRESENTATIVES ]*************************
+**********************[ 10. BOUNDED POLYMORPHIC CLASSES ]**********************
 *******************************************************************************
 ******************************************************************************/
 
@@ -2560,13 +2630,6 @@ const Monoid = {
     prepend: prependArr
   }
 };
-
-
-/******************************************************************************
-*******************************************************************************
-*******************************[ 11. DEBUGGING ]*******************************
-*******************************************************************************
-******************************************************************************/
 
 
 /******************************************************************************
@@ -2664,8 +2727,6 @@ const monoMap = {
 
 // API
 
-
-// now public API yet...
 
 module.exports = {
   Fun
