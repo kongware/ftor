@@ -38,14 +38,13 @@ Additionally you can explore how monodial, functorial, applicative, monadic and 
 - [ ] bounded polymorphism without the prototype system
 - [ ] typed functions and data types are enforced in most cases
 - [ ] no typed const/let declarations possible
-- [ ] how to avoid building dependencies on ftor
+- [ ] how to avoid establishing dependencies to the type checker
 - [ ] constructor types, tagged unions and enums
 - [ ] restrict the use of side effects with a special IO type
 - [ ] variadic functions only via rest parameter (not `arguments`)
 - [ ] built-in operators are not type safe
-- [ ] explicit type casts
 - [ ] intersection/differ types
-- [ ] type aliases
+- [ ] how to remedy the deficiencies of Javascript's type system, particularly the primitve types
 
 # 1. Type systems
 

@@ -1430,7 +1430,7 @@ const introspect = x => {
     case "undefined": return "Undefined";
 
     case "number": {
-      if (isNaN(x)) return "NaN";
+      if (Number.isNaN(x)) return "NaN";
       else return "Number";
     }
 
@@ -1480,14 +1480,17 @@ const introspect = x => {
 };
 
 
-// --[ PREDICATES ]------------------------------------------------------------
+// --[ TYPE PREDICATES ]-------------------------------------------------------
 
 
 // get string tag (rev 1)
 // internal
 // a -> String
 
-const getStringTag = x => Object.prototype.toString.call(x).split(" ")[1].slice(0, -1);
+const getStringTag = x => {
+  const ss = Object.prototype.toString.call(x).split(" ");
+  return ss[ss.length - 1].slice(0, -1);
+};
 
 
 // instance of (rev 1)
@@ -1504,32 +1507,11 @@ const instanceOf = cons => o => cons.prototype.isPrototypeOf(o);
 const isArr = x => Array.isArray(x);
 
 
-// isArrLike (rev 1)
+// is array buffer (rev 1)
 // internal
 // a -> Boolean
 
-const isArrLike = x => isObj(x) && has("length") (x);
-
-
-// is array of (rev 1)
-// internal
-// (b -> Boolean) -> a -> Boolean
-
-const isArrOf = p => x => isArr(x) && x.every(y => p(y));
-
-
-// is assigned (rev 1)
-// internal
-// a -> Boolean
-
-const isAssigned = x => !(isUndef(x) || isNull(x));
-
-
-// is binary (rev 1)
-// internal
-// a -> Boolean
-
-const isBinary = x => isFun(x) && x.length === 2;
+const isArrBuf = x => getStringTag(x) === "ArrayBuffer";
 
 
 // is boolean (rev 1)
@@ -1539,31 +1521,21 @@ const isBinary = x => isFun(x) && x.length === 2;
 const isBoo = x => typeof x === "boolean";
 
 
-// is boolean string (rev 1)
-// internal
-// a -> Boolean
-
-const isBooStr = x => isStr(x) && (x === "true" || x === "false");
-
-
-// is char (rev 1)
-// internal
-// a -> Boolean
-
-const isChr = x => isStr(x) && x.length === 1;
-
-
-// is composite type (rev 1)
-// internal
-// a -> Boolean
-
-const isComposite = x => isObj(x) && !isFun(x);
-
-
 // TODO: isCons
 
 
-// TODO: isConsOf
+// is data view (rev 1)
+// internal
+// a -> Boolean
+
+const isDataView = x => getStringTag(x) === "DataView";
+
+
+// is date (rev 1)
+// internal
+// a -> Boolean
+
+const isDate = x => getStringTag(x) === "Date";
 
 
 // is dict (rev 1)
@@ -1573,21 +1545,39 @@ const isComposite = x => isObj(x) && !isFun(x);
 const isDict = x => isObj(x) && isDictA(introspect(x)) ? true : false;
 
 
-// TODO: isDictOf
-
-
-// is finite number (rev 1)
+// is error (rev 1)
 // internal
 // a -> Boolean
 
-const isFinite = x => Number.isFinite(x);
+const isError = x => getStringTag(x) === "Error";
 
 
-// is float (rev 1)
+// is generator (rev 1)
 // internal
 // a -> Boolean
 
-const isFloat = x => x % 1 > 0;
+const isGtor = x => getStringTag(x) === "Generator";
+
+
+// is generator function (rev 1)
+// internal
+// a -> Boolean
+
+const isGtorFun = x => getStringTag(x) === "GeneratorFunction";
+
+
+// is float 32 array (rev 1)
+// internal
+// a -> Boolean
+
+const isFloat32Arr = x => getStringTag(x) === "Float32Array";
+
+
+// is float 64 array (rev 1)
+// internal
+// a -> Boolean
+
+const isFloat64Arr = x => getStringTag(x) === "Float64Array";
 
 
 // is function (rev 1)
@@ -1597,32 +1587,32 @@ const isFloat = x => x % 1 > 0;
 const isFun = x => typeof x === "function";
 
 
-// is infinite number (rev 1)
+// is integer 8 array (rev 1)
 // internal
 // a -> Boolean
 
-const isInfinite = x => x === Number.POSITIVE_INFINITY || x === Number.NEGATIVE_INFINITY;
+const isInt8Arr = x => getStringTag(x) === "Int8Array";
 
 
-// is integer (rev 1)
+// is integer 32 array (rev 1)
 // internal
 // a -> Boolean
 
-const isInt = x => Number.isInteger(x);
+const isInt32Arr = x => getStringTag(x) === "Int32Array";
 
 
-// is lower case (rev 1)
+// is integer 64 array (rev 1)
 // internal
 // a -> Boolean
 
-const isLC = x => isLetter(x) && x.toLowerCase() === x;
+const isInt64Arr = x => getStringTag(x) === "Int64Array";
 
 
-// is letter (rev 1)
+// is iterator (rev 1)
 // internal
 // a -> Boolean
 
-const isLetter = x => isChr(x) && x.search(/[a-z]/i) === 0;
+const isItor = x => getStringTag(x) === "Iterator";
 
 
 // is map (rev 1)
@@ -1632,86 +1622,6 @@ const isLetter = x => isChr(x) && x.search(/[a-z]/i) === 0;
 const isMap = x => getStringTag(x) === "Map";
 
 
-// TODO: isMapOf
-
-
-// is not a number (rev 1)
-// internal
-// a -> Boolean
-
-const isNaN = x => Number.isNaN(x);
-
-
-// is negative number (rev 1)
-// internal
-// a -> Boolean
-
-const isNegative = x => isNum(x) && x < 0;
-
-
-// is negative float (rev 1)
-// internal
-// a -> Boolean
-
-const isNegativeFloat = x => isFloat(x) && x < 0;
-
-
-// is negative integer (rev 1)
-// internal
-// a -> Boolean
-
-const isNegativeInt = x => isInt(x) && x < 0;
-
-
-// is negative infinite number (rev 1)
-// internal
-// a -> Boolean
-
-const isNegativeInfinite = x => x === Number.NEGATIVE_INFINITY;
-
-
-// is non zero number (rev 1)
-// internal
-// a -> Boolean
-
-const isNonZero = x => isNum(x) && x !== 0;
-
-
-// is non zero float (rev 1)
-// internal
-// a -> Boolean
-
-const isNonZeroFloat = x => isFloat(x) && x !== 0;
-
-
-// is non zero integer (rev 1)
-// internal
-// a -> Boolean
-
-const isNonZeroInt = x => isInt(x) && x !== 0;
-
-
-// is non zero positive number (rev 1)
-// internal
-// a -> Boolean
-
-const isNonZeroPositive = x => isNum(x) && x > 0;
-
-
-// is non zero positive float (rev 1)
-// internal
-// a -> Boolean
-
-const isNonZeroPositiveFloat = x => isFloat(x) && x > 0;
-
-
-// is non zero positive integer (rev 1)
-// internal
-// a -> Boolean
-
-const isNonZeroPositiveInt = x => isInt(x) && x > 0;
-
-
 // is null (rev 1)
 // internal
 // a -> Boolean
@@ -1719,25 +1629,11 @@ const isNonZeroPositiveInt = x => isInt(x) && x > 0;
 const isNull = x => x === null;
 
 
-// is nullary (rev 1)
-// internal
-// a -> Boolean
-
-const isNullary = x => isFun(x) && x.length === 0;
-
-
 // is number (rev 1)
 // internal
 // a -> Boolean
 
-const isNum = x => typeof x === "number" && !isNaN(x);
-
-
-// is number string (rev 1)
-// internal
-// a -> Boolean
-
-const isNumStr = x => isStr(x) && x * 1 + "" === x;
+const isNum = x => typeof x === "number" && !Number.isNaN(x);
 
 
 // is object (rev 1)
@@ -1747,28 +1643,11 @@ const isNumStr = x => isStr(x) && x * 1 + "" === x;
 const isObj = x => Object(x) === x;
 
 
-// TODO: isObjOf
-
-
-// is positive float (rev 1)
+// is promise (rev 1)
 // internal
 // a -> Boolean
 
-const isPositiveFloat = x => isFloat(x) && x >= 0;
-
-
-// is positive integer (rev 1)
-// internal
-// a -> Boolean
-
-const isPositiveInt = x => isInt(x) && x >= 0;
-
-
-// is positive infinite number (rev 1)
-// internal
-// a -> Boolean
-
-const isPositiveInfinite = x => x === Number.POSITIVE_INFINITY;
+const isPromise = x => getStringTag(x) === "Promise";
 
 
 // is record (rev 1)
@@ -1778,14 +1657,11 @@ const isPositiveInfinite = x => x === Number.POSITIVE_INFINITY;
 const isRec = x => isObj(x) && isRecA(introspect(x)) ? true : false;
 
 
-// TODO: isRecOf
-
-
-// is reference type (rev 1)
+// is regular expression (rev 1)
 // internal
 // a -> Boolean
 
-const isRef = isObj;
+const isRegExp = x => getStringTag(x) === "RegExp";
 
 
 // is set (rev 1)
@@ -1795,21 +1671,11 @@ const isRef = isObj;
 const isSet = x => getStringTag(x) === "Set";
 
 
-// const isSetOf
-
-
 // is string (rev 1)
 // internal
 // a -> Boolean
 
 const isStr = x => typeof x === "string";
-
-
-// is string of (rev 1)
-// internal
-// a -> Boolean
-
-const isStrOf = p => x => isStr(x) && x.every(y => p(y));
 
 
 // is symbol (rev 1)
@@ -1819,13 +1685,6 @@ const isStrOf = p => x => isStr(x) && x.every(y => p(y));
 const isSym = x => typeof x === "symbol";
 
 
-// is ternary (rev 1)
-// internal
-// a -> Boolean
-
-const isTernary = x => isFun(x) && x.length === 3;
-
-
 // is tuple (rev 1)
 // internal
 // a -> Boolean
@@ -1833,21 +1692,25 @@ const isTernary = x => isFun(x) && x.length === 3;
 const isTup = x => isObj(x) && isTupA(introspect(x)) ? true : false;
 
 
-// TODO: isTupOf
-
-
-// is upper case (rev 1)
+// is unsigned integer 8 array (rev 1)
 // internal
 // a -> Boolean
 
-const isUC = x => isLetter(x) && x.toUpperCase() === x;
+const isUInt8Arr = x => getStringTag(x) === "UInt8Array";
 
 
-// is unary (rev 1)
+// is unsigned integer 32 array (rev 1)
 // internal
 // a -> Boolean
 
-const isUnary = x => isFun(x) && x.length === 1;
+const isUInt32Arr = x => getStringTag(x) === "UInt32Array";
+
+
+// is unsigned integer 64 array (rev 1)
+// internal
+// a -> Boolean
+
+const isUInt64Arr = x => getStringTag(x) === "UInt64Array";
 
 
 // is undefined (rev 1)
@@ -1855,20 +1718,6 @@ const isUnary = x => isFun(x) && x.length === 1;
 // a -> Boolean
 
 const isUndef = x => x === undefined;
-
-
-// is value type (rev 1)
-// internal
-// a -> Boolean
-
-const isValue = x => !isObj(x);
-
-
-// is variadic (rev 1)
-// internal
-// a -> Boolean
-
-const isVariadic = isNullary;
 
 
 // is weak map (rev 1)
@@ -1885,7 +1734,7 @@ const isWeakMap = x => getStringTag(x) === "WeakMap";
 const isWeakSet = x => getStringTag(x) === "WeakSet";
 
 
-// --[ REFINEMENTS ]-----------------------------------------------------------
+// --[ TYPE REFINEMENTS ]------------------------------------------------------
 
 
 // refine type (rev 1)
@@ -1896,6 +1745,20 @@ const refine = (...ps) => {
   refine2.toString = () => ps.join("");
   return refine2;
 };
+
+
+// is integer (rev 1)
+// Number -> Boolean
+
+const isInt = x => Number.isInteger(x);
+isInt.toString = () => "Integer";
+
+
+// is float (rev 1)
+// Number -> Boolean
+
+const isFloat = n => n % 1 > 0;
+isFloat.toString = () => "Float";
 
 
 // is positive number (rev 1)
@@ -1915,7 +1778,7 @@ isNeg.toString = () => "Negative";
 // is finite (rev 1)
 // Number -> Boolean
 
-const isFin = n => Number.isFin(n);
+const isFin = n => Number.isFinite(n);
 isFin.toString = () => "Finite";
 
 
@@ -1936,22 +1799,130 @@ isZero.toString = () => "Zero";
 // is non-zero (rev 1)
 // Number -> Boolean
 
-const isNZ = n => n !== 0;
-isNZ.toString = () => "NonZero";
+const isNonZero = n => n !== 0;
+isNonZero.toString = () => "NonZero";
 
 
-// length (rev 1)
-// polymorphic for all object types
+// is character (rev 1)
+// String -> Boolean
+
+const isChar = s => s.length === 0;
+isChar.toString = () => "Char";
+
+
+// is letter (rev 1)
+// String -> Boolean
+
+const isLetter = s => isChar(s) && s.search(/[a-z]/i) === 0;
+isLetter.toString = () => "Letter";
+
+
+// is numeral (rev 1)
+// String -> Boolean
+
+const isNumeral = s => isChar(s) && s.search(/[0-9]/) === 0;
+isNumeral.toString = () => "Numeral";
+
+
+// is lower case letter (rev 1)
+// String -> Boolean
+
+const isLC = s => isLetter(s) && s.toLowerCase() === s;
+isLCL.toString = () => "LowerCaseLetter";
+
+
+// is upper case letter (rev 1)
+// String -> Boolean
+
+const isUC = s => isLetter(s) && s.toUpperCase() === s;
+isUCL.toString = () => "UpperCaseLetter";
+
+
+// is numeral string (rev 1)
+// String -> Boolean
+
+const isNumStr = s => s * 1 + "" === s;
+isNumStr.toString = () => "NumeralString";
+
+
+// length of (rev 1)
+// polymorphic for all array-like types
 // PositiveFiniteInteger -> Object -> Boolean
 
-const len = n => {
-  const len2 = o => {
-    if ("length" in o) return o.length === n;
-    else if ("size" in o) return o.size === n;
-    else return Object.keys(o).length === n;
-  };
+const lenOf = n => {
+  const lenOf2 = o => o.length === n;
+  lenOf2.toString = () => `LengthOf(${n})`;
+  return lenOf2;
+};
 
-  len2.toString = () => `Length_${n}_`;
+
+// size of (rev 1)
+// PositiveFiniteInteger -> Object -> Boolean
+
+const sizeOf = n => {
+  const sizeOf2 = o => o.size === n;
+  sizeOf2.toString = () => `SizeOf(${n})`;
+  return sizeOf2;
+};
+
+
+// is equal (rev 1)
+// a -> a -> Boolean
+
+const isEq = y => {
+  const isEq2 = x => x === y;
+  isEq2.toString = () => `isEqual(${y})`;
+  return isEq2;
+}
+
+
+// is not equal (rev 1)
+// a -> a -> Boolean
+
+const isNeq = y => {
+  const isNeq2 = x => x !== y;
+  isNeq2.toString = () => `isNotEqual(${y})`;
+  return isNeq2;
+}
+
+
+// is lower than (rev 1)
+// a -> a -> Boolean
+
+const isLt = y => {
+  const isLt2 = x => x < y;
+  isLt2.toString = () => `isLowerThan(${y})`;
+  return isLt2;
+}
+
+
+// is lower than or equal (rev 1)
+// a -> a -> Boolean
+
+const isLte = y => {
+  const isLte2 = x => x <== y;
+  isLte2.toString = () => `isLowerThanOrEqual(${y})`;
+  return isLte2;
+}
+
+
+// is greater than (rev 1)
+// a -> a -> Boolean
+
+const isGt = y => {
+  const isGt2 = x => x > y;
+  isLt2.toString = () => `isGreaterThan(${y})`;
+  return isGt2;
+}
+
+
+// is greater than or equal (rev 1)
+// a -> a -> Boolean
+
+const isGte = y => {
+  const isGte2 = x => x >== y;
+  isGte2.toString = () => `isGreaterThanOrEqual(${y})`;
+  return isGte2;
 }
 
 
