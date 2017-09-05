@@ -1765,7 +1765,7 @@ intR.toString = () => "Integer";
 // float refinement (rev 1)
 // Number -> [Number -> Array]
 
-const floatR = n => n % 1 > 0 ? [] : [floatR];
+const floatR = n => Number.isFinite(n) ? [] : [floatR];
 floatR.toString = () => "Float";
 
 
@@ -1843,7 +1843,7 @@ ucR.toString = () => "UpperCaseLetter";
 // String -> [String -> Array]
 
 const numStrR = s => s * 1 + "" === s ? [] : [numStrR];
-isNumStr.toString = () => "NumeralString";
+numStrR.toString = () => "NumeralString";
 
 
 // length refinement (rev 1)
@@ -1924,7 +1924,7 @@ const allR = (...rs) => {
   const allR2 = x => {
     const aux = n => {
       if (rs[n] === undefined) return [];
-      else if (rs[n] (x) === true) return aux(n + 1);
+      else if (rs[n] (x).length === 0) return aux(n + 1);
       else return [rs[n]];
     }
 
@@ -1943,7 +1943,7 @@ const anyR = (...rs) => {
   const anyR2 = x => {
     const aux = (n, acc) => {
       if (rs[n] === undefined) return acc;
-      else if (rs[n] (x) === true) return acc;
+      else if (rs[n] (x).length === 0) return acc;
       else return aux(n + 1, acc.push(rs[n]));
     }
 
@@ -1958,7 +1958,7 @@ const anyR = (...rs) => {
 // not refinement (rev 1)
 // (a -> [a]) -> a -> [a]
 
-notR = r => {
+const notR = r => {
   const notR2 = x => r(x).length === 0 ? [notR(r)] : [];
   notR2.toString = () => `Not(${r})`;
   return notR2;
