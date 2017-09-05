@@ -1104,11 +1104,25 @@ symC.toString = () => "Symbol";
 
 const refineC = p => c => {
   const refineC2 = x => {
-    c(x);
+    if (c.toString() in monoMap) c(x);
 
-    if (p(x)) return x;
-    else throw new Error(JSON.stringify({type: "type", nominal: type, real: `${introspect(x)}/${x}`}));
-  }, type = p + c;
+    else throw new TypeSysError(
+      `refineC expects a monomorphic contract\n\n(a -> Boolean) -> (a -> a) -> a -> a\n${ul(19, 6)}\n\n${c} received\n`
+    );
+
+    try{p(x)}
+
+    catch (e) {
+      if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
+      const o = JSON.parse(e.message);
+      let e_;
+      
+      o.nominal = type;
+      e_ = new Error(JSON.stringify(o));
+      e_.stack = e.stack;
+      throw e_;
+    }
+  }, type = p.toString();
 
   refineC2.toString = () => type;
   return refineC2;
@@ -1184,6 +1198,7 @@ const arrOfC = c => {
         if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
         const o = JSON.parse(e.message);
         let e_;
+
         o.offL = "offL" in o ? o.offL + 1 : 1;
         o.offR = "offR" in o ? o.offR - 1 : -1;
         e_ = new Error(JSON.stringify(o));
@@ -1245,6 +1260,7 @@ const tupOfC = cs => {
         if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
         const o = JSON.parse(e.message);
         let e_;
+
         o.offL = "offL" in o ? o.offL + 1 : 1;
         o.offR = "offR" in o ? o.offR - 1 : -1;
         e_ = new Error(JSON.stringify(o));
@@ -1310,6 +1326,7 @@ const dictOfC = c => {
         if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
         const p = JSON.parse(e.message);
         let e_;
+
         p.offL = "offL" in p ? p.offL + 1 : 1;
         p.offR = "offR" in p ? p.offR - 1 : -1;
         e_ = new Error(JSON.stringify(p));
@@ -1373,6 +1390,7 @@ const recOfC = cs => {
         if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
         const p = JSON.parse(e.message);
         let e_;
+
         p.offL = "offL" in p ? p.offL + ks[n].length + 1 : ks[n].length + 1;
         p.offR = "offR" in p ? p.offR - ks[n].length - 1 : -ks[n].length - 1;
         e_ = new Error(JSON.stringify(p));
@@ -1737,193 +1755,214 @@ const isWeakSet = x => getStringTag(x) === "WeakSet";
 // --[ TYPE REFINEMENTS ]------------------------------------------------------
 
 
-// refine type (rev 1)
-// [a -> Boolean] -> a -> Boolean
+// integer refinement (rev 1)
+// Number -> [Number -> Array]
 
-const refine = (...ps) => {
-  const refine2 = x => ps.every(p => p(x));
-  refine2.toString = () => ps.join("");
-  return refine2;
-};
+const intR = x => Number.isInteger(x) ? [] : [intR];
+intR.toString = () => "Integer";
 
 
-// is integer (rev 1)
-// Number -> Boolean
+// float refinement (rev 1)
+// Number -> [Number -> Array]
 
-const isInt = x => Number.isInteger(x);
-isInt.toString = () => "Integer";
-
-
-// is float (rev 1)
-// Number -> Boolean
-
-const isFloat = n => n % 1 > 0;
-isFloat.toString = () => "Float";
+const floatR = n => n % 1 > 0 ? [] : [floatR];
+floatR.toString = () => "Float";
 
 
-// is positive number (rev 1)
-// Number -> Boolean
+// positive number refinement (rev 1)
+// Number -> [Number -> Array]
 
-const isPos = n => n >= 0;
-isPos.toString = () => "Positive";
-
-
-// is negative number (rev 1)
-// Number -> Boolean
-
-const isNeg = n => n < 0;
-isNeg.toString = () => "Negative";
+const posR = n => n >= 0 ? [] : [posR];
+posR.toString = () => "Positive";
 
 
-// is finite (rev 1)
-// Number -> Boolean
+// negative number refinement (rev 1)
+// Number -> [Number -> Array]
 
-const isFin = n => Number.isFinite(n);
-isFin.toString = () => "Finite";
-
-
-// is infinite (rev 1)
-// Number -> Boolean
-
-const isInf = n => n === Number.POSITIVE_INFINITY || n === Number.NEGATIVE_INFINITY;
-isInf.toString = () => "Infinite";
+const negR = n => n < 0 ? [] : [negR];
+negR.toString = () => "Negative";
 
 
-// is zero (rev 1)
-// Number -> Boolean
+// finite refinement (rev 1)
+// Number -> [Number -> Array]
 
-const isZero = n => n === 0;
-isZero.toString = () => "Zero";
-
-
-// is non-zero (rev 1)
-// Number -> Boolean
-
-const isNonZero = n => n !== 0;
-isNonZero.toString = () => "NonZero";
+const finR = n => Number.isFinite(n) ? [] : [finR];
+finR.toString = () => "Finite";
 
 
-// is character (rev 1)
-// String -> Boolean
+// infinite refinement (rev 1)
+// Number -> [Number -> Array]
 
-const isChar = s => s.length === 0;
-isChar.toString = () => "Char";
-
-
-// is letter (rev 1)
-// String -> Boolean
-
-const isLetter = s => isChar(s) && s.search(/[a-z]/i) === 0;
-isLetter.toString = () => "Letter";
+const infR = n => n === Number.POSITIVE_INFINITY || n === Number.NEGATIVE_INFINITY ? [] : [infR];
+infR.toString = () => "Infinite";
 
 
-// is numeral (rev 1)
-// String -> Boolean
+// zero refinement (rev 1)
+// Number -> [Number -> Array]
 
-const isNumeral = s => isChar(s) && s.search(/[0-9]/) === 0;
-isNumeral.toString = () => "Numeral";
-
-
-// is lower case letter (rev 1)
-// String -> Boolean
-
-const isLC = s => isLetter(s) && s.toLowerCase() === s;
-isLCL.toString = () => "LowerCaseLetter";
+const zeroR = n => n === 0 ? [] : [zeroR];
+zeroR.toString = () => "Zero";
 
 
-// is upper case letter (rev 1)
-// String -> Boolean
+// character refinement (rev 1)
+// String -> [String -> Array]
 
-const isUC = s => isLetter(s) && s.toUpperCase() === s;
-isUCL.toString = () => "UpperCaseLetter";
+const charR = s => s.length === 1 ? [] : [charR];
+charR.toString = () => "Char";
 
 
-// is numeral string (rev 1)
-// String -> Boolean
+// letter refinement (rev 1)
+// String -> [String -> Array]
 
-const isNumStr = s => s * 1 + "" === s;
+const letterR = s => charR(s).length === 0 && s.search(/[a-z]/i) === 0 ? [] : [letterR];
+letterR.toString = () => "Letter";
+
+
+// numeral refinement (rev 1)
+// String -> [String -> Array]
+
+const numeralR = s => charR(s).length === 0 && s.search(/[0-9]/) === 0 ? [] : [numeralR];
+numeralR.toString = () => "Numeral";
+
+
+// lower case letter refinement (rev 1)
+// String -> [String -> Array]
+
+const lcR = s => letterR(s).length === 0 && s.toLowerCase() === s ? [] : [lcR];
+lcR.toString = () => "LowerCaseLetter";
+
+
+// upper case letter refinement (rev 1)
+// String -> [String -> Array]
+
+const ucR = s => letterR(s).length === 0 && s.toUpperCase() === s ? [] : [ucR];
+ucR.toString = () => "UpperCaseLetter";
+
+
+// numeral string refinement (rev 1)
+// String -> [String -> Array]
+
+const numStrR = s => s * 1 + "" === s ? [] : [numStrR];
 isNumStr.toString = () => "NumeralString";
 
 
-// length of (rev 1)
+// length refinement (rev 1)
 // polymorphic for all array-like types
-// PositiveFiniteInteger -> Object -> Boolean
+// PositiveFiniteInteger -> Object -> [Object -> Array]
 
-const lenOf = n => {
-  const lenOf2 = o => o.length === n;
-  lenOf2.toString = () => `LengthOf(${n})`;
-  return lenOf2;
+const lenR = n => {
+  const lenR2 = o => o.length === n ? [] : [lenR(n)];
+  lenR2.toString = () => `Length(${n})`;
+  return lenR2;
 };
 
 
-// size of (rev 1)
-// PositiveFiniteInteger -> Object -> Boolean
+// size refinement (rev 1)
+// PositiveFiniteInteger -> Object -> [Object -> Array]
 
-const sizeOf = n => {
-  const sizeOf2 = o => o.size === n;
-  sizeOf2.toString = () => `SizeOf(${n})`;
-  return sizeOf2;
+const sizeR = n => {
+  const sizeR2 = o => o.size === n ? [] : [sizeR(n)];
+  sizeR2.toString = () => `Size(${n})`;
+  return sizeR2;
 };
 
 
-// is equal (rev 1)
-// a -> a -> Boolean
+// equal refinement (rev 1)
+// a -> a -> [a -> Array]
 
-const isEq = y => {
-  const isEq2 = x => x === y;
-  isEq2.toString = () => `isEqual(${y})`;
-  return isEq2;
-}
-
-
-// is not equal (rev 1)
-// a -> a -> Boolean
-
-const isNeq = y => {
-  const isNeq2 = x => x !== y;
-  isNeq2.toString = () => `isNotEqual(${y})`;
-  return isNeq2;
-}
+const eqR = y => {
+  const eqR2 = x => x === y ? [] : [eqR(y)];
+  eqR2.toString = () => `Equal(${y})`;
+  return eqR2;
+};
 
 
-// is lower than (rev 1)
-// a -> a -> Boolean
+// lower than refinement (rev 1)
+// a -> a -> [a -> Array]
 
-const isLt = y => {
-  const isLt2 = x => x < y;
-  isLt2.toString = () => `isLowerThan(${y})`;
-  return isLt2;
-}
-
-
-// is lower than or equal (rev 1)
-// a -> a -> Boolean
-
-const isLte = y => {
-  const isLte2 = x => x <== y;
-  isLte2.toString = () => `isLowerThanOrEqual(${y})`;
-  return isLte2;
-}
+const ltR = y => {
+  const ltR2 = x => x < y ? [] : [ltR(y)];
+  isLt2.toString = () => `LT(${y})`;
+  return ltR2;
+};
 
 
-// is greater than (rev 1)
-// a -> a -> Boolean
+// lower than or equal refinement (rev 1)
+// a -> a -> [a -> Array]
 
-const isGt = y => {
-  const isGt2 = x => x > y;
-  isLt2.toString = () => `isGreaterThan(${y})`;
-  return isGt2;
-}
+const lteR = y => {
+  const lteR2 = x => x <= y ? [] : [lteR(y)];
+  isLte2.toString = () => `LTE(${y})`;
+  return lteR2;
+};
 
 
-// is greater than or equal (rev 1)
-// a -> a -> Boolean
+// greater than refinement (rev 1)
+// a -> a -> [a -> Array]
 
-const isGte = y => {
-  const isGte2 = x => x >== y;
-  isGte2.toString = () => `isGreaterThanOrEqual(${y})`;
-  return isGte2;
-}
+const gtR = y => {
+  const gtR2 = x => x > y ? [] : [gtR(y)];
+  gtR2.toString = () => `GT(${y})`;
+  return gtR2;
+};
+
+
+// greater than or equal refinement (rev 1)
+// a -> a -> [a -> Array]
+
+const gteR = y => {
+  const gteR2 = x => x >= y ? [] : [gteR(y)];
+  gteR2.toString = () => `GTE(${y})`;
+  return gteR2;
+};
+
+
+// any refinement (rev 1)
+// ...[a -> [a]] -> a -> [a -> [a]]
+
+const allR = (...rs) => {
+  const allR2 = x => {
+    const aux = n => {
+      if (rs[n] === undefined) return [];
+      else if (rs[n] (x) === true) return aux(n + 1);
+      else return [rs[n]];
+    }
+
+    return aux(0);
+  };
+
+  allR2.toString = () => rs.join(" & ");
+  return allR2;
+};
+
+
+// any refinement (rev 1)
+// ...[a -> [a]] -> a -> [a -> [a]]
+
+const anyR = (...rs) => {
+  const anyR2 = x => {
+    const aux = (n, acc) => {
+      if (rs[n] === undefined) return acc;
+      else if (rs[n] (x) === true) return acc;
+      else return aux(n + 1, acc.push(rs[n]));
+    }
+
+    return aux(0);
+  };
+
+  anyR2.toString = () => rs.join(" | ");
+  return anyR2;
+};
+
+
+// not refinement (rev 1)
+// (a -> [a]) -> a -> [a]
+
+notR = r => {
+  const notR2 = x => r(x).length === 0 ? [notR(r)] : [];
+  notR2.toString = () => `Not(${r})`;
+  return notR2;
+};
 
 
 /******************************************************************************
@@ -2649,7 +2688,7 @@ const variadicC = arityC(Infinity);
 
 // mono map (rev 1)
 // internal
-// {? -> ?}
+// {a -> a}
 
 const monoMap = {
   Boolean: booC,
