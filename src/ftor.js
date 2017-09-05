@@ -1103,7 +1103,7 @@ const refineC = p => c => {
     const r = p(x);
 
     if (r.length > 0) throw new Error(JSON.stringify({type: "rtype", nominal: type, real: type, refinement: r.join(", ")}));
-  }, type = c.toString();
+  }, type = `${c}<${p}>`;
 
   refineC2.toString = () => type;
   return refineC2;
@@ -1739,91 +1739,91 @@ const isWeakSet = x => getStringTag(x) === "WeakSet";
 // Number -> [Number -> Array]
 
 const intR = x => Number.isInteger(x) ? [] : [intR];
-intR.toString = () => "Integer";
+intR.toString = () => "integer";
 
 
 // float refinement (rev 1)
 // Number -> [Number -> Array]
 
 const floatR = n => Number.isFinite(n) ? [] : [floatR];
-floatR.toString = () => "Float";
+floatR.toString = () => "float";
 
 
 // positive number refinement (rev 1)
 // Number -> [Number -> Array]
 
 const posR = n => n >= 0 ? [] : [posR];
-posR.toString = () => "Positive";
+posR.toString = () => "positive";
 
 
 // negative number refinement (rev 1)
 // Number -> [Number -> Array]
 
 const negR = n => n < 0 ? [] : [negR];
-negR.toString = () => "Negative";
+negR.toString = () => "negative";
 
 
 // finite refinement (rev 1)
 // Number -> [Number -> Array]
 
 const finR = n => Number.isFinite(n) ? [] : [finR];
-finR.toString = () => "Finite";
+finR.toString = () => "finite";
 
 
 // infinite refinement (rev 1)
 // Number -> [Number -> Array]
 
 const infR = n => n === Number.POSITIVE_INFINITY || n === Number.NEGATIVE_INFINITY ? [] : [infR];
-infR.toString = () => "Infinite";
+infR.toString = () => "infinite";
 
 
 // zero refinement (rev 1)
 // Number -> [Number -> Array]
 
 const zeroR = n => n === 0 ? [] : [zeroR];
-zeroR.toString = () => "Zero";
+zeroR.toString = () => "zero";
 
 
 // character refinement (rev 1)
 // String -> [String -> Array]
 
 const charR = s => s.length === 1 ? [] : [charR];
-charR.toString = () => "Char";
+charR.toString = () => "char";
 
 
 // letter refinement (rev 1)
 // String -> [String -> Array]
 
 const letterR = s => charR(s).length === 0 && s.search(/[a-z]/i) === 0 ? [] : [letterR];
-letterR.toString = () => "Letter";
+letterR.toString = () => "letter";
 
 
 // numeral refinement (rev 1)
 // String -> [String -> Array]
 
 const numeralR = s => charR(s).length === 0 && s.search(/[0-9]/) === 0 ? [] : [numeralR];
-numeralR.toString = () => "Numeral";
+numeralR.toString = () => "numeral";
 
 
 // lower case letter refinement (rev 1)
 // String -> [String -> Array]
 
 const lcR = s => letterR(s).length === 0 && s.toLowerCase() === s ? [] : [lcR];
-lcR.toString = () => "LowerCaseLetter";
+lcR.toString = () => "lowerCase";
 
 
 // upper case letter refinement (rev 1)
 // String -> [String -> Array]
 
 const ucR = s => letterR(s).length === 0 && s.toUpperCase() === s ? [] : [ucR];
-ucR.toString = () => "UpperCaseLetter";
+ucR.toString = () => "upperCase";
 
 
 // numeral string refinement (rev 1)
 // String -> [String -> Array]
 
 const numStrR = s => s * 1 + "" === s ? [] : [numStrR];
-numStrR.toString = () => "NumeralString";
+numStrR.toString = () => "numeralString";
 
 
 // length refinement (rev 1)
@@ -1832,7 +1832,7 @@ numStrR.toString = () => "NumeralString";
 
 const lenR = n => {
   const lenR2 = o => o.length === n ? [] : [lenR(n)];
-  lenR2.toString = () => `Length(${n})`;
+  lenR2.toString = () => `length(${n})`;
   return lenR2;
 };
 
@@ -1842,7 +1842,7 @@ const lenR = n => {
 
 const sizeR = n => {
   const sizeR2 = o => o.size === n ? [] : [sizeR(n)];
-  sizeR2.toString = () => `Size(${n})`;
+  sizeR2.toString = () => `size(${n})`;
   return sizeR2;
 };
 
@@ -1852,7 +1852,7 @@ const sizeR = n => {
 
 const eqR = y => {
   const eqR2 = x => x === y ? [] : [eqR(y)];
-  eqR2.toString = () => `Equal(${y})`;
+  eqR2.toString = () => `equal(${y})`;
   return eqR2;
 };
 
@@ -1862,7 +1862,7 @@ const eqR = y => {
 
 const ltR = y => {
   const ltR2 = x => x < y ? [] : [ltR(y)];
-  isLt2.toString = () => `LT(${y})`;
+  ltR2.toString = () => `lt(${y})`;
   return ltR2;
 };
 
@@ -1872,7 +1872,7 @@ const ltR = y => {
 
 const lteR = y => {
   const lteR2 = x => x <= y ? [] : [lteR(y)];
-  isLte2.toString = () => `LTE(${y})`;
+  lteR2.toString = () => `lte(${y})`;
   return lteR2;
 };
 
@@ -1882,7 +1882,7 @@ const lteR = y => {
 
 const gtR = y => {
   const gtR2 = x => x > y ? [] : [gtR(y)];
-  gtR2.toString = () => `GT(${y})`;
+  gtR2.toString = () => `gt(${y})`;
   return gtR2;
 };
 
@@ -1892,7 +1892,7 @@ const gtR = y => {
 
 const gteR = y => {
   const gteR2 = x => x >= y ? [] : [gteR(y)];
-  gteR2.toString = () => `GTE(${y})`;
+  gteR2.toString = () => `gte(${y})`;
   return gteR2;
 };
 
@@ -1940,7 +1940,7 @@ const anyR = (...rs) => {
 
 const notR = r => {
   const notR2 = x => r(x).length === 0 ? [notR(r)] : [];
-  notR2.toString = () => `Not(${r})`;
+  notR2.toString = () => `!${r}`;
   return notR2;
 };
 
