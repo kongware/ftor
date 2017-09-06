@@ -99,7 +99,7 @@ const Fun = (typeSig, f) => {
     );
     
     const [fname, funT] = parseTypeSig(typeSig),
-     typeCat = catType(funT);
+     typeCat = parseType(funT);
 
     if (typeCat !== "Fun") throw new TypeSysError(
       `Fun expects a function type\n\n${funT}\n\ninterpreted as ${typeCat} received\n`
@@ -129,7 +129,7 @@ const handleFun = (fname, nf, funT, [argT, ...argTs], bindings) => {
         if (isFunT(type)) unifyTypeVars(fname, nf, n, funT, splitFunType(type), splitFunType(args[n] [$type]), bindings);
       });
 
-      try {arityC(arity) (types.map(type => defineContract(catType(type), type, bindings))) (args)}
+      try {arityC(arity) (types.map(type => defineContract(parseType(type), type, bindings))) (args)}
 
       catch (e) {
         if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
@@ -180,7 +180,7 @@ const handleFun = (fname, nf, funT, [argT, ...argTs], bindings) => {
 
       if (argTs.length === 1) {
         const r = f(...args),
-         c = defineContract(catType(argTs[0]), argTs[0], bindings);
+         c = defineContract(parseType(argTs[0]), argTs[0], bindings);
 
         try {c(r)}
 
@@ -314,9 +314,6 @@ const roundBrackets = {"(": ")"};
 const squareBrackets = {"[": "]"};
 
 
-//const compareTypes = x => y => 
-
-
 // monoMap see @ section XX. DERIVED
 
 
@@ -401,7 +398,7 @@ const ulAtArg = ulAtArgOff(0, 0);
 // internal
 // String -> String
 
-const catType = s => {
+const parseType = s => {
   const aux = (n, stack, cache, type) => {
     const c = s[n],
      end = n === s.length - 1,
@@ -412,11 +409,11 @@ const catType = s => {
 
     if (c === undefined) {
       if (stackLen > 0) throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\n"${stackLast}" bracket missing\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\n"${stackLast}" bracket missing\n`
       );
 
       if (type === "") throw new TypeSysError(
-        `catType received the unknown type\n\n${s}\n`
+        `parseType received the unknown type\n\n${s}\n`
       );
 
       return type;
@@ -427,7 +424,7 @@ const catType = s => {
         if (!isLetter(next)) {
           if (isLC(c)) {
             if (next === "(") throw new TypeSysError(
-              `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nconstructor name expected\n`
+              `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nconstructor name expected\n`
             );
 
             if (n === 0) type = "Poly";
@@ -438,11 +435,11 @@ const catType = s => {
 
         else {
           if (isLC(c)) throw new TypeSysError(
-            `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\n"${c.toUpperCase()}" expected\n`
+            `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\n"${c.toUpperCase()}" expected\n`
           );
 
           if (prev !== "" && prev !== " " && prev !== "." && !(prev in openBrackets)) throw new TypeSysError(
-            `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal letter\n`
+            `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal letter\n`
           );
 
           if (n === 0) type = "Mono";
@@ -453,13 +450,13 @@ const catType = s => {
     else if (c in openBrackets) {
       if (c === "(") {
         if (prev !== "" && prev !== " " && !(prev in openBrackets) && !isLetter(prev)) throw new TypeSysError(
-          `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal bracket\n`
+          `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal bracket\n`
         );
       }
 
       else {
         if (prev !== "" && prev !== " " && !(prev in openBrackets)) throw new TypeSysError(
-          `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal bracket\n`
+          `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal bracket\n`
         );
       }
 
@@ -478,7 +475,7 @@ const catType = s => {
 
     else if (c in closedBrackets) {
       if (stackLen === 0) throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nunexpected "${c}" bracket\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nunexpected "${c}" bracket\n`
       );
 
       else if (stackLen === 1 && stackLast === ")" && cache.arg !== "") {
@@ -487,11 +484,11 @@ const catType = s => {
       }
 
       if (c !== stackLast) throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\n"${stackLast}" bracket expected\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\n"${stackLast}" bracket expected\n`
       );
 
       if (!isLetter(prev) && !(prev in closedBrackets)) throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal bracket\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal bracket\n`
       );
 
       return aux(n + 1, stack.slice(0, -1), cache, type);
@@ -499,11 +496,11 @@ const catType = s => {
 
     else if (c === ",") {
       if (stackLen === 0) throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal type enumeration\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal type enumeration\n`
       );
 
       if (prev.search(/[a-z\]})]/i) === -1) throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal ","\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal ","\n`
       );
 
       if (stackLen === 1) {
@@ -515,13 +512,13 @@ const catType = s => {
     else if (c === " ") {
       if (stackLast === ")") {
         if (prev === c) throw new TypeSysError(
-          `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal " "\n`
+          `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal " "\n`
         );
       }
 
       else {
         if (prev !== "," && prev !== ">" && prev !== ":" && next !== "-") throw new TypeSysError(
-          `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal " "\n`
+          `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal " "\n`
         );
       }
 
@@ -530,27 +527,27 @@ const catType = s => {
         || (prev === ":" && next === ":")
         || (prev === "," && next === ":")
         || (prev === ":" && next === ",")) throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n - 1, 3)}\n\nillegal char sequence\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n - 1, 3)}\n\nillegal char sequence\n`
       );
     }
 
     else if (c === "-") {
       if (prev !== " ") throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nmissing " "\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nmissing " "\n`
       );
 
       if (next !== ">") throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal char\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal char\n`
       );
     }
 
     else if (c === ">") {
       if (prev !== "-") throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal char\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal char\n`
       );
 
       if (next !== " ") throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nmissig " "\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nmissig " "\n`
       );
 
       if (stackLen === 0) type = "Fun";
@@ -562,15 +559,15 @@ const catType = s => {
 
     else if (c === ":") {
       if (stackLen === 0 || stackLast !== "}")  throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal char\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal char\n`
       );
 
       if (!isLetter(prev)) throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal char\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal char\n`
       );
 
       if (next !== " ") throw new TypeSysError(
-        `catType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nmissing " "\n`
+        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nmissing " "\n`
       );
 
       if (stackLen === 1 && stackLast === "}" && type !== "Fun") type = "Rec";
@@ -581,19 +578,19 @@ const catType = s => {
 
       if (cache.dots === ".") {
         if (!(prev === "" || prev === " ")) throw new TypeSysError(
-          `catType received an invalid type\n\n${s}\n${ul(n - 1, 1)}\n\nillegal char\n`
+          `parseType received an invalid type\n\n${s}\n${ul(n - 1, 1)}\n\nillegal char\n`
         );
       }
 
       else if (cache.dots === "..") {
         if (next !== ".") throw new TypeSysError(
-          `catType received an invalid type\n\n${s}\n${ul(n - 1, 2)}\n\nmissing "."\n`
+          `parseType received an invalid type\n\n${s}\n${ul(n - 1, 2)}\n\nmissing "."\n`
         );
       }
 
       else if (cache.dots === "...") {
         if (!isLetter(next)) throw new TypeSysError(
-          `catType received an invalid type\n\n${s}\n${ul(n - 2, 3)}\n\nillegal variadic notation\n`
+          `parseType received an invalid type\n\n${s}\n${ul(n - 2, 3)}\n\nillegal variadic notation\n`
         );
 
         else cache.dots = "";
@@ -611,56 +608,56 @@ const catType = s => {
 // internal
 // String -> Boolean
 
-const isArrT = s => catType(s) === "Arr";
+const isArrT = s => parseType(s) === "Arr";
 
 
 // is tuple type (rev 1)
 // internal
 // String -> Boolean
 
-const isTupT = s => catType(s) === "Tup";
+const isTupT = s => parseType(s) === "Tup";
 
 
 // is dictionary type (rev 1)
 // internal
 // String -> Boolean
 
-const isDictT = s => catType(s) === "Dict";
+const isDictT = s => parseType(s) === "Dict";
 
 
 // is record type (rev 1)
 // internal
 // String -> Boolean
 
-const isRecT = s => catType(s) === "Rec";
+const isRecT = s => parseType(s) === "Rec";
 
 
 // is constrcutor type (rev 1)
 // internal
 // String -> Boolean
 
-const isConsT = s => catType(s) === "Cons";
+const isConsT = s => parseType(s) === "Cons";
 
 
 // is function type (rev 1)
 // internal
 // String -> Boolean
 
-const isFunT = s => catType(s) === "Fun";
+const isFunT = s => parseType(s) === "Fun";
 
 
 // is function argument type (rev 1)
 // internal
 // String -> Boolean
 
-const isFunArgT = s => catType(s) === "FunArg";
+const isFunArgT = s => parseType(s) === "FunArg";
 
 
 // is multi argument type (rev 1)
 // internal
 // String -> Boolean
 
-const isMultiArgT = s => catType(s) === "MultiArg";
+const isMultiArgT = s => parseType(s) === "MultiArg";
 
 
 // is polymorphic type (rev 1)
@@ -845,7 +842,7 @@ const splitFunType = type => {
 // String -> {types: [String], arity: PositiveNumber}
 
 const parseArgType = argT => {
-  const typeCat = catType(argT);
+  const typeCat = parseType(argT);
   let types;
 
   switch (typeCat) {
@@ -885,7 +882,7 @@ const defineContract = (typeCat, type, bindings) => {
 
     case "Poly": return anyC(bindings) (type);
     case "Fun": return funC;
-    case "Arr": return A(type_ => arrOfC(defineContract(catType(type_), type_, bindings))) (decompArraype(type));
+    case "Arr": return A(type_ => arrOfC(defineContract(parseType(type_), type_, bindings))) (decompArraype(type));
     //case "Tup": return tupOfC;
     //case "Dict": return dictOfC;
     //case "Rec": return recOfC;
@@ -906,8 +903,8 @@ const defineContract = (typeCat, type, bindings) => {
 const unifyTypeVars = (fname, nf, n, funT, refTs, actualTs, bindings) => {
   const aux = (refTs, actualTs) => {
     refTs.forEach(((refT, m) => {
-      const refTypeCat = catType(refT),
-       actualTypeCat = catType(actualTs[m]),
+      const refTypeCat = parseType(refT),
+       actualTypeCat = parseType(actualTs[m]),
        actualT = actualTs[m];
 
       if (refTs.length !== actualTs.length) throw new TypeError(
@@ -1088,7 +1085,7 @@ symC.toString = () => "Symbol";
 
 const refineC = p => c => {
   const refineC2 = x => {
-    const typeCat = catType(type);
+    const typeCat = parseType(type);
 
     if (typeCat === "Poly") throw new TypeSysError(
       `refineC received a purely-polymorphic contract\n\n(a -> Boolean) -> (a -> a) -> a -> a\n${ul(19, 6)}\n\n that is forbidden in this context\n`
@@ -1830,9 +1827,9 @@ numStrR.toString = () => "numeralString";
 // polymorphic for all array-like types
 // PositiveFiniteInteger -> Object -> [Object -> Array]
 
-const lenR = n => {
-  const lenR2 = o => o.length === n ? [] : [lenR(n)];
-  lenR2.toString = () => `length(${n})`;
+const lenR = r => {
+  const lenR2 = o => r(o.length).length === 0 ? [] : [lenR(r)];
+  lenR2.toString = () => `length(${r})`;
   return lenR2;
 };
 
@@ -1840,9 +1837,9 @@ const lenR = n => {
 // size refinement (rev 1)
 // PositiveFiniteInteger -> Object -> [Object -> Array]
 
-const sizeR = n => {
-  const sizeR2 = o => o.size === n ? [] : [sizeR(n)];
-  sizeR2.toString = () => `size(${n})`;
+const sizeR = r => {
+  const sizeR2 = o => r(o.size).length === 0 ? [] : [sizeR(r)];
+  sizeR2.toString = () => `size(${r})`;
   return sizeR2;
 };
 

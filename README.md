@@ -7,6 +7,8 @@ ftor
 
 This library is experimental and still work in progress.
 
+Current task (2017-09-06: I want to extend type annotations by refinement type notations and hence must extend the lexer/parser. Since the entire lexer/parser logic is located within a single, huge function, I need to refactor it first. I will define lexer/parser for each type category, i.e. literal, constructor, mono-, poly- and function types. Afterwards I can just introduce another lexer/parser for refined types. Here is an example annotation for a addition function with a refined type that only accepts positive integers: `Number<int, positive> -> Number<int, positive> -> Number<int, positive>`.
+
 ## What
 
 ftor is a library enabling type-directed, functional programming in Javascript.
