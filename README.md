@@ -37,7 +37,7 @@ Additionally you can explore how monodial, functorial, applicative, monadic and 
 ## Todo (readme)
 
 - [ ] explain type system terminology
-- [ ] refinement types for monomorphic literal and maybe constructor types
+- [ ] refinement types for monomorphic, literal and maybe constructor types
 - [ ] type variables that are bound to literal values lack of refinement types
 - [ ] limited support of subtype polymorphism (e.g. no subtype variants)
 - [ ] nominal and structural typing and why to prefer the latter
