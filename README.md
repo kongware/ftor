@@ -9,7 +9,7 @@ This library is experimental and still work in progress.
 
 **Current task (2017-09-06):**
 
-I want to extend type annotations by refinement type notations and hence must extend the lexer/parser. Since the entire lexer/parser logic is located within a single, huge function, I need to refactor it first. I will define lexer/parser for each type category, i.e. literal, constructor, mono-, poly- and function types. Afterwards I can just introduce another lexer/parser for refined types. Here is an example annotation for a addition function with a refined type that only accepts positive integers: `Number<int, positive> -> Number<int, positive> -> Number<int, positive>`.
+I want to extend type annotations by refinement type notations and hence must extend the lexer/parser. Since the entire lexer/parser logic is located within a single, huge function, I need to refactor it first. I will define lexer/parser for each type category, i.e. literal, constructor, mono-, poly- and function types. Afterwards I can just introduce another lexer/parser for refined types. Here is an example annotation for a simple addition function with a refined type that only accepts positive integers: `Number<int, positive> -> Number<int, positive> -> Number<int, positive>`.
 
 ## What
 
@@ -36,19 +36,23 @@ Additionally you can explore how monodial, functorial, applicative, monadic and 
 
 ## Todo (readme)
 
-- [ ] run-time type systems can have predicative types (explicit type refinements)
-- [ ] limited support of subtype polymorphism (prototyping) and no support of type variants at all
+- [ ] explain type system terminology
+- [ ] refinement types for monomorphic literal and maybe constructor types
+- [ ] type variables that are bound to literal values lack of refinement types
+- [ ] limited support of subtype polymorphism (e.g. no subtype variants)
 - [ ] nominal and structural typing and why to prefer the latter
 - [ ] bounded polymorphism without the prototype system
 - [ ] typed functions and data types are enforced in most cases
 - [ ] no typed const/let declarations possible
-- [ ] how to avoid establishing dependencies to the type checker
+- [ ] literal values are always as polymorphic as possible
+- [ ] avoid establishing dependencies to the type checker
 - [ ] constructor types, tagged unions and enums
 - [ ] restrict the use of side effects with a special IO type
 - [ ] variadic functions only via rest parameter (not `arguments`)
 - [ ] built-in operators are not type safe
 - [ ] intersection/differ types
-- [ ] how to remedy the deficiencies of Javascript's type system, particularly the primitve types
+- [ ] single tuples/records are invalid
+- [ ] homogenuous tuples/records are invalid
 
 # 1. Type systems
 
