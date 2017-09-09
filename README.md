@@ -271,9 +271,9 @@ Work in progress...
 
 Example:
 
+```JS
 Sum = tag => x => cases => cases(tag) (x);
 
-```JS
 const Option = (some, none) => tag => x => {
   switch (tag) {
     case "Some": return some(x);
