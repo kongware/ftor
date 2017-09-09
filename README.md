@@ -319,12 +319,14 @@ Work in progress...
 
 Work in progress...
 
+```
 Array [a]
 Tuple [a, b]
 Dict {a}
 Record {prop: a}
 Constructor Cons(), Cons(a), Cons(a, b), Cons(a)(b)
 Sum List(a) = Cons :: a -> List(a) -> List(a) | Nil :: List(a)
+```
 
 ## 2.2. ES2015 modules
 
