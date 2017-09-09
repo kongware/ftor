@@ -285,7 +285,7 @@ const Option = (some, none) => tag => x => {
 const Some = Sum("Some");
 const None = Sum("None") ();
 
-const inc = tn => tn(Option(x => x + 1, 0));
+const inc = tn => tn(Option(n => n + 1, 0));
 const map = f => tx => tx(Option(x => Some(f(x)), None));
 const sqr = x => x * x;
 
