@@ -7,13 +7,9 @@ ftor
 
 This library is experimental and still work in progress.
 
-**Current task (2017-09-06):**
-
-I want to extend type annotations by refinement type notations and hence must extend the lexer/parser. Since the entire lexer/parser logic is located within a single, huge function, I need to refactor it first. I will define lexer/parser for each type category, i.e. literal, constructor, mono-, poly- and function types. Afterwards I can just introduce another lexer/parser for refined types. Here is an example annotation for a simple addition function with a refined type that only accepts positive integers: `Number<int, positive> -> Number<int, positive> -> Number<int, positive>`.
-
 ## What
 
-ftor is a library enabling type-directed, functional programming in Javascript.
+ftor is a library enabling ML-like type-directed, functional programming in Javascript.
 
 ## Why
 
@@ -34,65 +30,79 @@ With ftor you develop a good feeling for
 
 Additionally you can explore how monodial, functorial, applicative, monadic and other common structures can be useful in a strictly evaluated, impure language like Javascript.
 
-## Todo (readme)
+## Terminology
 
-- [ ] explain type system terminology
-- [ ] refinement types for monomorphic, literal and maybe constructor types
-- [ ] type variables that are bound to literal values lack of refinement types
-- [ ] limited support of subtype polymorphism (e.g. no subtype variants)
-- [ ] nominal and structural typing and why to prefer the latter
-- [ ] bounded polymorphism without the prototype system
-- [ ] typed functions and data types are enforced in most cases
-- [ ] no typed const/let declarations possible
-- [ ] literal values are always as polymorphic as possible
-- [ ] avoid establishing dependencies to the type checker
-- [ ] constructor types, tagged unions and enums
-- [ ] restrict the use of side effects with a special IO type
-- [ ] variadic functions only via rest parameter (not `arguments`)
-- [ ] built-in operators are not type safe
-- [ ] intersection/differ types
-- [ ] single tuples/records are invalid
-- [ ] homogenuous tuples/records are invalid
+### Pure functions
+
+When I talk about function I usually mean pure functions. A pure function can be replaced by its return value without modifing the behavior of the program.
+
+### Action
+
+An action is an impure function that may or may not return a value and performs side effects, i.e. mainly IO.
+
+### Polymorphism
+
+When I talk about polymorpism I usually mean parametric or bounded polymorphism and not subtyping. A parametric polymorphic function or data type can handle various values identically without depending on their type. Since ftor doesn't support bounded polymorphism, I rarely refer to this concept.
 
 # 1. Type systems
 
-ftor ships with an extended run-time type system that guides your developing and leads to improved productivity and more robust programms. Let's make a short detour to static type systems to get an idea why such a system is useful in the context of untyped languages.
+ftor ships with an extended run-time type system that guides your developing and leads to improved productivity and more robust programms. Please note that strictly speaking, from a type theoretical perspective, there is no such thing as a run-time type system. In this sense ftor is rather a debugging tool.
 
-Please note that strictly speaking, from a type theoretical perspective, there is no such thing as a run-time type system. In this sense ftor is a sort of debugging tool.
+## 1.1. Extended run-time type system
 
-## 1.1. Static type system
+I believe that a strong type system makes it a lot easier to write complex programs. Software designs are very clearly expressed using types, because they provide a high level of abstraction. When a lot of distracting and confusing details are omitted, the mental burden is lowered to comprehend the underlying intention of the author. This is a big win.
 
-What role does a static type system play?
+Instead of a static type checker ftor offers a plugable, run-time type system intended for the development stage, which extends Javascript's dynamic and weak type system with non-trivial features. Since ftor is intended for the development stage, it only maintains a minimal footprint on production systems. It relies heavily on proxy virtualization, that is to say functions and reference types are replaced by proxy objects, which provide the additional behavior.
 
-* it offers a proof at compile time that a large class of errors cannot occur during run time
-* it comes along with certain optimization techniques, which lead to less boilerplate code and improved performance*
-* it provides an abstract and hence succinct way to express your intentions for both, other developers and the machines
-* it constraints the structure of your program to meaningful data structures and efficient algorithms working with them
-* it offers means to mitigate these constraints without losing the type guarantee (polymorphism)
+ftor orients itself torwads the ML language family. That is it prefers structural over nominal typing and has a strong focus on parametric polymorphism and parametricity.
 
-\*  e.g. automatic deriving, type erasure, optimized implementations per type
+## 1.2. Unplugging
 
-## 1.2. Dynamic type system
+To unplug the extended type system in production just set the `TYPE_CHECK` constant to `false`. Beyond that it is important to avoid establishing unintended dependencies to ftor. I will add a corresponding section soon that describes common pitalls.
 
-With Javascript's trivial dynamic type system we lose all these qualities listed above. We can work with any data structure we want and algorithms are inherently "generic", but in an often undesired way. Although this may be a blessing for trivial programs, it is a curse for more complex ones.
-
-Usually one maintains countless unit tests to get a sort of guarantee that a program will run as intended. ftor doesn't intend to replace unit tests, but complement them to achieve a better coding experience.
-
-## 1.3. Extended run-time type system
-
-I believe that a strong type system makes it a lot easier to write complex programs. Software designs are very clearly expressed using types, because they provide a high level of abstraction. When a lot of distracting and confusing details are omitted, the mental burden is lowered to comprehend the intention of the author. For example, when you encounter a function, it is pretty easy to cut down the space of possible code you could write to a very small number of candidates just by looking at its type signature. This is a big win.
-
-Instead of a static type checker ftor offers a plugable, run-time type system for the development stage, which extends Javascript's dynamic type system with non-trivial features. Since ftor is a development tool, it only maintains a minimal footprint on production systems. It relies heavily on proxy virtualization, that is to say functions and composite data types are replaced by their corresponding proxy objects, which handle the additional behavior.
-
-### 1.3.1. Unplugging
-
-To unplug the extended type system in production just set the `TYPE_CHECK` constant to `false`. Beyond that it is important to avoid creating unintended dependencies to ftor. I will add a section on this topic soon, which describes common pitalls.
-
-### 1.3.2. Identity of reference types
+## 1.3. Identity of reference types
 
 As ftor virtualizes functions and object types with proxies, identities change. If your code depends on identity, because you use a `Map` abstract data type with objects as keys for instance, you must take care of not mixing virtualized entities with their normal counterparts.
 
-### 1.3.3. Functional types
+## 1.4. No typing of primitive literal values
+
+ftor cannot type `const`/`let` bindings of promitive literal values, since Javascript's `Proxy` type only can virtualize reference types. Since such bindings are only occasionally used when you program in a function style, this should only lead to a negligible reduction of type safety. In fact, typed functions and data types are enforced in most cases.
+
+## 1.5. Subtype polymorphism
+
+ftor supports subtyping only superficially. For instance, there is no support of subtype variants for function types like co-, contra- or invariants.
+
+## 1.6. Explicit type directories
+
+As far as I know, Javascript prototype system isn't particularly suitable for bounded polymorphism. As a matter of fact ftor doesn't rely on it at all. However, to not make things worse, I refrain from introducing an alternative mechanism like Haskell's type classes. Consequently, you have to pass type dictionaries explicitly around. This is the drawback of not having a suitable mechanism on the language level.
+
+## 1.7. Built-in operators are not type safe
+
+As ftor isn't a static type checker, Javascript's built-in operators are not type safe. Use ftor's function counterparts instead.
+
+## 1.8. Pending design decicions
+
+### 1.8.1. Subclassing for primitive types
+
+It may increase the expressiveness of ftor's type system when subtypes for primitives are introduced, e.g. an `Integer` subtype of `Number`. This wouldn't work 
+
+### 1.8.2. Restrict side effects
+
+It is questionable if ftor should introduce a special `IO` type that wraps side effect by interacting with the real world into a type, since there are no means to restrict the use of IO within this type. Quite the reverse, people can perform implicit side effects literally everywhere, even within an argument list!
+
+### 1.8.3. Refinement types
+
+Since ftor is a run-time type checker, it is much easier to implement refinement types. I still cannot assess their impact on the type system, though.
+
+### 1.8.4. Intersection types
+
+Have seen them at Facebook's flow manpage. Maybe interesting...
+
+### 1.8.5. Recursive types
+
+ftor will support the definition of recursive sum types. Maybe this is also possible for existing literal (product) types like `[]` and `{}`.
+
+## 1.9. Functional types
 
 Functions are virtualized by the `Fun` function:
 
@@ -113,7 +123,7 @@ const sqr = Fun("sqr :: Number -> Number", n => n * n + "");
 sqr(5); // ReturnTypeError
 ```
 
-#### 1.3.3.1. Curried functions
+### 1.9.1. Curried functions
 
 ```JS
 const add = Fun("add :: Number -> Number -> Number", n => m => n + m);
@@ -124,7 +134,7 @@ add(2, 3); // ArityError
 add() (3); // ArityError
 ```
 
-#### 1.3.3.2. Multi-argument functions
+### 1.9.2. Multi-argument functions
 
 ```JS
 const add = Fun("add :: (Number, Number) -> Number", (n, m) => n + m);
@@ -135,7 +145,7 @@ add(2, 3, 4); // ArityError
 add(2); // ArityError
 ```
 
-#### 1.3.3.3. Variadic functions
+### 1.9.3. Variadic functions
 
 Since Ecmascript 2015 variadic functions are defined with rest parameters in Javascript:
 
@@ -156,8 +166,9 @@ sum(); // ArityError
 sum(1); // 1
 sum(1, 2, 3, 4, 5); // 15
 ```
+Please note that ftor doesn't support optional arguments and default parameters. Use currying and partial application instead.
 
-#### 1.3.3.4. Parametric polymorphic functions
+### 1.9.4. Polymorphic functions
 
 Please note the section about polymorphism to learn more about this concept.
 
@@ -218,166 +229,102 @@ map(id) ([1, 2, 3]); // TypeError
 
 ftor uses an unification algorithm that is based on simple substitution to achieve this.
 
-#### 1.3.3.5. Generator functions
+### 1.9.5. Generator functions
 
-...
+Work in progress...
 
-### 1.3.4. Primitive types
+## 1.10. Primitive types
 
-...
+Work in progress...
 
-#### 1.3.4.1. Number
+## 1.11. Undefined
 
-...
+Work in progress...
 
-#### 1.3.4.2. String
+## 1.12. Product types
 
-...
+Work in progress...
 
-#### 1.3.4.3. Boolean
+### 1.12.1. Array
 
-...
+Work in progress...
 
-#### 1.3.4.4. Symbol
+### 1.12.2. Dict
 
-...
+Work in progress...
 
-#### 1.3.4.5. Null
+### 1.12.3. Tuple
 
-...
+Work in progress...
 
-#### 1.3.4.6. Undefined
+Tuples must have at least to elements of different types.
 
-...
+### 1.12.4. Record
 
-### 1.3.5. Product types
+Work in progress...
 
-...
+Records must have at least to elements of different types.
 
-#### 1.3.5.1. Array
+## 1.13. Sum types
 
-...
+Work in progress...
 
-#### 1.3.5.2. Dict
+Example:
 
-...
+Sum = tag => x => cases => cases(tag) (x);
 
-#### 1.3.5.3. Tuple
+```JS
+const Option = (some, none) => tag => x => {
+  switch (tag) {
+    case "Some": return some(x);
+    case "None": return none;
+    default: throw new TypeError("invalid case");
+  }
+}
 
-...
+const Some = Sum("Some");
+const None = Sum("None") ();
 
-#### 1.3.5.4. Record
+const inc = tn => tn(Option(x => x + 1, 0));
+const map = f => tx => tx(Option(x => Some(f(x)), None));
+const sqr = x => x * x;
 
-...
+inc(map(sqr) (Some(5))); // 26
+inc(map(sqr) (None)) // 0
+```
 
-### 1.3.6. Constructor types
+## 1.14. Constructor types
 
-...
+Work in progress...
 
-#### 1.3.6.1. Sum types
+### 1.14.1. Abstract data types
 
-...
+Work in progress...
 
-#### 1.3.6.2. Abstract data types
+### 1.14.2. Promises
 
-...
+Work in progress...
 
-#### 1.3.6.3. Promises
+## 1.15. Prototypes
 
-...
+Work in progress...
 
-### 1.3.7. Prototypes
+## 1.16. Iterators/Generators
 
-...
-
-### 1.3.8. Iterators
-
-...
-
-### 1.3.9. Subtypes
-
-...
-
-#### 1.3.9.1. Char
-
-...
-
-#### 1.3.9.2. Integer
-
-...
-
-#### 1.3.9.3. Float
-
-...
-
-#### 1.3.10. Domain specific issues
-
-* lazy type checking leads to deferred throwing
-* limited primitive types jeopardize type safety
-* ftor uses bounded polymorphism without prototypes but explicit dictionery passing
-* ftor relies on tail recursion, which is pretty slow without TCO
-* rest parameters are type safe but optional ones are not
-* there is no single tuple/record
-* there are no tuples/records where all elemments are of the same type
+Work in progress...
 
 # 2. Misc
 
 ## 2.1. Type signature extension
 
-The following type signature extensions are neccesary considering Javascript's dynamic type system. Please note that `?` denotes the lack of a type.
+Work in progress...
 
-Functions:
-
-* `Function` represents an untyped function with unknown arity
-* `() -> ...` represents a nullary function
-
-
-Curried functions:
-
-* `? -> ?` represents an unary function whose argument/return value are of unknown type
-* `? -> ? -> ?` represents a binary function whose arguments/return value are of unknown type
-
-Multi-argument functions:
-
-* `(a, b) -> ...` represents a multi-argument function comprising two arguments of type `a`/`b`
-* `(?, ?) -> ...` represents a multi-argument function comprising two arguments of unknown type
-
-Variadic functions:
-
-* `(a, ...bs) -> ...` represents a variadic function including one mandatory and one rest parameter of type `a`/`bs`
-* `(?, ...?) -> ...` represents a variadic function including one mandatory and one rest parameter of unknown type
-
-Arrays:
-
-* `Array` represents an untyped `Array` that may be homogeneous or heterogeneous
-
-Tuples:
-
-* `[a, b]` represents a pair Tuple of type `a`/`b`
-* `[?, ?]` represents a pair Tuple of unknown type
-* `[a, b, c]` represents a triple Tuple of type `a`/`b`/`c`
-
-Dictionaries and Records:
-
-* `Object` represents an untyped `Object` of any shape
-* `{a}` represents an unordered, homogenous dictionary with key/value-pairs of type `String`/`a`
-* `{prop1: a, prop2: b}` represents an unordered, heterogeneous with two properties `prop1` and `prop2` of type `String`/`a` and `String`/`b`
-* `{prop1: ?, prop2: ?}` represents an unordered, heterogeneous with two properties `prop1` and `prop2` of type `String`/unknown and `String`/unknown
-
-Input/Output and side effects:
-
-* `IO` represents an interaction with the real world (side effects)
-
-Constructor Types:
-
-Constructor types can be either sum types, product types or abstract data types. The final signatures are not defined yet. Here are some examples:
-
-* `Cons` represents a monomorphic constructor type with a nullary type constructor
-* `Cons(a)` represents a polymorphic constructor type with an unary type constructor
-* `Cons(a b)` represents a polymorphic constructor type with a curried binary type constructor
-* `Cons(a,b)` represents a polymorphic constructor type with a (uncurried) binary type constructor
-* `Map(k, v)` represents an ordered Map type with key/value-pairs of type `k`/`v`
-* `Map(?, ?)` represents an ordered Map type with key/value-pairs of unknown type
+Array [a]
+Tuple [a, b]
+Dict {a}
+Record {prop: a}
+Constructor Cons(), Cons(a), Cons(a, b), Cons(a)(b)
+Sum List(a) = Cons :: a -> List(a) -> List(a) | Nil :: List(a)
 
 ## 2.2. ES2015 modules
 
