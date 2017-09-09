@@ -272,7 +272,7 @@ Work in progress...
 Example:
 
 ```JS
-Sum = tag => x => cases => cases(tag) (x);
+const Sum = tag => x => cases => cases(tag) (x);
 
 const Option = (some, none) => tag => x => {
   switch (tag) {
