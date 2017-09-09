@@ -54,7 +54,7 @@ I believe that a strong type system makes it a lot easier to write complex progr
 
 Instead of a static type checker ftor offers a plugable, run-time type system intended for the development stage, which extends Javascript's dynamic and weak type system with non-trivial features. Since ftor is intended for the development stage, it only maintains a minimal footprint on production systems. It relies heavily on proxy virtualization, that is to say functions and reference types are replaced by proxy objects, which provide the additional behavior.
 
-ftor orients itself torwads the ML language family. That is it prefers structural over nominal typing and has a strong focus on parametric polymorphism and parametricity.
+ftor orients itself torwads the ML language family. That is it prefers structural over nominal typing and has a strong focus on function types, parametric polymorphism and polymorphic type unification.
 
 ## 1.2. Unplugging
 
