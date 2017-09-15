@@ -7,6 +7,8 @@ ftor
 
 This library is experimental and still work in progress.
 
+**Note:** I am currently preparing a major update to allow recursive type definitions, sum types and refinement types. This will take some time because things get really complicated...
+
 ## What
 
 ftor is a library enabling ML-like type-directed, functional programming in Javascript.
@@ -54,7 +56,7 @@ I believe that a strong type system makes it a lot easier to write complex progr
 
 Instead of a static type checker ftor offers a plugable, run-time type system intended for the development stage, which extends Javascript's dynamic and weak type system with non-trivial features. Since ftor is intended for the development stage, it only maintains a minimal footprint on production systems. It relies heavily on proxy virtualization, that is to say functions and reference types are replaced by proxy objects, which provide the additional behavior.
 
-ftor orients itself torwads the ML language family. That is it prefers structural over nominal typing and has a strong focus on function types, parametric polymorphism and polymorphic type unification.
+ftor orients itself torwads the ML language family. That is it pursues both nominal and structural typing and has a strong focus on function types, parametric polymorphism and type unification.
 
 ## 1.2. Unplugging
 
@@ -64,17 +66,17 @@ To unplug the extended type system in production just set the `TYPE_CHECK` const
 
 As ftor virtualizes functions and object types with proxies, identities change. If your code depends on identity, because you use a `Map` abstract data type with objects as keys for instance, you must take care of not mixing virtualized entities with their normal counterparts.
 
-## 1.4. No typing of primitive literal values
+## 1.4. No typing of binding declarations
 
-ftor cannot type `const`/`let` bindings of promitive literal values, since Javascript's `Proxy` type only can virtualize reference types. Since such bindings are only occasionally used when you program in a function style, this should only lead to a negligible reduction of type safety. In fact, typed functions and data types are enforced in most cases.
+ftor cannot type `const`/`let` declarations, where the value is represented by a literal like `1`, `"foo"`, `true`, or `{foo: true}`. However, if the value to be bound is provided by the return type of a function/constructor, such declarations are typable. The reason for this limitation is that Javascript's `Proxy` type only can virtualize reference types, i.e. functions. Since literal values are syntactic sugar for the corresponding constructors, they cannot be virtualized.
 
-## 1.5. Subtype polymorphism
+## 1.5. No subtype polymorphism
 
-ftor supports subtyping only superficially. For instance, there is no support of subtype variants for function types like co-, contra- or invariants.
+With parametric and bounded polymorphic functions ftor already has sufficient means to deal with type equivalence. Besides subtyping leads to complex and bloated alorithms to consider all edge cases. Hence I decided that ftor won't support subtyping for now.
 
 ## 1.6. Explicit type directories
 
-As far as I know, Javascript prototype system isn't particularly suitable for bounded polymorphism. As a matter of fact ftor doesn't rely on it at all. However, to not make things worse, I refrain from introducing an alternative mechanism like Haskell's type classes. Consequently, you have to pass type dictionaries explicitly around. This is the drawback of not having a suitable mechanism on the language level.
+As far as I know, Javascript prototype system isn't particularly suitable for bounded polymorphism. As a result ftor doesn't rely on it. However, to not make things worse I refrain from introducing an alternative mechanism like Haskell's type classes. Consequently, you have to pass type dictionaries explicitly around. This is the drawback of not having a suitable mechanism for bounded polymorphism built-in in the language.
 
 ## 1.7. Built-in operators are not type safe
 
@@ -84,7 +86,7 @@ As ftor isn't a static type checker, Javascript's built-in operators are not typ
 
 ### 1.8.1. Subclassing for primitive types
 
-It may increase the expressiveness of ftor's type system when subtypes for primitives are introduced, e.g. an `Integer` subtype of `Number`. This wouldn't work 
+It may increase the expressiveness of ftor's type system when subtypes for primitives are introduced, e.g. an `Integer` subtype of `Number`. So maybe subtyping for primitives provides more advantages than drawbacks.
 
 ### 1.8.2. Restrict side effects
 
@@ -96,11 +98,11 @@ Since ftor is a run-time type checker, it is much easier to implement refinement
 
 ### 1.8.4. Intersection types
 
-Have seen them at Facebook's flow manpage. Maybe interesting...
+Have seen them at Facebook's flow docs. Maybe interesting...
 
 ### 1.8.5. Recursive types
 
-ftor will support the definition of recursive sum types. Maybe this is also possible for existing literal (product) types like `[]` and `{}`.
+ftor will support the definition of recursive types. All composite can be named and hence have a notion of recurtsion.
 
 ## 1.9. Functional types
 
@@ -273,20 +275,21 @@ Example:
 
 ```JS
 const Sum = tag => x => cases => cases(tag) (x);
+const Sum0 = tag => cases => cases(tag);
 
-const Option = (some, none) => tag => x => {
+const Option = (some, none) => tag => {
   switch (tag) {
-    case "Some": return some(x);
+    case "Some": return some;
     case "None": return none;
     default: throw new TypeError("invalid case");
   }
-}
+};
 
 const Some = Sum("Some");
-const None = Sum("None") ();
+const None = Sum0("None");
 
-const inc = tn => tn(Option(n => n + 1, 0));
-const map = f => tx => tx(Option(x => Some(f(x)), None));
+const inc = fn => fn(Option(n => n + 1, 0));
+const map = f => fx => fx(Option(x => Some(f(x)), None));
 const sqr = x => x * x;
 
 inc(map(sqr) (Some(5))); // 26
@@ -318,15 +321,6 @@ Work in progress...
 ## 2.1. Type signature extension
 
 Work in progress...
-
-```
-Array [a]
-Tuple [a, b]
-Dict {a}
-Record {prop: a}
-Constructor Cons(), Cons(a), Cons(a, b), Cons(a)(b)
-Sum List(a) = Cons :: a -> List(a) -> List(a) | Nil :: List(a)
-```
 
 ## 2.2. ES2015 modules
 
