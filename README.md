@@ -40,6 +40,7 @@ At its core ftor consists of a run-time type system with the following features:
 * parametric polymorphism
 * higher kinded types
 * higher rank types (rank-2)
+* recursive types
 * homogeneous arrays, tuples, maps, records
 * and real tagged unions
 
@@ -61,20 +62,80 @@ ftor's type signatures deviate from Haskell's, though. An important difference a
 
 ```Javascript
 // typed function declaration statement
-const listenTo = Fun("(listenTo :: String -> String)", s => s.split("").reverse().join(""));
+const listenTo = Fun(
+  "(listenTo :: String -> String)",
+  s => s.split("").reverse().join("")
+);
+
 listenTo("emerpus evol a"); // "a love supreme"
 
 // typed function declaration expression
-Fun("(String -> String)", s => s.split("").reverse().join(""))
-  ("emerpus evol a"); // "a love supreme"
+Fun(
+  "(String -> String)",
+  s => s.split("").reverse().join("")
+) ("emerpus evol a"); // "a love supreme"
 ```
 
-### First Class Monomorphic Functions
+### Multi-Argument Functions
+
+As usual, you can define multi-argument functions. Please note that arguments are not enclosed by parentheses in the type signature:
 
 ```Javascript
-```
+const add = Fun(
+  "(add :: (Number, Number -> Number)",
+  (n, m) => n + m
+);
 
-### Higher Order Monomorphic Functions
+add(2, 3); // 5
+add(2, true); // throws
+```
+### Variadic Functions
+
+You can define variadic functions using the rest parameter:
 
 ```Javascript
+const sum = Fun(
+  "(sum :: (...Number -> Number)",
+  (...ns) => ns.reduce((acc, n) => acc + n, 0)
+);
+
+sum(); // 0
+sum(1, 2, 3); // 6
+sum(1, "2"); // throws
 ```
+And variadic functions with mandatory arguments as well:
+
+```Javascript
+const sum = Fun(
+  "(sum :: (Number, ...Number -> Number)",
+  (n, ...ns) => ns.reduce((acc, m) => acc + m, n)
+);
+
+sum(); // throws
+sum(1); // 1
+sum(1, 2, 3); // 6
+```
+### Curried Functions
+
+As functional programmers we often prefer defining curried functions with the concise arrow syntax:
+
+```Javascript
+const add = Fun(
+  "(add :: (Number -> Number -> Number)",
+  n => m => n + m
+);
+
+add(2) (3); // 5
+add(2) (true); // throws
+```
+### Higher Order Functions
+
+...
+
+### Polymorphic HOFs
+
+...
+
+### Nullary Functions
+
+...
