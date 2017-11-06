@@ -45,11 +45,9 @@ At its core ftor consists of a run-time type system with the following features:
 
 The type system can be switched on and off at run-time. Ideally, it is activated during the development stage and switched off on the production system.
 
+Since we're still dealing with Javascript ftor pursues a <a href="https://eschew.wordpress.com/2009/08/31/sound-and-complete/">complete and hence unsound evaluation procedure</a>, which is mostly <a href="https://en.wikipedia.org/wiki/Nominal_type_system">nominal typed</a>. It incorporates Javascript's native types in order to allow the creation of idiomatic code. This is of course a tradeoff that is at the expense of type safety.
+
 Unfortunately, there is no way to enable bounded polymorphism within a pluggable run-time type system without an additional compiling step. For the time being ftor will provide bounded polymorphism merely through explict type dictionary passing.
-
-Since we're still dealing with Javascript ftor pursues a <a href="https://eschew.wordpress.com/2009/08/31/sound-and-complete/">complete and hence unsound evaluation procedure</a>, which is mostly <a href="https://en.wikipedia.org/wiki/Nominal_type_system">nominal typed</a>.
-
-ftor incorporates Javascript's native types in order to allow the creation of idiomatic code. This is of course a tradeoff that is at the expense of type safety.
 
 As opposed to _flow_ and _typescript_ ftor doesn't support subtype polymorphism, because it entails high complexity, such as different forms of type variance, e.g. <a href="https://flow.org/blog/2016/10/04/Property-Variance/">property variance</a> and it has irritating properties like <a href="https://brianmckenna.org/blog/row_polymorphism_isnt_subtyping">automatic upcasting</a>. Instead of subtyping ftor offers bounded structural typing, which has similar characteristics.
 

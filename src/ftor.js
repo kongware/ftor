@@ -1,2034 +1,2440 @@
 "use strict";
 
-/******************************************************************************
-*******************************************************************************
-***********************************[ FTOR ]************************************
-*******************************************************************************
-******************************************************************************/
+/*
+
+   ad88                                   
+  d8"      ,d                             
+  88       88                             
+MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,  
+  88       88    a8"     "8a  88P'   "Y8  
+  88       88    8b       d8  88          
+  88       88,   "8a,   ,a8"  88          
+  88       "Y888  `"YbbdP"'   88          
+
+*/                                        
 
 
 /******************************************************************************
 *******************************************************************************
-*******************************[ 1. CONSTANTS ]********************************
+*************************[ 1. GLOBAL STATE/CONSTANTS ]*************************
 *******************************************************************************
 ******************************************************************************/
 
 
-// --[ GENERAL ]---------------------------------------------------------------
+// development mode
+// false by default
+// Boolean
+
+let devMode = false;
 
 
-
-// record min length (rev 1)
-// internal
-// PositiveInteger
-
-const REC_MIN_LEN = 2;
+export const setDevMode = b => devMode = b;
 
 
-// record max length (rev 1)
-// internal
-// PositiveInteger
+// void unit types
+// Set
 
-const REC_MAX_LEN = 8;
+let _void = new Set([undefined, null, NaN]);
 
 
-// symbol prefix (rev 1)
-// internal
-// String
+// symbol prefix
+// Symbol
 
 const SYM_PREFIX = "ftor/";
 
 
-// tuple min length (rev 1)
-// internal
-// PositiveInteger
-
-const TUP_MIN_LEN = 2;
+const TYPE_REP = Symbol.for(`${SYM_PREFIX}typeRep`);
 
 
-// tuple max length (rev 1)
-// internal
-// PositiveInteger
-
-const TUP_MAX_LEN = 8;
-
-
-// type check (rev 1)
-// internal
-// Boolean
-
-const TYPE_CHECK = true;
-
-
-// --[ SYMBOLS ]---------------------------------------------------------------
-
-
-// type (rev 1)
-// internal
-
-const $type = Symbol.for(SYM_PREFIX + "type");
+const TYPE_SIG = Symbol.for(`${SYM_PREFIX}typeSig`);
 
 
 /******************************************************************************
 *******************************************************************************
-*************************[ 2. RUN-TIME TYPE CHECKER ]**************************
+*****************************[ 2. INTROSPECTION ]******************************
 *******************************************************************************
 ******************************************************************************/
 
 
-/******************************************************************************
-********************************[ 2.1. TYPES ]*********************************
-******************************************************************************/
-
-
-// --[ FUNCTION VIRTUALIZATION ]-----------------------------------------------
-
-
-// Function (rev 1)
-// virtualize function
-// (String, Function) -> Function
-
-const Fun = (typeSig, f) => {
-  if (TYPE_CHECK) {
-    if (!isStr(typeSig)) throw new TypeSysError(
-      `Fun expects\n\n(String, Function) -> Function\n${ul(1, 6)}\n\n${introspect(typeSig)} received\n`
-    );
-
-    if (!isFun(f)) throw new TypeSysError(
-      `Fun expects\n\n(String, Function) -> Function\n${ul(9, 8)}\n\n${introspect(typeSig)} received\n`
-    );
-    
-    const [fname, funT] = parseTypeSig(typeSig),
-     typeCat = parseType(funT);
-
-    if (typeCat !== "Fun") throw new TypeSysError(
-      `Fun expects a function type\n\n${funT}\n\ninterpreted as ${typeCat} received\n`
-    );
-
-    const g = new Proxy(f, handleFun(fname, 0, funT, splitFunType(funT), {}));
-    g.toString = Function.prototype.toString.bind(f);
-    return g;
-  }
-
-  return f;
+const getStringTag = x => {
+  const ss = Object.prototype.toString.call(x).split(" ");
+  return last(ss).slice(0, -1);
 };
 
 
-// handle function (rev 1)
-// internal
-// handle apply trap for virtualized function
-// (String, PositiveInteger, String, [String], {Strings}) -> Function
+const introspect = x => {
+  const tag = getStringTag(x),
+    tags = new Set();
 
-const handleFun = (fname, nf, funT, [argT, ...argTs], bindings) => {
-  return {
-    apply: (f, _, args) => {
-      const {types, arity} = parseArgType(argT);
-      if (nf === 0) bindings = {};
+  switch (typeof x) {
+    case "boolean": return tags.add("Boolean");
 
-      types.forEach((type, n) => {
-        if (isFunT(type)) unifyTypeVars(fname, nf, n, funT, splitFunType(type), splitFunType(args[n] [$type]), bindings);
-      });
+    case "function": {
+      if (tag === "Fun") tags.add(x[TYPE_SIG].replace(/\([a-z$_]+ :: /gi, "("));
+      tags.add(tag);
+      return tags.add("Function");
+    }
 
-      try {arityC(arity) (types.map(type => defineContract(parseType(type), type, bindings))) (args)}
+    case "number": {
+      if (Number.isNaN(x)) return tags.add("NaN");
+      if (!Number.isFinite(x)) tags.add("Infinity");
+      return tags.add("Number");
+    }
 
-      catch (e) {
-        if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
-        const o = JSON.parse(e.message);
-        let e_;
+    case "string": return tags.add("String");
+    case "symbol": return tags.add("Symbol");
+    case "undefined": return tags.add("Undefined");
 
-        switch (o.type) {
-          case "n-ary": {
-            e_ = new ArityError(
-              `${fname} expects ${numIndex[o.nominal]} argument(s)\n\n${funT}\n${ulAtCall(funT, nf)}\n\n${numIndex[o.real]} argument(s) received\n`
-            );
+    case "object": {
+      if (x === null) return tags.add("Null");
 
-            break;
+      else {
+        switch (tag) {
+          case "Arr": {
+            tags.add(x[TYPE_SIG]);
+            tags.add(tag);
+            return tags.add("Array");
           }
 
-          case "variadic": {
-            e_ = new ArityError(
-              `${fname} expects at least ${numIndex[o.nominal]} argument(s)\n\n${funT}\n${ulAtCall(funT, nf)}\n\n${numIndex[o.real]} argument(s) received\n`
-            );
-
-            break;
+          case "_Map": {
+            tags.add(x[TYPE_SIG]);
+            tags.add(tag);
+            return tags.add("Map");
           }
 
-          case "type": {
-            e_ = new TypeError(
-              `${fname} expects\n\n${funT}\n${ulAtArgOff(o.offL, o.offR) (funT, nf, o.pos)}\n\n${o.real} received\n`
-            );
-
-            break;
+          case "Rec": {
+            tags.add(x[TYPE_SIG]);
+            tags.add(tag);
+            return tags.add("Object");
           }
 
-          case "binding": {
-            e_ = new TypeError(
-              `${fname} expects bounded type variable "${o.name}" to be of type\n\n${o.nominal}\n\nfor all occurrences in\n\n${funT}\n${ulAtArgOff(o.offL, o.offR) (funT, nf, o.pos)}\n\n${o.real} received\n`
-            );
-
-            break;
+          case "Tup": {
+            tags.add(x[TYPE_SIG]);
+            tags.add(tag);
+            return tags.add("Array");
           }
 
-          default: throw new TypeSysError(
-            `handleFun received invalid error type\n\n${o.type}\n\nat argument validation`
-          );
+          case "Unit": {
+            tags.add(tag);
+            return tags.add("Array");
+          }
+
+          default: {
+            const name = x.constructor && x.constructor.name || "",
+              cat = x[TYPE_SIG] || "";
+
+            if (cat === "Adt") {
+              tags.add(x[TYPE_SIG]);
+              return tags.add(tag);
+            }
+
+            else {
+              if (name !== "") tags.add(name);
+              tags.add(tag);
+              return tags.add("Object");
+            }
+          }
         }
-
-        e_.stack = e.stack;
-        throw e_;
       }
+    }
+  }
+};
 
-      if (argTs.length === 1) {
-        const r = f(...args),
-         c = defineContract(parseType(argTs[0]), argTs[0], bindings);
 
-        try {c(r)}
+const introspect1 = x => introspect(x).entries().next().value[0];
 
-        catch (e) {
-          if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
-          const o = JSON.parse(e.message);
-          let e_;
 
-          switch (o.type) {
-            case "type": {
-              if (!("offL" in o)) o.offL = 0, o.offR = 0;
+const firstIt = ix => ix.entries().next().value[0];
+
+
+/******************************************************************************
+*******************************************************************************
+**************************[ 3. TYPE REPRESENTATIVES ]**************************
+*******************************************************************************
+******************************************************************************/
+
+
+//***[ 3.1. ALGEBRAIC DATA TYPES ]*********************************************
+
+
+const AdtT = (Cons => (tag, fromTo, typeReps) => new Cons(tag, fromTo, typeReps))
+  (class AdtT {
+    constructor(tag, fromTo, typeReps) {
+      this.fromTo = fromTo;
+      this.tag = tag;
+      this.typeReps = typeReps;
+    }
+  });
+
+
+//***[ 3.2. ARRAYS ]***********************************************************
+
+
+const ArrT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
+  (class ArrT {
+    constructor(fromTo, typeReps) {
+      this.fromTo = fromTo;
+      this.tag = "Arr";
+      this.typeReps = typeReps;
+    }
+  });
+
+
+//***[ 3.3. FUNCTIONS ]********************************************************
+
+
+const FunT = (Cons => (name, {isStrict}, fromTo, typeReps) => new Cons(name, isStrict, fromTo, typeReps))
+  (class FunT {
+    constructor(name, isStrict, fromTo, typeReps) {
+      this.name = name;
+      this.isStrict = isStrict;
+      this.fromTo = fromTo;
+      this.tag = "Fun";
+      this.typeReps = typeReps;
+    }
+  });
+
+
+const NoArgT = (Cons => fromTo => new Cons(fromTo))
+  (class NoArgT extends Array {
+    constructor(fromTo) {
+      super();
+      this.fromTo = fromTo;
+    }
+  });
+
+
+const ArgT = (Cons => typeRep => new Cons(typeRep))
+  (class ArgT extends Array {
+    constructor(typeRep) { super(typeRep); }
+  });
+
+
+const RestT = (Cons => typeRep => new Cons(typeRep))
+  (class RestT extends Array {
+    constructor(typeRep) { super(typeRep); }
+  });
+
+
+const ArgsT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
+  (class ArgsT extends Array {
+    constructor(fromTo, typeReps) {
+      if (getStringTag(typeReps) === "Array") super(...typeReps);
+      else super(typeReps);
+      this.fromTo = fromTo;
+    }
+  });
+
+
+const ReturnT = (Cons => typeRep => new Cons(typeRep))
+  (class ReturnT extends Array {
+    constructor(typeRep) { super(typeRep); }
+  });
+
+
+//***[ 3.4. _MAP ]**************************************************************
+
+
+const _MapT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
+  (class _MapT {
+    constructor(fromTo, typeReps) {
+      this.fromTo = fromTo;
+      this.tag = "_Map";
+      this.typeReps = typeReps;
+    }
+  });
+
+
+//***[ 3.5. MONOMORPHIC TYPES ]************************************************
+
+
+const MonoT = (Cons => (fromTo, tag) => new Cons(fromTo, tag))
+  (class MonoT {
+    constructor(fromTo, tag) {
+      this.fromTo = fromTo;
+      this.tag = tag;
+      this.typeReps = [];
+    }
+  });
+
+
+//***[ 3.6. POLYMORPHIC TYPES ]************************************************
+
+
+const PolyT = (Cons => (fromTo, tvar) => new Cons(fromTo, tvar))
+  (class PolyT {
+    constructor(fromTo, tvar) {
+      this.fromTo = fromTo;
+      this.tag = tvar;
+      this.typeReps = [];
+    }
+  });
+
+
+//***[ 3.7. RECORDS ]**********************************************************
+
+
+const RecT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
+  (class RecT {
+    constructor(fromTo, typeReps) {
+      this.fromTo = fromTo;
+      this.tag = "Rec";
+      this.typeReps = typeReps;
+    }
+  });
+
+
+//***[ 3.8. TUPLES ]***********************************************************
+
+
+const TupT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
+  (class TupT {
+    constructor(fromTo, typeReps) {
+      this.fromTo = fromTo;
+      this.tag = "Tup";
+      this.typeReps = typeReps;
+    }
+  });
+
+
+//***[ 3.9. UNIT ]***********************************************************
+
+
+const UnitT = (Cons => fromTo => new Cons(fromTo))
+  (class UnitT {
+    constructor(fromTo) {
+      this.fromTo = fromTo;
+      this.tag = "Unit";
+      this.typeReps = [];
+    }
+  });
+
+
+/******************************************************************************
+*******************************************************************************
+******************************[ 4. SERIALIZING ]*******************************
+*******************************************************************************
+******************************************************************************/
+
+
+const serialize = typeRep => {
+  const {tag, typeReps} = typeRep;
+
+  switch (tag) {
+    case "Arr": return serializeArr(tag, typeReps);
+    case "Fun": return serializeFun(typeRep.name, tag, typeReps);
+    case "_Map": return serializeMap(tag, typeReps);
+    case "Rec": return serializeRec(tag, typeReps);
+    case "Tup": return serializeTup(tag, typeReps);
+    case "Unit": return "[]";
+    
+    default: {
+      if (typeRep.constructor.name === "AdtT") return serializeAdt(tag, typeReps);
+
+      else if (typeReps.length > 0) throw new TypeRepError(
+        "invalid type representative\n\n" +
+        `${typeRep}\n\n` +
+        "invalid mono type\n"
+      );
+
+      else return tag;
+    }
+  }
+};
+
+
+const serializeAdt = (tag, typeReps) => {
+  return `${tag}<`
+    .concat(typeReps
+      .map(typeRep => {
+        if (typeRep.typeReps.length === 0) return typeRep.tag;
+        else return serialize(typeRep);
+      })
+      .join(", ")
+    )
+    .concat(">");
+};
+
+
+const serializeArr = (tag, typeReps) => {
+  return "["
+    .concat(typeReps
+      .map(typeRep => {
+        if (typeRep.typeReps.length === 0) return typeRep.tag;
+        else return serialize(typeRep);
+      })
+      .join("")
+    )
+    .concat("]");
+};
+
+
+const serializeFun = (name, tag, typeReps) => {
+  return "("
+    .concat(name === "" ? "" : `${name} :: `)
+    .concat(typeReps
+      .map(args => {
+        switch (args.constructor.name) {
+          case "NoArgT": return "()";
+
+          case "ArgT":
+          case "ReturnT": {
+            const {tag: t, typeReps: r} = args[0];
+            if (r.length === 0) return t;
+            else return serialize(args[0]);
+          }
+
+          case "RestT": {
+            const {tag: t, typeReps: r} = args[0];
+            if (r.length === 0) return `...${t}`;
+            else return `...${serialize(args[0])}`;
+          }
+
+          case "ArgsT": {
+            return args
+              .map(arg => {
+                switch (arg.constructor.name) {
+                  case "ArgT": {
+                    const {tag: t, typeReps: r} = arg[0];
+                    if (r.length === 0) return t;
+                    else return serialize(arg[0]);
+                  }
+
+                  case "RestT": {
+                    const {tag: t, typeReps: r} = arg[0];
+                    if (r.length === 0) return `...${t}`;
+                    else return `...${serialize(arg[0])}`;
+                  }
+                }
+              })
+              .join(", ");
+          }
+        }
+      })
+      .join(" -> ")
+    )
+    .concat(")");
+};
+
+
+const serializeMap = (tag, typeReps) => {
+  return "{"
+    .concat(typeReps
+      .map(({k, v}) => [k, v]
+        .map(typeRep => {
+          if (typeRep.typeReps.length === 0) return typeRep.tag;
+          else return serialize(typeRep);
+        })
+        .join("::")
+      )
+    )
+    .concat("}");
+};
+
+
+const serializeRec = (tag, typeReps) => {
+  return "{"
+    .concat(typeReps
+      .map(({k, v}) => {
+        if (v.typeReps.length === 0) return `${k}: ${v.tag}`;
+        else return `${k}: ${serialize(v)}`;
+      })
+      .join(", ")
+    )
+    .concat("}");
+};
+
+
+const serializeTup = (tag, typeReps) => {
+  return "["
+    .concat(typeReps
+      .map(typeRep => {
+        if (typeRep.typeReps.length === 0) return typeRep.tag;
+        else return serialize(typeRep);
+      })
+      .join(", ")
+    )
+    .concat("]");
+};
+
+
+/******************************************************************************
+*******************************************************************************
+*****************************[ 4. DESERIALIZING ]******************************
+*******************************************************************************
+******************************************************************************/
+
+
+// don't fear the beast...
+
+const deserialize = typeSig => {
+  const aux = (typeSig, n, state) => {
+    const {depth, context, phase, buf, fromTo, tag, typeReps} = state,
+      c = typeSig[n],
+      next = n + 1 === typeSig.length ? "" : typeSig[n + 1];
+
+    if (c === undefined) _throw(
+      TypeSigError,
+      ["invalid type signature"],
+      typeSig,
+      {fromTo: [n, n], desc: ["unexpected end of signature"]}
+    );
+
+    else if (c.search(/[a-z0-9(\[{<>}\]), \-.:_]/i) !== 0) _throw(
+      TypeSigError,
+      ["invalid type signature"],
+      typeSig,
+      {fromTo: [n, n], desc: ["invalid symbol"]}
+    );
+
+    switch (context) {
+      case "ADT": {
+        switch (phase) {
+          case "TAG": {
+            if (c.search(/[a-z]/i) === 0) {
+              return aux(
+                typeSig, n + 1,
+                {depth, context, phase, buf: buf + c, fromTo, tag, typeReps}
+              );
+            }
+
+            else {
+              return aux(
+                typeSig, n + 1,
+                {depth: depth + 1, context, phase: "TYPE_REP", buf: "", fromTo, tag: buf, typeReps}
+              );
+            }
+          }
+
+          case "TYPE_REP": {
+            if (c === ",") {
+              if (typeReps.length === 0) _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n, n], desc: ["unexpected symbol"]}
+              );
+
+              else if (next === " ") {
+                return aux(
+                  typeSig, n + 2,
+                  {depth, context, phase, buf, fromTo, tag, typeReps}
+                );
+              }
               
-              e_ = new ReturnTypeError(
-                `${fname} must return\n\n${funT}\n${ulAtCallOff(o.offL, o.offR) (funT, nf + 1)}\n\n${o.real} returned\n`
+              else _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n + 1, n + 1], desc: [`symbol " " expected`]}
               );
-
-              break;
             }
 
-            case "binding": {
-              if (!("offL" in o)) o.offL = 0, o.offR = 0;
-
-              e_ = new ReturnTypeError(
-              `${fname} expects bounded type variable "${o.name}" to be of type\n\n${o.nominal}\n\nfor all occurrences in\n\n${funT}\n${ulAtCallOff(o.offL, o.offR) (funT, nf + 1)}\n\n${o.real} received\n`
-              );
-
-              break;
+            else if (c === ">") {
+              return [AdtT(tag, fromTo, typeReps), n + 1, depth - 1];
             }
 
-            default: throw new TypeSysError(
-              `handleFun received invalid error type\n\n${o.type}\n\nat return value validation\n`
+            else {
+              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+
+              const [typeRep, m] = aux(
+                typeSig, n,
+                {depth, context: c_, phase: p, buf: b, fromTo: [n], tag: "", typeReps: []}
+              );
+              
+              return aux(
+                typeSig, m,
+                {depth, context, phase, buf: "", fromTo: [fromTo[0], m], tag, typeReps: typeReps.concat(typeRep)}
+              );
+            }
+          }
+        }
+      }
+
+      case "ARR": {
+        switch (phase) {
+          case "OUTER": {
+            return aux(
+              typeSig, n + 1,
+              {depth: depth + 1, context, phase: "INNER", buf, fromTo, tag: "Arr", typeReps}
             );
           }
 
-          e_.stack = e.stack;
-          throw e_;
-        }
+          case "INNER": {
+            if (c === ",") {
+              if (typeReps.length === 0) _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n, n], desc: ["unexpected symbol"]}
+              );
 
-        return r;
-      }
+              else if (next === " ") {
+                return aux(
+                  typeSig, n + 2,
+                  {depth, context, phase, buf, fromTo, tag: "Tup", typeReps}
+                );
+              }
+              
+              else _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n + 1, n + 1], desc: [`symbol " " expected`]}
+              );
+            }
 
-      const r = new Proxy(f(...args), handleFun(fname, nf + 1, funT, argTs, bindings));
+            else if (c === "]") {
+              if (tag === "Arr") return [ArrT(fromTo, typeReps), n + 1, depth - 1];
+              else return [TupT(fromTo, typeReps), n + 1, depth - 1];
+            }
 
-      r.toString = Function.prototype.toString.bind(f);
-      return r;
-    },
+            else {
+              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
 
-    has: (o, k, _) => {
-      switch (k) {
-        case $type: return true;
-        default: return k in o;
-      }
-    },
-
-    get: (o, k, _) => {
-      switch (k) {
-        case $type: return funT;
-        case "bindings": return bindings;
-        case "name": return fname;
-        case Symbol.toPrimitive: return o[k];
-        case "toString": return o[k];
-        
-        default: {
-          if (!(k in o)) throw new TypeError(
-            `${fname} received an invalid get operation for\n\n${k}\n\nunknown property\n`
-          );
-
-          return o[k];
-        };
-      }
-    },
-
-    set: (o, k, v, _) => {
-      switch (k) {
-        case "toString": return o[k] = v, true;
-        case "bindings": return bindings = v, true;
-
-        default: {
-          throw new TypeError(
-            `${fname} received an invalid set operation for\n\n${k}\n\nwith the value\n\n${v}\n\nfunction objects are immutable`
-          );
+              const [typeRep, m] = aux(
+                typeSig, n,
+                {depth, context: c_, phase: p, buf: b, fromTo: [n], tag: "", typeReps: []}
+              );
+              
+              return aux(
+                typeSig, m,
+                {depth, context, phase, buf: "", fromTo: [fromTo[0], m], tag, typeReps: typeReps.concat(typeRep)}
+              );
+            }
+          }
         }
       }
+
+      case "FUN": {
+        const name = state.name || "";
+
+        switch (phase) {
+          case "OUTER": {
+            return aux(
+              typeSig, n + 1,
+              {depth: depth + 1, context, phase: "LOOK_AHEAD", buf, name: "", fromTo, tag: "Fun", typeReps}
+            );
+          }
+
+          case "LOOK_AHEAD": {
+            const phase_ = lookAheadFun(typeSig.slice(n));
+
+            if (phase_ === "ARGS") return aux(
+              typeSig, n,
+              {depth, context, phase: phase_, buf, name, fromTo, tag, typeReps: typeReps.concat([ArgsT([n], [])])}
+            );
+
+            else return aux(
+              typeSig, n,
+              {depth, context, phase: phase_, buf, name, fromTo, tag, typeReps}
+            );
+          }
+
+          case "NAME": {
+            if (c.search(/[a-z]/i) === 0) return aux(
+              typeSig, n + 1,
+              {depth, context, phase, buf: buf + c, name, fromTo, tag, typeReps}
+            );
+
+            else if (c === " " && typeSig.slice(n, n + 4) === " :: ") return aux(
+              typeSig, n + 4,
+              {depth, context, phase: "LOOK_AHEAD", buf: "", name: buf, fromTo, tag, typeReps}
+            );
+
+            else if (c === ":") {
+              if (next === " ") return aux(
+                typeSig, n + 1,
+                {depth, context, phase, buf, name, fromTo, tag, typeReps}
+              );
+
+              else return aux(
+                typeSig, n + 1,
+                {depth, context, phase, buf, name, fromTo, tag, typeReps}
+              );
+            }
+
+          }
+
+          case "NO_ARG": {
+            return aux(
+              typeSig, n + 2,
+              {depth, context, phase: "ARROW", buf, name, fromTo: [n, n + 1], tag, typeReps: typeReps.concat([NoArgT([n, n + 1])])}
+            );
+          }
+
+          case "ARG": {
+            const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+
+            const [typeRep, m] = aux(
+              typeSig, n,
+              {depth, context: c_, phase: p, buf: b, name, fromTo: [n], tag: "", typeReps: []}
+            );
+            
+            return aux(
+              typeSig, m,
+              {depth, context, phase: "ARROW", buf: "", name, fromTo: [fromTo[0], m], tag, typeReps: typeReps.concat([ArgT(typeRep)])}
+            );
+          }
+
+          case "REST": {
+            if (c === ".") {
+              if (next === "." && typeSig[n + 2] === ".") return aux(
+                typeSig, n + 3,
+                {depth, context, phase, buf, name, fromTo, tag, typeReps}
+              );
+
+              else _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n, n], desc: ["unexpected symbol"]}
+              );
+            }
+
+            else {
+              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+
+              const [typeRep, m] = aux(
+                typeSig, n,
+                {depth, context: c_, phase: p, buf: b, name, fromTo: [n], tag: "", typeReps: []}
+              );
+              
+              return aux(
+                typeSig, m,
+                {depth, context, phase: "ARROW", buf: "", name, fromTo: [fromTo[0], m], tag, typeReps: typeReps.concat([RestT(typeRep)])}
+              );
+            }
+          }
+
+          case "ARGS": {
+            if (c === ",") {
+              if (last(typeReps).length === 0) _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n, n], desc: ["unexpected symbol"]}
+              );
+
+              else if (next === " ") {
+                return aux(
+                  typeSig, n + 2,
+                  {depth, context, phase, buf, name, fromTo, tag, typeReps}
+                );
+              }
+              
+              else _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n + 1, n + 1], desc: [`symbol " " expected`]}
+              );
+            }
+
+            else if (c === " ") {
+              last(typeReps).fromTo.push(n - 1);
+
+              return aux(
+                typeSig, n,
+                {depth, context, phase: "ARROW", buf, name, fromTo, tag, typeReps}
+              );
+            }
+
+            else if (c === ".") return aux(
+              typeSig, n,
+              {depth, context, phase: "ARGS_REST", buf, name, fromTo, tag, typeReps}
+            );
+
+            else {
+              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+
+              const [typeRep, m] = aux(
+                typeSig, n,
+                {depth, context: c_, phase: p, buf: b, name, fromTo: [n], tag: "", typeReps: []}
+              );
+              
+              last(typeReps).push(ArgT(typeRep));
+
+              return aux(
+                typeSig, m,
+                {depth, context, phase, buf: "", name, fromTo: [fromTo[0], m], tag, typeReps}
+              );
+            }
+          }
+
+          case "ARGS_REST": {
+            if (c === ".") {
+              if (next === "." && typeSig[n + 2] === ".") return aux(
+                typeSig, n + 3,
+                {depth, context, phase, buf, name, fromTo, tag, typeReps}
+              );
+
+              else _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n, n], desc: ["unexpected symbol"]}
+              );
+            }
+
+            else if (c === ",") _throw(
+              TypeSigError,
+              ["invalid type signature"],
+              typeSig,
+              {fromTo: [n, n], desc: ["rest parameter must be the last formal one"]}
+            );
+
+            else if (c === " ") {
+              last(typeReps).fromTo.push(n - 1);
+
+              return aux(
+                typeSig, n,
+                {depth, context, phase: "ARROW", buf, name, fromTo, tag, typeReps}
+              );
+            }
+
+            else {
+              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+
+              const [typeRep, m] = aux(
+                typeSig, n,
+                {depth, context: c_, phase: p, buf: b, name, fromTo: [n], tag: "", typeReps: []}
+              );
+              
+              last(typeReps).push(RestT(typeRep));
+
+              return aux(
+                typeSig, m,
+                {depth, context, phase, buf: "", name, fromTo: [fromTo[0], m], tag, typeReps}
+              );
+            }
+          }
+
+          case "RETURN": {
+            if (c === ")") {
+              if (next === ")") _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [fromTo[0], n], desc: ["unnecessary parenthesis"]}
+              );
+
+              else if (last(typeReps)[0].constructor.name === "PolyT") {
+                if (typeSig[n - 1].search(/[2]/) === 0) _throw(
+                  TypeSigError,
+                  ["invalid type signature"],
+                  typeSig,
+                  {fromTo: [n - 2, n - 1], desc: ["return value must be rank-1 polymorphic"]}
+                );
+
+                else return [FunT(name, {isStrict: false}, fromTo, typeReps), n + 1, depth - 1];
+              }
+  
+              else return [FunT(name, {isStrict: true}, fromTo, typeReps), n + 1, depth - 1];
+            }
+
+            else {
+              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+
+              const [typeRep, m] = aux(
+                typeSig, n,
+                {depth, context: c_, phase: p, buf: b, name, fromTo: [n], tag: "", typeReps: []}
+              );
+
+              return aux(
+                typeSig, m,
+                {depth, context, phase, buf: "", name, fromTo: [fromTo[0], m], tag, typeReps: typeReps.concat([ReturnT(typeRep)])}
+              );
+            }
+          }
+
+          case "ARROW": {
+            if (c === " ") {
+              if (typeSig.slice(n, n + 4) === " -> ") return aux(
+                typeSig, n + 4,
+                {depth, context, phase: "LOOK_AHEAD", buf: "", name, fromTo, tag, typeReps}
+              );
+
+              else _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n, n], desc: [`token " -> " expected`]}
+              );
+            }
+
+            else _throw(
+              TypeSigError,
+              ["invalid type signature"],
+              typeSig,
+              {fromTo: [n, n], desc: ["unexpected symbol"]}
+            );
+          }
+        }
+      }
+
+      case "_MAP": {
+        switch (phase) {
+          case "OUTER": {
+            return aux(
+              typeSig, n + 1,
+              {depth: depth + 1, context, phase: "KEY", buf, fromTo, tag: "_Map", typeReps}
+            );
+          }
+
+          case "KEY": {
+            const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+
+            const [typeRep, m] = aux(
+              typeSig, n,
+              {depth, context: c_, phase: p, buf: b, fromTo: [n], tag: "", typeReps: []}
+            );
+
+            return aux(
+              typeSig, m + 2,
+              {depth, context, phase: "VALUE", buf: "", fromTo: fromTo.concat(m), tag, typeReps: typeReps.concat({k: typeRep, v: null})}
+            );
+          }
+
+          case "VALUE": {
+            if (c === "}") {
+              return [_MapT(fromTo, typeReps), n + 1, depth - 1];
+            }
+
+            else {
+              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+
+              const [typeRep, m] = aux(
+                typeSig, n,
+                {depth, context: c_, phase: p, buf: b, fromTo: [n], tag: "", typeReps: []}
+              );
+              
+              typeReps[0].v = typeRep;
+
+              return aux(
+                typeSig, m,
+                {depth, context, phase, buf: "", fromTo: [fromTo[0], m], tag, typeReps}
+              );
+            }
+          }
+        }
+      }
+
+      case "MONO": {
+        switch (phase) {
+          case "UC": {
+            if (next === "") return [MonoT(fromTo.concat(n), c), n + 1, depth];
+
+            else return aux(
+              typeSig, n + 1,
+              {depth, context, phase: "LETTER", buf: buf + c, fromTo, tag, typeReps}
+            );
+          }
+
+          case "LETTER": {
+            if (c.search(/[a-z]/i) === 0) {
+              if (next === "") return [MonoT(fromTo.concat(n), buf + c), n + 1, depth]
+
+              else return aux(
+                typeSig, n + 1,
+                {depth, context, phase, buf: buf + c, fromTo, tag, typeReps}
+              );
+            }
+            
+            else if (c.search(/[)\]}>, :]/) === 0) {
+              return [MonoT(fromTo.concat(n - 1), buf), n, depth];
+            }
+
+            else _throw(
+              TypeSigError,
+              ["invalid type signature"],
+              typeSig,
+              {fromTo: [n, n], desc: ["unexpected symbol"]}
+            );
+          }
+        }
+      }
+
+      case "POLY": {
+        switch (phase) {
+          case "LETTER": {
+            if (next === "") return [PolyT(fromTo.concat(n), c), n + 1, depth];
+
+            else return aux(
+              typeSig, n + 1,
+              {depth, context, phase: "NUMBER", buf: buf + c, fromTo, tag, typeReps}
+            );
+          }
+
+          case "NUMBER": {
+            if (c.search(/[2]/) === 0) {
+              if (next === "") return [PolyT(fromTo.concat(n), buf + c), n + 1, depth]
+              
+              else return aux(
+                typeSig, n + 1,
+                {depth, context, phase: "END", buf: buf + c, fromTo, tag, typeReps}
+              );
+            }
+
+            else if (c.search(/[)\]}>, :]/) === 0) {
+              return [PolyT(fromTo.concat(n - 1), buf), n, depth];
+            }
+
+            else _throw(
+              TypeSigError,
+              ["invalid type signature"],
+              typeSig,
+              {fromTo: [n, n], desc: ["unexpected symbol (type variable context)"]}
+            );
+          }
+
+          case "END": {
+            if (c.search(/[)\]}>, :]/) === 0) {
+              return [PolyT(fromTo.concat(n - 1), buf), n, depth];
+            }
+
+            else _throw(
+              TypeSigError,
+              ["invalid type signature"],
+              typeSig,
+              {fromTo: [n, n], desc: ["unexpected symbol"]}
+            );
+          }
+        }
+      }
+
+      case "REC": {
+        switch (phase) {
+          case "OUTER": {
+            return aux(
+              typeSig, n + 1,
+              {depth: depth + 1, context, phase: "KEY", buf, fromTo, tag: "Rec", typeReps}
+            );
+          }
+
+          case "KEY": {
+            if (c.search(/[a-z0-9_]/i) === 0) return aux(
+              typeSig, n + 1,
+              {depth, context, phase, buf: buf + c, fromTo, tag, typeReps}
+            );
+
+            else if (c === ":") {
+              if (buf === "") _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n, n], desc: ["unexpected symbol"]}
+              );
+
+              else if (next === " ") {
+                return aux(
+                  typeSig, n + 2,
+                  {depth, context, phase: "VALUE", buf: "", fromTo, tag, typeReps: typeReps.concat({k: buf, v: null})}
+                );
+              }
+              
+              else _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n + 1, n + 1], desc: [`symbol " " expected`]}
+              );
+            }
+
+            else _throw(
+              TypeSigError,
+              ["invalid type signature"],
+              typeSig,
+              {fromTo: [n, n], desc: ["unexpected symbol"]}
+            );
+          }
+
+          case "VALUE": {
+            if (c === ",") {
+              if (typeReps.length === 0) _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n, n], desc: ["unexpected symbol"]}
+              );
+
+              else if (next === " ") {
+                return aux(
+                  typeSig, n + 2,
+                  {depth, context, phase: "KEY", buf, fromTo, tag, typeReps}
+                );
+              }
+              
+              else _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n + 1, n + 1], desc: [`symbol " " expected`]}
+              );
+            }
+
+            else if (c === "}") {
+              return [RecT(fromTo, typeReps), n + 1, depth - 1];
+            }
+
+            else {
+              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+
+              const [typeRep, m] = aux(
+                typeSig, n,
+                {depth, context: c_, phase: p, buf: b, fromTo: [n], tag: "", typeReps: []}
+              );
+              
+              last(typeReps).v = typeRep;
+
+              return aux(
+                typeSig, m,
+                {depth, context, phase, buf: "", fromTo: [fromTo[0], m], tag, typeReps}
+              );
+            }
+          }
+        }
+      }
+
+      case "UNIT": return [UnitT([n, n + 1]), n + 2, depth];
     }
   };
+
+  const {context, phase, buf} = getContext(typeSig, 0);
+
+  const [typeRep, n, depth] = aux(
+    typeSig, 0,
+    {depth: 0, context, phase, buf, fromTo: [0], tag: "", typeReps: []}
+  );
+
+  if (depth === 0 && typeSig.length !== n) _throw(
+    TypeSigError,
+    ["invalid type signature"],
+    typeSig,
+    {fromTo: [n, typeSig.length - 1], desc: ["unexpected symbol(s)"]}
+  );
+
+  else return typeRep;
 };
 
 
-// --[ AUXILLIARY HELPER ]-----------------------------------------------------
+const getContext = (typeSig, n) => {
+  const c = typeSig[n],
+    s = typeSig.slice(n);
 
+  // Adt
 
-// arity index (rev 1)
-// internal
-// {{f: ? -> ?, s: String}}
-
-const arityIdx = ["nullary", "unary", "binary", "ternary", "4-ary", "5-ary"];
-
-
-// openBrackets (rev 1)
-// internal
-// {String}
-
-const openBrackets = {"[": "]", "{": "}", "(": ")"};
-
-
-// openBrackets inverted (rev 1)
-// internal
-// {String}
-
-const closedBrackets = {"]": "[", "}": "{", ")": "("};
-
-
-// curly openBrackets (rev 1)
-// internal
-// {String}
-
-const curlyBrackets = {"{": "}"};
-
-
-// round openBrackets (rev 1)
-// internal
-// {String}
-
-const roundBrackets = {"(": ")"};
-
-
-// square openBrackets (rev 1)
-// internal
-// {String}
-
-const squareBrackets = {"[": "]"};
-
-
-// monoMap see @ section XX. DERIVED
-
-
-// number index (rev 1)
-// internal
-// [String]
-
-const numIndex = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
-
-
-// ordinal index (rev 1)
-// internal
-// [String]
-
-const ordIndex = ["0th", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"];
-
-
-// underline (rev 1)
-// internal
-// (PositiveInteger, PositiveInteger) -> String
-
-const ul = (n, m) => Array(n + 1).join(" ") + Array(m + 1).join("^");
-
-
-// underline at call with offset (rev 1)
-// internal
-// (Integer, Integer) -> (String, PositiveInteger) -> String
-
-const ulAtCallOff = (offL, offR) => (s, n) => splitFunType(s).reduce((acc, t, n_) => {
-  if (n_ < n) return acc + ul(t.length + 4, 0);
-
-  else if (n_ === n) {
-    if (t[0] === "(") return acc + ul(1 + offL, t.length - 1 + offR - offL);
-    else return acc + ul(0 + offL, t.length + offR - offL);
+  if (s.search(/^[A-Z]{1,}[a-z]*</) === 0) {
+    return {context: "ADT", phase: "TAG", buf: ""};
   }
-  
-  else return acc;
-}, "");
+
+  // Arr / Tup / Unit
+
+  if (c === "[") {
+    if (typeSig[n + 1] === "]") return {context: "UNIT", phase: "", buf: ""};
+    else return {context: "ARR", phase: "OUTER", buf: ""};
+  }
+
+  // Fun
+
+  if (c === "(") {
+    if (typeSig[n + 1] === ")") return {context: "FUN", phase: "NO_ARG", buf: ""};
+    else return {context: "FUN", phase: "OUTER", buf: ""};
+  }
+
+  // _Map
+
+  if (s.search(/\{.+::/) === 0
+  && lookAheadMap(typeSig.slice(n + 1))) {
+    return {context: "_MAP", phase: "OUTER", buf: ""};
+  }
+
+  // Rec
+
+  if (s.search(/\{[a-z0-9_]+: /i) === 0) {
+    return {context: "REC", phase: "OUTER", buf: ""};
+  }
+
+  // Mono
+
+  if (c.search(/[A-Z]/) === 0) {
+    return {context: "MONO", phase: "UC", buf: ""};
+  }
+
+  // Poly
+
+  if (c.search(/[a-z]/) === 0) {
+    return {context: "POLY", phase: "LETTER", buf: ""};
+  }
+
+  // Error
+
+  _throw(
+    TypeSigError,
+    ["invalid type signature"],
+    typeSig,
+    {fromTo: [n, n], desc: ["unexpected symbol"]}
+  );
+};
 
 
-// underline at call (rev 1)
-// internal
-// (String, PositiveInteger) -> String
+const lookAheadMap = (typeSig) => {
+  const aux = (n, {context}) => {
+    const c = typeSig[n],
+      next = typeSig[n + 1] || "",
+      top = last(context);
 
-const ulAtCall = ulAtCallOff(0, 0);
-
-
-// underline at argument with offset (rev 1)
-// internal
-// (Integer, Integer) -> (String, PositiveInteger, PositiveInteger) -> String
-
-const ulAtArgOff = (offL, offR) => (s, n, m) => splitFunType(s).reduce((acc, t, n_) => {
-  if (n_ < n) return acc + ul(t.length + 4, 0);
-  
-  else if (n_ === n) return t.split(", ").reduce((acc_, t_, m_) => {
-    if (m_ < m) return acc_ + ul(t_.length + 2, 0);
-
-    else if (m_ === m) {
-      if (t_[0] === "(") return acc_ + ul(1 + offL, t_.length - 1 + offR - offL);
-      else if (t_[t_.length - 1] === ")") return acc_ + ul(0 + offL, t_.length - 1 + offR - offL);
-      else return acc_ + ul(0 + offL, t_.length + offR - offL);
-    }
-    
-    else return acc_;
-  }, acc);
-  
-  else return acc;
-}, "");
-
-
-// underline at argument (rev 1)
-// internal
-// (String, PositiveInteger, PositiveInteger) -> String
-
-const ulAtArg = ulAtArgOff(0, 0);
-
-
-// --[ PARSING / BINDING / UNIFICATION]----------------------------------------
-
-
-// categorize type (rev 1)
-// internal
-// String -> String
-
-const parseType = s => {
-  const aux = (n, stack, cache, type) => {
-    const c = s[n],
-     end = n === s.length - 1,
-     prev = n === 0 ? "" : s[n - 1],
-     next = end ? "" : s[n + 1],
-     stackLen = stack.length,
-     stackLast = stackLen === 0 ? "" : stack[stackLen - 1];
-
-    if (c === undefined) {
-      if (stackLen > 0) throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\n"${stackLast}" bracket missing\n`
-      );
-
-      if (type === "") throw new TypeSysError(
-        `parseType received the unknown type\n\n${s}\n`
-      );
-
-      return type;
-    }
-
-    else if (isLetter(c)) {
-      if (!isLetter(prev)) {
-        if (!isLetter(next)) {
-          if (isLC(c)) {
-            if (next === "(") throw new TypeSysError(
-              `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nconstructor name expected\n`
-            );
-
-            if (n === 0) type = "Poly";
-          }
-
-          else if (n === 0) type = "Mono";
-        }
-
-        else {
-          if (isLC(c)) throw new TypeSysError(
-            `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\n"${c.toUpperCase()}" expected\n`
-          );
-
-          if (prev !== "" && prev !== " " && prev !== "." && !(prev in openBrackets)) throw new TypeSysError(
-            `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal letter\n`
-          );
-
-          if (n === 0) type = "Mono";
-        }
-      }
-    }
-
-    else if (c in openBrackets) {
-      if (c === "(") {
-        if (prev !== "" && prev !== " " && !(prev in openBrackets) && !isLetter(prev)) throw new TypeSysError(
-          `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal bracket\n`
-        );
-      }
-
-      else {
-        if (prev !== "" && prev !== " " && !(prev in openBrackets)) throw new TypeSysError(
-          `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal bracket\n`
-        );
-      }
-
-      if (stackLen === 0) {
-        if (c === "[" && type !== "Fun") type = "Arr"
-        else if (c === "{" && type !== "Fun") type = "Dict"
-
-        else if (c === "(" && type !== "Fun") {
-          if (isLetter(prev)) type = "Cons";
-          else type = "MultiArg";
-        }
-      }
-
-      return aux(n + 1, stack.concat(openBrackets[c]), cache, type);
-    }
-
-    else if (c in closedBrackets) {
-      if (stackLen === 0) throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nunexpected "${c}" bracket\n`
-      );
-
-      else if (stackLen === 1 && stackLast === ")" && cache.arg !== "") {
-        type = cache.arg;
-        cache.arg = "";
-      }
-
-      if (c !== stackLast) throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\n"${stackLast}" bracket expected\n`
-      );
-
-      if (!isLetter(prev) && !(prev in closedBrackets)) throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal bracket\n`
-      );
-
-      return aux(n + 1, stack.slice(0, -1), cache, type);
-    }
+    if (c === undefined) return false;
+    else if (c === "<") return aux(n + 1, {context: context.concat(">")});
+    else if (c === "[") return aux(n + 1, {context: context.concat("]")});
+    else if (c === "(") return aux(n + 1, {context: context.concat(")")});
+    else if (c === "{") return aux(n + 1, {context: context.concat("}")});
+    else if (c === top) return aux(n + 1, {context: context.slice(0, -1)});
 
     else if (c === ",") {
-      if (stackLen === 0) throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal type enumeration\n`
-      );
-
-      if (prev.search(/[a-z\]})]/i) === -1) throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal ","\n`
-      );
-
-      if (stackLen === 1) {
-        if (stackLast === ")") cache.arg = "MultiArg";
-        else if (stackLast === "]" && type !== "Fun") type = "Tup";
-      }
-    }
-
-    else if (c === " ") {
-      if (stackLast === ")") {
-        if (prev === c) throw new TypeSysError(
-          `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal " "\n`
-        );
-      }
-
-      else {
-        if (prev !== "," && prev !== ">" && prev !== ":" && next !== "-") throw new TypeSysError(
-          `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal " "\n`
-        );
-      }
-
-      if ((prev === ">" && next === "-")
-        || (prev === "," && next === ",")
-        || (prev === ":" && next === ":")
-        || (prev === "," && next === ":")
-        || (prev === ":" && next === ",")) throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n - 1, 3)}\n\nillegal char sequence\n`
-      );
+      if (context.length === 0) return false;
+      else return aux(n + 1, {context});
     }
 
     else if (c === "-") {
-      if (prev !== " ") throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nmissing " "\n`
-      );
-
-      if (next !== ">") throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal char\n`
-      );
-    }
-
-    else if (c === ">") {
-      if (prev !== "-") throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal char\n`
-      );
-
-      if (next !== " ") throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nmissig " "\n`
-      );
-
-      if (stackLen === 0) type = "Fun";
-
-      else if (stackLen === 1) {
-        if (stackLast === ")" && cache.arg === "") cache.arg = "FunArg";
-      }
+      if (next === ">" && context.length === 0) return false;
+      else return aux(n + 1, {context});
     }
 
     else if (c === ":") {
-      if (stackLen === 0 || stackLast !== "}")  throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal char\n`
-      );
-
-      if (!isLetter(prev)) throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nillegal char\n`
-      );
-
-      if (next !== " ") throw new TypeSysError(
-        `parseType received an invalid type\n\n${s}\n${ul(n, 1)}\n\nmissing " "\n`
-      );
-
-      if (stackLen === 1 && stackLast === "}" && type !== "Fun") type = "Rec";
+      if (next === ":" && context.length === 0) return true;
+      else return aux(n + 1, {context});
     }
 
-    else if (c === ".") {
-      cache.dots += c;
-
-      if (cache.dots === ".") {
-        if (!(prev === "" || prev === " ")) throw new TypeSysError(
-          `parseType received an invalid type\n\n${s}\n${ul(n - 1, 1)}\n\nillegal char\n`
-        );
-      }
-
-      else if (cache.dots === "..") {
-        if (next !== ".") throw new TypeSysError(
-          `parseType received an invalid type\n\n${s}\n${ul(n - 1, 2)}\n\nmissing "."\n`
-        );
-      }
-
-      else if (cache.dots === "...") {
-        if (!isLetter(next)) throw new TypeSysError(
-          `parseType received an invalid type\n\n${s}\n${ul(n - 2, 3)}\n\nillegal variadic notation\n`
-        );
-
-        else cache.dots = "";
-      }
-    }
-
-    return aux(n + 1, stack, cache, type);
+    else return aux(n + 1, {context});
   };
 
-  return aux(0, [], {dots: "", arg: ""}, "");
+  return aux(0, {context: []})
 };
 
 
-// is array type (rev 1)
-// internal
-// String -> Boolean
-
-const isArrT = s => parseType(s) === "Arr";
-
-
-// is tuple type (rev 1)
-// internal
-// String -> Boolean
-
-const isTupT = s => parseType(s) === "Tup";
-
-
-// is dictionary type (rev 1)
-// internal
-// String -> Boolean
-
-const isDictT = s => parseType(s) === "Dict";
-
-
-// is record type (rev 1)
-// internal
-// String -> Boolean
-
-const isRecT = s => parseType(s) === "Rec";
-
-
-// is constrcutor type (rev 1)
-// internal
-// String -> Boolean
-
-const isConsT = s => parseType(s) === "Cons";
-
-
-// is function type (rev 1)
-// internal
-// String -> Boolean
-
-const isFunT = s => parseType(s) === "Fun";
-
-
-// is function argument type (rev 1)
-// internal
-// String -> Boolean
-
-const isFunArgT = s => parseType(s) === "FunArg";
-
-
-// is multi argument type (rev 1)
-// internal
-// String -> Boolean
-
-const isMultiArgT = s => parseType(s) === "MultiArg";
-
-
-// is polymorphic type (rev 1)
-// internal
-// Char -> Boolean
-
-const isPolyT = c => c.search(/^(?:...)?[a-z]$/) !== -1;
-
-
-// is monomorphic type (rev 1)
-// internal
-// String -> Boolean
-
-const isMonoT = s => s.search(/^(?:...)?[A-Z][a-z]*$/) !== -1;
-
-
-// is composite type (rev 1)
-// internal
-// String -> Boolean
-
-const isCompositeT = type => !(type === "Poly" || type === "Mono" || type === "Fun");
-
-
-// parse type signature (rev 1)
-// internal
-// String -> [String]
-
-const parseTypeSig = s => {
-  if (!s.includes("::")) throw new TypeSysError(
-    `parseTypeSig received an invalid type\n\n${s}\n${ul(0, 1)}\n\nname component "name :: " missing\n`
-  );
-  
-  if (s.search(/^[a-z]+ :: [^ ]/i) === -1) throw new TypeSysError(
-    `parseTypeSig received an invalid type\n\n${s}\n${ul(0, s.indexOf("::") + 2)}\n\ninvalid name component\n`
-  );
-
-  return s.split(" :: ");
-};
-
-
-// decompose type (rev 1)
-// internal
-// (String, String) -> String
-
-const decomposeType = (type, typeCat) => {
-  switch (typeCat) {
-    case "Arr": return decompArraype(type);
-    case "Tup": return decompTupType(type);
-    case "Dict": return decompDictType(type);
-    case "FunArg": return decompFunArgType(type);
-    case "MultiArg": return decompMultiArgType(type);
-    case "Rec": return decompRecType(type);
-    case "Cons": return decompConsType(type);
-    case "Fun":
-    case "Poly":
-    case "Mono": return type;
-
-    default: throw new TypeSysError(
-      `decomposeType received the unknown type\n\n${type}\n\ncategorized as ${typeCat}\n`
-    );
-  }
-};
-
-
-// decompose array type (rev 1)
-// internal
-// String -> String
-
-const decompArraype = s => s.slice(1, -1);
-
-
-// decompose tuple type (rev 1)
-// internal
-// String -> String
-
-const decompTupType = s => s.slice(1, -1);
-
-
-// decompose dictionary type (rev 1)
-// internal
-// String -> String
-
-const decompDictType = s => s.slice(1, -1);
-
-
-// decompose funcation argument type (rev 1)
-// internal
-// String -> String
-
-const decompFunArgType = s => s.slice(1, -1);
-
-
-// decompose multi argument type (rev 1)
-// internal
-// String -> String
-
-const decompMultiArgType = s => s.slice(1, -1);
-
-
-// decompose record type (rev 1)
-// internal
-// String -> String
-
-const decompRecType = s => s.slice(1, -1).replace(/[a-z]+: /gi, "");
-
-
-// decompose constructor type (rev 1)
-// internal
-// String -> String
-
-const decompConsType = s => s.slice(s.indexOf("(") + 1, -1);
-
-
-// split type enumeration (rev 1)
-// internal
-// String -> [String]
-
-const splitTypeEnum = type => {
-  const aux = (n, acc, stack) => {
-    const c = type[n],
-     prev = n === 0 ? "" : type[n - 1],
-     next = n === type.length - 1 ? "" : type[n + 1];
-
-    if (c === undefined) return acc;
+const lookAheadFun = typeSig => {
+  const aux = (n, {context}) => {
+    const c = typeSig[n],
+      next = typeSig[n + 1] || "",
+      top = last(context);
+
+    if (c === undefined) return false;
+    else if (c === "<") return aux(n + 1, {context: context.concat(">")});
+    else if (c === "[") return aux(n + 1, {context: context.concat("]")});
+    else if (c === "(") return aux(n + 1, {context: context.concat(")")});
+    else if (c === "{") return aux(n + 1, {context: context.concat("}")});
+    else if (c === top) return aux(n + 1, {context: context.slice(0, -1)});
+
+    else if (c === " ") {
+      if (context.length === 0) {
+        if (next === ":") return "NAME";
+        else if (typeSig[0] === "." ) return "REST";
+        else if (typeSig[1] === ")") return "NO_ARG";
+        else return "ARG";
+      }
+
+      else return aux(n + 1, {context});
+    }
 
     else if (c === ",") {
-      if (stack.length === 0) return aux(n + 2, acc.concat(""), stack);
-    }
-    
-    else if (c === " ") {
-      if (stack.length === 1 && stack[stack.length - 1] === ")") {
-        if (prev !== ">" && next !== "-") return aux(n + 1, acc.concat(""), stack);
-      }
+      if (context.length === 0) return "ARGS";
+      else return aux(n + 1, {context});
     }
 
-    else acc[acc.length - 1] += c;
+    else if (c === ")") {
+      if (context.length === 0) return "RETURN";
+      else return aux(n + 1, {context});
+    }
 
-    if (c in openBrackets) return aux(n + 1, acc, stack.concat(c));
-    else if (c === openBrackets[stack[stack.length - 1]]) return aux(n + 1, acc, stack.slice(0, -1));
-    else return aux(n + 1, acc, stack);
+    else return aux(n + 1, {context});
   };
 
-  return aux(0, [""], []);
+  return aux(0, {context: []})
 };
-
-
-// split function type (rev 1)
-// internal
-// String -> [String]
-
-const splitFunType = type => {
-  const aux = (n, acc, stack) => {
-    const c = type[n],
-     next = n === type.length - 1 ? "" : type[n + 1];
-
-    if (c === undefined) {
-      if (acc.length < 2) throw new TypeSysError(
-        `splitFunType received a non-functional type\n\n${type}\n`
-      );
-
-      else return acc;
-    }
-
-    else if (c === " " && next === "-") {
-      if (stack.length === 0) return aux(n + 4, acc.concat(""), stack);
-      else acc[acc.length - 1] += c;
-    }
-    
-    else acc[acc.length - 1] += c;
-
-    if (c in openBrackets) return aux(n + 1, acc, stack.concat(c));
-    else if (c === openBrackets[stack[stack.length - 1]]) return aux(n + 1, acc, stack.slice(0, -1));
-    else return aux(n + 1, acc, stack);
-  };
-
-  return aux(0, [""], []);
-};
-
-
-// parse argument type (rev 1)
-// internal
-// String -> {types: [String], arity: PositiveNumber}
-
-const parseArgType = argT => {
-  const typeCat = parseType(argT);
-  let types;
-
-  switch (typeCat) {
-    case "FunArg": types = [decompFunArgType(argT)]; break;
-    case "MultiArg": types = splitTypeEnum(decompMultiArgType(argT)); break;
-    default: types = [argT];
-  }
-
-  return types.reduce((acc, type, n, ref) => {
-    if (n === ref.length - 1) {
-      if (type.indexOf("...") === 0) return {types: acc.types.concat(type.slice(3)), arity: Infinity};
-      else return {types: acc.types.concat(type), arity: ref.length};
-    }
-
-    else if (type.indexOf("...") === 0) throw new TypeSysError(
-      `parseArgType received the invalid argument type\n\n${s}\n${ul(0, 3)}\n\nunexpected variadic notation`
-    );
-
-    else return acc.types.push(type), acc;
-  }, {types: [], arity: null});
-};
-
-
-// define contract (rev 1)
-// internal
-// (String, String, {String}) -> Function
-
-const defineContract = (typeCat, type, bindings) => {
-  switch (typeCat) {
-    case "Mono": {
-      if (type in monoMap) return monoMap[type];
-
-      else throw new TypeSysError(
-        `defineContract received the unknown monomorphic type\n\n${type}\n`
-      );
-    }
-
-    case "Poly": return anyC(bindings) (type);
-    case "Fun": return funC;
-    case "Arr": return A(type_ => arrOfC(defineContract(parseType(type_), type_, bindings))) (decompArraype(type));
-    //case "Tup": return tupOfC;
-    //case "Dict": return dictOfC;
-    //case "Rec": return recOfC;
-    //case "Cons": return consOfC;
-
-    default: throw new TypeSysError(
-      `defineContract received the unknown type\n\n${typeCat}\n`
-    );
-  }
-};
-
-
-// unify type variables (rev 1)
-// internal
-// performs a side effect by mutating bindings
-// (String, PositiveInteger, PositiveInteger, String, [String], [String], {String} => Undefined
-
-const unifyTypeVars = (fname, nf, n, funT, refTs, actualTs, bindings) => {
-  const aux = (refTs, actualTs) => {
-    refTs.forEach(((refT, m) => {
-      const refTypeCat = parseType(refT),
-       actualTypeCat = parseType(actualTs[m]),
-       actualT = actualTs[m];
-
-      if (refTs.length !== actualTs.length) throw new TypeError(
-        `${fname} expects\n\n${funT}\n${ulAtArg(funT, nf, n)}\n\n${actualTs.join(" => ")} received\n`
-      );
-
-      if (refTypeCat !== "Poly" && refTypeCat !== actualTypeCat) throw new TypeError(
-        `${fname} expects\n\n${funT}\n${ulAtArg(funT, nf, n)}\n\n${actualTs.join(" => ")} received\n`
-      );
-
-      switch (refTypeCat) {
-        case "Mono": break;
-        case "Poly": bindings[refT] = actualT; break;
-        case "Fun": aux(splitFunType(refT), splitFunType(actualT)); break;
-        default: aux(splitTypeEnum(decomposeType(refT, refTypeCat)), splitTypeEnum(decomposeType(actualT, actualTypeCat)));
-      }
-    }));
-  };
-
-  aux(refTs, actualTs);
-};
-
-
-// --[ ARITY CONTRACTS ]-------------------------------------------------------
-
-
-// arity contract (rev 1)
-// internal
-// TODO: uncurry
-// Number -> [a -> a] -> Array -> Array
-
-const arityC = n => cs => {
-  const arityC2 = args => {
-    if (isFinite_) {
-      if (args.length !== n) throw new Error(JSON.stringify({type: "n-ary", nominal: n, real: args.length}));
-    }
-
-    else if (cs.length > 1 && args.length < cs.length - 1) {
-      throw new Error(JSON.stringify({type: "variadic", nominal: cs.length - 1, real: args.length}));
-    }
-
-    args.forEach((x, m) => {
-      try {m < cs.length ? cs[m] (x) : cs[cs.length - 1] (x)}
-
-      catch (e) {
-        if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
-        const o = JSON.parse(e.message);
-        let e_;
-
-        if (isFinite_) o.pos = m;
-        
-        else {
-          if (cs.length > 1) {
-            if (m < cs.length - 1) o.pos = m;
-            else o.pos = cs.length - 1;
-          }
-        
-          else o.pos = 0;
-        }
-        
-        if (!("offL" in o)) o.offL = 0;
-        if (!("offR" in o)) o.offR = 0;
-        e_ = new Error(JSON.stringify(o));
-        e_.stack = e.stack;
-        throw e_;
-      }
-    });
-
-    return args;
-  };
-
-  const isFinite_ = isFinite(n);
   
-  arityC2.toString = () => {
-    if (isFinite_) {
-      if (cs.length === 0) return`()`;
-      else if (cs.length === 1) return `${cs[0]}`;
-      else return`(${cs.join(", ")})`;
-    }
+
+/******************************************************************************
+*******************************************************************************
+***********************[ 5. UNIFICTAION / SUBSUMPTION ]************************
+*******************************************************************************
+******************************************************************************/
+
+
+const unify = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
+  switch (nominalT.constructor.name) {
+    case "AdtT": return unifyAdt(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
+    case "ArrT": return unifyArr(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
+    case "FunT": return unifyFun(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
+    case "_MapT": return unifyMap(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
+    case "MonoT": return unifyMono(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
+    case "PolyT": return unifyPoly(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
+    case "RecT": return unifyRec(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
+    case "TupT": return unifyTup(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
+  }
+};
+
+
+const unifyAdt = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
+  return nominalT.typeReps
+    .reduce((bindings_, xT) => {
+      const nominalT_ = xT[0],
+        nominalS_ = serialize(nominalT_),
+        realT_ = realT.typeReps[n][0],
+        realS_ = serialize(realT_);
+
+      return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings_);
+    }, bindings);
+};
+
+
+const unifyArr = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
+  return nominalT.typeReps
+    .reduce((bindings_, xT) => {
+      const nominalT_ = xT[0],
+        nominalS_ = serialize(nominalT_),
+        realT_ = realT.typeReps[n][0],
+        realS_ = serialize(realT_);
+
+      return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings_);
+    }, bindings);
+};
+
+
+// TODO: implement rank-2 polymirphism
+// TODO: consider subtype relations between polymorphic functions
+
+const unifyFun = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
+  return nominalT.typeReps
+    .reduce((bindings_, xT, n) => {
+      switch (xT.constructor.name) {
+        case "ArgT":
+        case "RestT":
+        case "ReturnT": {
+          const nominalT_ = xT[0],
+            nominalS_ = serialize(nominalT_),
+            realT_ = realT.typeReps[n][0],
+            realS_ = serialize(realT_);
+
+          if (nominalT_.constructor.name === "ReturnT"
+          && realT_.constructor.name !== "ReturnT") {
+            if (nominalT.isStrict) _throw(
+              ReturnTypeError,
+              [`${name} has strict arity`],
+              typeSig,
+              {fromTo: [0, 0], desc: [`received function argument ${realS}`, `must not abstract over it`]}
+            );
+          }
+
+          return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings_);
+        }
+
+        case "ArgsT": {
+          return xT.reduce((bindings__, yT, m) => {
+            const nominalT_ = yT[0],
+              nominalS_ = serialize(nominalT_),
+              realT_ = realT.typeReps[n][m][0],
+              realS_ = serialize(realT_);
+
+            return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings__);
+          }, bindings_);
+        }
+      }
+    }, bindings);
+};
+
+
+const unifyMap = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
+  return nominalT.typeReps
+    .reduce((bindings_, xT) => {
+      const {k: nominalKeyT, v: nominalValT} = xT[0],
+        nominalKeyS = serialize(nominalKeyT),
+        nominalValS = serialize(nominalValT),
+        realKeyT = realT.typeReps[n][0].k,
+        realValT = realT.typeReps[n][0].v,
+        realKeyS = serialize(realKeyT),
+        realValS = serialize(realValT);
+
+      bindings_ = unify(x, realKeyT, realKeyS, nominalKeyT, nominalKeyS, cons, name, typeSig, bindings_);
+      return unify(x, realValT, realValS, nominalValT, nominalValS, cons, name, typeSig, bindings_);
+    }, bindings);
+};
+
+
+const unifyPoly = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
+  bindings.forEach((v, k) => {
+    if (v === nominalS) bindings.set(k, realS);
+  });
+
+  if (bindings.has(nominalS)) {
+    if (bindings.get(nominalS) === realS) return bindings;
 
     else {
-      if (cs.length === 1) return `...${cs[0]}`;
-      else return `(${cs.slice(0, -1).join(", ")}, ...${cs[cs.length - 1]})`;
-    }
-  };
+      const [from, to] = nominalT.fromTo;
 
-  return arityC2;
-};
-
-
-// nullaryC see @ section XX. DERIVED
-
-
-// unaryC see @ section XX. DERIVED
-
-
-// binaryC see @ section XX. DERIVED
-
-
-// ternaryC see @ section XX. DERIVED
-
-
-// _4aryC see @ section XX. DERIVED
-
-
-// _5aryC see @ section XX. DERIVED
-
-
-// variadicC see @ section XX. DERIVED
-
-
-// --[ MONOMORPHIC CONTRACTS ]-------------------------------------------------
-
-
-// boolean contract (rev 1)
-// internal
-// Boolean -> Boolean
-
-const booC = b => {
-  if (isBoo(b)) return b;
-  throw new Error(JSON.stringify({type: "type", nominal: "Boolean", real: introspect(b)}));
-};
-
-booC.toString = () => "Boolean";
-
-
-// null contract (rev 1)
-// internal
-// Null -> Null
-
-const nullC = n => {
-  if (isNull(n)) return n;
-  throw new Error(JSON.stringify({type: "type", nominal: "Null", real: introspect(n)}));
-};
-
-nullC.toString = () => "Null";
-
-
-// number contract (rev 1)
-// internal
-// Number -> Number
-
-const numC = n => {
-  if (isNum(n)) return n;
-  throw new Error(JSON.stringify({type: "type", nominal: "Number", real: introspect(n)}));
-};
-
-numC.toString = () => "Number";
-
-
-// string contract (rev 1)
-// internal
-// String -> String
-
-const strC = s => {
-  if (isStr(s)) return s;
-  throw new Error(JSON.stringify({type: "type", nominal: "String", real: introspect(s)}));
-};
-
-strC.toString = () => "String";
-
-
-// symbol contract (rev 1)
-// internal
-// Symbol -> Symbol
-
-const symC = s => {
-  if (isSym(s)) return s;
-  throw new Error(JSON.stringify({type: "type", nominal: "Symbol", real: introspect(s)}));
-};
-
-symC.toString = () => "Symbol";
-
-
-// refine contract (rev 1)
-// internal
-// (a -> [a]) -> (a -> a) -> a -> a
-
-const refineC = p => c => {
-  const refineC2 = x => {
-    const typeCat = parseType(type);
-
-    if (typeCat === "Poly") throw new TypeSysError(
-      `refineC received a purely-polymorphic contract\n\n(a -> Boolean) -> (a -> a) -> a -> a\n${ul(19, 6)}\n\n that is forbidden in this context\n`
-    );
-
-    else if (typeCat === "Fun") throw new TypeSysError(
-      `refineC received a function contract\n\n(a -> Boolean) -> (a -> a) -> a -> a\n${ul(19, 6)}\n\n that is forbidden in this context\n`
-    );
-
-    c(x);
-
-    const r = p(x);
-
-    if (r.length > 0) throw new Error(JSON.stringify({type: "rtype", nominal: type, real: type, refinement: r.join(", ")}));
-  }, type = `${c}<${p}>`;
-
-  refineC2.toString = () => type;
-  return refineC2;
-};
-
-
-// --[ POLYMORPHIC CONTRACTS ]-------------------------------------------------
-
-
-// any contract (rev 1)
-// internal
-// {String} -> Char -> a -> a
-
-const anyC = bindings => {
-  const anyC2 = name => {
-    const anyC3 = x => {
-      const type = introspect(x);
-      Object.keys(bindings).forEach(k => bindings[k] = bindings[k].replace(new RegExp(`\\b${name}\\b`, "g"), type));
-
-      if (name in bindings) {
-        if (bindings[name] !== type) throw new Error(
-          JSON.stringify({type: "binding", nominal: bindings[name], real: type, name: name})
+      switch (cons) {
+        case ArgT: _throw(
+          TypeError,
+          [`${name} has bound "${nominalS}" to ${bindings.get(nominalS)}`],
+          typeSig,
+          {fromTo: [from, to], desc: [`${realS} received`]}
         );
 
-        return x;
+        case ReturnT: _throw(
+          ReturnTypeError,
+          [`${name} has bound "${nominalS}" to ${bindings.get(nominalS)}`],
+          typeSig,
+          {fromTo: [from, to], desc: [`${realS} returned`]}
+        );
       }
+    }
+  }
 
-      else return bindings[name] = type, x;
-    };
-
-    anyC3.toString = () => name;
-    return anyC3;
-  };
-
-  return anyC2;
+  else return bindings.set(nominalS, realS);
 };
 
 
-// array contract (rev 1)
-// internal
-// Array -> Array
+const unifyMono = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
+  if (nominalS === realS) return bindings;
 
-const arrC = xs => {
-  if (isArr(xs)) return xs;
-  else throw new Error(JSON.stringify({type: "type", nominal: "Array", real: introspect(xs)}));
+  else {
+    const [from, to] = nominalT.fromTo;
+
+    switch (cons) {
+      case ArgT: _throw(
+        TypeError,
+        [`${name} expects`],
+        typeSig,
+        {fromTo: [from, to], desc: [`${realS} received`]}
+      );
+
+      case ReturnT: _throw(
+        ReturnTypeError,
+        [`${name} must return`],
+        typeSig,
+        {fromTo: [from, to], desc: [`${realS} returned`]}
+      );
+    }
+  }
 };
 
-arrC.toString = () => "Array";
+
+const unifyRec = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
+  return nominalT.typeReps
+    .reduce((bindings_, xT) => {
+      const nominalT_ = xT[0].v,
+        nominalS_ = serialize(nominalT_),
+        realT_ = realT.typeReps[n][0],
+        realS_ = serialize(realT_);
+
+      return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings_);
+    }, bindings);
+};
 
 
-// array of contract (rev 1)
-// internal
-// TODO: add ulAtDiff for errors caused by $type
-// TODO: add $type to xs when missing
-// Function -> [a] -> [a]
+const unifyTup = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
+  return nominalT.typeReps
+    .reduce((bindings_, xT) => {
+      const nominalT_ = xT[0],
+        nominalS_ = serialize(nominalT_),
+        realT_ = realT.typeReps[n][0],
+        realS_ = serialize(realT_);
 
-const arrOfC = c => {
-  const arrOfC2 = xs => {
-    if (!isArr(xs)) throw new Error(
-      JSON.stringify({type: "type", nominal: type, real: introspect(xs)})
+      return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings_);
+    }, bindings);
+};
+
+
+/******************************************************************************
+*******************************************************************************
+******************************[ 6. CUSTOM TYPES ]******************************
+*******************************************************************************
+******************************************************************************/
+
+
+//***[ 6.1. FUNCTIONS ]********************************************************
+
+
+export const Fun = (typeSig, f) => {
+  if (devMode) {
+    if (!introspect(typeSig).has("String")) _throw(
+      TypeError,
+      ["Fun expects"],
+      "(String, Function -> Function)",
+      {fromTo: [1, 6], desc: [`${introspect1(typeSig)} received`]}
     );
 
-    if ($type in xs) {
-      if (xs[$type] === type) return xs;
-      else throw new Error(JSON.stringify({type: "type", nominal: type, real: xs[$type]}));
-    }
-
-    xs.forEach((x, n) => {
-      try {c(x)}
-
-      catch (e) {
-        if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
-        const o = JSON.parse(e.message);
-        let e_;
-
-        o.offL = "offL" in o ? o.offL + 1 : 1;
-        o.offR = "offR" in o ? o.offR - 1 : -1;
-        e_ = new Error(JSON.stringify(o));
-        e_.stack = e.stack;
-        throw e_;
-      }
-    });
-
-    return xs;
-  };
-
-  const type = `[${c}]`;
-  return arrOfC2.toString = () => type, arrOfC2;
-};
-
-arrOfC.toString = () => "[a]";
-
-
-// tuple contract (rev 1)
-// internal
-// Tuple -> Tuple
-
-const tupC = xs => {
-  if (isTup(xs)) return xs;
-  else throw new Error(JSON.stringify({type: "type", nominal: "Tuple", real: introspect(xs)}));
-};
-
-tupC.toString = () => "Tuple";
-
-
-// tuple of contract (rev 1)
-// internal
-// TODO: add ulAtDiff for errors caused by $type
-// [Function] -> Tuple -> Tuple
-
-const tupOfC = cs => {
-  const tupOfC2 = xs => {
-    if (!isArr(xs)) throw new Error(
-      JSON.stringify({type: "type", nominal: type, real: introspect(xs)})
+    else if (!introspect(f).has("Function")) _throw(
+      TypeError,
+      ["Fun expects"],
+      "(String, Function -> Function)",
+      {fromTo: [9, 8], desc: [`${introspect1(f)} received`]}
     );
 
-    if (xs.length <= TUP_MIN_LEN || xs.length >= TUP_MAX_LEN) {
-      throw new Error(JSON.stringify({type: "type", nominal: "Tuple", real: introspect(xs)}));
-    }
-
-    if (cs.length !== xs.length) throw new Error(
-      JSON.stringify({type: "length", nominal: cs.length, real: xs.length})
-    );
-
-    if ($type in xs) {
-      if (xs[$type] === type) return xs;
-      else throw new Error(JSON.stringify({type: "type", nominal: type, real: xs[$type]}));
-    }
-
-    cs.forEach((c, n) => {
-      try {c(xs[n])}
-
-      catch (e) {
-        if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
-        const o = JSON.parse(e.message);
-        let e_;
-
-        o.offL = "offL" in o ? o.offL + 1 : 1;
-        o.offR = "offR" in o ? o.offR - 1 : -1;
-        e_ = new Error(JSON.stringify(o));
-        e_.stack = e.stack;
-        throw e_;
-      }
-    });
-
-    return xs;
-  };
-
-  const type = `(${cs.join(", ")})`;
-  return tupOfC2.toString = () => type, tupOfC2;
-};
-
-tupOfC.toString = () => "Tuple";
-
-
-// object contract (rev 1)
-// internal
-// Object -> Object
-
-const objC = o => {
-  if (isObj(o)) return o;
-  else throw new Error(JSON.stringify({type: "type", nominal: "Object", real: introspect(o)}));
-};
-
-objC.toString = () => "Object";
-
-
-// dict contract (rev 1)
-// internal
-// Dict -> Dict
-
-const dictC = o => {
-  if (isDict(o)) return o;
-  else throw new Error(JSON.stringify({type: "type", nominal: "Dict", real: introspect(o)}));
-};
-
-dictC.toString = () => "Dict";
-
-
-// dict of contract (rev 1)
-// internal
-// TODO: add ulAtDiff for errors caused by $type
-// Function -> {a} -> {a}
-
-const dictOfC = c => {
-  const dictOfC2 = o => {
-    if (!isObj(o)) throw new Error(
-      JSON.stringify({type: "type", nominal: type, real: introspect(o)})
-    );
-
-    if ($type in o) {
-      if (o[$type] === type) return o;
-      else throw new Error(JSON.stringify({type: "type", nominal: type, real: o[$type]}));
-    }
-
-    Object.keys(o).forEach((k, n) => {
-      try {c(o[k])}
-
-      catch (e) {
-        if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
-        const p = JSON.parse(e.message);
-        let e_;
-
-        p.offL = "offL" in p ? p.offL + 1 : 1;
-        p.offR = "offR" in p ? p.offR - 1 : -1;
-        e_ = new Error(JSON.stringify(p));
-        e_.stack = e.stack;
-        throw e_;
-      }
-    });
-
-    return o;
-  };
-
-  const type = `{${c}}`;
-  return dictOfC2.toString = () => type, dictOfC2;
-};
-
-dictOfC.toString = () => "{a}";
-
-
-// record contract (rev 1)
-// internal
-// Record -> Record
-
-const recC = o => {
-  if (isRec(o)) return o;
-  else throw new Error(JSON.stringify({type: "type", nominal: "Record", real: introspect(o)}));
-};
-
-recC.toString = () => "Record";
-
-
-// record of contract (rev 1)
-// internal
-// TODO: add ulAtDiff for errors caused by $type
-// [Function] -> Record -> Record
-
-const recOfC = cs => {
-  const recOfC2 = o => {
-    const ks = Object.keys(o);
-
-    if (!isObj(o)) throw new Error(
-      JSON.stringify({type: "type", nominal: type, real: introspect(o)})
-    );
-
-    if (ks.length <= REC_MIN_LEN || ks.length >= REC_MAX_LEN) {
-      throw new Error(JSON.stringify({type: "type", nominal: "Record", real: introspect(o)}));
-    }
-
-    if (cs.length !== ks.length) throw new Error(
-      JSON.stringify({type: "length", nominal: cs.length, real: xs.length})
-    );
-
-    if ($type in o) {
-      if (o[$type] === type) return o;
-      else throw new Error(JSON.stringify({type: "type", nominal: type, real: o[$type]}));
-    }
-
-    cs.forEach((c, n) => {
-      try {c(o[ks[n]])}
-
-      catch (e) {
-        if (TypeSysError.prototype.isPrototypeOf(e)) throw e;
-        const p = JSON.parse(e.message);
-        let e_;
-
-        p.offL = "offL" in p ? p.offL + ks[n].length + 1 : ks[n].length + 1;
-        p.offR = "offR" in p ? p.offR - ks[n].length - 1 : -ks[n].length - 1;
-        e_ = new Error(JSON.stringify(p));
-        e_.stack = e.stack;
-        throw e_;
-      }
-    });
-
-    return o;
-  };
-
-  const type = "{" + cs.map((c, n) => `${ks[n]}: ${c}`).join(", ") + "}";
-  return recOfC2.toString = () => type, recOfC2;
-};
-
-recOfC.toString = () => "Record";
-
-
-// TODO: consC
-
-
-// TODO: consOfC
-
-
-// function contract (rev 1)
-// internal
-// Function -> Function
-
-const funC = f => {
-  if (!isFun(f)) throw new Error(
-    JSON.stringify({type: "type", nominal: "Function", real: introspect(f)})
-  );
-
-  else if (!($type in f)) throw new TypeSysError(
-    `funC expects typed function\n\nunvirtualized function\n\n${f.name} received\n`
-  );
+    const typeRep = deserialize(typeSig);
+    Reflect.defineProperty(f, "name", {value: typeRep.name});
+    return new Proxy(f, handleFun(f, 0, typeRep, typeSig, new Map()));
+  }
 
   else return f;
 };
 
-funC.toString = () => "Function";
 
+const handleFun = (f, num, typeRep, typeSig, bindings) => {
+  const name = f.name || "lambda";
 
-// --[ INTROSPECTION ]---------------------------------------------------------
+  return {
+    apply: (g, _, args) => {
+      const {tag, typeReps} = typeRep,
+        xT = typeReps[num],
+        cons = xT.constructor;
 
+      if (num === 0) bindings = new Map();
 
-// introspect (rev 1)
-// internal
-// TODO: add subtypes
-// TODO: add abstract data types
-// a -> String
-
-const introspect = x => {
-  switch (typeof x) {
-    case "undefined": return "Undefined";
-
-    case "number": {
-      if (Number.isNaN(x)) return "NaN";
-      else return "Number";
-    }
-
-    case "string": return "String";
-    case "boolean": return "Boolean";
-    case "symbol": return "Symbol";
-    case "function": return "Function";
-
-    case "object": {
-      if (x === null) return "Null";
-      else if ($type in x) return x[$type];
-
-      else if (Array.isArray(x)) {
-        if (x.length <= TUP_MAX_LEN) {
-          const types = x.map(x_ => `${introspect(x_)}`);
-          return `[${Array.from(types.reduce((acc, x_) => acc.add(x_), new Set())).join(", ")}]`;
+      switch (cons.name) {
+        case "NoArgT": {
+          verifyNullary(args, xT, name, typeSig);
+          break;
         }
 
-        else return `[${introspect(x[0])}]`;
-      }
+        case "ArgT": {
+          verifyUnary(args, xT[0], name, typeSig);
+          bindings = verifyArgT(args[0], xT[0], name, typeSig, bindings);
+          break;
+        }
 
-      else {
-        if ("constructor" in x && x.constructor.name !== "Object") return x.constructor.name;
+        case "ArgsT": {
+          const params = verifyNAry(args, xT, name, typeSig);
+          bindings = verifyArgsT(args, xT, params, name, typeSig, bindings);
+          break;
+        }
 
-        else {
-          const tag = getStringTag(x);
-          if (tag !== "Object") return tag;
-
-          else {
-            const ks = Object.keys(x);
-
-            if (ks.length <= REC_MAX_LEN) {
-              const rec = ks.map(k => `${k}: ${introspect(x[k])}`),
-               dict = `{${introspect(x[ks[0]])}}`,
-               types = Array.from(rec.reduce((acc, x_) => acc.add(x_.split(": ") [1]), new Set()));
-
-              if (types.length === 1) return dict;
-              else return `{${rec.join(", ")}}`;
-            }
-
-            else return `{${introspect(x[k[0]])}}`;
-          }
+        case "RestT": {
+          bindings = verifyRestT(args, xT[0], name, typeSig, bindings);
+          break;
         }
       }
+
+      if (typeReps[num + 1].constructor.name === "ReturnT") {
+        return verifyReturnT(g(...args), typeReps[num + 1][0], name, typeSig, bindings);
+      }
+
+      else return new Proxy(g(...args), handleFun(f, num + 1, typeRep, typeSig, bindings));
+    },
+
+    get: (f, k, p) => {
+      switch (k) {
+        case "toString": return () => typeSig;
+        case Symbol.toStringTag: return "Fun";
+        case TYPE_REP: return typeRep;
+        case TYPE_SIG: return typeSig;
+
+        case Symbol.toPrimitive: return hint => {
+          _throw(
+            TypeError,
+            ["illegal implicit type conversion"],
+            typeSig,
+            {desc: [
+              `must not be converted to ${capitalize(hint)} primitive`,
+              "use explicit type casts instead"
+            ]}
+          );          
+        };
+
+        default: {
+          if (k in f) return f[k];
+
+          else _throw(
+            TypeError,
+            ["illegal property access"],
+            typeSig,
+            {desc: [`unknown property ${preformat(k)}`]}
+          );
+        }
+      }
+    },
+
+    has: (f, k, p) => {
+      _throw(
+        TypeError,
+        ["illegal property introspection"],
+        typeSig,
+        {desc: [
+          `of property ${preformat(k)}`,
+          "duck typing is not allowed along with function objects"
+        ]}
+      );
+    },
+
+    set: (o, k, v, p) => {
+      switch (k) {
+        case "toString": return o[k] = v, o;
+
+        default: _throw(
+          TypeError,
+          ["illegal property mutation"],
+          typeSig,
+          {desc: [
+            `of property ${preformat(k)} with value ${preformat(v)}`,
+            "function objects are immutable"
+          ]}
+        );
+      }
+    },
+
+    defineProperty: (f, k, d) => {
+      _throw(
+        TypeError,
+        ["illegal property mutation"],
+        typeSig,
+        {desc: [
+          `of property ${preformat(k)} with descriptor ${d}`,
+          "function objects are immutable"
+        ]}
+
+      );
+    },
+
+    deleteProperty: (f, k) => {
+      _throw(
+        TypeError,
+        ["illegal property mutation"],
+        typeSig,
+        {desc: [
+          `removal of property ${preformat(k)}`,
+          "function objects are immutable"
+        ]}
+      );
+    },
+
+    ownKeys: xs => {
+      _throw(
+        TypeError,
+        ["illegal property introspection"],
+        typeSig,
+        {desc: [
+          `of property ${preformat(k)}`,
+          "duck typing is not allowed along with function objects"
+        ]}
+      );
     }
+  };
+};
+
+
+const verifyNullary = (args, noArgT, name, typeSig) => {
+  const [from, to] = noArgT.fromTo;
+
+  if (args.length !== 0) _throw(
+    ArityError,
+    [`${name} expects 0 arguments`],
+    typeSig,
+    {fromTo: [from, to], desc: [`${args.length} argument(s) received`]}
+  );
+};
+
+
+const verifyUnary = (args, xT, name, typeSig) => {
+  const [from, to] = xT.fromTo;
+
+  if (args.length !== 1) _throw(
+    ArityError,
+    [`${name} expects 1 argument`],
+    typeSig,
+    {fromTo: [from, to], desc: [`${args.length} argument(s) received`]}
+  );
+};
+
+
+const verifyNAry = (args, xT, name, typeSig) => {
+  const [from, to] = xT.fromTo;
+
+  const params = xT
+    .reduce(({mandatory: m, rest: r}, param) => {
+      if (param.constructor.name === "ArgT") return {mandatory: m + 1, rest: r};
+      else if (param.constructor.name === "RestT") return {mandatory: m, rest: r + 1};
+      else return {mandatory: m, rest: r};
+    }, {mandatory: 0, rest: 0});
+
+  if (params.rest === 1) {
+    if (params.mandatory > args.length) _throw(
+      ArityError,
+      [`${name} expects at least ${params.mandatory} argument(s)`],
+      typeSig,
+      {fromTo: [from, to], desc: [`${args.length} argument(s) received`]}
+    );
+  }
+
+  else {
+    if (params.mandatory !== args.length) _throw(
+      ArityError,
+      [`${name} expects ${params.mandatory} argument(s)`],
+      typeSig,
+      {fromTo: [from, to], desc: [`${args.length} argument(s) received`]}
+    );
+  }
+
+  return params;
+};
+
+
+const verifyArgT = (arg, nominalT, name, typeSig, bindings) => {
+  const nominalS = serialize(nominalT),
+    realSigs = introspect(arg),
+    realS = firstIt(realSigs),
+    realT = deserialize(realS);
+
+  if (nominalS.search(/\b[a-z]\b/) >= 0
+  || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings);
+
+  else {
+    if (realSigs.has(nominalS)) return bindings;
+
+    else _throw(
+      TypeError,
+      [`${name} expects`],
+      typeSig,
+      {fromTo: [0, 0], desc: [`${realS} received`]}
+    );
   }
 };
 
 
-// --[ TYPE PREDICATES ]-------------------------------------------------------
+const verifyRestT = (args, nominalT, name, typeSig, bindings) => {
+  const nominalS = serialize(nominalT);
 
+  return args
+    .reduce((bindings_, arg, n) => {
+      const realSigs = introspect(arg),
+        realS = firstIt(realSigs),
+        realT = deserialize(realS);
 
-// get string tag (rev 1)
-// internal
-// a -> String
+      if (nominalS.search(/\b[a-z]\b/) >= 0
+      || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings_);
 
-const getStringTag = x => {
-  const ss = Object.prototype.toString.call(x).split(" ");
-  return ss[ss.length - 1].slice(0, -1);
+      else {
+        if (realSigs.has(nominalS)) return bindings_;
+
+        else _throw(
+          TypeError,
+          [`${name} expects`],
+          typeSig,
+          {fromTo: [0, 0], desc: [`${realS} received at index ${n}`]}
+        );
+      }
+    }, bindings);
 };
 
 
-// instance of (rev 1)
-// internal
-// Function -> Object -> Boolean
-
-const instanceOf = cons => o => cons.prototype.isPrototypeOf(o);
-
-
-// is array (rev 1)
-// internal
-// a -> Boolean
-
-const isArr = x => Array.isArray(x);
-
-
-// is array buffer (rev 1)
-// internal
-// a -> Boolean
-
-const isArrBuf = x => getStringTag(x) === "ArrayBuffer";
-
-
-// is boolean (rev 1)
-// internal
-// a -> Boolean
-
-const isBoo = x => typeof x === "boolean";
-
-
-// TODO: isCons
-
-
-// is data view (rev 1)
-// internal
-// a -> Boolean
-
-const isDataView = x => getStringTag(x) === "DataView";
-
-
-// is date (rev 1)
-// internal
-// a -> Boolean
-
-const isDate = x => getStringTag(x) === "Date";
-
-
-// is dict (rev 1)
-// internal
-// a -> Boolean
-
-const isDict = x => isObj(x) && isDictT(introspect(x)) ? true : false;
-
-
-// is error (rev 1)
-// internal
-// a -> Boolean
-
-const isError = x => getStringTag(x) === "Error";
-
-
-// is generator (rev 1)
-// internal
-// a -> Boolean
-
-const isGtor = x => getStringTag(x) === "Generator";
-
-
-// is generator function (rev 1)
-// internal
-// a -> Boolean
-
-const isGtorFun = x => getStringTag(x) === "GeneratorFunction";
-
-
-// is float 32 array (rev 1)
-// internal
-// a -> Boolean
-
-const isFloat32Arr = x => getStringTag(x) === "Float32Array";
-
-
-// is float 64 array (rev 1)
-// internal
-// a -> Boolean
-
-const isFloat64Arr = x => getStringTag(x) === "Float64Array";
-
-
-// is function (rev 1)
-// internal
-// a -> Boolean
-
-const isFun = x => typeof x === "function";
-
-
-// is integer 8 array (rev 1)
-// internal
-// a -> Boolean
-
-const isInt8Arr = x => getStringTag(x) === "Int8Array";
-
-
-// is integer 32 array (rev 1)
-// internal
-// a -> Boolean
-
-const isInt32Arr = x => getStringTag(x) === "Int32Array";
-
-
-// is integer 64 array (rev 1)
-// internal
-// a -> Boolean
-
-const isInt64Arr = x => getStringTag(x) === "Int64Array";
-
-
-// is iterator (rev 1)
-// internal
-// a -> Boolean
-
-const isItor = x => getStringTag(x) === "Iterator";
-
-
-// is map (rev 1)
-// internal
-// a -> Boolean
-
-const isMap = x => getStringTag(x) === "Map";
-
-
-// is null (rev 1)
-// internal
-// a -> Boolean
-
-const isNull = x => x === null;
-
-
-// is number (rev 1)
-// internal
-// a -> Boolean
-
-const isNum = x => typeof x === "number" && !Number.isNaN(x);
-
-
-// is object (rev 1)
-// internal
-// a -> Boolean
-
-const isObj = x => Object(x) === x;
-
-
-// is promise (rev 1)
-// internal
-// a -> Boolean
-
-const isPromise = x => getStringTag(x) === "Promise";
-
-
-// is record (rev 1)
-// internal
-// a -> Boolean
-
-const isRec = x => isObj(x) && isRecT(introspect(x)) ? true : false;
-
-
-// is regular expression (rev 1)
-// internal
-// a -> Boolean
-
-const isRegExp = x => getStringTag(x) === "RegExp";
-
-
-// is set (rev 1)
-// internal
-// a -> Boolean
-
-const isSet = x => getStringTag(x) === "Set";
-
-
-// is string (rev 1)
-// internal
-// a -> Boolean
-
-const isStr = x => typeof x === "string";
-
-
-// is symbol (rev 1)
-// internal
-// a -> Boolean
-
-const isSym = x => typeof x === "symbol";
-
-
-// is tuple (rev 1)
-// internal
-// a -> Boolean
-
-const isTup = x => isObj(x) && isTupT(introspect(x)) ? true : false;
-
-
-// is unsigned integer 8 array (rev 1)
-// internal
-// a -> Boolean
-
-const isUInt8Arr = x => getStringTag(x) === "UInt8Array";
-
-
-// is unsigned integer 32 array (rev 1)
-// internal
-// a -> Boolean
-
-const isUInt32Arr = x => getStringTag(x) === "UInt32Array";
-
-
-// is unsigned integer 64 array (rev 1)
-// internal
-// a -> Boolean
-
-const isUInt64Arr = x => getStringTag(x) === "UInt64Array";
-
-
-// is undefined (rev 1)
-// internal
-// a -> Boolean
-
-const isUndef = x => x === undefined;
-
-
-// is weak map (rev 1)
-// internal
-// a -> Boolean
-
-const isWeakMap = x => getStringTag(x) === "WeakMap";
-
-
-// is weak set (rev 1)
-// internal
-// a -> Boolean
-
-const isWeakSet = x => getStringTag(x) === "WeakSet";
-
-
-// --[ TYPE REFINEMENTS ]------------------------------------------------------
-
-
-// integer refinement (rev 1)
-// Number -> [Number -> Array]
-
-const intR = x => Number.isInteger(x) ? [] : [intR];
-intR.toString = () => "integer";
-
-
-// float refinement (rev 1)
-// Number -> [Number -> Array]
-
-const floatR = n => Number.isFinite(n) ? [] : [floatR];
-floatR.toString = () => "float";
-
-
-// positive number refinement (rev 1)
-// Number -> [Number -> Array]
-
-const posR = n => n >= 0 ? [] : [posR];
-posR.toString = () => "positive";
-
-
-// negative number refinement (rev 1)
-// Number -> [Number -> Array]
-
-const negR = n => n < 0 ? [] : [negR];
-negR.toString = () => "negative";
-
-
-// finite refinement (rev 1)
-// Number -> [Number -> Array]
-
-const finR = n => Number.isFinite(n) ? [] : [finR];
-finR.toString = () => "finite";
-
-
-// infinite refinement (rev 1)
-// Number -> [Number -> Array]
-
-const infR = n => n === Number.POSITIVE_INFINITY || n === Number.NEGATIVE_INFINITY ? [] : [infR];
-infR.toString = () => "infinite";
-
-
-// zero refinement (rev 1)
-// Number -> [Number -> Array]
-
-const zeroR = n => n === 0 ? [] : [zeroR];
-zeroR.toString = () => "zero";
-
-
-// character refinement (rev 1)
-// String -> [String -> Array]
-
-const charR = s => s.length === 1 ? [] : [charR];
-charR.toString = () => "char";
-
-
-// letter refinement (rev 1)
-// String -> [String -> Array]
-
-const letterR = s => charR(s).length === 0 && s.search(/[a-z]/i) === 0 ? [] : [letterR];
-letterR.toString = () => "letter";
-
-
-// numeral refinement (rev 1)
-// String -> [String -> Array]
-
-const numeralR = s => charR(s).length === 0 && s.search(/[0-9]/) === 0 ? [] : [numeralR];
-numeralR.toString = () => "numeral";
-
-
-// lower case letter refinement (rev 1)
-// String -> [String -> Array]
-
-const lcR = s => letterR(s).length === 0 && s.toLowerCase() === s ? [] : [lcR];
-lcR.toString = () => "lowerCase";
-
-
-// upper case letter refinement (rev 1)
-// String -> [String -> Array]
-
-const ucR = s => letterR(s).length === 0 && s.toUpperCase() === s ? [] : [ucR];
-ucR.toString = () => "upperCase";
-
-
-// numeral string refinement (rev 1)
-// String -> [String -> Array]
-
-const numStrR = s => s * 1 + "" === s ? [] : [numStrR];
-numStrR.toString = () => "numeralString";
-
-
-// length refinement (rev 1)
-// polymorphic for all array-like types
-// PositiveFiniteInteger -> Object -> [Object -> Array]
-
-const lenR = r => {
-  const lenR2 = o => r(o.length).length === 0 ? [] : [lenR(r)];
-  lenR2.toString = () => `length(${r})`;
-  return lenR2;
+const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
+  if (params.rest === 1) {
+    bindings = args
+      .slice(0, params.mandatory)
+      .reduce((bindings_, arg, n) => {
+        const nominalT = argsT[n][0],
+          nominalS = serialize(nominalT),
+          realSigs = introspect(arg),
+          realS = firstIt(realSigs),
+          realT = deserialize(realS);
+
+        if (nominalS.search(/\b[a-z]\b/) >= 0
+        || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings_);
+
+        else {
+          if (realSigs.has(nominalS)) return bindings_;
+
+          else _throw(
+            TypeError,
+            [`${name} expects`],
+            typeSig,
+            {fromTo: [0, 0], desc: [`${realS} received`]}
+          );
+        }
+      }, bindings);
+
+    const nominalT = last(argsT)[0],
+      nominalS = serialize(nominalT);
+
+    return args
+      .slice(params.mandatory)
+      .reduce((bindings_, arg, n) => {
+        const realSigs = introspect(arg),
+          realS = firstIt(realSigs),
+          realT = deserialize(realS);
+
+        if (nominalS.search(/\b[a-z]\b/) >= 0
+        || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings_);
+
+        else {
+          if (realSigs.has(nominalS)) return bindings_;
+
+          else _throw(
+            TypeError,
+            [`${name} expects`],
+            typeSig,
+            {fromTo: [0, 0], desc: [`${realS} received at index ${params.mandatory + n}`]}
+          );
+        }
+      }, bindings);
+  }
+
+  else {
+    return args
+      .reduce((bindings_, arg, n) => {
+        const nominalT = argsT[n][0],
+          nominalS = serialize(nominalT),
+          realSigs = introspect(arg),
+          realS = firstIt(realSigs),
+          realT = deserialize(realS);
+
+        if (nominalS.search(/\b[a-z]\b/) >= 0
+        || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings_);
+
+        else {
+          if (realSigs.has(nominalS)) return bindings_;
+
+          else _throw(
+            TypeError,
+            [`${name} expects`],
+            typeSig,
+            {fromTo: [0, 0], desc: [`${realS} received`]}
+          );
+        }
+      }, bindings);
+  }
 };
 
 
-// size refinement (rev 1)
-// PositiveFiniteInteger -> Object -> [Object -> Array]
+const verifyReturnT = (r, nominalT, name, typeSig, bindings) => {
+  const nominalS = serialize(nominalT),
+    realSigs = introspect(r),
+    realS = firstIt(realSigs),
+    realT = deserialize(realS);
 
-const sizeR = r => {
-  const sizeR2 = o => r(o.size).length === 0 ? [] : [sizeR(r)];
-  sizeR2.toString = () => `size(${r})`;
-  return sizeR2;
+  if (nominalS.search(/\b[a-z]\b/) >= 0
+  || realS.search(/\b[a-z]\b/) >= 0) {
+    unify(r, realT, realS, nominalT, nominalS, ReturnT, name, typeSig, bindings);
+    return r;
+  }
+
+  else {
+    if (realSigs.has(nominalS)) return r;
+
+    else _throw(
+      TypeError,
+      [`${name} must return`],
+      typeSig,
+      {fromTo: [0, 0], desc: [`${realS} returned`]}
+    );
+  }
 };
 
 
-// equal refinement (rev 1)
-// a -> a -> [a -> Array]
+//***[ 6.2. ALGEBRAIC DATA TYPES ]*********************************************
 
-const eqR = y => {
-  const eqR2 = x => x === y ? [] : [eqR(y)];
-  eqR2.toString = () => `equal(${y})`;
-  return eqR2;
+
+const Adt = (cons, typeSig, ...cases) => f => {
+  const adt = new cons();
+
+  if (devMode) {
+    const typeRep = sigMap(typeSig),
+      tags = collectTags(typeRep);
+
+    adt.run = new Proxy(cases => f(cases), handleAdt(typeRep, tags));
+  }
+
+  else adt.run = cases => f(cases);
+  return adt;
 };
 
 
-// lower than refinement (rev 1)
-// a -> a -> [a -> Array]
+const handleAdt = (typeRep, tags) => {
+  return {
+    apply: (f, _, [o]) => {
+      const ks = Object.keys(o);
 
-const ltR = y => {
-  const ltR2 = x => x < y ? [] : [ltR(y)];
-  ltR2.toString = () => `lt(${y})`;
-  return ltR2;
+      tags.forEach(tag => {
+        if (!ks.includes(tag)) throw new TypeError("missing case " + tag);
+      });
+
+      ks.forEach(k => {
+        if (!tags.includes(k)) throw new TypeError("unknown case " + k);
+      });
+
+      return f(o);
+    }
+  };
 };
 
 
-// lower than or equal refinement (rev 1)
-// a -> a -> [a -> Array]
+//Either = Adt(class Either {}, "Either<a, b> = Left :: (a -> Either<a, b>) | Right :: (b -> Either<a, b>)")
 
-const lteR = y => {
-  const lteR2 = x => x <= y ? [] : [lteR(y)];
-  lteR2.toString = () => `lte(${y})`;
-  return lteR2;
+/*Adt(
+  class List {},
+  "List<a> = Nil :: List<a> | Cons :: (a -> List<a> -> List<a>)",
+
+  {
+    Nil: List(o => o.Nil),
+
+    Cons: x => t => {
+      const Cons_ = List(o => o.Cons(x) (t));
+      Cons_.toString = () => "Cons";
+      return Cons_;
+    }
+  }
+);*/
+
+
+//***[ 6.3. ARRAYS ]***********************************************************
+
+
+const Arr = (xs, {immu = false}) => {
+  if (devMode) {
+    Reflect.defineProperty(
+      xs,
+      Symbol.toStringTag,
+      {value: "Arr"}
+    );
+
+    const typeRep = introspect(xs),
+      typeSig = serialize(typeRep);
+
+    Reflect.defineProperty(
+      xs,
+      Symbol("typeSig"),
+      {value: typeSig}
+    );
+
+    if (xs.length === 0) throw new TypeError(
+      "Arr received the invalid array\n\n" +
+      `${typeSig}\n` +
+      `${ul(1, 9)}\n\n` +
+      "arrays must not be empty at construction time\n"
+    );
+
+    xs.forEach((x, n) => {
+      const typeSig_ = serialize(introspect(x));
+
+      if (`[${typeSig_}]` !== typeSig) throw new TypeError(
+        "Arr expects\n\n" +
+        `${typeSig}\n` +
+        `${ul(1, typeSig.length - 2)}\n\n` +
+        `${typeSig_} received at index ${n}\n`
+      );
+
+      isNotVoid(x);
+    });
+
+    return new Proxy(xs, handleArr(typeRep, typeSig, immu));
+  }
+
+  else return xs;
 };
 
 
-// greater than refinement (rev 1)
-// a -> a -> [a -> Array]
+const handleArr = (typeRep, typeSig, immu) => ({
+  get: (xs, i, p) => {
+    switch (i) {
+      case "toString": return () => typeSig;
+      case Symbol.toStringTag: return "Arr";
+      case "typeRep": return typeRep;
+      case "typeSig": return typeSig;
 
-const gtR = y => {
-  const gtR2 = x => x > y ? [] : [gtR(y)];
-  gtR2.toString = () => `gt(${y})`;
-  return gtR2;
-};
+      case Symbol.toPrimitive: return hint => {
+        throw new TypeError(
+          "illegal implicit type coercion applied to array\n\n" +
+          `${typeSig}\n\n` +
+          `should have been converted to ${hint} primitive\n\n` +
+          "use explicit type casts instead\n"
+        );
+      };
 
+      default: {
+        if (i in xs) return xs[i];
 
-// greater than or equal refinement (rev 1)
-// a -> a -> [a -> Array]
+        else throw new TypeError(
+          "illegal element access on array\n\n" +
+          `${typeSig}\n\n` +
+          `unknown element ${preformat(i)}\n`
+        );
+      }
+    }
+  },
 
-const gteR = y => {
-  const gteR2 = x => x >= y ? [] : [gteR(y)];
-  gteR2.toString = () => `gte(${y})`;
-  return gteR2;
-};
+  has: (xs, i, p) => {
+    if (Number.isNaN(Number(i))) throw new TypeError(
+      "illegal array introspection through\n\n" +
+      `${preformat(i)} in ${typeSig}\n\n` +
+      "duck typing is not allowed\n"
+    );
 
+    else return i in xs;
+  },
 
-// any refinement (rev 1)
-// ...[a -> [a]] -> a -> [a -> [a]]
-
-const allR = (...rs) => {
-  const allR2 = x => {
-    const aux = n => {
-      if (rs[n] === undefined) return [];
-      else if (rs[n] (x).length === 0) return aux(n + 1);
-      else return [rs[n]];
+  set: (xs, i, v, p) => {
+    if (immu) {
+      throw new TypeError(
+        "illegal array mutation\n\n" +
+        `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
+        "immutable array\n"
+      );
     }
 
-    return aux(0);
-  };
+    else {
+      if (Number.isNaN(Number(i))) {
+        if (i in xs) {
+          if (typeSig !== `[${serialize(introspect(v))}]`) throw new TypeError(
+            "illegal array mutation\n\n" +
+            `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
+            `${ul(1, typeSig.length - 2)}\n\n` +
+            "arrays must maintain an homogeneous type\n"
+          );
 
-  allR2.toString = () => rs.join(" & ");
-  return allR2;
-};
+          else return xs[i] = v;
+        }
 
+        else {
+          throw new TypeError(
+            "illegal array mutation\n\n" +
+            `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
+            "arrays are sealed\n"
+          );
+        }
+      }
 
-// any refinement (rev 1)
-// ...[a -> [a]] -> a -> [a -> [a]]
+      else {
+        if (Number(i) > xs.length) throw new TypeError(
+          "illegal array mutation\n\n" +
+          `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
+          `but array includes only ${xs.length} elements\n\n` +
+          "there must be no gaps within arrays\n"
+        );
 
-const anyR = (...rs) => {
-  const anyR2 = x => {
-    const aux = (n, acc) => {
-      if (rs[n] === undefined) return acc;
-      else if (rs[n] (x).length === 0) return acc;
-      else return aux(n + 1, acc.push(rs[n]));
+        else if (typeSig !== `[${serialize(introspect(v))}]`) throw new TypeError(
+          "illegal array mutation\n\n" +
+          `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n` +
+          `${ul(1, typeSig.length - 2)}\n\n` +
+          "arrays must maintain an homogeneous type\n"
+        );
+
+        else return xs[i] = v;
+      }
+    }
+  },
+
+  defineProperty: (xs, i, d) => {
+    throw new TypeError(
+      "illegal use of reflection method on array\n\n" +
+      `${typeSig}\n\n` +
+      `at property ${preformat(i)}\n\n` +
+      "reflection must not be used\n"
+    );
+  },
+
+  deleteProperty: (xs, i) => {
+    if (immu) {
+      throw new TypeError(
+        "illegal array mutation" +
+        `\n\ndelete ${typeSig} [${i.toString()}] or\n\n` +
+        `\n\nReflect.deleteProperty(${typeSig}, ${preformat(i)})\n\n` +
+        "immutable array\n"
+      );
     }
 
-    return aux(0);
-  };
+    else {
+      if (Number.isNaN(Number(i))) throw new TypeError(
+        "illegal array mutation\n\n" +
+        `delete ${typeSig} [${preformat(i)}] or\n\n` +
+        `Reflect.deleteProperty(${typeSig}, ${preformat(i)})\n\n` +
+        "arrays are sealed\n"
+      );
 
-  anyR2.toString = () => rs.join(" | ");
-  return anyR2;
+      else {
+        if (i in xs) return delete xs[i], xs;
+
+        else throw new TypeError(
+          "invalid array mutation\n\n" +
+          `delete ${typeSig} [${preformat(i)}] or\n\n` +
+          `Reflect.deleteProperty(${typeSig}, ${preformat(i)})\n\n` +
+          "unknown element\n"
+        );
+      }
+    }
+  },
+
+  ownKeys: xs => {
+    throw new TypeError(
+      "illegal array reflection method\n\n" +
+      `Object.keys(${typeSig}) or\n\n` +
+      `Object.values(${typeSig}) or\n\n` +
+      `Object.entries(${typeSig})\n\n` +
+      "reflection must not be used\n"
+    );
+  }
+});
+
+
+//***[ 6.4. TUPLES ]***********************************************************
+
+
+const Tup = (xs, {immu = false}) => {
+  if (devMode) {
+    Reflect.defineProperty(
+      xs,
+      Symbol.toStringTag,
+      {value: "Tup"}
+    );
+
+    const typeRep = introspect(xs),
+      typeSig = serialize(typeRep);
+
+    Reflect.defineProperty(
+      xs,
+      Symbol("typeSig"),
+      {value: typeSig}
+    );
+
+    if (xs.length < 2) throw new TypeError(
+      "Tup expects\n\n" +
+      `${typeSig}\n` +
+      `${ul(1, typeSig.length - 2)}\n\n` +
+      "tuples must include at least 2 fields\n"
+    );
+
+    xs.forEach(x => isNotVoid(x));
+    return new Proxy(xs, handleTup(typeRep, typeSig, immu));
+  }
+
+  else return xs;
 };
 
 
-// not refinement (rev 1)
-// (a -> [a]) -> a -> [a]
+const handleTup = (typeRep, typeSig, immu) => ({
+  get: (xs, i, p) => {
+    switch (i) {
+      case "toString": return () => typeSig;
+      case Symbol.toStringTag: return "Tup";
+      case "typeRep": return typeRep;
+      case "typeSig": return typeSig;
 
-const notR = r => {
-  const notR2 = x => r(x).length === 0 ? [notR(r)] : [];
-  notR2.toString = () => `!${r}`;
-  return notR2;
+      case Symbol.toPrimitive: return hint => {
+        throw new TypeError(
+          "illegal implicit type coercion applied to tuple\n\n" +
+          `${typeSig}\n\n` +
+          `should have been converted to ${hint} primitive\n\n` +
+          "use explicit type casts instead\n"
+        );
+      };
+
+      default: {
+        if (i in xs) return xs[i];
+
+        else throw new TypeError(
+          "illegal field access on tuple\n\n" +
+          `${typeSig}\n\n` +
+          `unknown field ${preformat(i)}\n`
+        );
+      }
+    }
+  },
+
+  has: (xs, i, p) => {
+    throw new TypeError(
+      "illegal tuple introspection through\n\n" +
+      `${preformat(i)} in ${typeSig}\n\n` +
+      "duck typing is not allowed\n"
+    );
+  },
+
+  set: (xs, i, v, p) => {
+    if (immu) {
+      throw new TypeError(
+        "illegal tuple mutation\n\n" +
+        `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
+        "immutable tuple\n"
+      );
+    }
+
+    else {
+      if (i in xs) {
+        if (typeSig !== `[${serialize(introspect(v))}]`) throw new TypeError(
+          "illegal tuple mutation\n\n" +
+          `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
+          `${ul(1, typeSig.length - 2)}\n\n` +
+          "tuple fields must maintain their types\n"
+        );
+
+        else return xs[i] = v;
+      }
+
+      else {
+        throw new TypeError(
+          "illegal tuple mutation\n\n" +
+          `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
+          "tuples are sealed\n"
+        );
+      }
+    }
+  },
+
+  defineProperty: (xs, i, d) => {
+    throw new TypeError(
+      "illegal use of reflection method on tuple\n\n" +
+      `${typeSig}\n\n` +
+      `at property ${preformat(i)}\n\n` +
+      "reflection must not be used\n"
+    );
+  },
+
+  deleteProperty: (xs, i) => {
+    throw new TypeError(
+      "illegal tuple mutation\n\n" +
+      `delete ${typeSig} [${preformat(i)}] or\n\n` +
+      `Reflect.deleteProperty(${typeSig}, ${preformat(i)})\n\n` +
+      "tuples are sealed\n"
+    );
+  },
+
+  ownKeys: xs => {
+    throw new TypeError(
+      "illegal tuple reflection method\n\n" +
+      `Object.keys(${typeSig}) or\n\n` +
+      `Object.values(${typeSig}) or\n\n` +
+      `Object.entries(${typeSig})\n\n` +
+      "reflection must not be used\n"
+    );
+  }
+});
+
+
+//***[ 6.5. MAPS ]*************************************************************
+
+
+const _Map = (typeSig, ix) => {
+  if (devMode) {
+    const m = new Map();
+
+    for (let pair of ix) {
+      isNotVoid(pair[0]);
+      isNotVoid(pair[1]);
+      m.set(pair[0], pair[1]);
+    }
+
+    const p = new Proxy(m, handleMap(typeSig));
+    return p.typeSig = typeSig, p;
+  }
+
+  else return new Map(ix);
 };
 
 
-/******************************************************************************
-*******************************************************************************
-*******************************[ 3. PRIMITIVES ]*******************************
-*******************************************************************************
-******************************************************************************/
+const handleMap = typeSig => ({
+  get: (o, k, p) => {
+    switch (k) {
+      case "get": return k => {
+        if (devMode) {
+          const r = o.get(isNotVoid(k));
+          return isNotVoid(r);
+        }
+
+        else return o.get(k);
+      }
+
+      case "has": return k => {
+        return o.has(devMode ? isNotVoid(k) : k);
+      }
+
+      case "set": return (k, v) => {
+        if (devMode) {
+          o.set(isNotVoid(k), isNotVoid(v));
+          return p;
+        }
+
+        else return o.set(k, v);
+      }
+
+      case "delete": return k => {
+        if (devMode) {
+          if (!p.has(k)) throw new TypeError("know your type");
+          else o.delete(k);
+          return p;
+        }
+
+        else return o.delete(k);
+      }
+
+      case "toString": return () => typeSig;
+      case Symbol.toPrimitive: throw new TypeError("implicit type coercion");
+
+      default: {
+        if (k in o) return o[k];
+        else throw new TypeError("know your type!");
+      }
+    }
+  }
+});
 
 
-/******************************************************************************
-********************************[ 3.1. NUMBER ]********************************
-******************************************************************************/
+//***[ 6.6. RECORDS ]**********************************************************
 
 
-/******************************************************************************
-********************************[ 3.2. STRING ]********************************
-******************************************************************************/
+const Rec = (o, {immu = false}) => {
+  if (devMode) {
+    const ks = Object.keys(o);
+
+    Reflect.defineProperty(
+      o,
+      Symbol.toStringTag,
+      {value: "Rec"}
+    );
+
+    const typeRep = introspect(o),
+      typeSig = serialize(typeRep);
+
+    Reflect.defineProperty(
+      o,
+      Symbol("typeSig"),
+      {value: typeSig}
+    );
+
+    if (ks.length < 2) throw new TypeError(
+      "Rec expects\n\n" +
+      `${typeSig}\n` +
+      `${ul(1, typeSig.length - 2)}\n\n` +
+      "records must include at least 2 fields\n"
+    );
+
+    ks.forEach(k => isNotVoid(k), isNotVoid(o[k]));
+    return new Proxy(o, handleRec(typeRep, typeSig, immu));
+  }
+
+  else return o;
+};
 
 
-// interpolate
-// Object -> String -> String
+const handleRec = (typeRep, typeSig, immu) => ({
+  get: (o, k, p) => {
+    switch (k) {
+      case "toString": return () => typeSig;
+      case Symbol.toStringTag: return "Rec";
+      case "typeRep": return typeRep;
+      case "typeSig": return typeSig;
 
-const interpolate = o => s => s.replace(/\${(\w+)}/g, (_, k) => o[k]);
+      case Symbol.toPrimitive: return hint => {
+        throw new TypeError(
+          "illegal implicit type coercion applied to record\n\n" +
+          `${typeSig}\n\n` +
+          `should have been converted to ${hint} primitive\n\n` +
+          "use explicit type casts instead\n"
+        );
+      };
+
+      default: {
+        if (k in o) return o[k];
+
+        else throw new TypeError(
+          "illegal field access on record\n\n" +
+          `${typeSig}\n\n` +
+          `unknown field ${preformat(k)}\n`
+        );
+      }
+    }
+  },
+
+  has: (o, k, p) => {
+    throw new TypeError(
+      "illegal record introspection through\n\n" +
+      `${preformat(k)} in ${typeSig}\n\n` +
+      "duck typing is not allowed\n"
+    );
+  },
+
+  set: (o, k, v, p) => {
+    if (immu) {
+      throw new TypeError(
+        "illegal record mutation\n\n" +
+        `${typeSig} [${preformat(k)}] = ${serialize(introspect(v))}\n\n` +
+        "immutable record\n"
+      );
+    }
+
+    else {
+      if (k in o) {
+        if (typeSig !== `{${serialize(introspect(v))}}`) throw new TypeError(
+          "illegal record mutation\n\n" +
+          `${typeSig} [${preformat(k)}] = ${serialize(introspect(v))}\n\n` +
+          `${ul(1, typeSig.length - 2)}\n\n` +
+          "record fields must maintain their types\n"
+        );
+
+        else return o[k] = v;
+      }
+
+      else {
+        throw new TypeError(
+          "illegal record mutation\n\n" +
+          `${typeSig} [${preformat(k)}] = ${serialize(introspect(v))}\n\n` +
+          "records are sealed\n"
+        );
+      }
+    }
+  },
+
+  defineProperty: (o, k, d) => {
+    throw new TypeError(
+      "illegal use of reflection method on record\n\n" +
+      `${typeSig}\n\n` +
+      `at property ${preformat(i)}\n\n` +
+      "reflection must not be used\n"
+    );
+  },
+
+  deleteProperty: (o, k) => {
+    throw new TypeError(
+      "illegal record mutation\n\n" +
+      `delete ${typeSig} . ${preformat(k)} or\n\n` +
+      `Reflect.deleteProperty(${typeSig}, ${preformat(k)})\n\n` +
+      "records are sealed\n"
+    );
+  },
+
+  ownKeys: o => {
+    throw new TypeError(
+      "illegal record reflection method\n\n" +
+      `Object.keys(${typeSig}) or\n\n` +
+      `Object.values(${typeSig}) or\n\n` +
+      `Object.entries(${typeSig})\n\n` +
+      "reflection must not be used\n"
+    );
+  }
+});
 
 
-// is character (rev 1)
-// a -> Boolean
-
-const isChar = x => x.length === 1;
+//***[ 6.7. SUBTYPES ]*********************************************************
 
 
-// is character (rev 1)
-// a -> Boolean
-
-const isLetter = x => isChar(x) && x.search(/[a-z]/i) === 0;
-
-
-// is lower case letter (rev 1)
-// a -> Boolean
-
-const isLC = x => isLetter(x) && x.toLowerCase() === x;
+class Int extends Number {
+  [Symbol.toPrimitive](t) {
+    throw new Error("coerced!");
+  }
+}
 
 
-// is upper case letter (rev 1)
-// a -> Boolean
-
-const isUC = x => isLetter(x) && x.toUpperCase() === x;
+//***[ 6.8. ERRORS ]***********************************************************
 
 
-// successor (rev 0.1)
-// String -> String
-
-const succ = x => String.fromCharCode(x.charCodeAt(0) + 1);
+//---[ Subtypes ]--------------------------------------------------------------
 
 
-/******************************************************************************
-*******************************[ 3.3. BOOLEAN ]********************************
-******************************************************************************/
+class DevModeError extends Error {
+  constructor(x) {
+    super(x);
+    Error.captureStackTrace(this, DevModeError);
+  }
+};
 
 
-// greater than
-// a -> a -> Boolean
-
-const gt = y => x => x > y;
-
-
-// xor
-// Boolean -> Boolean -> Boolean
-
-const xor = x => y => !x === !y ? false : true;
-
-
-/******************************************************************************
-*******************************************************************************
-*************************[ 4. PROTOTYPES (SUBTYPING) ]*************************
-*******************************************************************************
-******************************************************************************/
-
-
-/******************************************************************************
-********************************[ 4.1. ERROR ]*********************************
-******************************************************************************/
-
-
-// Arity Error (rev 1)
-// internal
-// String -> ArityError
-
-class ArityError extends Error {
+class ArityError extends DevModeError {
   constructor(x) {
     super(x);
     Error.captureStackTrace(this, ArityError);
@@ -2036,23 +2442,7 @@ class ArityError extends Error {
 };
 
 
-// Length Error (rev 1)
-// internal
-// String -> LengthError
-
-class LengthError extends Error {
-  constructor(x) {
-    super(x);
-    Error.captureStackTrace(this, LengthError);
-  }
-};
-
-
-// Return Type Error (rev 1)
-// internal
-// String -> ReturnTypeError
-
-class ReturnTypeError extends Error {
+class ReturnTypeError extends DevModeError {
   constructor(x) {
     super(x);
     Error.captureStackTrace(this, ReturnTypeError);
@@ -2060,497 +2450,101 @@ class ReturnTypeError extends Error {
 };
 
 
-// Type System Error (rev 1)
-// internal
-// String -> TypeSysError
-
-class TypeSysError extends Error {
+class TypeRepError extends DevModeError {
   constructor(x) {
     super(x);
-    Error.captureStackTrace(this, TypeSysError);
+    Error.captureStackTrace(this, TypeRepError);
   }
 };
 
 
-// --[ THROWING ]--------------------------------------------------------------
-
-
-// throw (rev 1)
-// (String -> Error) -> String -> IO
-
-const _throw = cons => s => {throw new cons(s)};
-
-
-/******************************************************************************
-*******************************************************************************
-*****************************[ 5. PRODUCT TYPES ]******************************
-*******************************************************************************
-******************************************************************************/
-
-
-// --[ PRODUCT TYPE VIRTUALIZATION ]-------------------------------------------
-
-
-// handle product type (rev 0.1)
-// internal
-// handle get/set traps for virtualized product types
-// (String, String) -> Array
-
-const handleProd = type => ({
-  get: (o, k, _) => {
-    switch (k) {
-      case $type: return type;
-      case Symbol.toPrimitive: return o[k]
-      case Symbol.toStringTag: return o[k]
-      
-      default: {
-        if (!(k in o)) throw new TypeError(
-          `value of type ${type} received invalid get operation for unknown ${isNumStr(k) ? `index #${k}` : `property "${k}"`}`
-        );
-
-        return o[k];
-      }
-    }
-  },
-
-  set: (o, k, v, _) => {
-    if (isStr(v)) v = `"${v}"`;
-
-    throw new TypeError(
-      `immutable value of type ${type} received invalid set operation for ${isNumStr(k) ? `index #${k}` : `property "${k}"`} with value ${v}`
-    );
-  }
-});
-
-
-/******************************************************************************
-********************************[ 5.1. ARRAY ]*********************************
-******************************************************************************/
-
-
-// --[ CONSTRUCTOR ]-----------------------------------------------------------
-
-
-// Array (rev 0.1)
-// ((a -> a), [a]) -> [a]
-
-/*const Arr = (c, xs) => {
-  if (TYPE_CHECK) {
-    if (!isFun(c)) throw new TypeSysError(
-      `Arr expects argument #1 of type Function \u2BC8\u2BC8\u2BC8 ${introspect(xs)} received`
-    );
-
-    if ($("length", of(c), gt(1))) throw new TypeSysError(
-      `Arr expects argument #1 of type () -> ?/? -> ? \u2BC8\u2BC8\u2BC8 ${arityScheme(c)} received`
-    );
-
-    if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
-      `Arr expects argument #1 of type () -> ? -> ? \u2BC8\u2BC8\u2BC8 () -> (${arityScheme(c())}) -> ? received`
-    );
-
-    if (!isArr(xs)) throw new TypeError(
-      `Arr expects argument #2 of type Array \u2BC8\u2BC8\u2BC8 ${introspect(xs)} received`
-    );
-
-    if (isNullary(c)) c = c();
-    const type = `[${c}]`;
-    try{arrOf(c) (xs)}
-
-    catch (e) {
-      const o = JSON.parse(e.message);
-      const e_ = new TypeError(`Arr expects argument #2 of type ${type} \u2BC8\u2BC8\u2BC8 ${o.real} received`);
-      e_.stack = e.stack;
-      throw e_;
-    }
-
-    return new Proxy(virtRec(unwrapTypeRec(typeTokens) (type).slice(1), xs), handleProd(type));
-  }
-
-  return xs;
-};
-
-Arr.of = (c, ...xs) => Arr(c, xs);
-
-Arr.from = (c, iter) => Arr(c, Array.from(iter));*/
-
-
-// --[ MONOID ]----------------------------------------------------------------
-
-
-// empty array (rev 0.1)
-// [a]
-
-const emptyArr = [];
-
-
-// append array (rev 0.1)
-// [a] -> [a] -> [a]
-
-const appendArr = ys => xs => xs.concat(ys);
-
-
-// prepend array (rev 0.1)
-// [a] -> [a] -> [a]
-
-const prependArr = xs => ys => xs.concat(ys);
-
-
-// --[ MISC ]------------------------------------------------------------------
-
-
-// range (rev 0.1)
-// ((a -> Boolean), a -> a) -> a -> [a]
-
-const range = (p, step) => x => {
-  const aux = (acc, y) => p(y) ? aux(acc.concat([y]), step(y)) : acc;
-  return aux([], x);
-};
-
-
-// range (rev 0.1)
-// (((a, [a]) -> Boolean), a -> a) -> a -> [a]
-
-const range_ = (p, step) => x => {
-  const aux = (acc, y) => p(y, acc) ? aux(acc.concat([y]), step(y)) : acc;
-  return aux([], x);
-};
-
-
-/******************************************************************************
-********************************[ 5.2. TUPLE ]*********************************
-******************************************************************************/
-
-
-// Tuple (rev 0.1)
-// ([? -> ?], Array) -> Array
-
-/*const Tup = (cs, xs) => {
-  if (TYPE_CHECK) {
-    if (!isArr(cs)) throw new TypeError(
-      `Tup expects argument #1 of type Array \u2BC8\u2BC8\u2BC8 ${introspect(cs)} received`
-    );
-
-    cs.forEach((c, n) => {
-      if (!isFun(c)) throw new TypeSysError(
-        `Tup expects argument #1 of type [Function] \u2BC8\u2BC8\u2BC8 ${introspect(c)} at index #${n} received`
-      );
-
-      if ($("length", of(c), gt(1))) throw new TypeSysError(
-        `Tup expects argument #1 of type [Nullary]/[Unary] \u2BC8\u2BC8\u2BC8 ${arityScheme(c)} at index #${n} received`
-      );
-
-      if (isNullary(c) && !isUnary(c())) throw new TypeSysError(
-        `Tup expects argument #1 of type [() -> ? -> ?] \u2BC8\u2BC8\u2BC8 () -> (${arityScheme(c())}) -> ? at index #${n} received`
-      );
-    });
-
-    if (!isArr(xs)) throw new TypeError(
-      `Tup expects argument #2 of type Array \u2BC8\u2BC8\u2BC8 ${introspect(xs)} received`
-    );
-
-    if (cs.length !== xs.length) throw new LengthError(
-      `Tup expects argument #2 of type Array of length ${cs.length} \u2BC8\u2BC8\u2BC8 length ${xs.length} received`
-    );
-
-    cs = cs.map(c => isNullary(c) ? c() : c);
-    const type = `(${cs})`;
-    try{tupOf(cs) (xs)}
-
-    catch (e) {
-      const o = JSON.parse(e.message);
-      let e_;
-
-      switch (o.type) {
-        case "length": {
-          e_ = new LengthError(`Tup expects argument #2 of type Array of length ${o.nominal} \u2BC8\u2BC8\u2BC8 ${o.real} received`);
-          break;
-        }
-
-        case "type": {
-          e_ = new TypeError(`Tup expects argument #2 of type ${o.nominal} \u2BC8\u2BC8\u2BC8 ${o.real} received`);
-          break;
-        }
-
-        default: throw new TypeSysError(`Tup received invalid error type ${o.type}`);
-      }
-
-      e_.stack = e.stack;
-      throw e_;
-    }
-
-    return new Proxy(virtRec(unwrapTypeRec(typeTokens) (type).slice(1), xs), handleProd(type));
-  }
-
-  return xs;
-};
-
-Tup.of = (cs, ...xs) => Tup(cs, xs);
-
-Tup.from = (cs, iter) => Tup(cs, Array.from(iter));*/
-
-
-/******************************************************************************
-******************************[ 5.3. DICTIONARY ]******************************
-******************************************************************************/
-
-
-/******************************************************************************
-********************************[ 5.4. RECORD ]********************************
-******************************************************************************/
-
-
-/******************************************************************************
-*******************************************************************************
-****************************[ 6. CONSTRUCTOR TYPES]****************************
-*******************************************************************************
-******************************************************************************/
-
-
-/******************************************************************************
-****************************[ 6.1. TAGGED UNIONS ]*****************************
-******************************************************************************/
-
-
-/******************************************************************************
-*************************[ 6.2. ABSTRACT DATA TYPES ]**************************
-******************************************************************************/
-
-
-/******************************************************************************
-*******************************[ 6.3. PROMISE ]********************************
-******************************************************************************/
-
-
-/******************************************************************************
-*******************************************************************************
-*******************************[ 7. PROTOCOLS ]********************************
-*******************************************************************************
-******************************************************************************/
-
-
-/******************************************************************************
-*******************************[ 7.1. ITERABLE ]*******************************
-******************************************************************************/
-
-
-/******************************************************************************
-*******************************[ 7.2. ITERATOR ]*******************************
-******************************************************************************/
-
-
-/******************************************************************************
-*******************************************************************************
-****************************[ 8. DEPENDENT TYPES ]*****************************
-*******************************************************************************
-******************************************************************************/
-
-
-/******************************************************************************
-*******************************************************************************
-********************[ 9. PARAMETRIC POLYMORPHIC FUNCTIONS ]********************
-*******************************************************************************
-******************************************************************************/
-
-
-// infix applicator
-// (a, a -> b -> c, b) -> c
-
-const $ = (x, f, y) => f(x) (y);
-
-
-// flipped infix applicator
-// (a, a -> b -> c, b) -> c
-
-const $_ = (y, f, x) => f(x) (y);
-
-
-// prefix applicator (rev 0.1)
-// (a, a -> b -> c, b) -> c
-
-const _$ = (f, y) => x => f(x) (y);
-
-
-// applicator (rev 0.1)
-// (a -> b) -> a -> b
-
-const A = f => x => f(x);
-
-
-// function composition (rev 0.1)
-// (...? -> ?) -> ? -> ?
-
-const co = (...fs) => x => fs.reduceRight((y, f) => f(y), x);
-
-
-// binary function composition (rev 0.1)
-// (...Function) -> ? -> ? -> ?
-
-const co2 = (...fs) => x => y => fs.slice(0, -1).reduceRight((z, f) => f(z), fs[fs.length - 1] (x) (y));
-
-
-// ternary function composition (rev 0.1)
-// (...Function) -> ? -> ? -> ? -> ?
-
-const co3 = (...fs) => x => y => z => fs.slice(0, -1).reduceRight((w, f) => f(w), fs[fs.length - 1] (x) (y) (z));
-
-
-// reverse function composition (rev 0.1)
-// (...? -> ?) -> ? -> ?
-
-const contra = (...fs) => x => fs.reduce((y, f) => f(y), x);
-
-
-// binary reverse function composition (rev 0.1)
-// (...Function) -> ? -> ? -> ?
-
-const contra2 = (...fs) => x => y => fs.slice(1).reduce((z, f) => f(z), fs[0] (x) (y));
-
-
-// ternary reverse function composition (rev 0.1)
-// (...Function) -> ? -> ? -> ? -> ?
-
-const contra3 = (...fs) => x => y => z => fs.slice(1).reduce((w, f) => f(w), fs[0] (x) (y) (z));
-
-
-// flip (rev 0.1)
-// (a -> b -> c) -> b -> a -> c
-
-const flip = f => y => x => f(x) (y);
-
-
-// repeat (rev 0.1)
-// {append: a -> a -> a, empty: a} -> Number -> a -> Monoid a
-
-const repeat = monoid => n => x => {
-  const aux = (acc_, m) => m === 0 ? acc_ : aux(monoid.append(acc_) (x), m - 1);
-  return aux(monoid.empty, n);
-};
-
-
-// rotate left
-// (a -> b -> c -> d) -> b -> c -> a -> d
-
-const rol = f => y => z => x => f(x) (y) (z);
-
-
-// rotate right
-// (a -> b -> c -> d) -> c -> a -> b -> d
-
-const ror = f => z => x => y => f(x) (y) (z);
-
-
-/******************************************************************************
-*******************************************************************************
-**********************[ 10. BOUNDED POLYMORPHIC CLASSES ]**********************
-*******************************************************************************
-******************************************************************************/
-
-
-const Monoid = {
-  arr: {
-    empty: emptyArr,
-    append: appendArr,
-    prepend: prependArr
+class TypeSigError extends DevModeError {
+  constructor(x) {
+    super(x);
+    Error.captureStackTrace(this, TypeSigError);
   }
 };
 
 
-/******************************************************************************
-*******************************************************************************
-*********************************[ 99. MISC ]**********************************
-*******************************************************************************
-******************************************************************************/
+//---[ Formatting ]------------------------------------------------------------
 
 
-// get symbol (rev 0.1)
-// String -> Object -> [?]
-
-const get$ = s => o => o[Symbol.for(SYM_PREFIX + s)];
+const ul = (n, m) => Array(n + 1).join(" ") + Array(m - n + 2).join("^");
 
 
-/******************************************************************************
-*******************************************************************************
-********************************[ XX. DERIVED ]********************************
-*******************************************************************************
-******************************************************************************/
-
-
-/******************************************************************************
-********************************[ 2.1. TYPES ]*********************************
-******************************************************************************/
-
-
-// --[ ARITY CONTRACTS ]-------------------------------------------------------
-
-
-// nullary contract (rev 1)
-// internal
-// [a] -> {status: String -> Error}
-
-const nullaryC = arityC(0);
-
-
-// unary contract (rev 1)
-// internal
-// (...? -> ?) -> [a] -> {status: String -> Error}
-
-const unaryC = arityC(1);
-
-
-// binary contract (rev 1)
-// internal
-// (...? -> ?) -> [a, b] -> {status: String -> Error}
-
-const binaryC = arityC(2);
-
-
-// ternary contract (rev 1)
-// internal
-// (...? -> ?) -> [a, b, c] -> {status: String -> Error}
-
-const ternaryC = arityC(3);
-
-
-// 4-ary contract (rev 1)
-// internal
-// (...? -> ?) -> [a, b, c, d] -> {status: String -> Error}
-
-const _4aryC = arityC(4);
-
-
-// 5-ary contract (rev 1)
-// internal
-// (...? -> ?) -> [a, b, c, d, e] -> {status: String -> Error}
-
-const _5aryC = arityC(5);
-
-
-// variadic contract (rev 1)
-// internal
-// (...? -> ?) -> [a, b, c] -> {status: String -> Error}
-
-const variadicC = arityC(Infinity);
-
-
-// --[ AUXILLIARY HELPER ]-----------------------------------------------------
-
-
-// mono map (rev 1)
-// internal
-// {a -> a}
-
-const monoMap = {
-  Boolean: booC,
-  Null: nullC,
-  Number: numC,
-  String: strC,
-  Symbol: symC,
+const preformat = x => {
+  const tag = getStringTag(x);
+  
+  if (tag === "Symbol") return x.toString();
+  else if (tag === "String" && Number.isNaN(Number(x))) return `"${x}"`;
+  else return x;
 };
 
 
-// API
+const _throw = (Cons, title, subject, {fromTo = [], desc = []}) => {
+  const [from, to] = fromTo;
 
-
-module.exports = {
-  Fun
+  throw new Cons(title
+    .join("\n")
+    .concat(`\n\n${subject}`)
+    .concat(fromTo.length === 2 ? `\n${ul(from, to)}` : "")
+    .concat(desc.length === 0 ? "" : `\n\n${desc.join("\n\n")}`)
+    .concat("\n")
+  );
 };
+
+
+/******************************************************************************
+*******************************************************************************
+******************************[ 7. MISCALLANIOUS ]******************************
+*******************************************************************************
+******************************************************************************/
+
+
+const isNotVoid = x => {
+  if (_void.has(x)) throw TypeError("value expected, illegal void type received");
+  else return x;
+}
+
+
+const capitalize = s => s[0].toUpperCase() + s.slice(1);
+
+
+const last = xs => xs[xs.length - 1];
+
+
+/******************************************************************************
+*******************************************************************************
+*****************************[ 8. BUILT-IN TYPES ]*****************************
+*******************************************************************************
+******************************************************************************/
+
+
+//***[ 8.1. VALUE TYPES ]********************************************************
+
+
+//---[ Boolean ]---------------------------------------------------------------
+
+
+const xor = x => y => !x === !y ? false : true;
+
+
+//***[ 8.2. REFERENCE TYPES ]****************************************************
+
+
+//---[ Generator functions ]---------------------------------------------------
+
+
+function* keys(o) {
+  for (let k in o) yield k;
+}
+
+
+function* values(o) {
+  for (let k in o) yield o[k];
+}
+
+
+function* entries(o) {
+  for (let k in o) yield [k, o[k]];
+}
