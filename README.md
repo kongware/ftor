@@ -22,7 +22,7 @@ Version 0.9.0 is coming...
 ## What
 
 ftor enables ML-like type-directed, functional programming in Javascript and offers useful debugging tools.
-
+<br>
 
 ## Why
 
