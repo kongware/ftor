@@ -1,4 +1,4 @@
-<img src="https://i.stack.imgur.com/UqCPm.png?s=328&g=1" width="164" height="164" alt="ftor" style="float:left">
+<img src="https://i.stack.imgur.com/UqCPm.png?s=328&g=1" width="164" height="164" alt="ftor" align="left">
 <pre>
    ad88                                   
   d8"      ,d                             
