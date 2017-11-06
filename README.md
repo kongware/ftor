@@ -23,6 +23,7 @@ Version 0.9.0 is coming...
 
 ftor enables ML-like type-directed, functional programming in Javascript and offers useful debugging tools.
 
+
 ## Why
 
 Functional programming in Javascript is frustrating as soon as you leave contrieved examples behind and try to solve real world problems, because...
@@ -54,6 +55,6 @@ As opposed to _flow_ and _typescript_ ftor doesn't support subtype polymorphism,
 
 Let's get to the individual types without any further ado.
 
-# Function Types
+## Function Type
 
 ...
