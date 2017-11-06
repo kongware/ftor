@@ -55,4 +55,22 @@ Let's get to the individual types without any further ado.
 
 ## Function Type
 
-...
+You can easily create typed functions with the `Fun` constructor both as an declaration statment or inline as an declaration expression. It takes a mandatory type signature and an arrow - that's all. ftor's type signatures deviate from Haskell's, though:
+
+```Javascript
+// typed function declaration statement
+const foo = Fun("(foo :: String -> String)", s => "foo!");
+
+// typed function declaration expression
+"hey, " + Fun("(String -> String)", s => "foo!"); // yields "hey, foo!"
+```
+
+### First Class Monomorphic Functions
+
+```Javascript
+```
+
+### Higher Order Monomorphic Functions
+
+```Javascript
+```
