@@ -17,4 +17,37 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 Version 0.9.0 is coming...
 
-**Please note:** This library is experimental and still work in progress.
+**Please note:** This repo is experimental and still work in progress.
+
+## What
+
+ftor enables ML-like type-directed, functional programming in Javascript and offers useful debugging tools.
+
+## Why
+
+Function programming in Javascript is frustrating as soon as you leave contrieved examples behind and try to solve real world problems, because...
+
+* beyond first class functions Javascript doesn't offer much on a native level
+* there is only a relatively small ecosystem and an insufficient tooling
+* there is no type system preventing you from writing bad algorithms
+
+# Type System
+
+At its core ftor consists of a run-time type system with the following features:
+
+* pluggable type system
+* parametric polymorphism
+* higher kinded types
+* higher rank types (rank-2)
+* homogeneous arrays, tuples, maps, records
+* and real tagged unions
+
+The type system can be switched on and off at run-time. Ideally, it is activated during the development stage and switched off on the production system.
+
+Unfortunately, there is no way to enable bounded polymorphism within a pluggable run-time type system without an additional compiling step. For the time being ftor will provide bounded polymorphism through explict type dictionary passing.
+
+Since we're still dealing with Javascript ftor pursues a <a href="https://eschew.wordpress.com/2009/08/31/sound-and-complete/">complete and hence unsound evaluation procedure</a>, which is mostly <a href="https://en.wikipedia.org/wiki/Nominal_type_system">nominal typed</a>.
+
+ftor incorporates Javascript's native types in order to allow the creation of idiomatic code. This is of course a tradeoff which is at the expense of type safety.
+
+As opposed to flow and typescript ftor doesn't support subtype polymorphism, because it entails high complexity, such as different forms of type variance, e.g. <a href="https://flow.org/blog/2016/10/04/Property-Variance/">property variance</a> and it has irritating properties like <a href="https://brianmckenna.org/blog/row_polymorphism_isnt_subtyping">automatic upcasting</a>. Instead of subtyping ftor offers bounded structural typing, which has similar characteristics.
