@@ -1,4 +1,3 @@
-<img src="https://i.stack.imgur.com/UqCPm.png?s=328&g=1" width="164" height="164" alt="ftor" align="left">
 <pre>
    ad88                                   
   d8"      ,d                             
@@ -11,6 +10,8 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 </pre>
 
 # Status
+
+<img src="https://i.stack.imgur.com/UqCPm.png?s=328&g=1" height="100" alt="ftor" align="left">
 
 Version 0.9.0 is coming...
 
