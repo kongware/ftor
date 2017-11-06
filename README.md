@@ -78,7 +78,7 @@ Fun(
 
 ### Multi-Argument Functions
 
-As usual, you can define multi-argument functions. Please note that arguments are not enclosed by parentheses in the type signature:
+As usual, you can define multi-argument functions. Please note that arguments are not enclosed by parentheses in type signatures:
 
 ```Javascript
 const add = Fun(
@@ -117,7 +117,7 @@ sum(1, 2, 3); // 6
 ```
 ### Curried Functions
 
-As functional programmers we often prefer defining curried functions with the concise arrow syntax:
+As functional programmers we often prefer defining curried function sequences:
 
 ```Javascript
 const add = Fun(
@@ -128,6 +128,8 @@ const add = Fun(
 add(2) (3); // 5
 add(2) (true); // throws
 ```
+Please note that the optional names in function type signatures denoted by the `name ::` pattern are assigned to each lambda of the corresponding sequence. This is extremely helpful for debugging a code base with hundreds of such curried functions.
+
 ### Higher Order Functions
 
 ...
