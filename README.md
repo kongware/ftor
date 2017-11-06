@@ -52,6 +52,8 @@ ftor incorporates Javascript's native types in order to allow the creation of id
 
 As opposed to _flow_ and _typescript_ ftor doesn't support subtype polymorphism, because it entails high complexity, such as different forms of type variance, e.g. <a href="https://flow.org/blog/2016/10/04/Property-Variance/">property variance</a> and it has irritating properties like <a href="https://brianmckenna.org/blog/row_polymorphism_isnt_subtyping">automatic upcasting</a>. Instead of subtyping ftor offers bounded structural typing, which has similar characteristics.
 
+Let's get to the individual types without any further ado.
+
 # Function Types
 
 ...
