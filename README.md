@@ -59,10 +59,10 @@ You can easily create typed functions with the `Fun` constructor both as an decl
 
 ```Javascript
 // typed function declaration statement
-const foo = Fun("(foo :: String -> String)", s => "foo!");
+const foo = Fun("(foo :: String -> String)", s => "foo" + s);
 
 // typed function declaration expression
-"hey, " + Fun("(String -> String)", s => "foo!"); // yields "hey, foo!"
+"hey, " + Fun("(String -> String)", s => "foo" + s) ("!"); // yields "hey, foo!"
 ```
 
 ### First Class Monomorphic Functions
