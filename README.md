@@ -11,7 +11,9 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 # Status
 
-<img src="https://i.stack.imgur.com/UqCPm.png?s=328&g=1" height="100" alt="ftor" align="left">
+<img src="https://i.stack.imgur.com/UqCPm.png?s=328&g=1" height="110" alt="ftor" align="left">
+
+<br>
 
 Version 0.9.0 is coming...
 
