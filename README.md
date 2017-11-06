@@ -82,7 +82,7 @@ As usual, you can define multi-argument functions. Please note that arguments ar
 
 ```Javascript
 const add = Fun(
-  "(add :: (Number, Number -> Number)",
+  "(add :: Number, Number -> Number)",
   (n, m) => n + m
 );
 
@@ -95,7 +95,7 @@ You can define variadic functions using the rest parameter:
 
 ```Javascript
 const sum = Fun(
-  "(sum :: (...Number -> Number)",
+  "(sum :: ...Number -> Number)",
   (...ns) => ns.reduce((acc, n) => acc + n, 0)
 );
 
@@ -107,7 +107,7 @@ And variadic functions with mandatory arguments as well:
 
 ```Javascript
 const sum = Fun(
-  "(sum :: (Number, ...Number -> Number)",
+  "(sum :: Number, ...Number -> Number)",
   (n, ...ns) => ns.reduce((acc, m) => acc + m, n)
 );
 
@@ -121,7 +121,7 @@ As functional programmers we often prefer defining curried function sequences:
 
 ```Javascript
 const add = Fun(
-  "(add :: (Number -> Number -> Number)",
+  "(add :: Number -> Number -> Number)",
   n => m => n + m
 );
 
