@@ -16,9 +16,12 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 /******************************************************************************
 *******************************************************************************
-*************************[ 1. GLOBAL STATE/CONSTANTS ]*************************
+*********************************[ 1. MODULE ]*********************************
 *******************************************************************************
 ******************************************************************************/
+
+
+//***[ 1.1. STATE ]************************************************************
 
 
 // development mode
@@ -31,10 +34,7 @@ let devMode = false;
 export const setDevMode = b => devMode = b;
 
 
-// void unit types
-// Set
-
-let _void = new Set([undefined, null, NaN]);
+//***[ 1.1. CONSTANTS ]********************************************************
 
 
 // symbol prefix
@@ -637,23 +637,40 @@ const deserialize = typeSig => {
               {depth, context, phase, buf: buf + c, name, fromTo, tag, typeReps}
             );
 
-            else if (c === " " && typeSig.slice(n, n + 4) === " :: ") return aux(
-              typeSig, n + 4,
-              {depth, context, phase: "LOOK_AHEAD", buf: "", name: buf, fromTo, tag, typeReps}
+            else if (c === " ") {
+              if (typeSig.slice(n, n + 4) === " :: ") return aux(
+                typeSig, n + 4,
+                {depth, context, phase: "LOOK_AHEAD", buf: "", name: buf, fromTo, tag, typeReps}
+              );
+
+              else if (next === ":" && typeSig[n + 2] === ":") _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n + 3, n + 3], desc: [`symbol " " expected`]}
+              );
+
+              else if (next === ":") _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n + 2, n + 2], desc: [`symbol ":" expected`]}
+              );
+
+              else _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n + 1, n + 1], desc: [`symbol ":" expected`]}
+              );
+            } 
+
+            else _throw(
+              TypeSigError,
+              ["invalid type signature"],
+              typeSig,
+              {fromTo: [n, n], desc: ["unexpected symbol"]}
             );
-
-            else if (c === ":") {
-              if (next === " ") return aux(
-                typeSig, n + 1,
-                {depth, context, phase, buf, name, fromTo, tag, typeReps}
-              );
-
-              else return aux(
-                typeSig, n + 1,
-                {depth, context, phase, buf, name, fromTo, tag, typeReps}
-              );
-            }
-
           }
 
           case "NO_ARG": {
@@ -2499,6 +2516,9 @@ const _throw = (Cons, title, subject, {fromTo = [], desc = []}) => {
 ******************************[ 7. MISCALLANIOUS ]******************************
 *******************************************************************************
 ******************************************************************************/
+
+
+const _void = new Set([undefined, null, NaN]);
 
 
 const isNotVoid = x => {

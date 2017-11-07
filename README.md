@@ -15,7 +15,7 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 <br>
 
-Version 0.9.0 is coming...
+Version 0.9.0 (unstable)
 
 **Please note:** This repo is experimental and still work in progress.
 <br><br>
@@ -50,7 +50,7 @@ Since we're still dealing with Javascript ftor pursues a <a href="https://eschew
 
 An import principle of dynamic type systems is to detect type errors as early as possible. While this can be done to a certain degree, dynamic type systems never can give a guarantee that a program is free of type errors like static systems can do. They are a supplement to unit tests, not a substitute.
 
-You may wonder why ftor doesn't ship with type classes. Unfortunately, there is no way to enable bounded polymorphism within a pluggable run-time type system without using a pre-compiler. As soon as we disable the type system the capability to retrieve the right type class for a given type is also lost. For this reason ftor will provide bounded polymorphism merely through explict type dictionary passing - for the time being at least.
+You may wonder why ftor doesn't ship with type classes. Unfortunately, there is no way to enable bounded polymorphism along with a pluggable run-time type system without using a pre-compiler. As soon as we disable the type system the capability to retrieve the right type class for a given type is also lost. For this reason ftor will provide bounded polymorphism merely through explict type dictionary passing - for the time being at least.
 
 As opposed to _Flow_ and _TypeScript_ ftor doesn't support subtype polymorphism, because it entails high complexity, such as different forms of type variance, e.g. <a href="https://flow.org/blog/2016/10/04/Property-Variance/">property variance</a> and it has irritating properties like <a href="https://brianmckenna.org/blog/row_polymorphism_isnt_subtyping">automatic upcasting</a>. Instead of subtyping ftor offers bounded structural typing, which has similar characteristics but without the drawbacks.
 
@@ -72,10 +72,8 @@ const listenTo = Fun(
 listenTo("emerpus evol a"); // "a love supreme"
 
 // typed function expression
-Fun(
-  "(String -> String)",
-  s => s.split("").reverse().join("")
-) ("emerpus evol a"); // "a love supreme"
+Fun("(String -> String)", s => s.split("").reverse().join(""))
+  ("emerpus evol a"); // "a love supreme"
 ```
 
 ### Multi-Argument Functions
