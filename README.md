@@ -51,7 +51,7 @@ Since we're still dealing with Javascript ftor pursues a <a href="https://eschew
 
 An import principle of dynamic type systems is to detect type errors as early as possible. While this can be done to a certain degree, dynamic type systems never can give a guarantee that a program is free of type errors like static systems can do. They are a supplement to unit tests, not a substitute.
 
-You may wonder why ftor doesn't ship with type classes. Unfortunately, there is no way to enable bounded polymorphism along with a pluggable run-time type system without using a pre-compiler. As soon as we disable the type system the capability to retrieve the right type class for a given type is also lost. For this reason ftor will provide bounded polymorphism merely through explict type dictionary passing and includes a mechanism to enforce overloaded functions at the type level.
+You may wonder why ftor doesn't ship with type classes. Unfortunately, there is no way to enable bounded polymorphism via type classes along with a pluggable run-time type system without using a pre-compiler. As soon as we disable the type system the capability to retrieve the right type class for a given type is also lost. For this reason ftor will provide bounded polymorphism merely through explict type dictionary passing and includes a mechanism to enforce overloaded functions at the type level.
 
 As opposed to _Flow_ and _TypeScript_ ftor doesn't support subtype polymorphism, because it entails high complexity, such as different forms of type variance, e.g. <a href="https://flow.org/blog/2016/10/04/Property-Variance/">property variance</a> and it has irritating properties like <a href="https://brianmckenna.org/blog/row_polymorphism_isnt_subtyping">automatic upcasting</a>. Instead of subtyping ftor offers bounded structural typing, which has similar characteristics but without the drawbacks.
 
@@ -133,7 +133,7 @@ Please note that the optional names in function type signatures denoted by the `
 
 ### Strict Function Call Arity
 
-Except for variadic functions ftor is strict in the evaluation of function's arities:
+Except for variadic functions ftor is strict in the evaluation of function arities:
 
 ```Javascript
 const add = Fun(
@@ -173,7 +173,7 @@ ap(inc) (2); // 3
 ap(toStr) (2); // throws
 ap(add) (2); // throws
 ```
-ftor always attempts to eagerly throw type errors. Instead of waiting which type `toStr` and `add` will eventually return, ftor statically checks the function arguments and may terminate the program prematurely:
+ftor always attempts to eagerly throw type errors. Instead of waiting which type `toStr` and `add` will eventually return, ftor statically checks the function argument's parameters and may terminate the program prematurely:
 
 ```Javascript
 ap(toStr); // throws
@@ -191,6 +191,6 @@ ap(add); // throws
 
 ...
 
-### Overloaded functions
+### Overloaded Functions
 
 ...
