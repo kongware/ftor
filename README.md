@@ -205,7 +205,7 @@ toArray(true); // [true]
 ```
 #### Parametricity
 
-Parametric polymorphism includes a property called <a href="https://en.wikipedia.org/wiki/Parametricity">parametricity property</a>, which states that a function must not know anything about the types of its arguments or return value. Here is a function that violates parametricity:
+Parametric polymorphism includes a property called <a href="https://en.wikipedia.org/wiki/Parametricity">parametricity</a>, which states that a function must not know anything about the types of its arguments or return value. Here is a function that violates parametricity:
 
 ```Javascript
 
