@@ -22,7 +22,7 @@ Version 0.9.0 (unstable)
 
 ## What
 
-ftor enables ML-like type-directed, functional programming in Javascript including useful debugging features.
+ftor enables ML-like type-directed, functional programming with Javascript including reasonable debugging.
 
 ## Why
 
@@ -38,7 +38,7 @@ At its core ftor consists of a run-time type system with the following features:
 
 * pluggable type checker
 * parametric polymorphism
-* bounded (aka ad-hoc) polymorphism
+* bounded polymorphism (without type clases, though)
 * higher kinded types
 * higher rank types (rank-2)
 * recursive types
