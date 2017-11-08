@@ -37,9 +37,6 @@ export const setDevMode = b => devMode = b;
 //***[ 1.1. CONSTANTS ]********************************************************
 
 
-// symbol prefix
-// Symbol
-
 const SYM_PREFIX = "ftor/";
 
 
@@ -70,7 +67,11 @@ const introspect = x => {
     case "boolean": return tags.add("Boolean");
 
     case "function": {
-      if (tag === "Fun") tags.add(x[TYPE_SIG].replace(/\([a-z$_]+ :: /gi, "("));
+      if (tag === "Fun") {
+        tags.add(x[TYPE_SIG]);
+        tags.add(x[TYPE_SIG].replace(/\([a-z$_]+ :: /gi, "("));
+      }
+
       tags.add(tag);
       return tags.add("Function");
     }
@@ -1537,7 +1538,11 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
         return verifyReturnT(g(...args), typeReps[num + 1][0], name, typeSig, bindings);
       }
 
-      else return new Proxy(g(...args), handleFun(f, num + 1, typeRep, typeSig, bindings));
+      else {
+        const h = g(...args);
+        Reflect.defineProperty(h, "name", {value: f.name});
+        return new Proxy(h, handleFun(f, num + 1, typeRep, typeSig, bindings));
+      }
     },
 
     get: (f, k, p) => {
@@ -1845,7 +1850,7 @@ const verifyReturnT = (r, nominalT, name, typeSig, bindings) => {
     if (realSigs.has(nominalS)) return r;
 
     else _throw(
-      TypeError,
+      ReturnTypeError,
       [`${name} must return`],
       typeSig,
       {fromTo: [from, to], desc: [`${realS} returned`]}
@@ -2547,7 +2552,7 @@ const last = xs => xs[xs.length - 1];
 ******************************************************************************/
 
 
-//***[ 8.1. VALUE TYPES ]********************************************************
+//***[ 8.1. VALUE TYPES ]******************************************************
 
 
 //---[ Boolean ]---------------------------------------------------------------
@@ -2556,7 +2561,7 @@ const last = xs => xs[xs.length - 1];
 const xor = x => y => !x === !y ? false : true;
 
 
-//***[ 8.2. REFERENCE TYPES ]****************************************************
+//***[ 8.2. REFERENCE TYPES ]**************************************************
 
 
 //---[ Generator functions ]---------------------------------------------------
