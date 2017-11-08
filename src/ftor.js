@@ -69,7 +69,7 @@ const introspect = x => {
     case "function": {
       if (tag === "Fun") {
         tags.add(x[TYPE_SIG]);
-        tags.add(x[TYPE_SIG].replace(/\([a-z$_]+ :: /gi, "("));
+        tags.add(x[TYPE_SIG].replace(/\([a-z0-9_]+ :: /gi, "("));
       }
 
       tags.add(tag);
@@ -633,7 +633,7 @@ const deserialize = typeSig => {
           }
 
           case "NAME": {
-            if (c.search(/[a-z]/i) === 0) return aux(
+            if (c.search(/[a-z0-9_]/i) === 0) return aux(
               typeSig, n + 1,
               {depth, context, phase, buf: buf + c, name, fromTo, tag, typeReps}
             );

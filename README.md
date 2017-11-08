@@ -15,7 +15,7 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 <br>
 
-Version 0.9.0 (unstable)
+Version 0.9.1 (unstable)
 
 **Please note:** This repo is experimental and still work in progress.
 <br><br>
@@ -38,7 +38,7 @@ At its core ftor consists of a run-time type system with the following features:
 
 * pluggable type checker
 * parametric polymorphism
-* bounded polymorphism (without type clases, though)
+* bounded polymorphism (without type classes, though)
 * higher kinded types
 * higher rank types (rank-2)
 * recursive types
@@ -179,7 +179,62 @@ ftor always attempts to eagerly throw type errors. Instead of waiting which type
 ap(toStr); // throws
 ap(add); // throws
 ```
-### Polymorphic HOFs
+### Parametric Polymorphic Functions
+
+So far we've merely addressed somehow boring, monomorphic functions. Let's get to polymorphic ones.
+
+#### First Order
+
+Parametric polymorphic functions accept values of any type, as they only work with non-polymorphic properties:
+
+```Javascript
+const id = Fun("(id :: a -> a)", x => x);
+
+id(2); // 2
+id("foo"); // "foo"
+id(true); // true
+
+const toArray = Fun(
+  "(toArray :: a -> [a])",
+  x => [x]
+);
+
+toArray(2); // [2]
+toArray("foo"); // ["foo"]
+toArray(true); // [true]
+```
+#### Parametricity
+
+Parametric polymorphism includes a property called <a href="https://en.wikipedia.org/wiki/Parametricity">parametricity property</a>, which states that a function must not know anything about the types of its arguments or return value. Here is a function that violates parametricity:
+
+```Javascript
+
+const append = Fun(
+  "(append :: a -> a -> a)",
+  x => y => {
+    switch (typeof x) {
+      case "string":
+      case "number": return x + y;
+      case "boolean": return x && y;
+      default: return null;
+    }
+  }
+);
+
+append(2) (3); // 5
+append("2") ("3"); // "23"
+append(true) (false); // false
+append({}) ({}); // throws
+```
+At this point ftor's little secret is revealed, which it has been able to hide from us so far. Since the type checker doesn't statically check our code, it isn't capable of preventing us from writing such functions. Even though `append`'s type signature pretends to be a perfect, parametric polymorphic function, it isn't. Unfortunately, there is nothing I can do about it.
+
+As far as I know Javascript isn't particularly suitable for static type checking anyway. You can tell by the great difficulties _Flow_ has with type inferring and refinements.
+
+#### Higher Order
+
+...
+
+### Polymorphic Higher Order Functions
 
 ...
 
