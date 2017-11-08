@@ -1329,6 +1329,7 @@ const unifyFun = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
         case "RestT":
         case "ReturnT": {
           const nominalT_ = xT[0],
+            [from, to] = nominalT_.fromTo,
             nominalS_ = serialize(nominalT_),
             realT_ = realT.typeReps[n][0],
             realS_ = serialize(realT_);
@@ -1339,7 +1340,7 @@ const unifyFun = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
               ReturnTypeError,
               [`${name} has strict arity`],
               typeSig,
-              {fromTo: [0, 0], desc: [`received function argument ${realS}`, `must not abstract over it`]}
+              {fromTo: [from, to], desc: [`received function argument ${realS}`, `must not abstract over it`]}
             );
           }
 
@@ -1696,7 +1697,8 @@ const verifyNAry = (args, xT, name, typeSig) => {
 
 
 const verifyArgT = (arg, nominalT, name, typeSig, bindings) => {
-  const nominalS = serialize(nominalT),
+  const [from, to] = nominalT.fromTo,
+    nominalS = serialize(nominalT),
     realSigs = introspect(arg),
     realS = firstIt(realSigs),
     realT = deserialize(realS);
@@ -1711,14 +1713,15 @@ const verifyArgT = (arg, nominalT, name, typeSig, bindings) => {
       TypeError,
       [`${name} expects`],
       typeSig,
-      {fromTo: [0, 0], desc: [`${realS} received`]}
+      {fromTo: [from, to], desc: [`${realS} received`]}
     );
   }
 };
 
 
 const verifyRestT = (args, nominalT, name, typeSig, bindings) => {
-  const nominalS = serialize(nominalT);
+  const [from, to] = nominalT.fromTo,
+    nominalS = serialize(nominalT);
 
   return args
     .reduce((bindings_, arg, n) => {
@@ -1736,7 +1739,7 @@ const verifyRestT = (args, nominalT, name, typeSig, bindings) => {
           TypeError,
           [`${name} expects`],
           typeSig,
-          {fromTo: [0, 0], desc: [`${realS} received at index ${n}`]}
+          {fromTo: [from, to], desc: [`${realS} received at index ${n}`]}
         );
       }
     }, bindings);
@@ -1749,6 +1752,7 @@ const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
       .slice(0, params.mandatory)
       .reduce((bindings_, arg, n) => {
         const nominalT = argsT[n][0],
+          [from, to] = nominalT.fromTo,
           nominalS = serialize(nominalT),
           realSigs = introspect(arg),
           realS = firstIt(realSigs),
@@ -1764,13 +1768,14 @@ const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
             TypeError,
             [`${name} expects`],
             typeSig,
-            {fromTo: [0, 0], desc: [`${realS} received`]}
+            {fromTo: [from, to], desc: [`${realS} received`]}
           );
         }
       }, bindings);
 
     const nominalT = last(argsT)[0],
-      nominalS = serialize(nominalT);
+      nominalS = serialize(nominalT),
+      [from, to] = nominalT.fromTo;
 
     return args
       .slice(params.mandatory)
@@ -1789,7 +1794,7 @@ const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
             TypeError,
             [`${name} expects`],
             typeSig,
-            {fromTo: [0, 0], desc: [`${realS} received at index ${params.mandatory + n}`]}
+            {fromTo: [from, to], desc: [`${realS} received at index ${params.mandatory + n}`]}
           );
         }
       }, bindings);
@@ -1799,6 +1804,7 @@ const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
     return args
       .reduce((bindings_, arg, n) => {
         const nominalT = argsT[n][0],
+          [from, to] = nominalT.fromTo,
           nominalS = serialize(nominalT),
           realSigs = introspect(arg),
           realS = firstIt(realSigs),
@@ -1814,7 +1820,7 @@ const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
             TypeError,
             [`${name} expects`],
             typeSig,
-            {fromTo: [0, 0], desc: [`${realS} received`]}
+            {fromTo: [from, to], desc: [`${realS} received`]}
           );
         }
       }, bindings);
@@ -1823,7 +1829,8 @@ const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
 
 
 const verifyReturnT = (r, nominalT, name, typeSig, bindings) => {
-  const nominalS = serialize(nominalT),
+  const [from, to] = nominalT.fromTo,
+    nominalS = serialize(nominalT),
     realSigs = introspect(r),
     realS = firstIt(realSigs),
     realT = deserialize(realS);
@@ -1841,7 +1848,7 @@ const verifyReturnT = (r, nominalT, name, typeSig, bindings) => {
       TypeError,
       [`${name} must return`],
       typeSig,
-      {fromTo: [0, 0], desc: [`${realS} returned`]}
+      {fromTo: [from, to], desc: [`${realS} returned`]}
     );
   }
 };
