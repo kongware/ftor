@@ -239,7 +239,7 @@ append("2") ("3"); // "23"
 append(true) (false); // false
 append({}) ({}); // throws
 ```
-At this point ftor's little secret is revealed, which it has been able to hide from us so far. Since the type checker doesn't statically check our code, it isn't capable of preventing us from writing such functions. Even though `append`'s type signature pretends to be a perfect, parametric polymorphic function, it isn't. Unfortunately, there is nothing I can do about it.
+At this point ftor's little secret is revealed, which it has been able to hide from us so far. Since the type checker doesn't statically check our code, it isn't capable of preventing us from writing such functions. Even though `append`'s type signature pretends to be a perfect, parametric polymorphic function, it isn't. Unfortunately, there is nothing I can do about it and maybe this behavior is even helpful to write idiomatic Javascript code in a safe manner. This calls for further experience.
 
 As far as I know Javascript isn't particularly suitable for static type checking anyway. You can tell by the great difficulties _Flow_ has with type inferring and refinements.
 
