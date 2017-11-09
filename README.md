@@ -275,10 +275,6 @@ ap(id) ("foo"); // "foo"
 ```
 A function passed to `ap` can be either mono- or polymorphic. If it is a monomorphic function the type variable `a` is bound to the domain of the function argument (`id` in the example above). If it is a polymorphic function the type of the second argument determines the type of `a` of the function argument (`id`). This means that `ap` as the caller chooses the ground type of `id` and when `id` is actually invoked inside the body of `ap`, it is already a monomorphic function.
 
-### Polymorphic Higher Order Functions
-
-...
-
 ### Abstraction over Arity
 
 ...
