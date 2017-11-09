@@ -51,7 +51,7 @@ Since we're still dealing with Javascript ftor pursues a <a href="https://eschew
 
 An import principle of dynamic type systems is to detect type errors as early as possible. While this can be done to a certain degree, dynamic type systems never can give a guarantee that a program is free of type errors like static systems can do. They are a supplement to unit tests, not a substitute.
 
-Although ftor leans to the ML-family it doesn't support bounded polymorphism through type classes. This is for a good reason. As soon as the type system is disabled, all the type information is erased and thus also the association between types and their corresponding type classes. The only way to bypass this would be to introduce a compiling step to replaced type class annotations with real type dictionaries. That wouldn't make much sense in context of a dynamic type system though. Instead, ftor supports bounded polymorphism through explicit type dictionaries and overloaed function names, which are enforced at the type level.
+Although ftor leans towards the ML-family it doesn't support bounded polymorphism through type classes. This is for a good reason. As soon as the type system is disabled, all the type information is erased and thus also the association between types and their corresponding type classes. The only way to bypass this would be to introduce a compiling step to replaced type class annotations with real type dictionaries. That wouldn't make much sense in context of a dynamic type system though. Instead, ftor supports bounded polymorphism through explicit type dictionaries and overloaed function names, which are enforced at the type level.
 
 As opposed to _Flow_ and _TypeScript_ ftor doesn't support subtype polymorphism, because it entails high complexity, such as different forms of type variance, e.g. <a href="https://flow.org/blog/2016/10/04/Property-Variance/">property variance</a> and it has irritating properties like <a href="https://brianmckenna.org/blog/row_polymorphism_isnt_subtyping">automatic upcasting</a>. As a result ftor only sticks to a single subsumption rule resulting from the subtype relation between `a -> b` and `a -> a`.
 
@@ -61,7 +61,7 @@ Let's get to the individual types without any further ado.
 
 ## Function Type
 
-You can easily create typed functions with the `Fun` constructor both as a declaration or inline as an expression. It takes a mandatory type signature and an arrow - that's all. While explicit type signatures might be laborious at first, you will appreciate their self-documenting character.
+You can easily create typed functions with the `Fun` constructor wherever an expression is allowed. It takes a mandatory type signature and an arrow - that's all. While explicit type signatures might be laborious at first, you will appreciate their self-documenting character.
 
 ftor's type signatures deviate from Haskell's, though. An important difference are the parentheses, which have to enclose every function signature:
 
@@ -73,12 +73,7 @@ const listenTo = Fun(
 );
 
 listenTo("emerpus evol a"); // "a love supreme"
-
-// typed function expression
-Fun("(String -> String)", s => s.split("").reverse().join(""))
-  ("emerpus evol a"); // "a love supreme"
 ```
-
 ### Multi-Argument Functions
 
 As usual, you can define multi-argument functions. Please note that arguments are not enclosed by parentheses in type signatures:
@@ -221,7 +216,6 @@ toArray(true); // [true]
 Parametric polymorphism includes a property called <a href="https://en.wikipedia.org/wiki/Parametricity">parametricity</a>, which states that a function must not know anything about the types of its arguments or return value. Here is a function that violates parametricity:
 
 ```Javascript
-
 const append = Fun(
   "(append :: a -> a -> a)",
   x => y => {
@@ -236,16 +230,50 @@ const append = Fun(
 
 append(2) (3); // 5
 append("2") ("3"); // "23"
-append(true) (false); // false
+append(2) ("3"); // throws
 append({}) ({}); // throws
 ```
 At this point ftor's little secret is revealed, which it has been able to hide from us so far. Since the type checker doesn't statically check our code, it isn't capable of preventing us from writing such functions. Even though `append`'s type signature pretends to be a perfect, parametric polymorphic function, it isn't. Unfortunately, there is nothing I can do about it and maybe this behavior is even helpful to write idiomatic Javascript code in a safe manner. This calls for further experience.
 
-As far as I know Javascript isn't particularly suitable for static type checking anyway. You can tell by the great difficulties _Flow_ has with type inferring and refinements.
+As far as I know Javascript isn't particularly suitable for static type checking anyway. You can tell by the great difficulties _Flow_ has with type inference and refinements.
 
 #### Higher Order
 
-...
+Polymorphic function types are most useful when they are part of a higher order function annotation:
+
+```Javascript
+const ap = Fun(
+  "(ap :: (a -> b) -> a -> b)",
+  f => x => f(x)
+);
+
+const ap_ = Fun(
+  "(ap :: (a -> a) -> a -> a)",
+  f => x => f(x)
+);
+
+const id = F.Fun("(id :: a -> a)", n => n);
+
+const inc = F.Fun(
+  "(inc :: Number -> Number)",
+  n => n + 1
+);
+
+const toStr = F.Fun(
+  "(toStr :: Number -> String)",
+  n => n + ""
+);
+
+ap(inc) (2); // 3
+ap(toStr) (2); // "2"
+
+ap_(inc) (2); // 3
+ap_(toStr) (2); // throws
+
+ap(id) (2); // 2
+ap(id) ("foo"); // "foo"
+```
+A function passed to `ap` can be either mono- or polymorphic. If it is a monomorphic function the type variable `a` is bound to the domain of the function argument (`id` in the example above). If it is a polymorphic function the type of the second argument determines the type of `a` of the function argument (`id`). This means that `ap` as the caller selects the ground type of `id`.
 
 ### Polymorphic Higher Order Functions
 
