@@ -121,16 +121,13 @@ const introspect = x => {
           }
 
           default: {
-            const name = x.constructor && x.constructor.name || "",
-              cat = x[TYPE_SIG] || "";
-
-            if (cat === "Adt") {
+            if (TYPE_SIG in x) {
               tags.add(x[TYPE_SIG]);
               return tags.add(tag);
             }
 
             else {
-              if (name !== "") tags.add(name);
+              if ("constructor" in x) tags.add(x.constructor.name);
               tags.add(tag);
               return tags.add("Object");
             }
@@ -142,20 +139,87 @@ const introspect = x => {
 };
 
 
-const introspect1 = x => introspect(x).entries().next().value[0];
-
-
-const firstIt = ix => ix.entries().next().value[0];
+const introspect1 = x => values(introspect(x)).next().value;
 
 
 /******************************************************************************
 *******************************************************************************
-**************************[ 3. TYPE REPRESENTATIVES ]**************************
+*****************************[ 3. TYPE INFERENCE ]*****************************
+*******************************************************************************
+******************************************************************************/
+  
+
+const infer = x => {
+  const tag = getStringTag(x);
+
+  switch (typeof x) {
+    case "boolean": return "Boolean";
+
+    case "function": {
+      if (tag === "Fun") return x[TYPE_SIG];
+      else return "Function";
+    }
+
+    case "number": {
+      if (Number.isNaN(x)) return "NaN";
+      else if (!Number.isFinite(x)) return "Infinity";
+      else return "Number";
+    }
+
+    case "string": return "String";
+    case "symbol": return "Symbol";
+    case "undefined": return "Undefined";
+
+    case "object": {
+      if (x === null) return "Null";
+
+      else {
+        if (TYPE_SIG in x) return x[TYPE_SIG];
+
+        else {
+          switch (tag) {
+            case "Array": {
+              if (x.length === 0) return "Array";
+              else if (x.length === 1) return `[${infer(x[0])}]`;
+
+              else {
+                const s = x.reduce((acc, y) => acc.add(infer(y)), new Set());
+                if (s.size === 1) return `[${nextVal(s.values())}]`;
+                else return `[${Array.from(s.values()).join(", ")}]`;
+              }
+            }
+
+            case "Map": {
+              if (x.size === 0) return "Map";
+              else return `{${nextVal(x.entries()).map(y => infer(y)).join("::")}}`;
+            }
+
+            case "Object": {
+              const ks = Object.keys(x);
+              if (ks.length === 0) return "Object";
+              else return "{" + ks.map(k => `${k}: ${infer(x[k])}`).join(", ") + "}";
+            }
+
+            default: {
+              if ("constructor" in x) return x.constructor.name;
+              else return tag;
+            }
+          }
+        }
+      }
+    }
+  }
+};
+
+
+/******************************************************************************
+*******************************************************************************
+**************************[ 4. TYPE REPRESENTATIVES ]**************************
 *******************************************************************************
 ******************************************************************************/
 
 
-//***[ 3.1. ALGEBRAIC DATA TYPES ]*********************************************
+//***[ 4.1. ALGEBRAIC DATA TYPES ]*********************************************
 
 
 const AdtT = (Cons => (tag, fromTo, typeReps) => new Cons(tag, fromTo, typeReps))
@@ -168,7 +232,7 @@ const AdtT = (Cons => (tag, fromTo, typeReps) => new Cons(tag, fromTo, typeReps)
   });
 
 
-//***[ 3.2. ARRAYS ]***********************************************************
+//***[ 4.2. ARRAYS ]***********************************************************
 
 
 const ArrT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
@@ -181,7 +245,7 @@ const ArrT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
   });
 
 
-//***[ 3.3. FUNCTIONS ]********************************************************
+//***[ 4.3. FUNCTIONS ]********************************************************
 
 
 const FunT = (Cons => (name, {isStrict}, fromTo, typeReps) => new Cons(name, isStrict, fromTo, typeReps))
@@ -233,7 +297,7 @@ const ReturnT = (Cons => typeRep => new Cons(typeRep))
   });
 
 
-//***[ 3.4. _MAP ]**************************************************************
+//***[ 4.4. _MAP ]**************************************************************
 
 
 const _MapT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
@@ -246,7 +310,7 @@ const _MapT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
   });
 
 
-//***[ 3.5. MONOMORPHIC TYPES ]************************************************
+//***[ 4.5. MONOMORPHIC TYPES ]************************************************
 
 
 const MonoT = (Cons => (fromTo, tag) => new Cons(fromTo, tag))
@@ -259,7 +323,7 @@ const MonoT = (Cons => (fromTo, tag) => new Cons(fromTo, tag))
   });
 
 
-//***[ 3.6. POLYMORPHIC TYPES ]************************************************
+//***[ 4.6. POLYMORPHIC TYPES ]************************************************
 
 
 const PolyT = (Cons => (fromTo, tvar) => new Cons(fromTo, tvar))
@@ -272,7 +336,7 @@ const PolyT = (Cons => (fromTo, tvar) => new Cons(fromTo, tvar))
   });
 
 
-//***[ 3.7. RECORDS ]**********************************************************
+//***[ 4.7. RECORDS ]**********************************************************
 
 
 const RecT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
@@ -285,7 +349,7 @@ const RecT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
   });
 
 
-//***[ 3.8. TUPLES ]***********************************************************
+//***[ 4.8. TUPLES ]***********************************************************
 
 
 const TupT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
@@ -298,7 +362,7 @@ const TupT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
   });
 
 
-//***[ 3.9. UNIT ]***********************************************************
+//***[ 4.9. UNIT ]***********************************************************
 
 
 const UnitT = (Cons => fromTo => new Cons(fromTo))
@@ -313,7 +377,7 @@ const UnitT = (Cons => fromTo => new Cons(fromTo))
 
 /******************************************************************************
 *******************************************************************************
-******************************[ 4. SERIALIZING ]*******************************
+******************************[ 5. SERIALIZING ]*******************************
 *******************************************************************************
 ******************************************************************************/
 
@@ -461,7 +525,7 @@ const serializeTup = (tag, typeReps) => {
 
 /******************************************************************************
 *******************************************************************************
-*****************************[ 4. DESERIALIZING ]******************************
+*****************************[ 6. DESERIALIZING ]******************************
 *******************************************************************************
 ******************************************************************************/
 
@@ -1270,11 +1334,11 @@ const lookAheadFun = typeSig => {
 
   return aux(0, {context: []})
 };
-  
+
 
 /******************************************************************************
 *******************************************************************************
-***********************[ 5. UNIFICTAION / SUBSUMPTION ]************************
+******************************[ 7. UNIFICTAION ]*******************************
 *******************************************************************************
 ******************************************************************************/
 
@@ -1466,12 +1530,12 @@ const unifyTup = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
 
 /******************************************************************************
 *******************************************************************************
-******************************[ 6. CUSTOM TYPES ]******************************
+******************************[ 8. CUSTOM TYPES ]******************************
 *******************************************************************************
 ******************************************************************************/
 
 
-//***[ 6.1. FUNCTIONS ]********************************************************
+//***[ 8.1. FUNCTIONS ]********************************************************
 
 
 export const Fun = (typeSig, f) => {
@@ -1705,7 +1769,7 @@ const verifyArgT = (arg, nominalT, name, typeSig, bindings) => {
   const [from, to] = nominalT.fromTo,
     nominalS = serialize(nominalT),
     realSigs = introspect(arg),
-    realS = firstIt(realSigs),
+    realS = nextVal(realSigs.values()),
     realT = deserialize(realS);
 
   if (nominalS.search(/\b[a-z]\b/) >= 0
@@ -1731,7 +1795,7 @@ const verifyRestT = (args, nominalT, name, typeSig, bindings) => {
   return args
     .reduce((bindings_, arg, n) => {
       const realSigs = introspect(arg),
-        realS = firstIt(realSigs),
+        realS = nextVal(realSigs.values()),
         realT = deserialize(realS);
 
       if (nominalS.search(/\b[a-z]\b/) >= 0
@@ -1760,7 +1824,7 @@ const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
           [from, to] = nominalT.fromTo,
           nominalS = serialize(nominalT),
           realSigs = introspect(arg),
-          realS = firstIt(realSigs),
+          realS = nextVal(realSigs.values()),
           realT = deserialize(realS);
 
         if (nominalS.search(/\b[a-z]\b/) >= 0
@@ -1786,7 +1850,7 @@ const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
       .slice(params.mandatory)
       .reduce((bindings_, arg, n) => {
         const realSigs = introspect(arg),
-          realS = firstIt(realSigs),
+          realS = nextVal(realSigs.values()),
           realT = deserialize(realS);
 
         if (nominalS.search(/\b[a-z]\b/) >= 0
@@ -1812,7 +1876,7 @@ const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
           [from, to] = nominalT.fromTo,
           nominalS = serialize(nominalT),
           realSigs = introspect(arg),
-          realS = firstIt(realSigs),
+          realS = nextVal(realSigs.values()),
           realT = deserialize(realS);
 
         if (nominalS.search(/\b[a-z]\b/) >= 0
@@ -1837,7 +1901,7 @@ const verifyReturnT = (r, nominalT, name, typeSig, bindings) => {
   const [from, to] = nominalT.fromTo,
     nominalS = serialize(nominalT),
     realSigs = introspect(r),
-    realS = firstIt(realSigs),
+    realS = nextVal(realSigs.values()),
     realT = deserialize(realS);
 
   if (nominalS.search(/\b[a-z]\b/) >= 0
@@ -1859,7 +1923,7 @@ const verifyReturnT = (r, nominalT, name, typeSig, bindings) => {
 };
 
 
-//***[ 6.2. ALGEBRAIC DATA TYPES ]*********************************************
+//***[ 8.2. ALGEBRAIC DATA TYPES ]*********************************************
 
 
 const Adt = (cons, typeSig, ...cases) => f => {
@@ -1914,7 +1978,7 @@ const handleAdt = (typeRep, tags) => {
 );*/
 
 
-//***[ 6.3. ARRAYS ]***********************************************************
+//***[ 8.3. ARRAYS ]***********************************************************
 
 
 const Arr = (xs, {immu = false}) => {
@@ -2103,7 +2167,7 @@ const handleArr = (typeRep, typeSig, immu) => ({
 });
 
 
-//***[ 6.4. TUPLES ]***********************************************************
+//***[ 8.4. TUPLES ]***********************************************************
 
 
 const Tup = (xs, {immu = false}) => {
@@ -2236,7 +2300,7 @@ const handleTup = (typeRep, typeSig, immu) => ({
 });
 
 
-//***[ 6.5. MAPS ]*************************************************************
+//***[ 8.5. MAPS ]*************************************************************
 
 
 const _Map = (typeSig, ix) => {
@@ -2304,7 +2368,7 @@ const handleMap = typeSig => ({
 });
 
 
-//***[ 6.6. RECORDS ]**********************************************************
+//***[ 8.6. RECORDS ]**********************************************************
 
 
 const Rec = (o, {immu = false}) => {
@@ -2439,7 +2503,7 @@ const handleRec = (typeRep, typeSig, immu) => ({
 });
 
 
-//***[ 6.7. SUBTYPES ]*********************************************************
+//***[ 8.7. SUBTYPES ]*********************************************************
 
 
 class Int extends Number {
@@ -2449,7 +2513,7 @@ class Int extends Number {
 }
 
 
-//***[ 6.8. ERRORS ]***********************************************************
+//***[ 8.8. ERRORS ]***********************************************************
 
 
 //---[ Subtypes ]--------------------------------------------------------------
@@ -2525,7 +2589,7 @@ const _throw = (Cons, title, subject, {fromTo = [], desc = []}) => {
 
 /******************************************************************************
 *******************************************************************************
-******************************[ 7. MISCALLANIOUS ]******************************
+*****************************[ 9. MISCALLANIOUS ]******************************
 *******************************************************************************
 ******************************************************************************/
 
@@ -2547,12 +2611,12 @@ const last = xs => xs[xs.length - 1];
 
 /******************************************************************************
 *******************************************************************************
-*****************************[ 8. BUILT-IN TYPES ]*****************************
+*****************************[ 10. BUILT-IN TYPES ]*****************************
 *******************************************************************************
 ******************************************************************************/
 
 
-//***[ 8.1. VALUE TYPES ]******************************************************
+//***[ 10.1. VALUE TYPES ]******************************************************
 
 
 //---[ Boolean ]---------------------------------------------------------------
@@ -2561,22 +2625,43 @@ const last = xs => xs[xs.length - 1];
 const xor = x => y => !x === !y ? false : true;
 
 
-//***[ 8.2. REFERENCE TYPES ]**************************************************
+//***[ 10.2. REFERENCE TYPES ]**************************************************
 
 
 //---[ Generator functions ]---------------------------------------------------
 
 
-function* keys(o) {
-  for (let k in o) yield k;
+function* keys(ix) {
+  for (let k of ix) yield k;  
 }
 
 
-function* values(o) {
-  for (let k in o) yield o[k];
+function* values(ix) {
+  for (let v of ix) yield v;
 }
 
 
-function* entries(o) {
+function* entries(ix) {
+  for (let kv of ix) yield kv;
+}
+
+
+function* okeys(o) {
+  for (let k in o) yield k;  
+}
+
+
+function* ovalues(o) {
+  for (let v in o) yield v;
+}
+
+
+function* oentries(o) {
   for (let k in o) yield [k, o[k]];
 }
+
+
+const next = ix => ix.next();
+
+
+const nextVal = ix => ix.next().value;
