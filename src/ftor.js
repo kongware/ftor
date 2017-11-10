@@ -1642,15 +1642,20 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
     },
 
     has: (f, k, p) => {
-      _throw(
-        TypeError,
-        ["illegal property introspection"],
-        typeSig,
-        {desc: [
-          `of property ${preformat(k)}`,
-          "duck typing is not allowed along with function objects"
-        ]}
-      );
+      switch (k) {
+        case TYPE_SIG: return true;
+        case TYPE_REP: return true;
+
+        default: _throw(
+          TypeError,
+          ["illegal property introspection"],
+          typeSig,
+          {desc: [
+            `of property ${preformat(k)}`,
+            "duck typing is not allowed along with function objects"
+          ]}
+        );
+      }
     },
 
     set: (o, k, v, p) => {
@@ -1926,56 +1931,95 @@ const verifyReturnT = (r, nominalT, name, typeSig, bindings) => {
 //***[ 8.2. ALGEBRAIC DATA TYPES ]*********************************************
 
 
-const Adt = (cons, typeSig, ...cases) => f => {
-  const adt = new cons();
+export const Adt = (tcons, typeSig, ...cases) => {
+  const typeRep = deserialize(typeSig),
+    tvars = typeSig.match(/\b[a-z]\b/g);
 
   if (devMode) {
-    const typeRep = sigMap(typeSig),
-      tags = collectTags(typeRep);
+    const typeSigs = [];
 
-    adt.run = new Proxy(cases => f(cases), handleAdt(typeRep, tags));
+    cases.forEach(vcons => {
+      if (TYPE_SIG in vcons) {
+        const typeSig_ = vcons[TYPE_SIG];
+        typeSig_.match(/\b[a-z]\b/g)
+          .forEach(tvar => {
+            if (!tvars.includes(tvar)) throw_();
+
+            else {
+              if (typeSig_.search(/^\([a-z0-9_]+ :: /i) !== 0) _throw();
+              else if (typeSig_.search(/^\(_?[A-Z]/) !== 0) _throw();
+              else typeSigs.push(typeSig_);
+            }
+          });
+      }
+
+      else _throw();
+    });
+
+    return f => {
+      const adt = new tcons();
+      adt.run = new Proxy(cases_ => f(cases_), handleAdt(typeRep, typeSig, typeSigs));
+      return adt;
+    };
   }
 
-  else adt.run = cases => f(cases);
-  return adt;
+  else return f => {
+    const adt = new tcons();
+    adt.run = cases_ => f(cases_);
+    return adt;
+  }
 };
 
 
-const handleAdt = (typeRep, tags) => {
+const handleAdt = (typeRep, typeSig, typeSigs) => {
   return {
-    apply: (f, _, [o]) => {
-      const ks = Object.keys(o);
+    apply: (f, _, [cases]) => {
+      const ks = Object.keys(cases);
 
-      tags.forEach(tag => {
-        if (!ks.includes(tag)) throw new TypeError("missing case " + tag);
+      typeSigs.forEach(typeSig_ => {
+        if (!ks.includes(typeSig_)) _throw();
       });
 
       ks.forEach(k => {
-        if (!tags.includes(k)) throw new TypeError("unknown case " + k);
+        if (!typeSigs.includes(k)) _throw();
       });
 
-      return f(o);
-    }
+      return f(cases);
+    },
+
+    get: (f, k, p) => {
+      switch (k) {
+        case "toString": return () => typeSig;
+        case Symbol.toStringTag: return "Adt";
+        case TYPE_REP: return typeRep;
+        case TYPE_SIG: return typeSig;
+
+        case Symbol.toPrimitive: return hint => {
+          _throw(
+            TypeError,
+            ["illegal implicit type conversion"],
+            typeSig,
+            {desc: [
+              `must not be converted to ${capitalize(hint)} primitive`,
+              "use explicit type casts instead"
+            ]}
+          );          
+        };
+
+        default: {
+          if (k in f) return f[k];
+
+          else _throw(
+            TypeError,
+            ["illegal property access"],
+            typeSig,
+            {desc: [`unknown property ${preformat(k)}`]}
+          );
+        }
+      }
+    },
   };
 };
-
-
-//Either = Adt(class Either {}, "Either<a, b> = Left :: (a -> Either<a, b>) | Right :: (b -> Either<a, b>)")
-
-/*Adt(
-  class List {},
-  "List<a> = Nil :: List<a> | Cons :: (a -> List<a> -> List<a>)",
-
-  {
-    Nil: List(o => o.Nil),
-
-    Cons: x => t => {
-      const Cons_ = List(o => o.Cons(x) (t));
-      Cons_.toString = () => "Cons";
-      return Cons_;
-    }
-  }
-);*/
 
 
 //***[ 8.3. ARRAYS ]***********************************************************
