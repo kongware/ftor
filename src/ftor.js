@@ -91,6 +91,11 @@ const introspect = x => {
 
       else {
         switch (tag) {
+          case "Adt": {
+            tags.add(x[TYPE_SIG]);
+            return tags.add(tag);
+          }
+
           case "Arr": {
             tags.add(x[TYPE_SIG]);
             tags.add(tag);
@@ -121,16 +126,9 @@ const introspect = x => {
           }
 
           default: {
-            if (TYPE_SIG in x) {
-              tags.add(x[TYPE_SIG]);
-              return tags.add(tag);
-            }
-
-            else {
-              if ("constructor" in x) tags.add(x.constructor.name);
-              tags.add(tag);
-              return tags.add("Object");
-            }
+            if ("constructor" in x) tags.add(x.constructor.name);
+            tags.add(tag);
+            return tags.add("Object");
           }
         }
       }
@@ -1359,10 +1357,9 @@ const unify = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, binding
 
 const unifyAdt = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
   return nominalT.typeReps
-    .reduce((bindings_, xT) => {
-      const nominalT_ = xT[0],
-        nominalS_ = serialize(nominalT_),
-        realT_ = realT.typeReps[n][0],
+    .reduce((bindings_, nominalT_, n) => {
+      const nominalS_ = serialize(nominalT_),
+        realT_ = realT.typeReps[n],
         realS_ = serialize(realT_);
 
       return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings_);
@@ -1372,10 +1369,9 @@ const unifyAdt = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
 
 const unifyArr = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
   return nominalT.typeReps
-    .reduce((bindings_, xT) => {
-      const nominalT_ = xT[0],
-        nominalS_ = serialize(nominalT_),
-        realT_ = realT.typeReps[n][0],
+    .reduce((bindings_, nominalT_, n) => {
+      const nominalS_ = serialize(nominalT_),
+        realT_ = realT.typeReps[n],
         realS_ = serialize(realT_);
 
       return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings_);
@@ -1940,25 +1936,55 @@ export const Adt = (tcons, typeSig, ...cases) => {
 
     cases.forEach(vcons => {
       if (TYPE_SIG in vcons) {
-        const typeSig_ = vcons[TYPE_SIG];
-        typeSig_.match(/\b[a-z]\b/g)
-          .forEach(tvar => {
-            if (!tvars.includes(tvar)) throw_();
+        const typeSig_ = vcons[TYPE_SIG],
+          typeRep_ = deserialize(typeSig_);
 
-            else {
-              if (typeSig_.search(/^\([a-z0-9_]+ :: /i) !== 0) _throw();
-              else if (typeSig_.search(/^\(_?[A-Z]/) !== 0) _throw();
-              else typeSigs.push(typeSig_);
-            }
+        typeRep_.typeReps
+          .forEach(xT => {
+            if (typeSig_.search(/^\([a-z0-9_]+ :: /i) !== 0) _throw(
+              TypeError,
+              [`value constructors must have a named type annotation`],
+              `(name :: ${typeSig.slice(1)}`,
+              {fromTo: [1, 8], desc: []}
+            );
+
+            else if (typeSig_.search(/^\(_?[A-Z]/) !== 0) _throw(
+              TypeError,
+              [`value constructors must have capitalized names`],
+              typeSig,
+              {fromTo: [1, 1], desc: []}
+            );
+
+            xT.forEach(typeRep__ => {
+              if (typeRep__.constructor.name === "PolyT") {
+                if (!tvars.includes(typeRep__.tag)) {
+                  const [from, to] = typeRep__.fromTo;
+
+                  throw_(
+                    TypeError,
+                    [`invalid value constructor`],
+                    typeSig_,
+                    {fromTo: [from, to], desc: ["type variable out of scope"]}
+                  );
+                }
+              }
+            })
           });
+
+        typeSigs.push(typeSig_);
       }
 
-      else _throw();
+      else _throw(
+        TypeError,
+        [`invalid value constructor`],
+        "???",
+        {fromTo: [0, 2], desc: ["missing type annotation"]}
+      );
     });
 
     return f => {
-      const adt = new tcons();
-      adt.run = new Proxy(cases_ => f(cases_), handleAdt(typeRep, typeSig, typeSigs));
+      const adt = new Proxy(new tcons(), handleAdt(typeRep, typeSig, typeSigs));
+      adt.run = cases_ => f(cases_);
       return adt;
     };
   }
@@ -1973,22 +1999,22 @@ export const Adt = (tcons, typeSig, ...cases) => {
 
 const handleAdt = (typeRep, typeSig, typeSigs) => {
   return {
-    apply: (f, _, [cases]) => {
-      const ks = Object.keys(cases);
-
-      typeSigs.forEach(typeSig_ => {
-        if (!ks.includes(typeSig_)) _throw();
-      });
-
-      ks.forEach(k => {
-        if (!typeSigs.includes(k)) _throw();
-      });
-
-      return f(cases);
-    },
-
-    get: (f, k, p) => {
+    get: (o, k, p) => {
       switch (k) {
+        case "run": return ([cases]) => {
+          const ks = Object.keys(cases);
+
+          typeSigs.forEach(typeSig_ => {
+            if (!ks.includes(typeSig_)) _throw();
+          });
+
+          ks.forEach(k => {
+            if (!typeSigs.includes(k)) _throw();
+          });
+
+          return o.run(cases);
+        }
+
         case "toString": return () => typeSig;
         case Symbol.toStringTag: return "Adt";
         case TYPE_REP: return typeRep;
@@ -2007,7 +2033,7 @@ const handleAdt = (typeRep, typeSig, typeSigs) => {
         };
 
         default: {
-          if (k in f) return f[k];
+          if (k in o) return o[k];
 
           else _throw(
             TypeError,
