@@ -1595,7 +1595,13 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
       }
 
       if (typeReps[num + 1].constructor.name === "ReturnT") {
-        return verifyReturnT(g(...args), typeReps[num + 1][0], name, typeSig, bindings);
+        const r = g(...args);
+
+        if (getStringTag(r) === "Adt") {
+          constructType(r, bindings);
+        }
+
+        return verifyReturnT(r, typeReps[num + 1][0], name, typeSig, bindings);
       }
 
       else {
@@ -1924,6 +1930,15 @@ const verifyReturnT = (r, nominalT, name, typeSig, bindings) => {
 };
 
 
+const constructType = (adt, bindings) => {
+  bindings.forEach((v, k) => {
+    adt[TYPE_SIG] = adt[TYPE_SIG].replace(new RegExp(`\\b${k}\\b`), v);
+  });
+
+  adt[TYPE_REP] = deserialize(adt[TYPE_SIG]);
+};
+
+
 //***[ 8.2. ALGEBRAIC DATA TYPES ]*********************************************
 
 
@@ -2001,8 +2016,13 @@ const handleAdt = (typeRep, typeSig, typeSigs) => {
   return {
     get: (o, k, p) => {
       switch (k) {
-        case "run": return ([cases]) => {
+        case "run": return cases => {
           const ks = Object.keys(cases);
+
+          // check if typed
+          // only check cases' keys here
+          // drop the second loop and just check length
+          // remove typeSigs
 
           typeSigs.forEach(typeSig_ => {
             if (!ks.includes(typeSig_)) _throw();
@@ -2044,6 +2064,26 @@ const handleAdt = (typeRep, typeSig, typeSigs) => {
         }
       }
     },
+
+    set: (o, k, v, p) => {
+      switch (k) {
+        case "toString":
+        case "run": return o[k] = v, o;
+        
+        case TYPE_REP: return typeRep = v, o; 
+        case TYPE_SIG: return typeSig = v, o;
+
+        default: _throw(
+          TypeError,
+          ["illegal property mutation"],
+          typeSig,
+          {desc: [
+            `of property ${preformat(k)} with value ${preformat(v)}`,
+            "function objects are immutable"
+          ]}
+        );
+      }
+    }
   };
 };
 
