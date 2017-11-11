@@ -1598,7 +1598,9 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
         const r = g(...args);
 
         if (getStringTag(r) === "Adt") {
-          constructType(r, bindings);
+          const [rep, sig] = constructType(r, bindings);
+          r[TYPE_REP] = rep;
+          r[TYPE_SIG] = sig;
         }
 
         return verifyReturnT(r, typeReps[num + 1][0], name, typeSig, bindings);
@@ -1931,23 +1933,29 @@ const verifyReturnT = (r, nominalT, name, typeSig, bindings) => {
 
 
 const constructType = (adt, bindings) => {
+  let rep, sig;
+
   bindings.forEach((v, k) => {
-    adt[TYPE_SIG] = adt[TYPE_SIG].replace(new RegExp(`\\b${k}\\b`), v);
+    sig = adt[TYPE_SIG].replace(new RegExp(`\\b${k}\\b`), v);
   });
 
-  adt[TYPE_REP] = deserialize(adt[TYPE_SIG]);
+  rep = deserialize(adt[TYPE_SIG]);
+  return [rep, sig]
 };
 
 
 //***[ 8.2. ALGEBRAIC DATA TYPES ]*********************************************
 
 
+// TODO: allow constants instead of nullary functions
+// TODO: recursive matching algorithm
+
 export const Adt = (tcons, typeSig, ...cases) => {
   const typeRep = deserialize(typeSig),
     tvars = typeSig.match(/\b[a-z]\b/g);
 
   if (devMode) {
-    const typeSigs = [];
+    const typeSigs = new Map();
 
     cases.forEach(vcons => {
       if (TYPE_SIG in vcons) {
@@ -1960,14 +1968,14 @@ export const Adt = (tcons, typeSig, ...cases) => {
               TypeError,
               [`value constructors must have a named type annotation`],
               `(name :: ${typeSig.slice(1)}`,
-              {fromTo: [1, 8], desc: []}
+              {fromTo: [1, 8]}
             );
 
             else if (typeSig_.search(/^\(_?[A-Z]/) !== 0) _throw(
               TypeError,
               [`value constructors must have capitalized names`],
               typeSig,
-              {fromTo: [1, 1], desc: []}
+              {fromTo: [1, 1]}
             );
 
             xT.forEach(typeRep__ => {
@@ -1986,7 +1994,7 @@ export const Adt = (tcons, typeSig, ...cases) => {
             })
           });
 
-        typeSigs.push(typeSig_);
+        typeSigs.set(typeRep_.name, typeSig_);
       }
 
       else _throw(
@@ -2017,19 +2025,31 @@ const handleAdt = (typeRep, typeSig, typeSigs) => {
     get: (o, k, p) => {
       switch (k) {
         case "run": return cases => {
-          const ks = Object.keys(cases);
+          Object.keys(cases).forEach(k => {
+            if (!(TYPE_REP in cases[k])) _throw(
+              TypeError,
+              ["illegal ADT application"],
+              typeSig,
+              {desc: [`case "${k}" is associated with an untyped function`]}
+            );
 
-          // check if typed
-          // only check cases' keys here
-          // drop the second loop and just check length
-          // remove typeSigs
-
-          typeSigs.forEach(typeSig_ => {
-            if (!ks.includes(typeSig_)) _throw();
+            if (!typeSigs.has(k)) _throw(
+              TypeError,
+              ["illegal ADT application"],
+              typeSig,
+              {desc: [`unnecessary case "${k}"`]}
+            );
           });
 
-          ks.forEach(k => {
-            if (!typeSigs.includes(k)) _throw();
+          typeSigs.forEach((v, k) => {
+            if (!(k in cases)) _throw(
+              TypeError,
+              ["illegal ADT application"],
+              typeSig,
+              {desc: [`missing case "${k}"`]}
+            );
+
+            match(v, cases[k] [TYPE_REP], cases[k] [TYPE_SIG]);
           });
 
           return o.run(cases);
@@ -2085,6 +2105,11 @@ const handleAdt = (typeRep, typeSig, typeSigs) => {
       }
     }
   };
+};
+
+
+const match = (nominalS, realT, realS) => {
+  const nominalR = deserialize(nominalS);
 };
 
 
@@ -2684,7 +2709,7 @@ const preformat = x => {
 };
 
 
-const _throw = (Cons, title, subject, {fromTo = [], desc = []}) => {
+const _throw = (Cons, title, subject, {fromTo = [0, -1], desc = []}) => {
   const [from, to] = fromTo;
 
   throw new Cons(title
