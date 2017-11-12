@@ -1531,7 +1531,9 @@ const unifyTup = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
 ******************************************************************************/
 
 
-//***[ 8.1. FUNCTIONS ]********************************************************
+/******************************************************************************
+*****[ 8.1. FUNCTIONS ]********************************************************
+******************************************************************************/
 
 
 export const Fun = (typeSig, f) => {
@@ -1932,23 +1934,10 @@ const verifyReturnT = (r, nominalT, name, typeSig, bindings) => {
 };
 
 
-const constructType = (adt, bindings) => {
-  let rep, sig;
+/******************************************************************************
+*****[ 8.2. ALGEBRAIC DATA TYPES ]*********************************************
+******************************************************************************/
 
-  bindings.forEach((v, k) => {
-    sig = adt[TYPE_SIG].replace(new RegExp(`\\b${k}\\b`), v);
-  });
-
-  rep = deserialize(adt[TYPE_SIG]);
-  return [rep, sig]
-};
-
-
-//***[ 8.2. ALGEBRAIC DATA TYPES ]*********************************************
-
-
-// TODO: allow constants instead of nullary functions
-// TODO: recursive matching algorithm
 
 export const Adt = (tcons, typeSig, ...cases) => {
   const typeRep = deserialize(typeSig),
@@ -1962,37 +1951,46 @@ export const Adt = (tcons, typeSig, ...cases) => {
         const typeSig_ = vcons[TYPE_SIG],
           typeRep_ = deserialize(typeSig_);
 
-        typeRep_.typeReps
-          .forEach(xT => {
-            if (typeSig_.search(/^\([a-z0-9_]+ :: /i) !== 0) _throw(
+        if (typeSig_.search(/^\([a-z0-9_]+ :: /i) !== 0) _throw(
+          TypeError,
+          [`value constructors must have a named type annotation`],
+          `(name :: ${typeSig_.slice(1)}`,
+          {fromTo: [1, 8]}
+        );
+
+        else if (typeSig_.search(/^\(_?[A-Z]/) !== 0) _throw(
+          TypeError,
+          [`value constructors must have capitalized names`],
+          typeSig_,
+          {fromTo: [1, 1]}
+        );
+
+        const tvars_ = typeSig_.match(/\b[a-z]\b/g);
+
+        tvars_.forEach(tvar => {
+          if (!tvars.includes(tvar)) {
+            const from = typeSig_.search(new RegExp(`\\b${tvar}\\b`)),
+              to = from;
+
+            _throw(
               TypeError,
-              [`value constructors must have a named type annotation`],
-              `(name :: ${typeSig.slice(1)}`,
-              {fromTo: [1, 8]}
+              [`invalid value constructor for type "${typeSig}"`],
+              typeSig_,
+              {fromTo: [from, to], desc: ["type variable out of scope"]}
             );
+          }
+        });
+      
+        if (serialize(last(typeRep_.typeReps)[0]) !== typeSig) {
+          const [from, to] = last(typeRep_.typeReps)[0].fromTo;
 
-            else if (typeSig_.search(/^\(_?[A-Z]/) !== 0) _throw(
-              TypeError,
-              [`value constructors must have capitalized names`],
-              typeSig,
-              {fromTo: [1, 1]}
-            );
-
-            xT.forEach(typeRep__ => {
-              if (typeRep__.constructor.name === "PolyT") {
-                if (!tvars.includes(typeRep__.tag)) {
-                  const [from, to] = typeRep__.fromTo;
-
-                  throw_(
-                    TypeError,
-                    [`invalid value constructor`],
-                    typeSig_,
-                    {fromTo: [from, to], desc: ["type variable out of scope"]}
-                  );
-                }
-              }
-            })
-          });
+          _throw(
+            TypeError,
+            [`invalid value constructor`],
+            typeSig_,
+            {fromTo: [from, to], desc: [`${typeRep_.name} must return values of type "${typeSig}"`]}
+          );
+        }
 
         typeSigs.set(typeRep_.name, typeSig_);
       }
@@ -2000,8 +1998,8 @@ export const Adt = (tcons, typeSig, ...cases) => {
       else _throw(
         TypeError,
         [`invalid value constructor`],
-        "???",
-        {fromTo: [0, 2], desc: ["missing type annotation"]}
+        "missing type annotation",
+        {desc: [`${typeRep_.name} must be a typed function`]}
       );
     });
 
@@ -2108,12 +2106,26 @@ const handleAdt = (typeRep, typeSig, typeSigs) => {
 };
 
 
+const constructType = (adt, bindings) => {
+  let rep, sig;
+
+  bindings.forEach((v, k) => {
+    sig = adt[TYPE_SIG].replace(new RegExp(`\\b${k}\\b`), v);
+  });
+
+  rep = deserialize(adt[TYPE_SIG]);
+  return [rep, sig]
+};
+
+
 const match = (nominalS, realT, realS) => {
   const nominalR = deserialize(nominalS);
 };
 
 
-//***[ 8.3. ARRAYS ]***********************************************************
+/******************************************************************************
+*****[ 8.3. ARRAYS ]***********************************************************
+******************************************************************************/
 
 
 const Arr = (xs, {immu = false}) => {
@@ -2302,7 +2314,9 @@ const handleArr = (typeRep, typeSig, immu) => ({
 });
 
 
-//***[ 8.4. TUPLES ]***********************************************************
+/******************************************************************************
+*****[ 8.4. TUPLES ]***********************************************************
+******************************************************************************/
 
 
 const Tup = (xs, {immu = false}) => {
@@ -2435,7 +2449,9 @@ const handleTup = (typeRep, typeSig, immu) => ({
 });
 
 
-//***[ 8.5. MAPS ]*************************************************************
+/******************************************************************************
+*****[ 8.5. MAPS ]*************************************************************
+******************************************************************************/
 
 
 const _Map = (typeSig, ix) => {
@@ -2503,7 +2519,9 @@ const handleMap = typeSig => ({
 });
 
 
-//***[ 8.6. RECORDS ]**********************************************************
+/******************************************************************************
+*****[ 8.6. RECORDS ]**********************************************************
+******************************************************************************/
 
 
 const Rec = (o, {immu = false}) => {
@@ -2638,7 +2656,9 @@ const handleRec = (typeRep, typeSig, immu) => ({
 });
 
 
-//***[ 8.7. SUBTYPES ]*********************************************************
+/******************************************************************************
+*****[ 8.7. SUBTYPES ]*********************************************************
+******************************************************************************/
 
 
 class Int extends Number {
@@ -2648,7 +2668,9 @@ class Int extends Number {
 }
 
 
-//***[ 8.8. ERRORS ]***********************************************************
+/******************************************************************************
+*****[ 8.8. ERRORS ]***********************************************************
+******************************************************************************/
 
 
 //---[ Subtypes ]--------------------------------------------------------------
