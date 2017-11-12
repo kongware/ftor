@@ -46,6 +46,12 @@ const TYPE_REP = Symbol.for(`${SYM_PREFIX}typeRep`);
 const TYPE_SIG = Symbol.for(`${SYM_PREFIX}typeSig`);
 
 
+const _void = devMode ? new Set([undefined, null, NaN]) : null;
+
+
+const _voidS = devMode ? new Set(["Undefined", "Null", "NaN"]) : null;
+
+
 /******************************************************************************
 *******************************************************************************
 *****************************[ 2. INTROSPECTION ]******************************
@@ -181,9 +187,13 @@ const infer = x => {
               else if (x.length === 1) return `[${infer(x[0])}]`;
 
               else {
-                const s = x.reduce((acc, y) => acc.add(infer(y)), new Set());
-                if (s.size === 1) return `[${nextVal(s.values())}]`;
-                else return `[${Array.from(s.values()).join(", ")}]`;
+                const [s, ss] = x.reduce(([s, ss], y) => {
+                    const t = infer(y);
+                    return [s.add(t), ss.concat(t)];
+                  }, [new Set(), []]);
+
+                if (s.size === 1) return `[${ss[0]}]`;
+                else return `[${ss.join(", ")}]`;
               }
             }
 
@@ -1657,7 +1667,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
           typeSig,
           {desc: [
             `of property ${preformat(k)}`,
-            "duck typing is not allowed along with function objects"
+            "duck typing is not allowed along with function Objects"
           ]}
         );
       }
@@ -1673,7 +1683,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
           typeSig,
           {desc: [
             `of property ${preformat(k)} with value ${preformat(v)}`,
-            "function objects are immutable"
+            "function Objects are immutable"
           ]}
         );
       }
@@ -1686,7 +1696,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
         typeSig,
         {desc: [
           `of property ${preformat(k)} with descriptor ${d}`,
-          "function objects are immutable"
+          "function Objects are immutable"
         ]}
 
       );
@@ -1699,7 +1709,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
         typeSig,
         {desc: [
           `removal of property ${preformat(k)}`,
-          "function objects are immutable"
+          "function Objects are immutable"
         ]}
       );
     },
@@ -1711,7 +1721,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
         typeSig,
         {desc: [
           `of property ${preformat(k)}`,
-          "duck typing is not allowed along with function objects"
+          "duck typing is not allowed along with function Objects"
         ]}
       );
     }
@@ -2017,108 +2027,125 @@ export const Adt = (tcons, typeSig, ...cases) => {
 };
 
 
-const handleAdt = (typeRep, typeSig, typeSigs) => {
-  return {
-    get: (o, k, p) => {
-      switch (k) {
-        case "run": return cases => {
-          Object.keys(cases).forEach(k => {
-            if (!(TYPE_REP in cases[k])) _throw(
-              TypeError,
-              [`illegal application of type "${typeSig}"`],
-              Array.from(typeSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
-              {desc: [`case "${k}" is associated with an untyped function`]}
-            );
-
-            if (!typeSigs.has(k)) _throw(
-              TypeError,
-              [`illegal application of type "${typeSig}"`],
-              Array.from(typeSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
-              {desc: [`unnecessary case "${k}"`]}
-            );
-          });
-
-          typeSigs.forEach((v, k) => {
-            if (!(k in cases)) _throw(
-              TypeError,
-              [`illegal application of type "${typeSig}"`],
-              Array.from(typeSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
-              {desc: [`missing case "${k}"`]}
-            );
-
-            match(v, cases[k] [TYPE_REP], cases[k] [TYPE_SIG]);
-          });
-
-          return o.run(cases);
-        }
-
-        case "toString": return () => typeSig;
-        case Symbol.toStringTag: return "Adt";
-        case TYPE_REP: return typeRep;
-        case TYPE_SIG: return typeSig;
-
-        case Symbol.toPrimitive: return hint => {
-          _throw(
+const handleAdt = (typeRep, typeSig, typeSigs) => ({
+  get: (o, k, p) => {
+    switch (k) {
+      case "run": return cases => {
+        Object.keys(cases).forEach(k => {
+          if (!(TYPE_REP in cases[k])) _throw(
             TypeError,
-            ["illegal implicit type conversion"],
-            typeSig,
-            {desc: [
-              `must not be converted to ${capitalize(hint)} primitive`,
-              "use explicit type casts instead"
-            ]}
-          );          
-        };
-
-        default: {
-          if (k in o) return o[k];
-
-          else _throw(
-            TypeError,
-            ["illegal property access"],
-            typeSig,
-            {desc: [`unknown property ${preformat(k)}`]}
+            [`illegal application of type "${typeSig}"`],
+            Array.from(typeSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
+            {desc: [`case "${k}" is associated with an untyped function`]}
           );
-        }
+
+          if (!typeSigs.has(k)) _throw(
+            TypeError,
+            [`illegal application of type "${typeSig}"`],
+            Array.from(typeSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
+            {desc: [`unnecessary case "${k}"`]}
+          );
+        });
+
+        typeSigs.forEach((v, k) => {
+          if (!(k in cases)) _throw(
+            TypeError,
+            [`illegal application of type "${typeSig}"`],
+            Array.from(typeSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
+            {desc: [`missing case "${k}"`]}
+          );
+
+          match(v, cases[k] [TYPE_REP], cases[k] [TYPE_SIG]);
+        });
+
+        return o.run(cases);
       }
-    },
 
-    set: (o, k, v, p) => {
-      switch (k) {
-        case "toString":
-        case "run": return o[k] = v, o;
-        
-        case TYPE_REP: return typeRep = v, o; 
-        case TYPE_SIG: return typeSig = v, o;
+      case "toString": return () => typeSig;
+      case Symbol.toStringTag: return "Adt";
+      case TYPE_REP: return typeRep;
+      case TYPE_SIG: return typeSig;
 
-        default: _throw(
+      case Symbol.toPrimitive: return hint => {
+        _throw(
           TypeError,
-          ["illegal property mutation"],
+          ["illegal implicit type conversion"],
           typeSig,
           {desc: [
-            `of property ${preformat(k)} with value ${preformat(v)}`,
-            "function objects are immutable"
+            `must not be converted to ${capitalize(hint)} primitive`,
+            "use explicit type casts instead"
           ]}
+        );
+      };
+
+      default: {
+        if (k in o) return o[k];
+
+        else _throw(
+          TypeError,
+          ["illegal property access"],
+          typeSig,
+          {desc: [`unknown property ${preformat(k)}`]}
         );
       }
     }
-  };
-};
+  },
+
+  has: (o, k, p) => {
+    switch (k) {
+      case TYPE_SIG: return true;
+      case TYPE_REP: return true;
+
+      default: _throw(
+        TypeError,
+        ["illegal property introspection"],
+        typeSig,
+        {desc: [
+          `of property ${preformat(k)}`,
+          "duck typing is not allowed along with function Objects"
+        ]}
+      );
+    }
+  },
+
+  set: (o, k, v, p) => {
+    switch (k) {
+      case "toString":
+      case "run": return o[k] = v, o;
+      
+      case TYPE_REP: return typeRep = v, o; 
+      case TYPE_SIG: return typeSig = v, o;
+
+      default: _throw(
+        TypeError,
+        ["illegal property mutation"],
+        typeSig,
+        {desc: [
+          `of property ${preformat(k)} with value ${preformat(v)}`,
+          "function Objects are immutable"
+        ]}
+      );
+    }
+  }
+});
 
 
 const constructType = (adt, bindings) => {
-  let rep, sig;
+  let rep, sig = adt[TYPE_SIG];
 
   bindings.forEach((v, k) => {
     sig = adt[TYPE_SIG].replace(new RegExp(`\\b${k}\\b`), v);
   });
 
-  rep = deserialize(adt[TYPE_SIG]);
-  return [rep, sig]
+  rep = deserialize(sig);
+  return [rep, sig];
 };
 
 
 const match = (nominalS, realT, realS) => {
   const nominalR = deserialize(nominalS);
+
+  // TODO: type check parameter(s) of each case with the parameter(s) of the corresponding value constructor
 };
 
 
@@ -2127,42 +2154,49 @@ const match = (nominalS, realT, realS) => {
 ******************************************************************************/
 
 
-const Arr = (xs, {immu = false}) => {
+export const Arr = (xs, {immu = false, sig = ""}) => {
   if (devMode) {
-    Reflect.defineProperty(
-      xs,
-      Symbol.toStringTag,
-      {value: "Arr"}
+    if (!introspect(xs).has("Array")) _throw(
+      TypeError,
+      ["Arr expects an Array"],
+      introspect1(xs),
+      {desc: ["received"]}
     );
 
-    const typeRep = introspect(xs),
-      typeSig = serialize(typeRep);
-
-    Reflect.defineProperty(
-      xs,
-      Symbol("typeSig"),
-      {value: typeSig}
+    else if (TYPE_REP in xs) _throw(
+      TypeError,
+      ["Arr expects an untyped Array"],
+      xs[TYPE_SIG],
+      {desc: ["received (illegal retyping)"]}
     );
 
-    if (xs.length === 0) throw new TypeError(
-      "Arr received the invalid array\n\n" +
-      `${typeSig}\n` +
-      `${ul(1, 9)}\n\n` +
-      "arrays must not be empty at construction time\n"
-    );
+    let typeSig = infer(xs);
 
-    xs.forEach((x, n) => {
-      const typeSig_ = serialize(introspect(x));
-
-      if (`[${typeSig_}]` !== typeSig) throw new TypeError(
-        "Arr expects\n\n" +
-        `${typeSig}\n` +
-        `${ul(1, typeSig.length - 2)}\n\n` +
-        `${typeSig_} received at index ${n}\n`
+    if (xs.length === 0) {
+      if (sig === "") _throw(
+        TypeError,
+        ["Arr received an empty Array without type annotation"],
+        "[?]",
+        {desc: ["explicit type annotation necessary"]}
       );
 
-      isNotVoid(x);
-    });
+      else typeSig = sig;
+    }
+
+    const typeRep = deserialize(typeSig),
+      voidPattern = new RegExp(`\\b(?:${Array.from(_voidS).join("|")})\\b`);
+
+    if (typeSig.search(voidPattern) !== -1) {
+      const {index: from, 0: match} = typeSig.match(voidPattern),
+        to = from + match.length;
+
+      _throw(
+        TypeError,
+        ["Arr must not contain void values"],
+        typeSig,
+        {fromTo: [from, to], desc: [`${match} received`]}
+      );
+    }
 
     return new Proxy(xs, handleArr(typeRep, typeSig, immu));
   }
@@ -2176,140 +2210,173 @@ const handleArr = (typeRep, typeSig, immu) => ({
     switch (i) {
       case "toString": return () => typeSig;
       case Symbol.toStringTag: return "Arr";
-      case "typeRep": return typeRep;
-      case "typeSig": return typeSig;
+      case [TYPE_REP]: return typeRep;
+      case [TYPE_SIG]: return typeSig;
 
       case Symbol.toPrimitive: return hint => {
-        throw new TypeError(
-          "illegal implicit type coercion applied to array\n\n" +
-          `${typeSig}\n\n` +
-          `should have been converted to ${hint} primitive\n\n` +
-          "use explicit type casts instead\n"
+        _throw(
+          TypeError,
+          ["illegal implicit type conversion"],
+          typeSig,
+          {desc: [
+            `must not be converted to ${capitalize(hint)} primitive`,
+            "use explicit type casts instead"
+          ]}
         );
       };
 
       default: {
-        if (i in xs) return xs[i];
+        if (k in o) return o[k];
 
-        else throw new TypeError(
-          "illegal element access on array\n\n" +
-          `${typeSig}\n\n` +
-          `unknown element ${preformat(i)}\n`
+        else _throw(
+          TypeError,
+          ["illegal property access"],
+          typeSig,
+          {desc: [`unknown property ${preformat(k)}`]}
         );
       }
     }
   },
 
   has: (xs, i, p) => {
-    if (Number.isNaN(Number(i))) throw new TypeError(
-      "illegal array introspection through\n\n" +
-      `${preformat(i)} in ${typeSig}\n\n` +
-      "duck typing is not allowed\n"
-    );
+    switch (k) {
+      case TYPE_SIG: return true;
+      case TYPE_REP: return true;
 
-    else return i in xs;
+      default: _throw(
+        TypeError,
+        ["illegal property introspection"],
+        typeSig,
+        {desc: [
+          `of property ${preformat(k)}`,
+          "duck typing is not allowed"
+        ]}
+      );
+    }
   },
 
   set: (xs, i, v, p) => {
-    if (immu) {
-      throw new TypeError(
-        "illegal array mutation\n\n" +
-        `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
-        "immutable array\n"
-      );
-    }
+    if (immu) _throw(
+      TypeError,
+      ["illegal property mutation"],
+      typeSig,
+      {desc: [
+        `of property ${preformat(k)} with value ${preformat(v)}`,
+        "immutable Array"
+      ]}
+    );
 
     else {
-      if (Number.isNaN(Number(i))) {
-        if (i in xs) {
-          if (typeSig !== `[${serialize(introspect(v))}]`) throw new TypeError(
-            "illegal array mutation\n\n" +
-            `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
-            `${ul(1, typeSig.length - 2)}\n\n` +
-            "arrays must maintain an homogeneous type\n"
-          );
-
-          else return xs[i] = v;
-        }
-
-        else {
-          throw new TypeError(
-            "illegal array mutation\n\n" +
-            `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
-            "arrays are sealed\n"
-          );
-        }
-      }
+      if (Number.isNaN(Number(i))) _throw(
+        TypeError,
+        ["illegal property setting"],
+        typeSig,
+        {desc: [
+          `of property ${preformat(k)} with value ${preformat(v)}`,
+          "do not use Arrays as Objects"
+        ]}
+      );
 
       else {
-        if (Number(i) > xs.length) throw new TypeError(
-          "illegal array mutation\n\n" +
-          `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
-          `but array includes only ${xs.length} elements\n\n` +
-          "there must be no gaps within arrays\n"
+        if (Number(i) > xs.length) _throw(
+          TypeError,
+          ["illegal property setting"],
+          typeSig,
+          {desc: [
+            `of property ${preformat(k)} with value ${preformat(v)}`,
+            `where Array includes only ${xs.length} elements`,
+            "index gaps are not allowed"
+          ]}
         );
 
-        else if (typeSig !== `[${serialize(introspect(v))}]`) throw new TypeError(
-          "illegal array mutation\n\n" +
-          `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n` +
-          `${ul(1, typeSig.length - 2)}\n\n` +
-          "arrays must maintain an homogeneous type\n"
-        );
+        else if (typeSig !== `[${infer(v)}]`) {
+          const [from, to] = typeRep.typeReps[0].fromTo;
 
-        else return xs[i] = v;
+          _throw(
+            TypeError,
+            ["illegal property mutation"],
+            typeSig,
+            {fromTo: [from, to], desc: [
+              `of property ${preformat(k)} with value ${preformat(v)}`,
+              "heterogeneous Arrays are not allowed"
+            ]}
+          );
+        }
+
+        else return true;
       }
     }
   },
 
   defineProperty: (xs, i, d) => {
-    throw new TypeError(
-      "illegal use of reflection method on array\n\n" +
-      `${typeSig}\n\n` +
-      `at property ${preformat(i)}\n\n` +
-      "reflection must not be used\n"
+    // TODO: check immu
+    
+    if (Number.isNaN(Number(i))) _throw(
+      TypeError,
+      ["illegal property setting"],
+      typeSig,
+      {desc: [
+        `of property ${preformat(k)} with value ${preformat(v)}`,
+        "do not use Arrays as Objects"
+      ]}
     );
+
+    else {
+      if (Number(i) > xs.length) _throw(
+        TypeError,
+        ["illegal property setting"],
+        typeSig,
+        {desc: [
+          `of property ${preformat(k)} with value ${preformat(v)}`,
+          `where Array includes only ${xs.length} elements`,
+          "index gaps are not allowed"
+        ]}
+      );
+
+      else if (typeSig !== `[${infer(v)}]`) {
+        const [from, to] = typeRep.typeReps[0].fromTo;
+
+        _throw(
+          TypeError,
+          ["illegal property mutation"],
+          typeSig,
+          {fromTo: [from, to], desc: [
+            `of property ${preformat(k)} with value ${preformat(v)}`,
+            "heterogeneous Arrays are not allowed"
+          ]}
+        );
+      }
+
+      else return true;
+    }
   },
 
   deleteProperty: (xs, i) => {
-    if (immu) {
-      throw new TypeError(
-        "illegal array mutation" +
-        `\n\ndelete ${typeSig} [${i.toString()}] or\n\n` +
-        `\n\nReflect.deleteProperty(${typeSig}, ${preformat(i)})\n\n` +
-        "immutable array\n"
-      );
-    }
+    if (immu) _throw(
+      TypeError,
+      ["illegal property deletion"],
+      typeSig,
+      {desc: [
+        `of property ${preformat(k)}`,
+        "immutable Array"
+      ]}
+    );
 
     else {
-      if (Number.isNaN(Number(i))) throw new TypeError(
-        "illegal array mutation\n\n" +
-        `delete ${typeSig} [${preformat(i)}] or\n\n` +
-        `Reflect.deleteProperty(${typeSig}, ${preformat(i)})\n\n` +
-        "arrays are sealed\n"
-      );
-
-      else {
-        if (i in xs) return delete xs[i], xs;
-
-        else throw new TypeError(
-          "invalid array mutation\n\n" +
-          `delete ${typeSig} [${preformat(i)}] or\n\n` +
-          `Reflect.deleteProperty(${typeSig}, ${preformat(i)})\n\n` +
-          "unknown element\n"
-        );
-      }
+      // TODO: check if numeric key
+      // TODO: check for index gaps
     }
   },
 
-  ownKeys: xs => {
-    throw new TypeError(
-      "illegal array reflection method\n\n" +
-      `Object.keys(${typeSig}) or\n\n` +
-      `Object.values(${typeSig}) or\n\n` +
-      `Object.entries(${typeSig})\n\n` +
-      "reflection must not be used\n"
-    );
-  }
+  ownKeys: xs => _throw(
+    TypeError,
+    ["illegal property introspection"],
+    typeSig,
+    {desc: [
+      `of property ${preformat(k)}`,
+      "duck typing is not allowed"
+    ]}
+  )
 });
 
 
@@ -2748,15 +2815,6 @@ const _throw = (Cons, title, subject, {fromTo = [0, -1], desc = []}) => {
 *****************************[ 9. MISCALLANIOUS ]******************************
 *******************************************************************************
 ******************************************************************************/
-
-
-const _void = new Set([undefined, null, NaN]);
-
-
-const isNotVoid = x => {
-  if (_void.has(x)) throw TypeError("value expected, illegal void type received");
-  else return x;
-}
 
 
 const capitalize = s => s[0].toUpperCase() + s.slice(1);
