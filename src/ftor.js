@@ -1217,9 +1217,8 @@ const getContext = (typeSig, n) => {
 
   // Fun
 
-  if (c === "(") {
-    if (typeSig[n + 1] === ")") return {context: "FUN", phase: "NO_ARG", buf: ""};
-    else return {context: "FUN", phase: "OUTER", buf: ""};
+  if (c === "(" && typeSig[n + 1] !== ")") {
+    return {context: "FUN", phase: "OUTER", buf: ""};
   }
 
   // _Map
@@ -1953,7 +1952,7 @@ export const Adt = (tcons, typeSig, ...cases) => {
 
         if (typeSig_.search(/^\([a-z0-9_]+ :: /i) !== 0) _throw(
           TypeError,
-          [`value constructors must have a named type annotation`],
+          [`value constructors must have a named type annotations`],
           `(name :: ${typeSig_.slice(1)}`,
           {fromTo: [1, 8]}
         );
@@ -2026,15 +2025,15 @@ const handleAdt = (typeRep, typeSig, typeSigs) => {
           Object.keys(cases).forEach(k => {
             if (!(TYPE_REP in cases[k])) _throw(
               TypeError,
-              ["illegal ADT application"],
-              typeSig,
+              [`illegal application of type "${typeSig}"`],
+              Array.from(typeSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
               {desc: [`case "${k}" is associated with an untyped function`]}
             );
 
             if (!typeSigs.has(k)) _throw(
               TypeError,
-              ["illegal ADT application"],
-              typeSig,
+              [`illegal application of type "${typeSig}"`],
+              Array.from(typeSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
               {desc: [`unnecessary case "${k}"`]}
             );
           });
@@ -2042,8 +2041,8 @@ const handleAdt = (typeRep, typeSig, typeSigs) => {
           typeSigs.forEach((v, k) => {
             if (!(k in cases)) _throw(
               TypeError,
-              ["illegal ADT application"],
-              typeSig,
+              [`illegal application of type "${typeSig}"`],
+              Array.from(typeSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
               {desc: [`missing case "${k}"`]}
             );
 
