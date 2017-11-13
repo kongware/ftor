@@ -46,10 +46,7 @@ const TYPE_REP = Symbol.for(`${SYM_PREFIX}typeRep`);
 const TYPE_SIG = Symbol.for(`${SYM_PREFIX}typeSig`);
 
 
-const _void = devMode ? new Set([undefined, null, NaN]) : null;
-
-
-const _voidS = devMode ? new Set(["Undefined", "Null", "NaN"]) : null;
+const VOID = {Undefined: undefined, Null: null, NaN: NaN};
 
 
 /******************************************************************************
@@ -1650,7 +1647,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
             TypeError,
             ["illegal property access"],
             typeSig,
-            {desc: [`unknown property ${preformat(k)}`]}
+            {desc: [`unknown property ${preformatK(k)}`]}
           );
         }
       }
@@ -1666,8 +1663,8 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
           ["illegal property introspection"],
           typeSig,
           {desc: [
-            `of property ${preformat(k)}`,
-            "duck typing is not allowed along with function Objects"
+            `of property ${preformatK(k)}`,
+            "duck typing is not allowed"
           ]}
         );
       }
@@ -1682,7 +1679,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
           ["illegal property mutation"],
           typeSig,
           {desc: [
-            `of property ${preformat(k)} with value ${preformat(v)}`,
+            `of property ${preformatK(k)} with value ${preformatV(v)}`,
             "function Objects are immutable"
           ]}
         );
@@ -1695,7 +1692,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
         ["illegal property mutation"],
         typeSig,
         {desc: [
-          `of property ${preformat(k)} with descriptor ${d}`,
+          `of property ${preformatK(k)} with value ${preformatV(d.value)}`,
           "function Objects are immutable"
         ]}
 
@@ -1708,20 +1705,20 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
         ["illegal property mutation"],
         typeSig,
         {desc: [
-          `removal of property ${preformat(k)}`,
+          `removal of property ${preformatK(k)}`,
           "function Objects are immutable"
         ]}
       );
     },
 
-    ownKeys: xs => {
+    ownKeys: f => {
       _throw(
         TypeError,
         ["illegal property introspection"],
         typeSig,
         {desc: [
-          `of property ${preformat(k)}`,
-          "duck typing is not allowed along with function Objects"
+          `of property ${preformatK(k)}`,
+          "meta programming is not allowed"
         ]}
       );
     }
@@ -1792,7 +1789,15 @@ const verifyArgT = (arg, nominalT, name, typeSig, bindings) => {
     realS = nextVal(realSigs.values()),
     realT = deserialize(realS);
 
-  if (nominalS.search(/\b[a-z]\b/) >= 0
+  if (nominalT.constructor.name !== "PolyT"
+  && nominalT.tag !== realT.tag) _throw(
+    TypeError,
+    [`${name} expects`],
+    typeSig,
+    {fromTo: [from, to], desc: [`${realS} received`]}
+  );
+
+  else if (nominalS.search(/\b[a-z]\b/) >= 0
   || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings);
 
   else {
@@ -1818,7 +1823,15 @@ const verifyRestT = (args, nominalT, name, typeSig, bindings) => {
         realS = nextVal(realSigs.values()),
         realT = deserialize(realS);
 
-      if (nominalS.search(/\b[a-z]\b/) >= 0
+      if (nominalT.constructor.name !== "PolyT"
+      && nominalT.tag !== realT.tag) _throw(
+        TypeError,
+        [`${name} expects`],
+        typeSig,
+        {fromTo: [from, to], desc: [`${realS} received`]}
+      );
+
+      else if (nominalS.search(/\b[a-z]\b/) >= 0
       || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings_);
 
       else {
@@ -1847,7 +1860,15 @@ const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
           realS = nextVal(realSigs.values()),
           realT = deserialize(realS);
 
-        if (nominalS.search(/\b[a-z]\b/) >= 0
+        if (nominalT.constructor.name !== "PolyT"
+        && nominalT.tag !== realT.tag) _throw(
+          TypeError,
+          [`${name} expects`],
+          typeSig,
+          {fromTo: [from, to], desc: [`${realS} received`]}
+        );
+
+        else if (nominalS.search(/\b[a-z]\b/) >= 0
         || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings_);
 
         else {
@@ -1873,7 +1894,15 @@ const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
           realS = nextVal(realSigs.values()),
           realT = deserialize(realS);
 
-        if (nominalS.search(/\b[a-z]\b/) >= 0
+        if (nominalT.constructor.name !== "PolyT"
+        && nominalT.tag !== realT.tag) _throw(
+          TypeError,
+          [`${name} expects`],
+          typeSig,
+          {fromTo: [from, to], desc: [`${realS} received`]}
+        );
+
+        else if (nominalS.search(/\b[a-z]\b/) >= 0
         || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings_);
 
         else {
@@ -1899,7 +1928,15 @@ const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
           realS = nextVal(realSigs.values()),
           realT = deserialize(realS);
 
-        if (nominalS.search(/\b[a-z]\b/) >= 0
+        if (nominalT.constructor.name !== "PolyT"
+        && nominalT.tag !== realT.tag) _throw(
+          TypeError,
+          [`${name} expects`],
+          typeSig,
+          {fromTo: [from, to], desc: [`${realS} received`]}
+        );
+
+        else if (nominalS.search(/\b[a-z]\b/) >= 0
         || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings_);
 
         else {
@@ -1924,7 +1961,15 @@ const verifyReturnT = (r, nominalT, name, typeSig, bindings) => {
     realS = nextVal(realSigs.values()),
     realT = deserialize(realS);
 
-  if (nominalS.search(/\b[a-z]\b/) >= 0
+  if (nominalT.constructor.name !== "PolyT"
+  && nominalT.tag !== realT.tag) _throw(
+    ReturnTypeError,
+    [`${name} expects`],
+    typeSig,
+    {fromTo: [from, to], desc: [`${realS} received`]}
+  );
+
+  else if (nominalS.search(/\b[a-z]\b/) >= 0
   || realS.search(/\b[a-z]\b/) >= 0) {
     unify(r, realT, realS, nominalT, nominalS, ReturnT, name, typeSig, bindings);
     return r;
@@ -2085,7 +2130,7 @@ const handleAdt = (typeRep, typeSig, typeSigs) => ({
           TypeError,
           ["illegal property access"],
           typeSig,
-          {desc: [`unknown property ${preformat(k)}`]}
+          {desc: [`unknown property ${preformatK(k)}`]}
         );
       }
     }
@@ -2101,8 +2146,8 @@ const handleAdt = (typeRep, typeSig, typeSigs) => ({
         ["illegal property introspection"],
         typeSig,
         {desc: [
-          `of property ${preformat(k)}`,
-          "duck typing is not allowed along with function Objects"
+          `of property ${preformatK(k)}`,
+          "duck typing is not allowed"
         ]}
       );
     }
@@ -2121,11 +2166,48 @@ const handleAdt = (typeRep, typeSig, typeSigs) => ({
         ["illegal property mutation"],
         typeSig,
         {desc: [
-          `of property ${preformat(k)} with value ${preformat(v)}`,
+          `of property ${preformatK(k)} with value ${preformatV(v)}`,
           "function Objects are immutable"
         ]}
       );
     }
+  },
+
+  defineProperty: (o, k, d) => {
+    _throw(
+      TypeError,
+      ["illegal property mutation"],
+      typeSig,
+      {desc: [
+        `of property ${preformatK(k)} with value ${preformatV(d.value)}`,
+        "function Objects are immutable"
+      ]}
+
+    );
+  },
+
+  deleteProperty: (o, k) => {
+    _throw(
+      TypeError,
+      ["illegal property mutation"],
+      typeSig,
+      {desc: [
+        `removal of property ${preformatK(k)}`,
+        "function Objects are immutable"
+      ]}
+    );
+  },
+
+  ownKeys: o => {
+    _throw(
+      TypeError,
+      ["illegal property introspection"],
+      typeSig,
+      {desc: [
+        `of property ${preformatK(k)}`,
+        "meta programming is not allowed"
+      ]}
+    );
   }
 });
 
@@ -2184,7 +2266,7 @@ export const Arr = (xs, {immu = false, sig = ""}) => {
     }
 
     const typeRep = deserialize(typeSig),
-      voidPattern = new RegExp(`\\b(?:${Array.from(_voidS).join("|")})\\b`);
+      voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
 
     if (typeSig.search(voidPattern) !== -1) {
       const {index: from, 0: match} = typeSig.match(voidPattern),
@@ -2210,8 +2292,9 @@ const handleArr = (typeRep, typeSig, immu) => ({
     switch (i) {
       case "toString": return () => typeSig;
       case Symbol.toStringTag: return "Arr";
-      case [TYPE_REP]: return typeRep;
-      case [TYPE_SIG]: return typeSig;
+      case Symbol.isConcatSpreadable: return xs[Symbol.isConcatSpreadable];
+      case TYPE_REP: return typeRep;
+      case TYPE_SIG: return typeSig;
 
       case Symbol.toPrimitive: return hint => {
         _throw(
@@ -2226,42 +2309,49 @@ const handleArr = (typeRep, typeSig, immu) => ({
       };
 
       default: {
-        if (k in o) return o[k];
+        if (i in xs) return xs[i];
 
         else _throw(
           TypeError,
           ["illegal property access"],
           typeSig,
-          {desc: [`unknown property ${preformat(k)}`]}
+          {desc: [`unknown property ${preformatK(i)}`]}
         );
       }
     }
   },
 
   has: (xs, i, p) => {
-    switch (k) {
-      case TYPE_SIG: return true;
-      case TYPE_REP: return true;
+    if (Number.isNaN(Number(i))) {
+      switch (i) {
+        case TYPE_SIG: return true;
+        case TYPE_REP: return true;
 
-      default: _throw(
-        TypeError,
-        ["illegal property introspection"],
-        typeSig,
-        {desc: [
-          `of property ${preformat(k)}`,
-          "duck typing is not allowed"
-        ]}
-      );
+        default: _throw(
+          TypeError,
+          ["illegal property introspection"],
+          typeSig,
+          {desc: [
+            `of property ${preformatK(i)}`,
+            "duck typing is not allowed"
+          ]}
+        );
+      }
     }
+
+    else return i in xs;
   },
 
-  set: (xs, i, v, p) => {
+  set: (xs, i, v, p) => setArr(typeRep, typeSig, immu, xs, i, {value: v}, "set"),
+  defineProperty: (xs, i, d) => setArr(typeRep, typeSig, immu, xs, i, d, "def"),
+
+  deleteProperty: (xs, i) => {
     if (immu) _throw(
       TypeError,
-      ["illegal property mutation"],
+      ["illegal property deletion"],
       typeSig,
       {desc: [
-        `of property ${preformat(k)} with value ${preformat(v)}`,
+        `of property ${preformatK(i)}`,
         "immutable Array"
       ]}
     );
@@ -2269,54 +2359,62 @@ const handleArr = (typeRep, typeSig, immu) => ({
     else {
       if (Number.isNaN(Number(i))) _throw(
         TypeError,
-        ["illegal property setting"],
+        ["illegal property deletion"],
         typeSig,
         {desc: [
-          `of property ${preformat(k)} with value ${preformat(v)}`,
+          `of property ${preformatK(i)}`,
           "do not use Arrays as Objects"
         ]}
       );
 
       else {
-        if (Number(i) > xs.length) _throw(
+        if (Number(i) !== xs.length - 1) _throw(
           TypeError,
-          ["illegal property setting"],
+          ["illegal property deletion"],
           typeSig,
           {desc: [
-            `of property ${preformat(k)} with value ${preformat(v)}`,
-            `where Array includes only ${xs.length} elements`,
-            "index gaps are not allowed"
+            `of property ${preformatK(i)}`,
+            `where Array includes ${xs.length} elements`,
+            "operation causes index gap"
           ]}
         );
-
-        else if (typeSig !== `[${infer(v)}]`) {
-          const [from, to] = typeRep.typeReps[0].fromTo;
-
-          _throw(
-            TypeError,
-            ["illegal property mutation"],
-            typeSig,
-            {fromTo: [from, to], desc: [
-              `of property ${preformat(k)} with value ${preformat(v)}`,
-              "heterogeneous Arrays are not allowed"
-            ]}
-          );
-        }
-
-        else return true;
       }
+
+      delete xs[i];
+      return true;
     }
   },
 
-  defineProperty: (xs, i, d) => {
-    // TODO: check immu
-    
+  ownKeys: xs => _throw(
+    TypeError,
+    ["illegal property introspection"],
+    typeSig,
+    {desc: [
+      `of property ${preformatK(i)}`,
+      "meta programming is not allowed"
+    ]}
+  )
+});
+
+
+const setArr = (typeRep, typeSig, immu, xs, i, d, mode) => {
+  if (immu) _throw(
+    TypeError,
+    ["illegal property mutation"],
+    typeSig,
+    {desc: [
+      `of property ${preformatK(i)} with value ${preformatV(d.value)}`,
+      "immutable Array"
+    ]}
+  );
+
+  else {
     if (Number.isNaN(Number(i))) _throw(
       TypeError,
       ["illegal property setting"],
       typeSig,
       {desc: [
-        `of property ${preformat(k)} with value ${preformat(v)}`,
+        `of property ${preformatK(i)} with value ${preformatV(d.value)}`,
         "do not use Arrays as Objects"
       ]}
     );
@@ -2327,13 +2425,13 @@ const handleArr = (typeRep, typeSig, immu) => ({
         ["illegal property setting"],
         typeSig,
         {desc: [
-          `of property ${preformat(k)} with value ${preformat(v)}`,
+          `of property ${preformatK(i)} with value ${preformatV(d.value)}`,
           `where Array includes only ${xs.length} elements`,
           "index gaps are not allowed"
         ]}
       );
 
-      else if (typeSig !== `[${infer(v)}]`) {
+      else if (typeSig !== `[${infer(d.value)}]`) {
         const [from, to] = typeRep.typeReps[0].fromTo;
 
         _throw(
@@ -2341,43 +2439,20 @@ const handleArr = (typeRep, typeSig, immu) => ({
           ["illegal property mutation"],
           typeSig,
           {fromTo: [from, to], desc: [
-            `of property ${preformat(k)} with value ${preformat(v)}`,
+            `of property ${preformatK(i)} with value ${preformatV(d.value)}`,
             "heterogeneous Arrays are not allowed"
           ]}
         );
       }
 
-      else return true;
+      else {
+        if (mode === "set") xs[i] = d.value;
+        else Reflect.defineProperty(xs, i, d);
+        return true;
+      }
     }
-  },
-
-  deleteProperty: (xs, i) => {
-    if (immu) _throw(
-      TypeError,
-      ["illegal property deletion"],
-      typeSig,
-      {desc: [
-        `of property ${preformat(k)}`,
-        "immutable Array"
-      ]}
-    );
-
-    else {
-      // TODO: check if numeric key
-      // TODO: check for index gaps
-    }
-  },
-
-  ownKeys: xs => _throw(
-    TypeError,
-    ["illegal property introspection"],
-    typeSig,
-    {desc: [
-      `of property ${preformat(k)}`,
-      "duck typing is not allowed"
-    ]}
-  )
-});
+  }
+};
 
 
 /******************************************************************************
@@ -2440,7 +2515,7 @@ const handleTup = (typeRep, typeSig, immu) => ({
         else throw new TypeError(
           "illegal field access on tuple\n\n" +
           `${typeSig}\n\n` +
-          `unknown field ${preformat(i)}\n`
+          `unknown field ${preformatK(i)}\n`
         );
       }
     }
@@ -2449,7 +2524,7 @@ const handleTup = (typeRep, typeSig, immu) => ({
   has: (xs, i, p) => {
     throw new TypeError(
       "illegal tuple introspection through\n\n" +
-      `${preformat(i)} in ${typeSig}\n\n` +
+      `${preformatK(i)} in ${typeSig}\n\n` +
       "duck typing is not allowed\n"
     );
   },
@@ -2458,7 +2533,7 @@ const handleTup = (typeRep, typeSig, immu) => ({
     if (immu) {
       throw new TypeError(
         "illegal tuple mutation\n\n" +
-        `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
+        `${typeSig} [${preformatK(i)}] = ${serialize(introspect(v))}\n\n` +
         "immutable tuple\n"
       );
     }
@@ -2467,7 +2542,7 @@ const handleTup = (typeRep, typeSig, immu) => ({
       if (i in xs) {
         if (typeSig !== `[${serialize(introspect(v))}]`) throw new TypeError(
           "illegal tuple mutation\n\n" +
-          `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
+          `${typeSig} [${preformatK(i)}] = ${serialize(introspect(v))}\n\n` +
           `${ul(1, typeSig.length - 2)}\n\n` +
           "tuple fields must maintain their types\n"
         );
@@ -2478,7 +2553,7 @@ const handleTup = (typeRep, typeSig, immu) => ({
       else {
         throw new TypeError(
           "illegal tuple mutation\n\n" +
-          `${typeSig} [${preformat(i)}] = ${serialize(introspect(v))}\n\n` +
+          `${typeSig} [${preformatK(i)}] = ${serialize(introspect(v))}\n\n` +
           "tuples are sealed\n"
         );
       }
@@ -2489,7 +2564,7 @@ const handleTup = (typeRep, typeSig, immu) => ({
     throw new TypeError(
       "illegal use of reflection method on tuple\n\n" +
       `${typeSig}\n\n` +
-      `at property ${preformat(i)}\n\n` +
+      `at property ${preformatK(i)}\n\n` +
       "reflection must not be used\n"
     );
   },
@@ -2497,8 +2572,8 @@ const handleTup = (typeRep, typeSig, immu) => ({
   deleteProperty: (xs, i) => {
     throw new TypeError(
       "illegal tuple mutation\n\n" +
-      `delete ${typeSig} [${preformat(i)}] or\n\n` +
-      `Reflect.deleteProperty(${typeSig}, ${preformat(i)})\n\n` +
+      `delete ${typeSig} [${preformatK(i)}] or\n\n` +
+      `Reflect.deleteProperty(${typeSig}, ${preformatK(i)})\n\n` +
       "tuples are sealed\n"
     );
   },
@@ -2647,7 +2722,7 @@ const handleRec = (typeRep, typeSig, immu) => ({
         else throw new TypeError(
           "illegal field access on record\n\n" +
           `${typeSig}\n\n` +
-          `unknown field ${preformat(k)}\n`
+          `unknown field ${preformatK(k)}\n`
         );
       }
     }
@@ -2656,7 +2731,7 @@ const handleRec = (typeRep, typeSig, immu) => ({
   has: (o, k, p) => {
     throw new TypeError(
       "illegal record introspection through\n\n" +
-      `${preformat(k)} in ${typeSig}\n\n` +
+      `${preformatK(k)} in ${typeSig}\n\n` +
       "duck typing is not allowed\n"
     );
   },
@@ -2665,7 +2740,7 @@ const handleRec = (typeRep, typeSig, immu) => ({
     if (immu) {
       throw new TypeError(
         "illegal record mutation\n\n" +
-        `${typeSig} [${preformat(k)}] = ${serialize(introspect(v))}\n\n` +
+        `${typeSig} [${preformatK(k)}] = ${serialize(introspect(v))}\n\n` +
         "immutable record\n"
       );
     }
@@ -2674,7 +2749,7 @@ const handleRec = (typeRep, typeSig, immu) => ({
       if (k in o) {
         if (typeSig !== `{${serialize(introspect(v))}}`) throw new TypeError(
           "illegal record mutation\n\n" +
-          `${typeSig} [${preformat(k)}] = ${serialize(introspect(v))}\n\n` +
+          `${typeSig} [${preformatK(k)}] = ${serialize(introspect(v))}\n\n` +
           `${ul(1, typeSig.length - 2)}\n\n` +
           "record fields must maintain their types\n"
         );
@@ -2685,7 +2760,7 @@ const handleRec = (typeRep, typeSig, immu) => ({
       else {
         throw new TypeError(
           "illegal record mutation\n\n" +
-          `${typeSig} [${preformat(k)}] = ${serialize(introspect(v))}\n\n` +
+          `${typeSig} [${preformatK(k)}] = ${serialize(introspect(v))}\n\n` +
           "records are sealed\n"
         );
       }
@@ -2696,7 +2771,7 @@ const handleRec = (typeRep, typeSig, immu) => ({
     throw new TypeError(
       "illegal use of reflection method on record\n\n" +
       `${typeSig}\n\n` +
-      `at property ${preformat(i)}\n\n` +
+      `at property ${preformatK(i)}\n\n` +
       "reflection must not be used\n"
     );
   },
@@ -2704,8 +2779,8 @@ const handleRec = (typeRep, typeSig, immu) => ({
   deleteProperty: (o, k) => {
     throw new TypeError(
       "illegal record mutation\n\n" +
-      `delete ${typeSig} . ${preformat(k)} or\n\n` +
-      `Reflect.deleteProperty(${typeSig}, ${preformat(k)})\n\n` +
+      `delete ${typeSig} . ${preformatK(k)} or\n\n` +
+      `Reflect.deleteProperty(${typeSig}, ${preformatK(k)})\n\n` +
       "records are sealed\n"
     );
   },
@@ -2788,11 +2863,20 @@ class TypeSigError extends DevModeError {
 const ul = (n, m) => Array(n + 1).join(" ") + Array(m - n + 2).join("^");
 
 
-const preformat = x => {
+const preformatK = x => {
   const tag = getStringTag(x);
   
   if (tag === "Symbol") return x.toString();
   else if (tag === "String" && Number.isNaN(Number(x))) return `"${x}"`;
+  else return x;
+};
+
+
+const preformatV = x => {
+  const tag = getStringTag(x);
+  
+  if (tag === "Symbol") return x.toString();
+  else if (tag === "String") return `"${x}"`;
   else return x;
 };
 
