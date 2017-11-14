@@ -1440,7 +1440,7 @@ const unifyFun = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
             );
           }
 
-          else break;
+          else return;
         }
 
         case "ArgsT": {
@@ -1456,10 +1456,10 @@ const unifyFun = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
             );
           }
 
-          else break;
+          else return;
         }
 
-        case "ReturnT": break;
+        case "ReturnT": return;
       }
     });
 
@@ -2299,111 +2299,103 @@ const constructType = (adt, bindings) => {
 const match = (_case, nominalS, realT, realS) => {
   const nominalT = deserialize(nominalS);
 
-  const aux = (nTs, rTs) => {
-    nTs.forEach((nT, n) => {
-      const nCons = nT.constructor.name,
-        rCons = rT.constructor.name;
+  if (nominalT.typeReps.length !== realT.typeReps.length) {
+    const [from, to] = nominalT.fromTo;
 
-      switch (nCons) {
-        case "NoArgT": {
-          if (nCons === rCons) break;
+    _throw(
+      ArityError,
+      [`Adt case ${_case} expects`],
+      nominalS,
+      {fromTo: [from, to], desc: [`${realS} received`]}
+    );
+  }
 
-          else {
-            const [from, to] = nT.fromTo;
-
-            _throw(
-              TypeError,
-              [`Adt case "${_case}" expects`],
-              nominalS,
-              {fromTo: [from, to], desc: [`"${serialize(rT)}" received`]}
-            );
-          }
-        }
-
+  nominalT.typeReps
+    .forEach((xT, n) => {
+      switch (xT.constructor.name) {
+        case "NoArgT":
         case "ArgT":
         case "RestT": {
-          const nS = serialize(nT[0]),
-            rT = rTs[n],
-            rS = serialize(rT[0]);
-
-          if (nCons === rCons) {
-            aux(nT[0], rT[0]);
-            break;
-          }
-
-          else {
-            const [from, to] = nT[0].fromTo;
+          if (xT.constructor.name !== realT.typeReps[n].constructor.name) {
+            const [from, to] = nominalT.fromTo;
 
             _throw(
-              TypeError,
-              [`Adt case "${_case}" expects`],
+              ArityError,
+              [`Adt case ${_case} expects`],
               nominalS,
-              {fromTo: [from, to], desc: [`"${serialize(rT[0])}" received`]}
+              {fromTo: [from, to], desc: [`${realS} received`]}
             );
           }
+
+          else return;
         }
 
         case "ArgsT": {
-          if (nCons === rCons) {
-            nT.forEach((nT_, m) => aux(nT_, rT[m]));
-            break;
-          }
-
-          else {
-            const [from, to] = nT.fromTo;
+          if (xT.constructor.name !== realT.typeReps[n].constructor.name
+          || xT.length !== realT.typeReps[n].length) {
+            const [from, to] = nominalT.fromTo;
 
             _throw(
-              TypeError,
-              [`Adt case "${_case}" expects`],
+              ArityError,
+              [`Adt case ${_case} expects`],
               nominalS,
-              {fromTo: [from, to], desc: [`"${rCons}" container received`]}
+              {fromTo: [from, to], desc: [`${realS} received`]}
             );
           }
+
+          else return;
         }
 
-        case "ReturnT": break;
+        case "ReturnT": return;
+      }
+    });
+
+  const aux = (nT, rT) => {
+    nT.typeReps.forEach((nT_, n) => {
+      const rT_ = rT.typeReps[n];
+
+      switch (nT_.constructor.name) {
+        case "NoArgT": return;
+
+        case "ArgT":
+        case "RestT": return aux(nT_[0], rT_[0]);
+
+        case "ArgsT": return nT_.forEach((nT__, m) => {
+          return aux(nT__[0], rT_[m] [0]);
+        });
+
+        case "ReturnT": return;
 
         case "MonoT": {
-          if (nT.tag === rT.tag) break;
+          if (nT_.tag === rT_.tag) return;
 
           else {
-            const [from, to] = nT.fromTo;
+            const [from, to] = nT_.fromTo;
 
             _throw(
               TypeError,
               [`Adt case "${_case}" expects`],
               nominalS,
-              {fromTo: [from, to], desc: [`"${serialize(rT)}" received`]}
+              {fromTo: [from, to], desc: [`"${serialize(rT_)}" received`]}
             );
           }
         }
 
-        case "PolyT": {
-          if (rCons === "NoArgT") {
-            const [from, to] = nT.fromTo;
-
-            _throw(
-              TypeError,
-              [`Adt case "${_case}" expects`],
-              nominalS,
-              {fromTo: [from, to], desc: [`${serialize(rT)} received`]}
-            );
-          }
-
-          else break;
-        }
+        case "PolyT": return;
 
         default: {
-          if (nT.tag === rT.tag) break;
+          if (nT_.tag === rT_.tag) {
+            return aux(nT_.typeReps, rT_.typeReps);
+          }
 
           else {
-            const [from, to] = nT.fromTo;
+            const [from, to] = nT_.fromTo;
 
             _throw(
               TypeError,
               [`Adt case "${_case}" expects`],
               nominalS,
-              {fromTo: [from, to], desc: [`${serialize(rT)} received`]}
+              {fromTo: [from, to], desc: [`${serialize(rT_)} received`]}
             );
           }
         }
@@ -2411,7 +2403,7 @@ const match = (_case, nominalS, realT, realS) => {
     });
   };
 
-  aux(nominalT.typeReps, realT.typeReps);
+  aux(nominalT, realT);
 };
 
 
