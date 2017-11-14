@@ -1398,31 +1398,83 @@ const unifyArr = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
 };
 
 
-// TODO: implement rank-2 polymirphism
-// TODO: consider subtype relations between polymorphic functions
-
 const unifyFun = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
+  if (nominalT.typeReps.length < realT.typeReps.length) {
+    if (nominalT.isStrict) {
+      const [from, to] = nominalT.fromTo;
+
+      _throw(
+        ArityError,
+        [`${name} expects`],
+        typeSig,
+        {fromTo: [from, to], desc: [`${realS} received`]}
+      );
+    }
+  }
+
+  else if (nominalT.typeReps.length > realT.typeReps.length) {
+    const [from, to] = nominalT.fromTo;
+
+    _throw(
+      ArityError,
+      [`${name} expects`],
+      typeSig,
+      {fromTo: [from, to], desc: [`${realS} received`]}
+    );
+  }
+
+  nominalT.typeReps
+    .forEach((xT, n) => {
+      switch (xT.constructor.name) {
+        case "NoArgT":
+        case "ArgT":
+        case "RestT": {
+          if (xT.constructor.name !== realT.typeReps[n].constructor.name) {
+            const [from, to] = nominalT.fromTo;
+
+            _throw(
+              ArityError,
+              [`${name} expects`],
+              typeSig,
+              {fromTo: [from, to], desc: [`${realS} received`]}
+            );
+          }
+
+          else break;
+        }
+
+        case "ArgsT": {
+          if (xT.constructor.name !== realT.typeReps[n].constructor.name
+          || xT.length !== realT.typeReps[n].length) {
+            const [from, to] = nominalT.fromTo;
+
+            _throw(
+              ArityError,
+              [`${name} expects`],
+              typeSig,
+              {fromTo: [from, to], desc: [`${realS} received`]}
+            );
+          }
+
+          else break;
+        }
+
+        case "ReturnT": break;
+      }
+    });
+
   return nominalT.typeReps
     .reduce((bindings_, xT, n) => {
       switch (xT.constructor.name) {
+        case "NoArgT": return _binding;
+
         case "ArgT":
         case "RestT":
         case "ReturnT": {
           const nominalT_ = xT[0],
-            [from, to] = nominalT_.fromTo,
             nominalS_ = serialize(nominalT_),
             realT_ = realT.typeReps[n][0],
             realS_ = serialize(realT_);
-
-          if (nominalT_.constructor.name === "ReturnT"
-          && realT_.constructor.name !== "ReturnT") {
-            if (nominalT.isStrict) _throw(
-              ReturnTypeError,
-              [`${name} has strict arity`],
-              typeSig,
-              {fromTo: [from, to], desc: [`received function argument ${realS}`, `must not abstract over it`]}
-            );
-          }
 
           return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings_);
         }
@@ -2254,10 +2306,6 @@ const match = (_case, nominalS, realT, realS) => {
 
       switch (nCons) {
         case "NoArgT": {
-          const nS = serialize(nT),
-            rT = rTs[n],
-            rS = "()";
-
           if (nCons === rCons) break;
 
           else {
@@ -2274,6 +2322,10 @@ const match = (_case, nominalS, realT, realS) => {
 
         case "ArgT":
         case "RestT": {
+          const nS = serialize(nT[0]),
+            rT = rTs[n],
+            rS = serialize(rT[0]);
+
           if (nCons === rCons) {
             aux(nT[0], rT[0]);
             break;
@@ -2291,8 +2343,6 @@ const match = (_case, nominalS, realT, realS) => {
           }
         }
 
-        case "ReturnT": break;
-
         case "ArgsT": {
           if (nCons === rCons) {
             nT.forEach((nT_, m) => aux(nT_, rT[m]));
@@ -2306,10 +2356,12 @@ const match = (_case, nominalS, realT, realS) => {
               TypeError,
               [`Adt case "${_case}" expects`],
               nominalS,
-              {fromTo: [from, to], desc: [`"${serialize(rT[0])}" received`]}
+              {fromTo: [from, to], desc: [`"${rCons}" container received`]}
             );
           }
         }
+
+        case "ReturnT": break;
 
         case "MonoT": {
           if (nT.tag === rT.tag) break;
@@ -2326,7 +2378,20 @@ const match = (_case, nominalS, realT, realS) => {
           }
         }
 
-        case "PolyT": break;
+        case "PolyT": {
+          if (rCons === "NoArgT") {
+            const [from, to] = nT.fromTo;
+
+            _throw(
+              TypeError,
+              [`Adt case "${_case}" expects`],
+              nominalS,
+              {fromTo: [from, to], desc: [`${serialize(rT)} received`]}
+            );
+          }
+
+          else break;
+        }
 
         default: {
           if (nT.tag === rT.tag) break;
