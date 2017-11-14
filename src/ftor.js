@@ -2383,7 +2383,9 @@ const match = (_case, nominalS, realT, realS) => {
 
         case "PolyT": return;
 
-        default: {
+        case "AdtT":
+        case "ArrT":
+        case "TupT": {
           if (nT_.tag === rT_.tag) {
             return aux(nT_.typeReps, rT_.typeReps);
           }
@@ -2397,6 +2399,65 @@ const match = (_case, nominalS, realT, realS) => {
               nominalS,
               {fromTo: [from, to], desc: [`${serialize(rT_)} received`]}
             );
+          }
+        }
+
+        default: {
+          const nTv = nT_.v,
+            nTk = nT_.k,
+            rTv = rT_.v,
+            rTk = rT_.k;
+
+          switch (nT_.v.constructor.name) {
+            case "_Map": {
+              if (nTk.tag === rTk.tag) {
+                aux(nTk.typeReps, rTk.typeReps);
+              }
+
+              else {
+                const [from, to] = nTk.fromTo;
+
+                _throw(
+                  TypeError,
+                  [`Adt case "${_case}" expects`],
+                  nominalS,
+                  {fromTo: [from, to], desc: [`${serialize(rTk)} received`]}
+                );
+              }
+
+              if (nTv.tag === rTv.tag) {
+                return aux(nTv.typeReps, rTv.typeReps);
+              }
+
+              else {
+                const [from, to] = nTv.fromTo;
+
+                _throw(
+                  TypeError,
+                  [`Adt case "${_case}" expects`],
+                  nominalS,
+                  {fromTo: [from, to], desc: [`${serialize(rTv)} received`]}
+                );
+              }
+            }
+
+            case "Rec": {
+              if (nTk === rTk
+              && nTv.tag === rTv.tag) {
+                return aux(nTv.typeReps, rTv.typeReps);
+              }
+
+              else {
+                const [from, to] = nTv.fromTo;
+
+                _throw(
+                  TypeError,
+                  [`Adt case "${_case}" expects`],
+                  nominalS,
+                  {fromTo: [from, to], desc: [`${serialize(rTv)} received`]}
+                );
+              }
+            }
           }
         }
       }
