@@ -34,30 +34,53 @@ Functional programming in Javascript is frustrating as soon as you leave contrie
 
 # Type System
 
-At its core ftor consists of a run-time type system with the following features:
+At its core ftor consists of a pluggable run-time type system with the following features:
 
-* pluggable type checker
+* nominal typing
 * parametric polymorphism
-* bounded polymorphism (without type classes)
 * higher kinded types
 * higher rank types (rank-2)
 * recursive types
-* homogeneous arrays, tuples, maps, records
+* arrays, lists, tuples, maps, records
 * and real tagged unions
 
-The type system can be de-/activated at run-time. Ideally, it is activated during the development stage and disabled on the production system.
+While ftor attempts to catch type errors as early as possible - ideally at definition time, a run-time type checker is of course not equivalent to a static type system, that is to say it doesn't guarantee a type error free application. Consider ftor rahter as a useful supplement to unit tests and a suitable debugging tool for functional programmers.
 
-Since we're still dealing with Javascript ftor pursues a <a href="https://eschew.wordpress.com/2009/08/31/sound-and-complete/">complete and hence unsound evaluation procedure</a>, which is mostly <a href="https://en.wikipedia.org/wiki/Nominal_type_system">nominal typed</a>. It incorporates Javascript's native types in order to allow developers to express idiomatic code. This is of course a tradeoff between coding habits and type safety.
+ftor respects common coding habits in the Javascript community and simultaneously tries to sensitize developers for type-directed programming. This process is a delicate balancing act sometimes...
 
-An import principle of dynamic type systems is to detect type errors as early as possible. While this can be done to a certain degree, dynamic type systems never can give a guarantee that a program is free of type errors like static systems can do. They are a supplement to unit tests, not a substitute.
+## Pluggable
 
-Although ftor leans towards the ML-family it doesn't support bounded polymorphism through type classes. This is for a good reason. As soon as the type system is disabled, all the type information is erased and thus also the association between types and their corresponding type classes. The only way to bypass this would be to introduce a compiling step to replaced type class annotations with real type dictionaries. That wouldn't make much sense in context of a dynamic type system though. Instead, ftor supports bounded polymorphism through explicit type dictionaries and overloaed function names, which are enforced at the type level.
+When you import ftor the type checker is disabled by default. You have to enable it in the source code before the first type check. Since I consider ftor as a debugging tool it should be enabled during the development stage and disabled on the live system.
 
-As opposed to _Flow_ and _TypeScript_ ftor doesn't support subtype polymorphism, because it entails high complexity, such as different forms of type variance, e.g. <a href="https://flow.org/blog/2016/10/04/Property-Variance/">property variance</a> and it has irritating properties like <a href="https://brianmckenna.org/blog/row_polymorphism_isnt_subtyping">automatic upcasting</a>. As a result ftor only sticks to a single subsumption rule resulting from the subtype relation between `a -> b` and `a -> a`.
+```Javascript
+import * as F from ".../ftor.js";
 
-As already mentioned ftor imposes mostly nominal types. In connection with records structural typing takes place as well. A record type acts like a bounded polymorphic type, where the constraint consists of the properties listed in the type. That means a structural bounded record shares common properties instead of overloaed functions.
+// untyped area
 
-Let's get to the individual types without any further ado.
+F.setDevMode(true);
+
+// typed area;
+```
+
+## Polymorphism
+
+### Parametric Polymorphism
+
+ftor fully supports parametric polymirphism.
+
+### Bounded Polymorphism
+
+Bounded polymorphism is the ability of a type system to define constraints on polymorphic types without having to pass the corresponding type classes explicitly around throughout the codebase. Most statically typed languages like Haskell or Scala resolve type class dependencies at compilte time. ftor doesn't have a compilation step, though. Since it is a pluggable run-time type system the entire type information is erased as soon as it is disabled. That means we are not allowed to create dependencies on the type system.
+
+So the only way to implement bounded polymorphism in ftor is to pass type dictionaries explicitly around. This is cumbersome but necessary, unless you are willing to keep the type checker enabled on the live system, which is generally not a good idea.
+
+### Higher-Kinded Types
+
+ftor is prepared for higher kinded types but the feature is still experimental and not yet exposed in the API.
+
+### Higher-Kinded Types
+
+ftor has basic support for rank-2 types but the feature is still experimental.
 
 ## Function Type
 
@@ -126,7 +149,7 @@ const add = Fun(
 add(2) (3); // 5
 add(2) (true); // throws
 ```
-Please note that the optional names in function type signatures denoted by the `name ::` pattern are assigned to each lambda of the corresponding sequence. This is extremely helpful for debugging a code base with hundreds of such functions.
+Please note that the optional names in function type signatures denoted by the `name ::` pattern are assigned to each lambda of the corresponding sequence. This is extremely helpful for debugging a codebase with hundreds of such functions.
 
 ### Strict Function Call Arity
 

@@ -49,6 +49,12 @@ const TYPE_SIG = Symbol.for(`${SYM_PREFIX}typeSig`);
 const TUP_MAX_FIELDS = 16;
 
 
+const MAX_KIND = 5;
+
+
+const TYPE_RANK_RANGE = "2";
+
+
 const VOID = {Undefined: undefined, Null: null, NaN: NaN};
 
 
@@ -920,7 +926,7 @@ const deserialize = typeSig => {
               );
 
               else if (last(typeReps)[0].constructor.name === "PolyT") {
-                if (typeSig[n - 1].search(/[2]/) === 0) _throw(
+                if (typeSig[n - 1].search(new RegExp(`[${TYPE_RANK_RANGE}]`)) === 0) _throw(
                   TypeSigError,
                   ["invalid type signature"],
                   typeSig,
@@ -1058,7 +1064,21 @@ const deserialize = typeSig => {
       case "POLY": {
         switch (phase) {
           case "LETTER": {
-            if (next === "") return [PolyT(fromTo.concat(n), c), n + 1, depth];
+            if (next === "") return [PolyT(fromTo.concat(n), buf + c), n + 1, depth];
+
+            else if (next.search(/[a-z]/) === 0) {
+              if (buf.length >= MAX_KIND) _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                typeSig,
+                {fromTo: [n - buf.length + 1, n], desc: [`higher kinded types are supported up to ${MAX_KIND}`]}
+              );
+
+              else return aux(
+                typeSig, n + 1,
+                {depth, context, phase, buf: buf + c, fromTo, tag, typeReps}
+              );
+            }
 
             else return aux(
               typeSig, n + 1,
@@ -1067,7 +1087,7 @@ const deserialize = typeSig => {
           }
 
           case "NUMBER": {
-            if (c.search(/[2]/) === 0) {
+            if (c.search(new RegExp(`[${TYPE_RANK_RANGE}]`)) === 0) {
               if (next === "") return [PolyT(fromTo.concat(n), buf + c), n + 1, depth]
               
               else return aux(
@@ -1764,7 +1784,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
           ["illegal property mutation"],
           typeSig,
           {desc: [
-            `of property ${preformatK(k)} with type ${infer(v)}`,
+            `of property ${preformatK(k)} with type ${introspect1(v)}`,
             "function Objects are immutable"
           ]}
         );
@@ -1777,7 +1797,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
         ["illegal property mutation"],
         typeSig,
         {desc: [
-          `of property ${preformatK(k)} with type ${infer(d.value)}`,
+          `of property ${preformatK(k)} with type ${introspect1(d.value)}`,
           "function Objects are immutable"
         ]}
 
@@ -2258,7 +2278,7 @@ const handleAdt = (typeRep, typeSig, typeSigs) => ({
         ["illegal property mutation"],
         typeSig,
         {desc: [
-          `of property ${preformatK(k)} with type ${infer(v)}`,
+          `of property ${preformatK(k)} with type ${introspect1(v)}`,
           "function Objects are immutable"
         ]}
       );
@@ -2271,7 +2291,7 @@ const handleAdt = (typeRep, typeSig, typeSigs) => ({
       ["illegal property mutation"],
       typeSig,
       {desc: [
-        `of property ${preformatK(k)} with type ${infer(d.value)}`,
+        `of property ${preformatK(k)} with type ${introspect1(d.value)}`,
         "function Objects are immutable"
       ]}
 
@@ -2593,7 +2613,7 @@ const _Arr = ({immu = false, sig = ""}) => xs => {
 
     if (typeRep.typeReps.length > 1) _throw(
       TypeError,
-      ["Arr excepts homogeneous Array"],
+      ["Arr expects homogeneous Array"],
       typeSig,
       {desc: [`mixed typed values received`]}
     );
@@ -2742,7 +2762,7 @@ const setArr = (typeRep, typeSig, immu, xs, i, d, mode) => {
     ["illegal property mutation"],
     typeSig,
     {desc: [
-      `of property ${preformatK(i)} with type ${infer(d.value)}`,
+      `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
       "immutable Array"
     ]}
   );
@@ -2753,7 +2773,7 @@ const setArr = (typeRep, typeSig, immu, xs, i, d, mode) => {
       ["illegal property setting"],
       typeSig,
       {desc: [
-        `of property ${preformatK(i)} with type ${infer(d.value)}`,
+        `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
         "do not use Arrays as Objects"
       ]}
     );
@@ -2764,7 +2784,7 @@ const setArr = (typeRep, typeSig, immu, xs, i, d, mode) => {
         ["illegal property setting"],
         typeSig,
         {desc: [
-          `of property ${preformatK(i)} with type ${infer(d.value)}`,
+          `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
           `where Array includes only ${xs.length} elements`,
           "index gaps are not allowed"
         ]}
@@ -2778,7 +2798,7 @@ const setArr = (typeRep, typeSig, immu, xs, i, d, mode) => {
           ["illegal property mutation"],
           typeSig,
           {fromTo: [from, to], desc: [
-            `of property ${preformatK(i)} with type ${infer(d.value)}`,
+            `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
             "heterogeneous Arrays are not allowed"
           ]}
         );
@@ -2934,7 +2954,7 @@ const setTup = (typeRep, typeSig, immu, xs, i, d, mode) => {
     ["illegal property mutation"],
     typeSig,
     {desc: [
-      `of property ${preformatK(i)} with type ${infer(d.value)}`,
+      `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
       "immutable Tuple"
     ]}
   );
@@ -2945,7 +2965,7 @@ const setTup = (typeRep, typeSig, immu, xs, i, d, mode) => {
       ["illegal property setting"],
       typeSig,
       {desc: [
-        `of property ${preformatK(i)} with type ${infer(d.value)}`,
+        `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
         "do not use Tuples as Objects"
       ]}
     );
@@ -2956,13 +2976,13 @@ const setTup = (typeRep, typeSig, immu, xs, i, d, mode) => {
         ["illegal property setting"],
         typeSig,
         {desc: [
-          `of property ${preformatK(i)} with type ${infer(d.value)}`,
+          `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
           `where Tuple includes only ${xs.length} fields`,
           "sealed Tuple"
         ]}
       );
 
-      else if (serialize(typeRep.typeReps[i]) !== `${infer(d.value)}`) {
+      else if (serialize(typeRep.typeReps[i]) !== `${introspect1(d.value)}`) {
         const [from, to] = typeRep.typeReps[0].fromTo;
 
         _throw(
@@ -2970,7 +2990,7 @@ const setTup = (typeRep, typeSig, immu, xs, i, d, mode) => {
           ["illegal property mutation"],
           typeSig,
           {fromTo: [from, to], desc: [
-            `of property ${preformatK(i)} with type ${infer(d.value)}`,
+            `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
             "fields must maintain their type"
           ]}
         );
@@ -2993,7 +3013,7 @@ const setTup = (typeRep, typeSig, immu, xs, i, d, mode) => {
 
 const __Map = ({immu = false, sig = ""}) => map => {
   if (devMode) {
-    if (!introspect(map).has("Object")) _throw(
+    if (!introspect(map).has("Map")) _throw(
       TypeError,
       ["_Map expects a Map"],
       introspect1(map),
@@ -3025,7 +3045,7 @@ const __Map = ({immu = false, sig = ""}) => map => {
 
     if (typeRep.typeReps.length > 1) _throw(
       TypeError,
-      ["_Map excepts homogeneous Map"],
+      ["_Map expects homogeneous Map"],
       typeSig,
       {desc: [`mixed typed values received`]}
     );
@@ -3079,10 +3099,97 @@ const handleMap = (typeRep, typeSig, immu) => ({
         );
       };
 
-      case "get":
-      case "set":
-      case "delete":
-      case "clear":
+      case "get": k => {
+        if (map.has(k)) return map.get(k);
+
+        else _throw(
+          TypeError,
+          ["illegal property access"],
+          typeSig,
+          {desc: [`unknown key ${preformatK(introspect1(k))}`]}
+        );
+      };
+
+      case "set": (k, v) => {
+        if (immu) _throw(
+          TypeError,
+          ["illegal property mutation"],
+          typeSig,
+          {desc: [
+            `of property ${preformatK(introspect1(k))} with type ${introspect1(d.value)}`,
+            "immutable Map"
+          ]}
+        );
+
+        else {
+          if (infer(k) !== typeRep.typeReps[0].k) {
+            // TODO: fromTo for keys            
+
+            _throw(
+              TypeError,
+              ["illegal property mutation"],
+              typeSig,
+              {fromTo: [0, -1], desc: [ 
+                `of key ${preformatK(introspect1(k))} with type ${introspect1(d.value)}`,
+                "heterogeneous Maps are not allowed"
+              ]}
+            );
+          }
+
+          else if (infer(v) !== typeRep.typeReps[0].v) {
+            const [from, to] = typeRep.typeReps[0].v.fromTo;
+
+            _throw(
+              TypeError,
+              ["illegal property mutation"],
+              typeSig,
+              {fromTo: [from, to], desc: [
+                `of property ${preformatK(introspect1(k))} with type ${introspect1(d.value)}`,
+                "heterogeneous Maps are not allowed"
+              ]}
+            );
+          }
+
+          else return map.set(k, v);
+        }
+      };
+
+      case "delete": k => {
+        if (immu) _throw(
+          TypeError,
+          ["illegal property mutation"],
+          typeSig,
+          {desc: [
+            `of key ${preformatK(introspect1(k))} with type ${introspect1(d.value)}`,
+            "immutable Map"
+          ]}
+        );
+
+        else {
+          if (map.has(k)) return map.delete(k);
+
+          else _throw(
+            TypeError,
+            ["illegal property deletion"],
+            typeSig,
+            {desc: [`unknown key ${preformatK(introspect1(k))}`]}
+          );
+        }
+      };
+
+      case "clear": () => {
+        if (immu) _throw(
+          TypeError,
+          ["illegal property mutation"],
+          typeSig,
+          {desc: [
+            `of property ${preformatK(introspect1(k))} with type ${introspect1(d.value)}`,
+            "immutable Array"
+          ]}
+        );
+
+        else return map.clear();
+      };
 
       default: {
         if (k in map) return map[k];
@@ -3123,8 +3230,8 @@ const handleMap = (typeRep, typeSig, immu) => ({
         ["illegal property mutation"],
         typeSig,
         {desc: [
-          `of property ${preformatK(k)} with type ${infer(v)}`,
-          "Maps are immutable"
+          `of property ${preformatK(k)} with type ${introspect1(v)}`,
+          "map Objects are immutable"
         ]}
       );
     }
@@ -3136,8 +3243,8 @@ const handleMap = (typeRep, typeSig, immu) => ({
       ["illegal property mutation"],
       typeSig,
       {desc: [
-        `of property ${preformatK(k)} with type ${infer(d.value)}`,
-        "Maps are immutable"
+        `of property ${preformatK(k)} with type ${introspect1(d.value)}`,
+        "map Objects are immutable"
       ]}
 
     );
@@ -3150,7 +3257,7 @@ const handleMap = (typeRep, typeSig, immu) => ({
       typeSig,
       {desc: [
         `removal of property ${preformatK(k)}`,
-        "Maps are immutable"
+        "map Objects are immutable"
       ]}
     );
   },
@@ -3172,6 +3279,182 @@ const handleMap = (typeRep, typeSig, immu) => ({
 ******************************************************************************/
 
 
+const _Rec = ({immu = false, sig = ""}) => o => {
+  if (devMode) {
+    if (!introspect(o).has("Object")) _throw(
+      TypeError,
+      ["Rec expects an Object"],
+      introspect1(o),
+      {desc: ["received"]}
+    );
+
+    else if (TYPE_REP in o) _throw(
+      TypeError,
+      ["Rec expects an untyped Object"],
+      o[TYPE_SIG],
+      {desc: ["received (illegal retyping)"]}
+    );
+
+    let typeSig = infer(o);
+
+    if (Object.keys(o).length === 0) _throw(
+      TypeError,
+      ["Tup received an invalid Array"],
+      typeSig,
+      {fromTo: [0, typeSig.length - 1], desc: ["Records must comprise at least 1 field"]}
+    );
+
+    const typeRep = deserialize(typeSig),
+      voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
+
+    if (typeSig.search(voidPattern) !== -1) {
+      const {index: from, 0: match} = typeSig.match(voidPattern),
+        to = from + match.length - 1;
+
+      _throw(
+        TypeError,
+        ["Rec must not contain void values"],
+        typeSig,
+        {fromTo: [from, to], desc: [`${match} received`]}
+      );
+    }
+
+    return new Proxy(o, handleRec(typeRep, typeSig, immu));
+  }
+
+  else return o;
+};
+
+
+export const Rec = _Rec({});
+
+
+export const Irec = _Rec({immu: true})
+
+
+const handleRec = (typeRep, typeSig, immu) => ({
+  get: (o, k, p) => {
+    switch (k) {
+      case "toString": return () => typeSig;
+      case Symbol.toStringTag: return "Rec";
+      case Symbol.isConcatSpreadable: return o[Symbol.isConcatSpreadable];
+      case TYPE_REP: return typeRep;
+      case TYPE_SIG: return typeSig;
+
+      case Symbol.toPrimitive: return hint => {
+        _throw(
+          TypeError,
+          ["illegal implicit type conversion"],
+          typeSig,
+          {desc: [
+            `must not be converted to ${capitalize(hint)} primitive`,
+            "use explicit type casts instead"
+          ]}
+        );
+      };
+
+      default: {
+        if (k in o) return o[k];
+
+        else _throw(
+          TypeError,
+          ["illegal property access"],
+          typeSig,
+          {desc: [`unknown property ${preformatK(k)}`]}
+        );
+      }
+    }
+  },
+
+  has: (o, k, p) => {
+    switch (k) {
+      case TYPE_SIG: return true;
+      case TYPE_REP: return true;
+
+      default: _throw(
+        TypeError,
+        ["illegal property introspection"],
+        typeSig,
+        {desc: [
+          `of property ${preformatK(k)}`,
+          "duck typing is not allowed"
+        ]}
+      );
+    }
+  },
+
+  set: (o, k, v, p) => setRec(typeRep, typeSig, immu, o, k, {value: v}, "set"),
+  defineProperty: (o, k, d) => setRec(typeRep, typeSig, immu, o, k, d, "def"),
+
+  deleteProperty: (o, k) => _throw(
+    TypeError,
+    ["illegal property deletion"],
+    typeSig,
+    {desc: [
+      `of property ${preformatK(k)}`,
+      "Records are either immutable or sealed"
+    ]}
+  ),
+
+  ownKeys: o => _throw(
+    TypeError,
+    ["illegal property introspection"],
+    typeSig,
+    {desc: [
+      `of property ${preformatK(k)}`,
+      "meta programming is not allowed"
+    ]}
+  )
+});
+
+
+const setRec = (typeRep, typeSig, immu, o, k, d, mode) => {
+  if (immu) _throw(
+    TypeError,
+    ["illegal property mutation"],
+    typeSig,
+    {desc: [
+      `of property ${preformatK(k)} with type ${introspect1(d.value)}`,
+      "immutable Record"
+    ]}
+  );
+
+  else {
+    if (!introspect(k).has("String")) _throw(
+      TypeError,
+      ["illegal property mutation"],
+      typeSig,
+      {desc: [`invalid key type ${introspect1(k)}`]}
+    );
+
+    else if (!(k in o)) _throw(
+      TypeError,
+      ["illegal property mutation"],
+      typeSig,
+      {desc: [`unknown key "${k}"`]}
+    );
+
+    else if (serialize(typeRep.typeReps[k]) !== `${introspect1(d.value)}`) {
+      const [from, to] = typeRep.typeReps[0].fromTo;
+
+      _throw(
+        TypeError,
+        ["illegal property mutation"],
+        typeSig,
+        {fromTo: [from, to], desc: [
+          `of property ${preformatK(k)} with type ${introspect1(d.value)}`,
+          "fields must maintain their type"
+        ]}
+      );
+    }
+
+    else {
+      if (mode === "set") o[k] = d.value;
+      else Reflect.defineProperty(o, k, d);
+      return true;
+    }
+  }
+};
 
 
 /******************************************************************************
