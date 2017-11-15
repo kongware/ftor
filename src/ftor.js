@@ -1496,7 +1496,7 @@ const unifyFun = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
 
 const unifyMap = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
   return nominalT.typeReps
-    .reduce((bindings_, xT) => {
+    .reduce((bindings_, xT, n) => {
       const {k: nominalKeyT, v: nominalValT} = xT[0],
         nominalKeyS = serialize(nominalKeyT),
         nominalValS = serialize(nominalValT),
@@ -1571,20 +1571,40 @@ const unifyMono = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bin
 
 const unifyRec = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
   return nominalT.typeReps
-    .reduce((bindings_, xT) => {
-      const nominalT_ = xT[0].v,
-        nominalS_ = serialize(nominalT_),
-        realT_ = realT.typeReps[n][0],
-        realS_ = serialize(realT_);
+    .reduce((bindings_, xT, n) => {
+      const {k: nominalKey, v: nominalValT} = xT[0],
+        nominalValS = serialize(nominalValT),
+        realKey = realT.typeReps[n][0].k,
+        realValT = realT.typeReps[n][0].v,
+        realValS = serialize(realValT);
 
-      return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings_);
+      if (nominalKey !== realKey) {
+        // TODO: add key fromTo
+        switch (cons) {
+          case ArgT: _throw(
+            TypeError,
+            [`${name} expects`],
+            typeSig,
+            {fromTo: [0, -1], desc: [`${realKey} received`]}
+          );
+
+          case ReturnT: _throw(
+            ReturnTypeError,
+            [`${name} expects`],
+            typeSig,
+            {fromTo: [0, -1], desc: [`${realKey} received`]}
+          );
+        }
+      }
+
+      return unify(x, realValT, realValS, nominalValT, nominalValS, cons, name, typeSig, bindings_);
     }, bindings);
 };
 
 
 const unifyTup = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
   return nominalT.typeReps
-    .reduce((bindings_, xT) => {
+    .reduce((bindings_, xT, n) => {
       const nominalT_ = xT[0],
         nominalS_ = serialize(nominalT_),
         realT_ = realT.typeReps[n][0],
@@ -2172,7 +2192,7 @@ const handleAdt = (typeRep, typeSig, typeSigs) => ({
             {desc: [`missing case "${k}"`]}
           );
 
-          match(k, v, cases[k] [TYPE_REP], cases[k] [TYPE_SIG]);
+          matchFun(k, deserialize(v), v, cases[k] [TYPE_REP], cases[k] [TYPE_SIG], typeSig);
         });
 
         return o.run(cases);
@@ -2296,15 +2316,75 @@ const constructType = (adt, bindings) => {
 };
 
 
-const match = (_case, nominalS, realT, realS) => {
-  const nominalT = deserialize(nominalS);
+const match = (_case, nominalT, nominalS, realT, realS, typeSig) => {
+  switch (nominalT.constructor.name) {
+    case "AdtT": return matchAdt(_case, nominalT, nominalS, realT, realS, typeSig);
+    case "ArrT": return matchArr(_case, nominalT, nominalS, realT, realS, typeSig);
+    case "FunT": return matchFun(_case, nominalT, nominalS, realT, realS, typeSig);
+    case "_MapT": return matchMap(_case, nominalT, nominalS, realT, realS, typeSig);
+    case "MonoT": return matchMono(_case, nominalT, nominalS, realT, realS, typeSig);
+    case "PolyT": return matchPoly(_case, nominalT, nominalS, realT, realS, typeSig);
+    case "RecT": return matchRec(_case, nominalT, nominalS, realT, realS, typeSig);
+    case "TupT": return matchTup(_case, nominalT, nominalS, realT, realS, typeSig);
+  }
+};
 
+
+const matchAdt = (_case, nominalT, nominalS, realT, realS, typeSig) => {
+  if (nominalT.tag !== realT.tag) {
+    const [from, to] = nominalT.fromTo;
+
+    _throw(
+      TypeError,
+      [`${typeSig} case "${_case}" expects`],
+      nominalS,
+      {fromTo: [from, to], desc: [`${serialize(realT)} received`]}
+    );
+  }
+
+  return nominalT.typeReps
+    .forEach((xT, n) => {
+      const nominalT_ = xT[0],
+        nominalS_ = serialize(nominalT_),
+        realT_ = realT.typeReps[n][0],
+        realS_ = serialize(realT_);
+
+      return match(_case, nominalT_, nominalS_, realT_, realS_, typeSig);
+    }, bindings);
+};
+
+
+const matchArr = (_case, nominalT, nominalS, realT, realS, typeSig) => {
+  if (nominalT.tag !== realT.tag) {
+    const [from, to] = nominalT.fromTo;
+
+    _throw(
+      TypeError,
+      [`${typeSig} case "${_case}" expects`],
+      nominalS,
+      {fromTo: [from, to], desc: [`${serialize(realT)} received`]}
+    );
+  }
+
+  return nominalT.typeReps
+    .forEach((xT, n) => {
+      const nominalT_ = xT[0],
+        nominalS_ = serialize(nominalT_),
+        realT_ = realT.typeReps[n][0],
+        realS_ = serialize(realT_);
+
+      return match(_case, nominalT_, nominalS_, realT_, realS_, typeSig);
+    }, bindings);
+};
+
+
+const matchFun = (_case, nominalT, nominalS, realT, realS, typeSig) => {
   if (nominalT.typeReps.length !== realT.typeReps.length) {
     const [from, to] = nominalT.fromTo;
 
     _throw(
       ArityError,
-      [`Adt case ${_case} expects`],
+      [`${typeSig} case "${_case}" expects`],
       nominalS,
       {fromTo: [from, to], desc: [`${realS} received`]}
     );
@@ -2321,13 +2401,22 @@ const match = (_case, nominalS, realT, realS) => {
 
             _throw(
               ArityError,
-              [`Adt case ${_case} expects`],
+              [`${typeSig} case "${_case}" expects`],
               nominalS,
               {fromTo: [from, to], desc: [`${realS} received`]}
             );
           }
 
-          else return;
+          else if (xT.constructor.name === "NoArgT") return;
+
+          else {
+            const nominalT_ = xT[0],
+              nominalS_ = serialize(nominalT_),
+              realT_ = realT.typeReps[n][0],
+              realS_ = serialize(realT_);
+
+            return match(_case, nominalT_, nominalS_, realT_, realS_, typeSig);
+          }
         }
 
         case "ArgsT": {
@@ -2337,134 +2426,131 @@ const match = (_case, nominalS, realT, realS) => {
 
             _throw(
               ArityError,
-              [`Adt case ${_case} expects`],
+              [`${typeSig} case "${_case}" expects`],
               nominalS,
               {fromTo: [from, to], desc: [`${realS} received`]}
             );
           }
 
-          else return;
+          else {
+            xT.forEach((yT, m) => {
+              const nominalT_ = yT[0],
+                nominalS_ = serialize(nominalT_),
+                realT_ = realT.typeReps[n][m][0],
+                realS_ = serialize(realT_);
+
+              return match(_case, nominalT_, nominalS_, realT_, realS_, typeSig);
+            });
+          }
         }
 
         case "ReturnT": return;
       }
     });
+};
 
-  const aux = (nT, rT) => {
-    nT.typeReps.forEach((nT_, n) => {
-      const rT_ = rT.typeReps[n];
 
-      switch (nT_.constructor.name) {
-        case "NoArgT": return;
+const matchMap = (_case, nominalT, nominalS, realT, realS, typeSig) => {
+  if (nominalT.tag !== realT.tag) {
+    const [from, to] = nominalT.fromTo;
 
-        case "ArgT":
-        case "RestT": return aux(nT_[0], rT_[0]);
+    _throw(
+      TypeError,
+      [`${typeSig} case "${_case}" expects`],
+      nominalS,
+      {fromTo: [from, to], desc: [`${serialize(realT)} received`]}
+    );
+  }
 
-        case "ArgsT": return nT_.forEach((nT__, m) => {
-          return aux(nT__[0], rT_[m] [0]);
-        });
+  return nominalT.typeReps
+    .forEach((xT, n) => {
+      const {k: nominalKeyT, v: nominalValT} = xT[0],
+        nominalKeyS = serialize(nominalKeyT),
+        nominalValS = serialize(nominalValT),
+        realKeyT = realT.typeReps[n][0].k,
+        realValT = realT.typeReps[n][0].v,
+        realKeyS = serialize(realKeyT),
+        realValS = serialize(realValT);
 
-        case "ReturnT": return;
-
-        case "MonoT": {
-          if (nT_.tag === rT_.tag) return;
-
-          else {
-            const [from, to] = nT_.fromTo;
-
-            _throw(
-              TypeError,
-              [`Adt case "${_case}" expects`],
-              nominalS,
-              {fromTo: [from, to], desc: [`"${serialize(rT_)}" received`]}
-            );
-          }
-        }
-
-        case "PolyT": return;
-
-        case "AdtT":
-        case "ArrT":
-        case "TupT": {
-          if (nT_.tag === rT_.tag) {
-            return aux(nT_.typeReps, rT_.typeReps);
-          }
-
-          else {
-            const [from, to] = nT_.fromTo;
-
-            _throw(
-              TypeError,
-              [`Adt case "${_case}" expects`],
-              nominalS,
-              {fromTo: [from, to], desc: [`${serialize(rT_)} received`]}
-            );
-          }
-        }
-
-        default: {
-          const nTv = nT_.v,
-            nTk = nT_.k,
-            rTv = rT_.v,
-            rTk = rT_.k;
-
-          switch (nT_.v.constructor.name) {
-            case "_Map": {
-              if (nTk.tag === rTk.tag) {
-                aux(nTk.typeReps, rTk.typeReps);
-              }
-
-              else {
-                const [from, to] = nTk.fromTo;
-
-                _throw(
-                  TypeError,
-                  [`Adt case "${_case}" expects`],
-                  nominalS,
-                  {fromTo: [from, to], desc: [`${serialize(rTk)} received`]}
-                );
-              }
-
-              if (nTv.tag === rTv.tag) {
-                return aux(nTv.typeReps, rTv.typeReps);
-              }
-
-              else {
-                const [from, to] = nTv.fromTo;
-
-                _throw(
-                  TypeError,
-                  [`Adt case "${_case}" expects`],
-                  nominalS,
-                  {fromTo: [from, to], desc: [`${serialize(rTv)} received`]}
-                );
-              }
-            }
-
-            case "Rec": {
-              if (nTk === rTk
-              && nTv.tag === rTv.tag) {
-                return aux(nTv.typeReps, rTv.typeReps);
-              }
-
-              else {
-                const [from, to] = nTv.fromTo;
-
-                _throw(
-                  TypeError,
-                  [`Adt case "${_case}" expects`],
-                  nominalS,
-                  {fromTo: [from, to], desc: [`${serialize(rTv)} received`]}
-                );
-              }
-            }
-          }
-        }
-      }
+      match(_case, nominalKeyT, nominalKeyS, realKeyT, realKeyS, typeSig);
+      return match(_case, nominalValT, nominalValS, realValT, realValS, typeSig);
     });
-  };
+};
 
-  aux(nominalT, realT);
+
+const matchMono = (_case, nominalT, nominalS, realT, realS, typeSig) => {
+  if (nominalT.tag !== realT.tag) {
+    const [from, to] = nominalT.fromTo;
+
+    _throw(
+      TypeError,
+      [`${typeSig} case "${_case}" expects`],
+      nominalS,
+      {fromTo: [from, to], desc: [`${serialize(realT)} received`]}
+    );
+  }
+};
+
+
+const matchPoly = (_case, nominalT, nominalS, realT, realS, typeSig) => {};
+
+
+const matchRec = (_case, nominalT, nominalS, realT, realS, typeSig) => {
+  if (nominalT.tag !== realT.tag) {
+    const [from, to] = nominalT.fromTo;
+
+    _throw(
+      TypeError,
+      [`${typeSig} case "${_case}" expects`],
+      nominalS,
+      {fromTo: [from, to], desc: [`${serialize(realT)} received`]}
+    );
+  }
+
+  return nominalT.typeReps
+    .forEach((xT, n) => {
+      const {k: nominalKey, v: nominalValT} = xT[0],
+        nominalValS = serialize(nominalValT),
+        realKey = realT.typeReps[n][0].k,
+        realValT = realT.typeReps[n][0].v,
+        realValS = serialize(realValT);
+
+      if (nominalKey !== realKey) {
+        // TODO: add key fromTo
+        _throw(
+          TypeError,
+          [`${typeSig} case "${_case}" expects`],
+          typeSig,
+          {fromTo: [0, -1], desc: [`${realKey} received`]}
+        );
+      }
+
+      return match(_case, nominalValT, nominalValS, realValT, realValS, typeSig);
+    }, bindings);
+};
+
+
+const matchTup = (_case, nominalT, nominalS, realT, realS, typeSig) => {
+  if (nominalT.tag !== realT.tag) {
+    const [from, to] = nominalT.fromTo;
+
+    _throw(
+      TypeError,
+      [`${typeSig} case "${_case}" expects`],
+      nominalS,
+      {fromTo: [from, to], desc: [`${serialize(realT)} received`]}
+    );
+  }
+
+  return nominalT.typeReps
+    .forEach((xT, n) => {
+      const nominalT_ = xT[0],
+        nominalS_ = serialize(nominalT_),
+        realT_ = realT.typeReps[n][0],
+        realS_ = serialize(realT_);
+
+      return match(_case, nominalT_, nominalS_, realT_, realS_, typeSig);
+    }, bindings);
 };
 
 
@@ -2905,68 +2991,179 @@ const setTup = (typeRep, typeSig, immu, xs, i, d, mode) => {
 ******************************************************************************/
 
 
-const _Map = (typeSig, ix) => {
+const __Map = ({immu = false, sig = ""}) => map => {
   if (devMode) {
-    const m = new Map();
+    if (!introspect(map).has("Object")) _throw(
+      TypeError,
+      ["_Map expects a Map"],
+      introspect1(map),
+      {desc: ["received"]}
+    );
 
-    for (let pair of ix) {
-      isNotVoid(pair[0]);
-      isNotVoid(pair[1]);
-      m.set(pair[0], pair[1]);
+    else if (TYPE_REP in map) _throw(
+      TypeError,
+      ["_Map expects an untyped Map"],
+      map[TYPE_SIG],
+      {desc: ["received (illegal retyping)"]}
+    );
+
+    let typeSig = infer(map);
+
+    if (map.size === 0) {
+      if (sig === "") _throw(
+        TypeError,
+        ["_Map received an empty Map without type annotation"],
+        "[?]",
+        {desc: ["explicit type annotation necessary"]}
+      );
+
+      else typeSig = sig;
     }
 
-    const p = new Proxy(m, handleMap(typeSig));
-    return p.typeSig = typeSig, p;
+    const typeRep = deserialize(typeSig),
+      voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
+
+    if (typeRep.typeReps.length > 1) _throw(
+      TypeError,
+      ["_Map excepts homogeneous Map"],
+      typeSig,
+      {desc: [`mixed typed values received`]}
+    );
+
+    else if (typeSig.search(voidPattern) !== -1) {
+      const {index: from, 0: match} = typeSig.match(voidPattern),
+        to = from + match.length - 1;
+
+      _throw(
+        TypeError,
+        ["_Map must not contain void values"],
+        typeSig,
+        {fromTo: [from, to], desc: [`${match} received`]}
+      );
+    }
+
+    return new Proxy(map, handleMap(typeRep, typeSig, immu));
   }
 
-  else return new Map(ix);
+  else return map;
 };
 
 
-const handleMap = typeSig => ({
-  get: (o, k, p) => {
+export const _Map = __Map({});
+
+
+export const Imap = __Map({immu: true})
+
+
+export const Emap = typeSig => __Map({sig: typeSig});
+
+
+const handleMap = (typeRep, typeSig, immu) => ({
+  get: (map, k, p) => {
     switch (k) {
-      case "get": return k => {
-        if (devMode) {
-          const r = o.get(isNotVoid(k));
-          return isNotVoid(r);
-        }
-
-        else return o.get(k);
-      }
-
-      case "has": return k => {
-        return o.has(devMode ? isNotVoid(k) : k);
-      }
-
-      case "set": return (k, v) => {
-        if (devMode) {
-          o.set(isNotVoid(k), isNotVoid(v));
-          return p;
-        }
-
-        else return o.set(k, v);
-      }
-
-      case "delete": return k => {
-        if (devMode) {
-          if (!p.has(k)) throw new TypeError("know your type");
-          else o.delete(k);
-          return p;
-        }
-
-        else return o.delete(k);
-      }
-
       case "toString": return () => typeSig;
-      case Symbol.toPrimitive: throw new TypeError("implicit type coercion");
+      case Symbol.toStringTag: return "_Map";
+      case Symbol.isConcatSpreadable: return map[Symbol.isConcatSpreadable];
+      case TYPE_REP: return typeRep;
+      case TYPE_SIG: return typeSig;
+
+      case Symbol.toPrimitive: return hint => {
+        _throw(
+          TypeError,
+          ["illegal implicit type conversion"],
+          typeSig,
+          {desc: [
+            `must not be converted to ${capitalize(hint)} primitive`,
+            "use explicit type casts instead"
+          ]}
+        );
+      };
+
+      case "get":
+      case "set":
+      case "delete":
+      case "clear":
 
       default: {
-        if (k in o) return o[k];
-        else throw new TypeError("know your type!");
+        if (k in map) return map[k];
+
+        else _throw(
+          TypeError,
+          ["illegal property access"],
+          typeSig,
+          {desc: [`unknown property ${preformatK(k)}`]}
+        );
       }
     }
-  }
+  },
+
+  has: (map, k, p) => {
+    switch (k) {
+      case TYPE_SIG: return true;
+      case TYPE_REP: return true;
+
+      default: _throw(
+        TypeError,
+        ["illegal property introspection"],
+        typeSig,
+        {desc: [
+          `of property ${preformatK(k)}`,
+          "duck typing is not allowed"
+        ]}
+      );
+    }
+  },
+
+  set: (map, k, v, p) => {
+    switch (k) {
+      case "toString": return map[k] = v, map;
+
+      default: _throw(
+        TypeError,
+        ["illegal property mutation"],
+        typeSig,
+        {desc: [
+          `of property ${preformatK(k)} with type ${infer(v)}`,
+          "Maps are immutable"
+        ]}
+      );
+    }
+  },
+
+  defineProperty: (map, k, d) => {
+    _throw(
+      TypeError,
+      ["illegal property mutation"],
+      typeSig,
+      {desc: [
+        `of property ${preformatK(k)} with type ${infer(d.value)}`,
+        "Maps are immutable"
+      ]}
+
+    );
+  },
+
+  deleteProperty: (map, k) => {
+    _throw(
+      TypeError,
+      ["illegal property mutation"],
+      typeSig,
+      {desc: [
+        `removal of property ${preformatK(k)}`,
+        "Maps are immutable"
+      ]}
+    );
+  },
+
+  ownKeys: map => _throw(
+    TypeError,
+    ["illegal property introspection"],
+    typeSig,
+    {desc: [
+      `of property ${preformatK(k)}`,
+      "meta programming is not allowed"
+    ]}
+  )
 });
 
 
@@ -2975,136 +3172,6 @@ const handleMap = typeSig => ({
 ******************************************************************************/
 
 
-const Rec = (o, {immu = false}) => {
-  if (devMode) {
-    const ks = Object.keys(o);
-
-    Reflect.defineProperty(
-      o,
-      Symbol.toStringTag,
-      {value: "Rec"}
-    );
-
-    const typeRep = introspect(o),
-      typeSig = serialize(typeRep);
-
-    Reflect.defineProperty(
-      o,
-      Symbol("typeSig"),
-      {value: typeSig}
-    );
-
-    if (ks.length < 2) throw new TypeError(
-      "Rec expects\n\n" +
-      `${typeSig}\n` +
-      `${ul(1, typeSig.length - 2)}\n\n` +
-      "records must include at least 2 fields\n"
-    );
-
-    ks.forEach(k => isNotVoid(k), isNotVoid(o[k]));
-    return new Proxy(o, handleRec(typeRep, typeSig, immu));
-  }
-
-  else return o;
-};
-
-
-const handleRec = (typeRep, typeSig, immu) => ({
-  get: (o, k, p) => {
-    switch (k) {
-      case "toString": return () => typeSig;
-      case Symbol.toStringTag: return "Rec";
-      case "typeRep": return typeRep;
-      case "typeSig": return typeSig;
-
-      case Symbol.toPrimitive: return hint => {
-        throw new TypeError(
-          "illegal implicit type coercion applied to record\n\n" +
-          `${typeSig}\n\n` +
-          `should have been converted to ${hint} primitive\n\n` +
-          "use explicit type casts instead\n"
-        );
-      };
-
-      default: {
-        if (k in o) return o[k];
-
-        else throw new TypeError(
-          "illegal field access on record\n\n" +
-          `${typeSig}\n\n` +
-          `unknown field ${preformatK(k)}\n`
-        );
-      }
-    }
-  },
-
-  has: (o, k, p) => {
-    throw new TypeError(
-      "illegal record introspection through\n\n" +
-      `${preformatK(k)} in ${typeSig}\n\n` +
-      "duck typing is not allowed\n"
-    );
-  },
-
-  set: (o, k, v, p) => {
-    if (immu) {
-      throw new TypeError(
-        "illegal record mutation\n\n" +
-        `${typeSig} [${preformatK(k)}] = ${serialize(introspect(v))}\n\n` +
-        "immutable record\n"
-      );
-    }
-
-    else {
-      if (k in o) {
-        if (typeSig !== `{${serialize(introspect(v))}}`) throw new TypeError(
-          "illegal record mutation\n\n" +
-          `${typeSig} [${preformatK(k)}] = ${serialize(introspect(v))}\n\n` +
-          `${ul(1, typeSig.length - 2)}\n\n` +
-          "record fields must maintain their types\n"
-        );
-
-        else return o[k] = v;
-      }
-
-      else {
-        throw new TypeError(
-          "illegal record mutation\n\n" +
-          `${typeSig} [${preformatK(k)}] = ${serialize(introspect(v))}\n\n` +
-          "records are sealed\n"
-        );
-      }
-    }
-  },
-
-  defineProperty: (o, k, d) => {
-    throw new TypeError(
-      "illegal use of reflection method on record\n\n" +
-      `${typeSig}\n\n` +
-      `at property ${preformatK(i)}\n\n` +
-      "reflection must not be used\n"
-    );
-  },
-
-  deleteProperty: (o, k) => {
-    throw new TypeError(
-      "illegal record mutation\n\n" +
-      `delete ${typeSig} . ${preformatK(k)} or\n\n` +
-      `Reflect.deleteProperty(${typeSig}, ${preformatK(k)})\n\n` +
-      "records are sealed\n"
-    );
-  },
-
-  ownKeys: o => {
-    throw new TypeError(
-      "illegal record reflection method\n\n" +
-      `Object.keys(${typeSig}) or\n\n` +
-      `Object.values(${typeSig}) or\n\n` +
-      `Object.entries(${typeSig})\n\n` +
-      "reflection must not be used\n"
-    );
-  }
-});
 
 
 /******************************************************************************
