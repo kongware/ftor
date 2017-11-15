@@ -46,11 +46,11 @@ At its core ftor consists of a pluggable run-time type system with the following
 
 While ftor attempts to catch type errors as early as possible - ideally at definition time, a run-time type checker is of course not equivalent to a static type system, that is to say it doesn't guarantee a type error free application. Consider ftor rahter as a useful supplement to unit tests and a suitable debugging tool for functional programmers.
 
-ftor respects common coding habits in the Javascript community and simultaneously tries to sensitize developers for type-directed programming. This process is a delicate balancing act sometimes...
+ftor respects common coding habits in the Javascript community and simultaneously tries to sensitize developers for type-directed, functional programming. This process is a delicate balancing act sometimes...
 
 ## Pluggable
 
-When you import ftor the type checker is disabled by default. You have to enable it in the source code before the first type check. Since I consider ftor as a debugging tool it should be enabled during the development stage and disabled on the live system.
+When you import ftor the type checker is disabled by default. You have to enable it in the source code before the first type check. Ideally it should be enabled during the development stage and disabled on the live system.
 
 ```Javascript
 import * as F from ".../ftor.js";
@@ -78,7 +78,7 @@ So the only way to implement bounded polymorphism in ftor is to pass type dictio
 
 ftor is prepared for higher kinded types but the feature is still experimental and not yet exposed in the API.
 
-### Higher-Kinded Types
+### Higher-Rank Types
 
 ftor has basic support for rank-2 types but the feature is still experimental.
 
