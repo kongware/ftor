@@ -76,7 +76,7 @@ It has turned out that the only way to implement bounded polymorphism with ftor 
 
 ### Subtype Polymorphism
 
-As opposed to _TypeScript_ and _Flow_ ftor doesn't support subtyping, because it entails a high degree of complexity in the implementation. There are some experimental subtype relations within primitive types like `Number` and `Integer`, though, which may become in future versions.
+As opposed to _TypeScript_ and _Flow_ ftor doesn't support subtyping, because it entails a high degree of complexity in the implementation. There are some experimental subtype relations within primitive types like `Number` and `Integer`, though, which may become obsolet in future versions.
 
 ### Higher-Kinded Types
 
