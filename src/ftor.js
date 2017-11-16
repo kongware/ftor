@@ -46,10 +46,13 @@ const TYPE_REP = Symbol.for(`${SYM_PREFIX}typeRep`);
 const TYPE_SIG = Symbol.for(`${SYM_PREFIX}typeSig`);
 
 
-const TUP_MAX_FIELDS = 16;
+const KIND = Symbol.for(`${SYM_PREFIX}kind`):
 
 
 const MAX_KIND = 5;
+
+
+const TUP_MAX_FIELDS = 16;
 
 
 const TYPE_RANK_RANGE = "2";

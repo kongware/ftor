@@ -15,7 +15,7 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 <br>
 
-Version 0.9.8 (unstable)
+Version 0.9.9 (unstable)
 
 **Please note:** This repo is experimental and still work in progress.
 <br><br>
@@ -38,7 +38,7 @@ At its core ftor consists of a pluggable run-time type system with the following
 
 * nominal typing
 * parametric polymorphism
-* higher kinded types
+* higher kinded types (partially)
 * higher rank types (rank-2)
 * recursive types
 * arrays, lists, tuples, maps, records
@@ -70,13 +70,17 @@ ftor fully supports parametric polymirphism.
 
 ### Bounded Polymorphism
 
-Bounded polymorphism is the ability of a type system to define constraints on polymorphic types without having to pass the corresponding type classes explicitly around throughout the codebase. Most statically typed languages like Haskell or Scala resolve type class dependencies at compilte time. ftor doesn't have a compilation step, though. Since it is a pluggable run-time type system the entire type information is erased as soon as it is disabled. That means we are not allowed to create dependencies on the type system.
+Bounded polymorphism is the ability of a type system to define constraints on polymorphic types without having to pass the corresponding type classes explicitly around throughout the codebase. Most statically typed languages like Haskell or Scala resolve type class dependencies at compilte time. ftor doesn't have a compilation step, though. Since it is a pluggable run-time type system the entire type information is erased as soon as it is disabled. Hence we are not allowed to create dependencies on the type system.
 
-So the only way to implement bounded polymorphism in ftor is to pass type dictionaries explicitly around. This is cumbersome but necessary, unless you are willing to keep the type checker enabled on the live system, which is generally not a good idea.
+It has turned out that the only way to implement bounded polymorphism with ftor is to pass type dictionaries explicitly around. This is cumbersome but necessary, unless you are willing to keep the type checker enabled on the live system, which is generally not a good idea.
+
+### Subtype Polymorphism
+
+As opposed to _TypeScript_ and _Flow_ ftor doesn't support subtyping, because it entails a high degree of complexity in the implementation. There are some experimental subtype relations within primitive types like `Number` and `Integer`, though, which may become in future versions.
 
 ### Higher-Kinded Types
 
-ftor is prepared for higher kinded types but the feature is still experimental and not yet exposed in the API.
+ftor has a partial implementation of higher kinded types but the feature is still experimental and not yet exposed in the API.
 
 ### Higher-Rank Types
 
