@@ -220,7 +220,7 @@ So far we've merely addressed somehow boring, monomorphic functions. Let's get t
 
 #### First Order
 
-Parametric polymorphic functions accept values of any type, as they only work with their non-polymorphic properties:
+Parametric polymorphic functions accept values of any type:
 
 ```Javascript
 const id = Fun("(id :: a -> a)", x => x);
@@ -229,18 +229,18 @@ id(2); // 2
 id("foo"); // "foo"
 id(true); // true
 
-const toArray = Fun(
-  "(toArray :: a -> [a])",
-  x => [x]
+const first = Fun(
+  "(first :: a -> a -> a)",
+  x => y => x
 );
 
-toArray(2); // [2]
-toArray("foo"); // ["foo"]
-toArray(true); // [true]
+first(2) (3); // 2
+first("foo") ("bar"; // "foo"
+first(true) (false); // true
 ```
 #### Parametricity
 
-Parametric polymorphism includes a property called <a href="https://en.wikipedia.org/wiki/Parametricity">parametricity</a>, which states that a function must not know anything about the types of its arguments or return value. Here is a function that violates parametricity:
+Parametric polymorphism has a nice property called <a href="https://en.wikipedia.org/wiki/Parametricity">parametricity</a>, which imposes that a function must not know anything about the types of its arguments or return value. Here is a function that violates this principle:
 
 ```Javascript
 const append = Fun(
@@ -260,13 +260,11 @@ append("2") ("3"); // "23"
 append(2) ("3"); // throws
 append({}) ({}); // throws
 ```
-At this point ftor's little secret is revealed, which it has been able to hide from us so far. Since the type checker doesn't statically check our code, it isn't capable of preventing us from writing such functions. Even though `append`'s type signature pretends to be a perfect, parametric polymorphic function, it isn't. Unfortunately, there is nothing I can do about it and maybe this behavior is even helpful to write idiomatic Javascript code in a safe manner. This calls for further experience.
-
-As far as I know Javascript isn't particularly suitable for static type checking anyway. You can tell by the great difficulties _Flow_ has with type inference and refinements.
+Without parametricity we lose the ability to deduce or at least narrow down a function's behavior just from its type signature. Since ftor isn't a static type checker it cannot preclude such implementations.
 
 #### Higher Order
 
-Polymorphic function types are most useful when they are part of a higher order function annotation:
+Parametric polymorphic higher order functions are applicable to many types and thus quite flexible. Here is a generic applicator:
 
 ```Javascript
 const ap = Fun(
@@ -300,8 +298,6 @@ ap_(toStr) (2); // throws
 ap(id) (2); // 2
 ap(id) ("foo"); // "foo"
 ```
-A function passed to `ap` can be either mono- or polymorphic. If it is a monomorphic function the type variable `a` is bound to the domain of the function argument (`id` in the example above). If it is a polymorphic function the type of the second argument determines the type of `a` of the function argument (`id`). This means that `ap` as the caller chooses the ground type of `id` and when `id` is actually invoked inside the body of `ap`, it is already a monomorphic function.
-
 ### Abstraction over Arity
 
 ...
