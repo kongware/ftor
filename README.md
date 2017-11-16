@@ -36,9 +36,7 @@ Functional programming in Javascript is frustrating as soon as you leave contrie
 
 At its core ftor consists of a pluggable run-time type system with the following features:
 
-* nominal typing
 * parametric polymorphism
-* higher kinded types (partially)
 * higher rank types (rank-2)
 * recursive types
 * arrays, lists, tuples, maps, records
@@ -61,6 +59,9 @@ F.setDevMode(true);
 
 // typed area;
 ```
+## Nominal/Structural Typing
+
+ftor pursues a nominal typing strategy, because this kind of typing is more sound than structural typing. Nominal means that types are distinguished by name rather than by structure.
 
 ## Polymorphism
 
@@ -76,11 +77,11 @@ It has turned out that the only way to implement bounded polymorphism with ftor 
 
 ### Subtype Polymorphism
 
-As opposed to _TypeScript_ and _Flow_ ftor doesn't support subtyping, because it entails a high degree of complexity in the implementation. There are some experimental subtype relations within primitive types like `Number` and `Integer`, though, which may become obsolet in future versions.
+As opposed to _TypeScript_ and _Flow_ ftor doesn't support subtyping, because it entails a high degree of complexity in the implementation. There are some experimental subtype relations within primitive types like `Number` and `Integer`, though, which may become obsolete in future versions.
 
 ### Higher-Kinded Types
 
-ftor has a partial implementation of higher kinded types but the feature is still experimental and not yet exposed in the API.
+Types are an abstraction over sets of values. Higher-kinded types are an abstraction over types by allowing higher order type constructors. While you can define elegant types with them their implementation isn't trivial and neither is their application. ftor is prepared for higher-kinded types and will eventually support them, but not for the time being.
 
 ### Higher-Rank Types
 
@@ -142,7 +143,7 @@ sum(1, 2, 3); // 6
 ```
 ### Curried Functions
 
-As functional programmers we often prefer defining curried function sequences:
+In functional programmering the definition of curried function sequences is frequently desired:
 
 ```Javascript
 const add = Fun(
@@ -153,7 +154,7 @@ const add = Fun(
 add(2) (3); // 5
 add(2) (true); // throws
 ```
-Please note that the optional names in function type signatures denoted by the `name ::` pattern are assigned to each lambda of the corresponding sequence. This is extremely helpful for debugging a codebase with hundreds of such functions.
+Please note that the optional names in function type signatures denoted by the `name ::` pattern are assigned to each lambda of the corresponding sequence. This is extremely helpful for debugging a codebase with hundreds of otherwise anonymous functions.
 
 ### Strict Function Call Arity
 
@@ -170,7 +171,7 @@ add(2, 3, 4); // throws
 ```
 ### Higher Order Functions
 
-Functions are just data that can be passed around:
+In functional programming we want to pass functions around as first class citizens and treat them the same way as data:
 
 ```Javascript
 const ap = Fun(
@@ -197,7 +198,7 @@ ap(inc) (2); // 3
 ap(toStr) (2); // throws
 ap(add) (2); // throws
 ```
-ftor always attempts to eagerly throw type errors. Instead of waiting which type `toStr` and `add` will eventually return, ftor statically checks the function argument's parameters and may terminate the program prematurely:
+ftor always attempts to eagerly catch type errors and consequently checks the type of function arguments at the time of passing them to higher order functions, instead of waiting until they are finally called:
 
 ```Javascript
 ap(toStr); // throws
@@ -213,14 +214,13 @@ const thunk = Fun("(() -> String)", () => "foo" + "bar");
 thunk(); // "foobar"
 thunk("foo"); // throws
 ```
-
 ### Parametric Polymorphic Functions
 
 So far we've merely addressed somehow boring, monomorphic functions. Let's get to polymorphic ones.
 
 #### First Order
 
-Parametric polymorphic functions accept values of any type, as they only work with non-polymorphic properties:
+Parametric polymorphic functions accept values of any type, as they only work with their non-polymorphic properties:
 
 ```Javascript
 const id = Fun("(id :: a -> a)", x => x);

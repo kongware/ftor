@@ -46,12 +46,6 @@ const TYPE_REP = Symbol.for(`${SYM_PREFIX}typeRep`);
 const TYPE_SIG = Symbol.for(`${SYM_PREFIX}typeSig`);
 
 
-const KIND = Symbol.for(`${SYM_PREFIX}kind`):
-
-
-const MAX_KIND = 5;
-
-
 const TUP_MAX_FIELDS = 16;
 
 
@@ -1067,21 +1061,7 @@ const deserialize = typeSig => {
       case "POLY": {
         switch (phase) {
           case "LETTER": {
-            if (next === "") return [PolyT(fromTo.concat(n), buf + c), n + 1, depth];
-
-            else if (next.search(/[a-z]/) === 0) {
-              if (buf.length >= MAX_KIND) _throw(
-                TypeSigError,
-                ["invalid type signature"],
-                typeSig,
-                {fromTo: [n - buf.length + 1, n], desc: [`higher kinded types are supported up to ${MAX_KIND}`]}
-              );
-
-              else return aux(
-                typeSig, n + 1,
-                {depth, context, phase, buf: buf + c, fromTo, tag, typeReps}
-              );
-            }
+            if (next === "") return [PolyT(fromTo.concat(n), c), n + 1, depth];
 
             else return aux(
               typeSig, n + 1,
@@ -1090,7 +1070,7 @@ const deserialize = typeSig => {
           }
 
           case "NUMBER": {
-            if (c.search(new RegExp(`[${TYPE_RANK_RANGE}]`)) === 0) {
+            if (c.search(/[2]/) === 0) {
               if (next === "") return [PolyT(fromTo.concat(n), buf + c), n + 1, depth]
               
               else return aux(
@@ -1098,7 +1078,7 @@ const deserialize = typeSig => {
                 {depth, context, phase: "END", buf: buf + c, fromTo, tag, typeReps}
               );
             }
-
+          
             else if (c.search(/[)\]}>, :]/) === 0) {
               return [PolyT(fromTo.concat(n - 1), buf), n, depth];
             }
