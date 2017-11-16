@@ -156,6 +156,16 @@ add(2) (true); // throws
 ```
 Please note that the optional names in function type signatures denoted by the `name ::` pattern are assigned to each lambda of the corresponding sequence. This is extremely helpful for debugging a codebase with hundreds of otherwise anonymous functions.
 
+### Nullary Functions / Thunks
+
+Sometimes thunks are needed to evaluate an expression lazily:
+
+```Javascript
+const thunk = Fun("(() -> String)", () => "foo" + "bar");
+
+thunk(); // "foobar"
+thunk("foo"); // throws
+```
 ### Strict Function Call Arity
 
 Except for variadic functions ftor is strict in the evaluation of function arities:
@@ -203,16 +213,6 @@ ftor always attempts to eagerly catch type errors and consequently checks the ty
 ```Javascript
 ap(toStr); // throws
 ap(add); // throws
-```
-### Nullary Functions / Thunks
-
-Sometimes thunks are needed to evaluate an expression lazily:
-
-```Javascript
-const thunk = Fun("(() -> String)", () => "foo" + "bar");
-
-thunk(); // "foobar"
-thunk("foo"); // throws
 ```
 ### Parametric Polymorphic Functions
 
@@ -302,6 +302,6 @@ ap(id) ("foo"); // "foo"
 
 ...
 
-### Overloaded Functions
+### Bounded Polymorphic Functions
 
 ...
