@@ -15,7 +15,7 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 <br>
 
-Version 0.9.9 (unstable)
+Version 0.9.10 (unstable)
 
 **Please note:** This repo is experimental and still work in progress.
 <br><br>
@@ -48,7 +48,7 @@ ftor respects common coding habits in the Javascript community and simultaneousl
 
 ## Pluggable
 
-When you import ftor the type checker is disabled by default. You have to enable it in the source code before the first type check. Ideally it should be enabled during the development stage and disabled on the live system.
+When you import ftor the type checker is disabled by default. You have to enable it in the source code before the first type check. Ideally it should be enabled during the development stage for convenience and disabled on the live system to save the run-time costs.
 
 ```Javascript
 import * as F from ".../ftor.js";
@@ -94,13 +94,47 @@ You can easily create typed functions with the `Fun` constructor wherever an exp
 ftor's type signatures deviate from Haskell's, though. An important difference are the parentheses, which have to enclose every function signature:
 
 ```Javascript
-// typed function declaration
-const listenTo = Fun(
-  "(listenTo :: String -> String)",
-  s => s.split("").reverse().join("")
+const inc = Fun(
+  "(inc :: Number -> Number)",
+  n => n + 1
 );
 
-listenTo("emerpus evol a"); // "a love supreme"
+inc(2); // 3
+```
+In contrast to Haskell the name portion in the type signature doesn't declare the name of the variable but is optional and provides a useful name for debugging purposes:
+
+```Javascript
+const inc = Fun(
+  "(Number -> Number)",
+  n => n + 1
+);
+
+inc(2); // 3
+```
+### Meaningful Error Messages
+
+Extensive error messages provide a better debugging experience:
+
+```Javascript
+const inc = Fun(
+  "(inc :: Number -> Number)",
+  n => n + 1
+);
+
+inc(true); // throws the following type error
+
+Uncaught TypeError: inc expects
+
+(inc :: Number -> Number)
+        ^^^^^^
+
+Boolean received
+
+
+    at _throw (<anonymous>:3541:9)
+    at verifyArgT (<anonymous>:1884:34)
+    at Object.apply (<anonymous>:1680:22)
+    at <anonymous>:1:1
 ```
 ### Multi-Argument Functions
 
@@ -277,8 +311,6 @@ const ap_ = Fun(
   f => x => f(x)
 );
 
-const id = F.Fun("(id :: a -> a)", n => n);
-
 const inc = F.Fun(
   "(inc :: Number -> Number)",
   n => n + 1
@@ -294,14 +326,57 @@ ap(toStr) (2); // "2"
 
 ap_(inc) (2); // 3
 ap_(toStr) (2); // throws
-
-ap(id) (2); // 2
-ap(id) ("foo"); // "foo"
 ```
 ### Abstraction over Arity
 
-...
+When both a higher order function type signature and the signature of its function argument ends with a type variable the arity of the function argument doesn't matter anymore:
 
+```Javascript
+const ap = Fun(
+  "(ap :: (a -> b) -> a -> b)", // function argument (a -> b) is unary
+  f => x => f(x)
+);
+
+const add = Fun(
+  "(add :: Number -> Number -> Number)", // binary function
+  n => m => n + m
+);
+
+ap(add) (2) (3); // 5
+ap(ap(add) (2)) (3); // 5
+```
+Now `ap` can be applied to curried functions of arbitrary arity. This property of functions in curried form is called abstraction over arity. It is most useful with function composition:
+
+```Javascript
+const comp = Fun(
+  "(comp :: (b -> c) -> (a -> b) -> a -> c)",
+  f => g => x => f(g(x))
+);
+
+const inc = F.Fun(
+  "(inc :: Number -> Number)",
+  n => n + 1
+);
+
+const add = Fun(
+  "(add :: Number -> Number -> Number)", // binary function
+  n => m => n + m
+);
+
+comp(add(2)) (inc) (3); // 6
+comp(add) (inc) (2) (3); // 6
+```
+Abstraction over arity is not always possible, though:
+
+```Javascript
+comp(inc) (add) (2) (3); // throws
+comp(inc) (add(2)) (3); // 6
+```
+But with functional combinators there is always a more or less obvious workaround:
+
+```Javascript
+...
+```
 ### Bounded Polymorphic Functions
 
 ...

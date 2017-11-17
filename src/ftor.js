@@ -269,11 +269,11 @@ const ArrT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
 //***[ 4.3. FUNCTIONS ]********************************************************
 
 
-const FunT = (Cons => (name, {isStrict}, fromTo, typeReps) => new Cons(name, isStrict, fromTo, typeReps))
+const FunT = (Cons => (name, {isAbstract}, fromTo, typeReps) => new Cons(name, isAbstract, fromTo, typeReps))
   (class FunT {
-    constructor(name, isStrict, fromTo, typeReps) {
+    constructor(name, isAbstract, fromTo, typeReps) {
       this.name = name;
-      this.isStrict = isStrict;
+      this.isAbstract = isAbstract;
       this.fromTo = fromTo;
       this.tag = "Fun";
       this.typeReps = typeReps;
@@ -930,10 +930,10 @@ const deserialize = typeSig => {
                   {fromTo: [n - 2, n - 1], desc: ["return value must be rank-1 polymorphic"]}
                 );
 
-                else return [FunT(name, {isStrict: false}, fromTo, typeReps), n + 1, depth - 1];
+                else return [FunT(name, {isAbstract: false}, fromTo, typeReps), n + 1, depth - 1];
               }
   
-              else return [FunT(name, {isStrict: true}, fromTo, typeReps), n + 1, depth - 1];
+              else return [FunT(name, {isAbstract: true}, fromTo, typeReps), n + 1, depth - 1];
             }
 
             else {
@@ -1403,7 +1403,7 @@ const unifyArr = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
 
 const unifyFun = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
   if (nominalT.typeReps.length < realT.typeReps.length) {
-    if (nominalT.isStrict) {
+    if (nominalT.isAbstract) {
       const [from, to] = nominalT.fromTo;
 
       _throw(
@@ -1521,6 +1521,9 @@ const unifyPoly = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bin
 
   if (bindings.has(nominalS)) {
     if (bindings.get(nominalS) === realS) return bindings;
+
+    else if (cons === ReturnT
+    && realT.tag === "Fun") return bindings;
 
     else {
       const [from, to] = nominalT.fromTo;
