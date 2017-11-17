@@ -24,14 +24,14 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 //***[ 1.1. STATE ]************************************************************
 
 
-// development mode
+// type mode
 // false by default
 // Boolean
 
-let devMode = false;
+let typeMode = false;
 
 
-export const setDevMode = b => devMode = b;
+export const typify = b => typeMode = b;
 
 
 //***[ 1.1. CONSTANTS ]********************************************************
@@ -930,10 +930,10 @@ const deserialize = typeSig => {
                   {fromTo: [n - 2, n - 1], desc: ["return value must be rank-1 polymorphic"]}
                 );
 
-                else return [FunT(name, {isAbstract: false}, fromTo, typeReps), n + 1, depth - 1];
+                else return [FunT(name, {isAbstract: true}, fromTo, typeReps), n + 1, depth - 1];
               }
   
-              else return [FunT(name, {isAbstract: true}, fromTo, typeReps), n + 1, depth - 1];
+              else return [FunT(name, {isAbstract: false}, fromTo, typeReps), n + 1, depth - 1];
             }
 
             else {
@@ -1403,7 +1403,7 @@ const unifyArr = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
 
 const unifyFun = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
   if (nominalT.typeReps.length < realT.typeReps.length) {
-    if (nominalT.isAbstract) {
+    if (!nominalT.isAbstract) {
       const [from, to] = nominalT.fromTo;
 
       _throw(
@@ -1516,12 +1516,19 @@ const unifyMap = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
 
 const unifyPoly = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
   bindings.forEach((v, k) => {
+    // substitutes type vars on the RHS
     if (v === nominalS) bindings.set(k, realS);
   });
 
   if (bindings.has(nominalS)) {
+    // normal unification
     if (bindings.get(nominalS) === realS) return bindings;
 
+    // reverse has-a relation if RHS is a type var
+    else if (realS.search(/\b[a-z]\b/) === 0
+    && bindings.get(realS) === nominalS) return bindings
+
+    // abstraction over arity
     else if (cons === ReturnT
     && realT.tag === "Fun") return bindings;
 
@@ -1634,7 +1641,7 @@ const unifyTup = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
 
 
 export const Fun = (typeSig, f) => {
-  if (devMode) {
+  if (typeMode) {
     if (!introspect(typeSig).has("String")) _throw(
       TypeError,
       ["Fun expects"],
@@ -2088,7 +2095,7 @@ export const Adt = (tcons, typeSig, ...cases) => {
   const typeRep = deserialize(typeSig),
     tvars = typeSig.match(/\b[a-z]\b/g);
 
-  if (devMode) {
+  if (typeMode) {
     const typeSigs = new Map();
 
     cases.forEach(vcons => {
@@ -2566,7 +2573,7 @@ const matchTup = (_case, nominalT, nominalS, realT, realS, typeSig) => {
 
 
 const _Arr = ({immu = false, sig = ""}) => xs => {
-  if (devMode) {
+  if (typeMode) {
     if (!introspect(xs).has("Array")) _throw(
       TypeError,
       ["Arr expects an Array"],
@@ -2806,7 +2813,7 @@ const setArr = (typeRep, typeSig, immu, xs, i, d, mode) => {
 
 
 const _Tup = ({immu = false}) => xs => {
-  if (devMode) {
+  if (typeMode) {
     if (!introspect(xs).has("Array")) _throw(
       TypeError,
       ["Tup expects an Array"],
@@ -2998,7 +3005,7 @@ const setTup = (typeRep, typeSig, immu, xs, i, d, mode) => {
 
 
 const __Map = ({immu = false, sig = ""}) => map => {
-  if (devMode) {
+  if (typeMode) {
     if (!introspect(map).has("Map")) _throw(
       TypeError,
       ["_Map expects a Map"],
@@ -3266,7 +3273,7 @@ const handleMap = (typeRep, typeSig, immu) => ({
 
 
 const _Rec = ({immu = false, sig = ""}) => o => {
-  if (devMode) {
+  if (typeMode) {
     if (!introspect(o).has("Object")) _throw(
       TypeError,
       ["Rec expects an Object"],

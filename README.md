@@ -55,7 +55,7 @@ import * as F from ".../ftor.js";
 
 // untyped area
 
-F.setDevMode(true);
+F.typify(true);
 
 // typed area;
 ```
