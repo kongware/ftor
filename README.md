@@ -17,6 +17,8 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 Version 0.9.10 (unstable)
 
+**I am currently working on a proper unifiction algorithm and some subsumption rules. It is a bit tricky, so please bear with me!**
+
 **Please note:** This repo is experimental and still work in progress.
 <br><br>
 

@@ -28,10 +28,10 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 // false by default
 // Boolean
 
-let typeMode = false;
+let types = false;
 
 
-export const typify = b => typeMode = b;
+export const typify = b => types = b;
 
 
 //***[ 1.1. CONSTANTS ]********************************************************
@@ -1413,6 +1413,11 @@ const unifyFun = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
         {fromTo: [from, to], desc: [`${realS} received`]}
       );
     }
+
+    else if (realT.typeReps[0][0].tag === "Fun") {
+      realT = realT.typeReps[0][0];
+      realS = serialize(realT);
+    }
   }
 
   else if (nominalT.typeReps.length > realT.typeReps.length) {
@@ -1521,7 +1526,6 @@ const unifyPoly = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bin
   });
 
   if (bindings.has(nominalS)) {
-    // normal unification
     if (bindings.get(nominalS) === realS) return bindings;
 
     // reverse has-a relation if RHS is a type var
@@ -1553,7 +1557,8 @@ const unifyPoly = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bin
     }
   }
 
-  else return bindings.set(nominalS, realS);
+  else if (nominalS !== realS) return bindings.set(nominalS, realS);
+  else return bindings;
 };
 
 
@@ -1641,7 +1646,7 @@ const unifyTup = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bind
 
 
 export const Fun = (typeSig, f) => {
-  if (typeMode) {
+  if (types) {
     if (!introspect(typeSig).has("String")) _throw(
       TypeError,
       ["Fun expects"],
@@ -2095,7 +2100,7 @@ export const Adt = (tcons, typeSig, ...cases) => {
   const typeRep = deserialize(typeSig),
     tvars = typeSig.match(/\b[a-z]\b/g);
 
-  if (typeMode) {
+  if (types) {
     const typeSigs = new Map();
 
     cases.forEach(vcons => {
@@ -2573,7 +2578,7 @@ const matchTup = (_case, nominalT, nominalS, realT, realS, typeSig) => {
 
 
 const _Arr = ({immu = false, sig = ""}) => xs => {
-  if (typeMode) {
+  if (types) {
     if (!introspect(xs).has("Array")) _throw(
       TypeError,
       ["Arr expects an Array"],
@@ -2813,7 +2818,7 @@ const setArr = (typeRep, typeSig, immu, xs, i, d, mode) => {
 
 
 const _Tup = ({immu = false}) => xs => {
-  if (typeMode) {
+  if (types) {
     if (!introspect(xs).has("Array")) _throw(
       TypeError,
       ["Tup expects an Array"],
@@ -3005,7 +3010,7 @@ const setTup = (typeRep, typeSig, immu, xs, i, d, mode) => {
 
 
 const __Map = ({immu = false, sig = ""}) => map => {
-  if (typeMode) {
+  if (types) {
     if (!introspect(map).has("Map")) _throw(
       TypeError,
       ["_Map expects a Map"],
@@ -3273,7 +3278,7 @@ const handleMap = (typeRep, typeSig, immu) => ({
 
 
 const _Rec = ({immu = false, sig = ""}) => o => {
-  if (typeMode) {
+  if (types) {
     if (!introspect(o).has("Object")) _throw(
       TypeError,
       ["Rec expects an Object"],
