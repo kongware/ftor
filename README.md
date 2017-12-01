@@ -59,8 +59,7 @@ ftor...
 * pursues mainly a nominal type strategy, because this kind of typing is more sound than structural typing<sup>2</sup>
 * strongly relies on the functional paradigm
 
-<sub><sup>1</sup>also known as static duck typing</sub>
-
+<sub><sup>1</sup>also known as static duck typing</sub><br>
 <sub><sup>2</sup>Nominal typing means that types are distinguished by name rather than by structure</sub>
 
 ## Pluggable
