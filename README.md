@@ -17,40 +17,62 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 Version 0.9.10 (unstable)
 
-**I am currently working on a proper unifiction algorithm and some subsumption rules. It is a bit tricky, so please bear with me!**
-
-**Please note:** This repo is experimental and still work in progress.
+**Please note:** This repo is broken and currently under construction.
 <br><br>
 
 ## What
 
-ftor enables ML-like type-directed, functional programming with Javascript including reasonable debugging.
+ftor enables ML-like type-directed, functional programming with Javascript including reasonable debugging. In essence it includes a type system and a functional programming library building upon it.
 
 ## Why
 
-Functional programming in Javascript is frustrating as soon as you leave contrieved examples behind and try to solve real world problems, because...
+Functional programming in Javascript is cumbersome as soon as you leave contrieved examples behind and try to solve real world problems, because...
 
-* beyond first class functions Javascript doesn't offer much on a native level
-* there is only a relatively small ecosystem and an insufficient tooling
-* there is no type system preventing you from writing bad algorithms
+* there is no type system preventing us from writing poor code and algorithms
+* there is no built-in mechanism to separate evaluation from execution and thus to impose purity
+* there are no decent debugging tools for programs with a great deal of lambdas
+* there is no union type to model the world with alternatives instead of hierarchies
 
-# Type System
+## Milestones
 
-At its core ftor consists of a pluggable run-time type system with the following features:
+[x] standalone unification algorithm (Hindley-Milner)
+[ ] incorporate unification into the type checker
+[ ] revise homogeneous Array type
+[ ] revise homogeneous Map type
+[ ] revise Tuple type
+[ ] revise Record type
+[ ] revise Algebraic data types
+[ ] introduce row polymorphism
+[ ] incorporate Promise type
+[ ] incorporate Iterator/Generator types
+[ ] explore a special effect data type
+[ ] add higher-rank types
+[ ] add kind system
+[ ] add higher kinded types
 
-* parametric polymorphism
-* higher rank types (rank-2)
-* recursive types
-* arrays, lists, tuples, maps, records
-* and real tagged unions
+## Differences to _Flow_/_TypeScrip_
 
-While ftor attempts to catch type errors as early as possible - ideally at definition time, a run-time type checker is of course not equivalent to a static type system, that is to say it doesn't guarantee a type error free application. Consider ftor rahter as a useful supplement to unit tests and a suitable debugging tool for functional programmers.
+ftor...
 
-ftor respects common coding habits in the Javascript community and simultaneously tries to sensitize developers for type-directed, functional programming. This process is a delicate balancing act sometimes...
+* is a run-time type checker that cannot provide the same soundness as static type systems can do
+* focuses on parametric and row polymorphism<sup>1</sup> and thus doesn't support subtyping
+* pursues a nominal typing strategy, because this kind of typing is more sound than structural typing<sup>2</sup>
+* strongly relies on the functional paradigm
+
+<sup>1</sup><sub>also known as static duck typing</sub>
+<sup>2</sup><sub>Nominal typing means that types are distinguished by name rather than by structure</sub>
 
 ## Pluggable
 
-When you import ftor the type checker is disabled by default. You have to enable it in the source code before the first type check. Ideally it should be enabled during the development stage for convenience and disabled on the live system to save the run-time costs.
+ftor doesn't ship with a compiler that removes the typing information from your code base. Instead your code remains as-is and the type system is merely disabled as soon as you're done with the development stage. To ensure good performance, ftor is designed to have the smallest possible footprint when it is not active.
+
+You may now be worried that your packages are bloated with useless type logic. However, most of the additional logic consists of type annotations, which have a self-documenting character. So the extra bytes are worth it.
+
+While ftor's API supports you in not creating dependencies to the type system, it cannot prevent you from doing so. So please keep an eye on that.
+
+You can incorporate the type checker infinitely variable into your program. It goes without saying that the more portions of your program are typed, the more type safety you can get.
+
+When you import ftor the type checker is disabled by default and you have to enable it explicitly:
 
 ```Javascript
 import * as F from ".../ftor.js";
@@ -61,33 +83,15 @@ F.typify(true);
 
 // typed area;
 ```
-## Nominal/Structural Typing
+## Bounded Polymorphism and Type Classes
 
-ftor pursues a nominal typing strategy, because this kind of typing is more sound than structural typing. Nominal means that types are distinguished by name rather than by structure.
+Bounded polymorphism is the ability of a type system to define constraints on polymorphic types without having to pass the corresponding type classes explicitly around throughout the codebase. Most statically typed languages like Haskell or Scala resolve type class dependencies at compilte time. ftor doesn't have compile-time but erases all type information as soon as it is disabled. Hence there is no way to handle type classes without creating dependencies to the extended type system.
 
-## Polymorphism
+As a matter of fact the only option left is to conduct explicit dictionary passing - and that's how we do it.
 
-### Parametric Polymorphism
+# Types
 
-ftor fully supports parametric polymirphism.
-
-### Bounded Polymorphism
-
-Bounded polymorphism is the ability of a type system to define constraints on polymorphic types without having to pass the corresponding type classes explicitly around throughout the codebase. Most statically typed languages like Haskell or Scala resolve type class dependencies at compilte time. ftor doesn't have a compilation step, though. Since it is a pluggable run-time type system the entire type information is erased as soon as it is disabled. Hence we are not allowed to create dependencies on the type system.
-
-It has turned out that the only way to implement bounded polymorphism with ftor is to pass type dictionaries explicitly around. This is cumbersome but necessary, unless you are willing to keep the type checker enabled on the live system, which is generally not a good idea.
-
-### Subtype Polymorphism
-
-As opposed to _TypeScript_ and _Flow_ ftor doesn't support subtyping, because it entails a high degree of complexity in the implementation. There are some experimental subtype relations within primitive types like `Number` and `Integer`, though, which may become obsolete in future versions.
-
-### Higher-Kinded Types
-
-Types are an abstraction over sets of values. Higher-kinded types are an abstraction over types by allowing higher order type constructors. While you can define elegant types with them their implementation isn't trivial and neither is their application. ftor is prepared for higher-kinded types and will eventually support them, but not for the time being.
-
-### Higher-Rank Types
-
-ftor has basic support for rank-2 types but the feature is still experimental.
+Let's get to the types without any further ado.
 
 ## Function Type
 
