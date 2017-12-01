@@ -45,28 +45,29 @@ Functional programming in Javascript is cumbersome as soon as you leave contriev
 - [ ] introduce row polymorphism
 - [ ] incorporate Promise type
 - [ ] incorporate Iterator/Generator types
-- [ ] explore a special effect data type
+- [ ] explore a special effect type
 - [ ] add higher-rank types
 - [ ] add kind system
 - [ ] add higher kinded types
 
-## Differences to _Flow_/_TypeScrip_
+## Differences to _Flow_ and _TypeScrip_
 
 ftor...
 
 * is a run-time type checker that cannot provide the same soundness as static type systems can do
 * focuses on parametric and row polymorphism<sup>1</sup> and thus doesn't support subtyping
-* pursues a nominal typing strategy, because this kind of typing is more sound than structural typing<sup>2</sup>
+* pursues mainly a nominal type strategy, because this kind of typing is more sound than structural typing<sup>2</sup>
 * strongly relies on the functional paradigm
 
 <sub><sup>1</sup>also known as static duck typing</sub>
+
 <sub><sup>2</sup>Nominal typing means that types are distinguished by name rather than by structure</sub>
 
 ## Pluggable
 
 ftor doesn't ship with a compiler that removes the typing information from your code base. Instead your code remains as-is and the type system is merely disabled as soon as you're done with the development stage. To ensure good performance, ftor is designed to have the smallest possible footprint when it is not active.
 
-You may now be worried that your packages are bloated with useless type logic. However, most of the additional logic consists of type annotations, which have a self-documenting character. So the extra bytes are worth it.
+You may now be worried that your packages are bloated with useless type logic. However, most of the additional information consists of type annotations, which have a self-documenting character. So the extra bytes are worth it.
 
 While ftor's API supports you in not creating dependencies to the type system, it cannot prevent you from doing so. So please keep an eye on that.
 
@@ -83,11 +84,15 @@ F.typify(true);
 
 // typed area;
 ```
-## Bounded Polymorphism and Type Classes
+## Type Classes
 
-Bounded polymorphism is the ability of a type system to define constraints on polymorphic types without having to pass the corresponding type classes explicitly around throughout the codebase. Most statically typed languages like Haskell or Scala resolve type class dependencies at compilte time. ftor doesn't have compile-time but erases all type information as soon as it is disabled. Hence there is no way to handle type classes without creating dependencies to the extended type system.
+Bounded polymorphism<sup>1</sup> is the ability of a type system to define constraints on polymorphic types without having to pass the corresponding type classes explicitly around throughout the codebase.
 
-As a matter of fact the only option left is to conduct explicit dictionary passing - and that's how we do it.
+Most statically typed languages like Haskell or Scala resolve type class dependencies at compilte time. ftor doesn't include a compile-time but erases all type information as soon as it is disabled. Hence there is no way to handle type classes without creating dependencies to the extended type system.
+
+As a matter of fact the only option left is to conduct explicit dictionary passing - and that's actually how we do it at ftor's.
+
+<sub><sup>1</sup>also known as ad-hoc polymorphism</sub>
 
 # Types
 
