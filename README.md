@@ -35,20 +35,20 @@ Functional programming in Javascript is cumbersome as soon as you leave contriev
 
 ## Milestones
 
-[x] standalone unification algorithm (Hindley-Milner)
-[ ] incorporate unification into the type checker
-[ ] revise homogeneous Array type
-[ ] revise homogeneous Map type
-[ ] revise Tuple type
-[ ] revise Record type
-[ ] revise Algebraic data types
-[ ] introduce row polymorphism
-[ ] incorporate Promise type
-[ ] incorporate Iterator/Generator types
-[ ] explore a special effect data type
-[ ] add higher-rank types
-[ ] add kind system
-[ ] add higher kinded types
+- [x] standalone unification algorithm (Hindley-Milner)
+- [ ] incorporate unification into the type checker
+- [ ] revise homogeneous Array type
+- [ ] revise homogeneous Map type
+- [ ] revise Tuple type
+- [ ] revise Record type
+- [ ] revise Algebraic data types
+- [ ] introduce row polymorphism
+- [ ] incorporate Promise type
+- [ ] incorporate Iterator/Generator types
+- [ ] explore a special effect data type
+- [ ] add higher-rank types
+- [ ] add kind system
+- [ ] add higher kinded types
 
 ## Differences to _Flow_/_TypeScrip_
 
@@ -59,8 +59,8 @@ ftor...
 * pursues a nominal typing strategy, because this kind of typing is more sound than structural typing<sup>2</sup>
 * strongly relies on the functional paradigm
 
-<sup>1</sup><sub>also known as static duck typing</sub>
-<sup>2</sup><sub>Nominal typing means that types are distinguished by name rather than by structure</sub>
+<sub><sup>1</sup>also known as static duck typing</sub>
+<sub><sup>2</sup>Nominal typing means that types are distinguished by name rather than by structure</sub>
 
 ## Pluggable
 
