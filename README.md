@@ -100,14 +100,6 @@ inc(2); // 3
 ```
 Please note that the name portion in the signature is optional and used to name the corresponding anonymous function during debugging.
 
-```Javascript
-const inc = Fun(
-  "(Number -> Number)",
-  n => n + 1
-);
-
-inc(2); // 3
-```
 ### Meaningful Error Messages
 
 Verbose error messages provide a better debugging experience:
@@ -153,7 +145,7 @@ Syntax is just a matter of habit, though. It is much more important that curryin
 
 And what about performance?
 
-If you are really concerned about performance rather than code reuse, productivity and more bug-free programs you should prefer imperative algorithms and mutations anyway. _Flow_ or _TypeScript_ are more suitable in this case.
+If you are really concerned about performance and micro optimizations rather than code reuse, productivity and more bug-free programs you should prefer imperative algorithms and mutations anyway. _Flow_ or _TypeScript_ are more suitable in this case.
 
 One of the most annoying aspects of working with functions are anonymous functions during debugging. ftor automatically assigns the optional name portion of the type signature to each subsequent lambda:
 
