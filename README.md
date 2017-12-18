@@ -147,7 +147,7 @@ And what about performance?
 
 If you are really concerned about performance and micro optimizations rather than code reuse, productivity and more bug-free programs you should prefer imperative algorithms and mutations anyway. _Flow_ or _TypeScript_ are more suitable in this case.
 
-One of the most annoying aspects of working with functions consists in debugging anonymous ones. ftor automatically assigns the name portion of type signatures to each subsequent lambda:
+One of the most annoying aspects of working with functions in Javascript consists in debugging anonymous functions. ftor automatically assigns the name portion of type signatures to each subsequent lambda:
 
 ```Javascript
 const add = Fun(
