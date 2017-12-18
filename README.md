@@ -67,9 +67,9 @@ ftor...
 
 ## Pluggable
 
-ftor doesn't have a compiler that removes type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint when it is not enabled.
+ftor doesn't have a compiler that erases type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint when it is not enabled.
 
-Without type erasure you may be worried that your packages are bloated with additional information. However, most of it consists of type annotations, which have a self-documenting character that you will probably soon appriciate.
+You may be worried now that your packages become bloated with useless additional information. However, most of it consists of type annotations, which have a self-documenting character that you will probably soon appriciate.
 
 Enabling the type checker is as easy as setting a flag:
 
@@ -167,7 +167,7 @@ add(2).name; // "add"
 ```
 ### Variadic Functions
 
-You can define variadic functions using the rest parameter:
+You can define variadic functions by using the rest parameter:
 
 ```Javascript
 const sum = Fun(
