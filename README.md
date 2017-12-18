@@ -69,7 +69,7 @@ ftor...
 
 ftor doesn't have a compiler that erases type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint as soon as it is not enabled.
 
-You may be worried now that your packages become bloated with useless additional information. However, most of it consists of type annotations, which have a self-documenting character that you will probably soon appriciate.
+You may be worried now that your packages become bloated with useless additional information. However, most of it consists of type annotations whose self-documenting character you will probably appriciate quickly.
 
 Enabling the type checker is as easy as setting a flag:
 
@@ -135,7 +135,7 @@ Boolean received
 ```
 ### Curried Functions
 
-ftor doesn't support multi-argument functions but only functions in curried form, that is sequences with exactly one argument per function.
+ftor doesn't support multi-argument functions but only functions in curried form, that is sequences with exactly one argument per call.
 
 But wait, what about readability?
 
@@ -195,7 +195,7 @@ add(2, 3); // arity error
 ```
 ### Nullary Functions / Thunks
 
-You can express lazyness explicitly with thunks:
+You can explicitly express lazyness with thunks:
 
 ```Javascript
 const thunk = Fun("(() -> String)", () => "foo" + "bar");
