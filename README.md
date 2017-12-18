@@ -48,23 +48,6 @@ ftor...
 <sub><sup>1</sup>also known as static duck typing</sub><br>
 <sub><sup>2</sup>Nominal typing means that types are distinguished by name rather than by structure</sub>
 
-## Upcoming Milestones
-
-- [x] standalone unification algorithm (Hindley-Milner)
-- [x] incorporate unification into the type checker
-- [ ] revise homogeneous Array type
-- [ ] revise homogeneous Map type
-- [ ] revise Tuple type
-- [ ] revise Record type
-- [ ] revise Algebraic data types
-- [ ] introduce row polymorphism
-- [ ] incorporate Promise type
-- [ ] incorporate Iterator/Generator types
-- [ ] explore a special effect type / corresponding runtime
-- [ ] add higher-rank types
-- [ ] add kind system
-- [ ] add higher kinded types
-
 ## Pluggable
 
 ftor doesn't have a compiler that erases type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint as soon as it is not enabled.
@@ -82,6 +65,23 @@ F.type(true);
 
 // typed area;
 ```
+## Upcoming Milestones
+
+- [x] standalone unification algorithm (Hindley-Milner)
+- [x] incorporate unification into the type checker
+- [ ] revise homogeneous Array type
+- [ ] revise homogeneous Map type
+- [ ] revise Tuple type
+- [ ] revise Record type
+- [ ] revise Algebraic data types
+- [ ] introduce row polymorphism
+- [ ] incorporate Promise type
+- [ ] incorporate Iterator/Generator types
+- [ ] explore a special effect type / corresponding runtime
+- [ ] add higher-rank types
+- [ ] add kind system
+- [ ] add higher kinded types
+
 # Types
 
 Let's get to the extended types without any further ado.
@@ -147,7 +147,7 @@ And what about performance?
 
 If you are really concerned about performance and micro optimizations rather than code reuse, productivity and more bug-free programs you should prefer imperative algorithms and mutations anyway. _Flow_ or _TypeScript_ are more suitable in this case.
 
-One of the most annoying aspects of working with functions are anonymous functions during debugging. ftor automatically assigns the optional name portion of the type signature to each subsequent lambda:
+One of the most annoying aspects of working with functions consists in debugging anonymous ones. ftor automatically assigns the name portion of type signatures to each subsequent lambda:
 
 ```Javascript
 const add = Fun(
