@@ -67,7 +67,7 @@ ftor...
 
 ## Pluggable
 
-ftor doesn't have a compiler that erases type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint when it is not enabled.
+ftor doesn't have a compiler that erases type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint as soon as it is not enabled.
 
 You may be worried now that your packages become bloated with useless additional information. However, most of it consists of type annotations, which have a self-documenting character that you will probably soon appriciate.
 
