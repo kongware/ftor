@@ -21,35 +21,32 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 ******************************************************************************/
 
 
-//***[ 1.1. STATE ]************************************************************
+/******************************************************************************
+*****[ 1.1. State ]************************************************************
+******************************************************************************/
 
-
-// type mode
-// false by default
-// Boolean
 
 let types = false;
 
 
-export const typify = b => types = b;
+export const type = b => types = b;
 
 
-//***[ 1.1. CONSTANTS ]********************************************************
+/******************************************************************************
+*****[ 1.2. Constants ]********************************************************
+******************************************************************************/
 
 
 const SYM_PREFIX = "ftor/";
 
 
-const TYPE_REP = Symbol.for(`${SYM_PREFIX}typeRep`);
+const TYPE_REP = Symbol.for(`${SYM_PREFIX}tRep`);
 
 
-const TYPE_SIG = Symbol.for(`${SYM_PREFIX}typeSig`);
+const TYPE_SIG = Symbol.for(`${SYM_PREFIX}tSig`);
 
 
 const TUP_MAX_FIELDS = 16;
-
-
-const TYPE_RANK_RANGE = "2";
 
 
 const VOID = {Undefined: undefined, Null: null, NaN: NaN};
@@ -62,100 +59,35 @@ const VOID = {Undefined: undefined, Null: null, NaN: NaN};
 ******************************************************************************/
 
 
-const getStringTag = x => {
-  const ss = Object.prototype.toString.call(x).split(" ");
-  return last(ss).slice(0, -1);
-};
+const introspect = t => {
+  const tag = getStringTag(t);
 
+  switch (tag) {
+    case "Adt":
+    case "Arr":
+    case "Fun":
+    case "_Map":
+    case "Rec":
+    case "Tup":
+    case "Unit": return t[TYPE_SIG];
 
-const introspect = x => {
-  const tag = getStringTag(x),
-    tags = new Set();
-
-  switch (typeof x) {
-    case "boolean": return tags.add("Boolean");
-
-    case "function": {
-      if (tag === "Fun") {
-        tags.add(x[TYPE_SIG].replace(/\([a-z0-9_]+ :: /gi, "("));
+    default: {
+      if (tag === "Object" && "constructor" in t) {
+        tag = t.constructor.name;
       }
 
-      tags.add(tag);
-      return tags.add("Function");
-    }
-
-    case "number": {
-      if (Number.isNaN(x)) return tags.add("NaN");
-      if (!Number.isFinite(x)) tags.add("Infinity");
-      return tags.add("Number");
-    }
-
-    case "string": return tags.add("String");
-    case "symbol": return tags.add("Symbol");
-    case "undefined": return tags.add("Undefined");
-
-    case "object": {
-      if (x === null) return tags.add("Null");
-
-      else {
-        switch (tag) {
-          case "Adt": {
-            tags.add(x[TYPE_SIG]);
-            return tags.add(tag);
-          }
-
-          case "Arr": {
-            tags.add(x[TYPE_SIG]);
-            tags.add(tag);
-            return tags.add("Array");
-          }
-
-          case "_Map": {
-            tags.add(x[TYPE_SIG]);
-            tags.add(tag);
-            return tags.add("Map");
-          }
-
-          case "Rec": {
-            tags.add(x[TYPE_SIG]);
-            tags.add(tag);
-            return tags.add("Object");
-          }
-
-          case "Tup": {
-            tags.add(x[TYPE_SIG]);
-            tags.add(tag);
-            return tags.add("Array");
-          }
-
-          case "Unit": {
-            tags.add(tag);
-            return tags.add("Array");
-          }
-
-          default: {
-            if ("constructor" in x) tags.add(x.constructor.name);
-            tags.add(tag);
-            return tags.add("Object");
-          }
-        }
+      if (tag === "Number") {
+        if (Number.isNaN(t)) return "NaN";
+        else return tag;
       }
+
+      else return tag;
     }
   }
 };
 
 
-const introspect1 = x => values(introspect(x)).next().value;
-
-
-/******************************************************************************
-*******************************************************************************
-*****************************[ 3. TYPE INFERENCE ]*****************************
-*******************************************************************************
-******************************************************************************/
-  
-
-const infer = x => {
+const introspectR = x => {
   const tag = getStringTag(x);
 
   switch (typeof x) {
@@ -186,11 +118,11 @@ const infer = x => {
           switch (tag) {
             case "Array": {
               if (x.length === 0) return "Array";
-              else if (x.length === 1) return `[${infer(x[0])}]`;
+              else if (x.length === 1) return `[${introspectR(x[0])}]`;
 
               else {
                 const [s, ss] = x.reduce(([s, ss], y) => {
-                    const t = infer(y);
+                    const t = introspectR(y);
                     return [s.add(t), ss.concat(t)];
                   }, [new Set(), []]);
 
@@ -212,13 +144,13 @@ const infer = x => {
 
             case "Map": {
               if (x.size === 0) return "Map";
-              else return `{${nextVal(x.entries()).map(y => infer(y)).join("::")}}`;
+              else return `{${nextVal(x.entries()).map(y => introspectR(y)).join("::")}}`;
             }
 
             case "Object": {
               const ks = Object.keys(x);
               if (ks.length === 0) return "Object";
-              else return "{" + ks.map(k => `${k}: ${infer(x[k])}`).join(", ") + "}";
+              else return "{" + ks.map(k => `${k}: ${introspectR(x[k])}`).join(", ") + "}";
             }
 
             default: {
@@ -233,194 +165,213 @@ const infer = x => {
 };
 
 
+const getStringTag = x => {
+  const ss = Object.prototype.toString.call(x).split(" ");
+  return last(ss).slice(0, -1);
+};
+
+
 /******************************************************************************
 *******************************************************************************
-**************************[ 4. TYPE REPRESENTATIVES ]**************************
+**************************[ 3. TYPE REPRESENTATIVES ]**************************
 *******************************************************************************
 ******************************************************************************/
 
 
-//***[ 4.1. ALGEBRAIC DATA TYPES ]*********************************************
+/******************************************************************************
+*****[ 3.1. Algebraic Data Types ]*********************************************
+******************************************************************************/
 
 
-const AdtT = (Cons => (tag, fromTo, typeReps) => new Cons(tag, fromTo, typeReps))
+const AdtT = (Cons => (tag, range, children) => new Cons(tag, range, children))
   (class AdtT {
-    constructor(tag, fromTo, typeReps) {
-      this.fromTo = fromTo;
+    constructor(tag, range, children) {
+      this.range = range;
       this.tag = tag;
-      this.typeReps = typeReps;
+      this.children = children;
     }
   });
 
 
-//***[ 4.2. ARRAYS ]***********************************************************
+/******************************************************************************
+*****[ 3.2. Arrays ]***********************************************************
+******************************************************************************/
 
 
-const ArrT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
+const ArrT = (Cons => (range, child) => new Cons(range, child))
   (class ArrT {
-    constructor(fromTo, typeReps) {
-      this.fromTo = fromTo;
+    constructor(range, child) {
+      this.range = range;
       this.tag = "Arr";
-      this.typeReps = typeReps;
+      this.children = child;
     }
   });
 
 
-//***[ 4.3. FUNCTIONS ]********************************************************
+/******************************************************************************
+*****[ 3.3. Functions ]********************************************************
+******************************************************************************/
 
 
-const FunT = (Cons => (name, {isAbstract}, fromTo, typeReps) => new Cons(name, isAbstract, fromTo, typeReps))
+const FunT = (Cons => (name, range, children) => new Cons(name, range, children))
   (class FunT {
-    constructor(name, isAbstract, fromTo, typeReps) {
+    constructor(name, range, children) {
       this.name = name;
-      this.isAbstract = isAbstract;
-      this.fromTo = fromTo;
+      this.range = range;
       this.tag = "Fun";
-      this.typeReps = typeReps;
+      this.children = children;
     }
   });
 
 
-const NoArgT = (Cons => fromTo => new Cons(fromTo))
-  (class NoArgT extends Array {
-    constructor(fromTo) {
-      super();
-      this.fromTo = fromTo;
+const ArgT = (Cons => child => new Cons(child))
+  (class ArgT {
+    constructor(child) {
+      this.children = child;
     }
   });
 
 
-const ArgT = (Cons => typeRep => new Cons(typeRep))
-  (class ArgT extends Array {
-    constructor(typeRep) { super(typeRep); }
-  });
-
-
-const RestT = (Cons => typeRep => new Cons(typeRep))
-  (class RestT extends Array {
-    constructor(typeRep) { super(typeRep); }
-  });
-
-
-const ArgsT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
-  (class ArgsT extends Array {
-    constructor(fromTo, typeReps) {
-      if (getStringTag(typeReps) === "Array") super(...typeReps);
-      else super(typeReps);
-      this.fromTo = fromTo;
+const NoArgT = (Cons => range => new Cons(range))
+  (class NoArgT {
+    constructor(range) {
+      this.range = range;
+      this.children = null;
     }
   });
 
 
-const ReturnT = (Cons => typeRep => new Cons(typeRep))
-  (class ReturnT extends Array {
-    constructor(typeRep) { super(typeRep); }
+const RestT = (Cons => child => new Cons(child))
+  (class RestT {
+    constructor(child) {
+      this.children = child;
+    }
   });
 
 
-//***[ 4.4. _MAP ]**************************************************************
+const ReturnT = (Cons => child => new Cons(child))
+  (class ReturnT {
+    constructor(child) {
+      this.children = child;
+    }
+  });
 
 
-const _MapT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
+/******************************************************************************
+*****[ 3.4. Maps ]*************************************************************
+******************************************************************************/
+
+
+const _MapT = (Cons => (range, children) => new Cons(range, children))
   (class _MapT {
-    constructor(fromTo, typeReps) {
-      this.fromTo = fromTo;
+    constructor(range, children) {
+      this.range = range;
       this.tag = "_Map";
-      this.typeReps = typeReps;
+      this.children = children;
     }
   });
 
 
-//***[ 4.5. MONOMORPHIC TYPES ]************************************************
+/******************************************************************************
+*****[ 3.5. Primitives ]*******************************************************
+******************************************************************************/
 
 
-const MonoT = (Cons => (fromTo, tag) => new Cons(fromTo, tag))
-  (class MonoT {
-    constructor(fromTo, tag) {
-      this.fromTo = fromTo;
+const PrimT = (Cons => (range, tag) => new Cons(range, tag))
+  (class PrimT {
+    constructor(range, tag) {
+      this.range = range;
       this.tag = tag;
-      this.typeReps = [];
+      this.children = [];
     }
   });
 
 
-//***[ 4.6. POLYMORPHIC TYPES ]************************************************
+/******************************************************************************
+*****[ 3.6. Polytypes ]********************************************************
+******************************************************************************/
 
 
-const PolyT = (Cons => (fromTo, tvar) => new Cons(fromTo, tvar))
+const PolyT = (Cons => (range, tvar) => new Cons(range, tvar))
   (class PolyT {
-    constructor(fromTo, tvar) {
-      this.fromTo = fromTo;
+    constructor(range, tvar) {
+      this.range = range;
       this.tag = tvar;
-      this.typeReps = [];
+      this.children = [];
     }
   });
 
 
-//***[ 4.7. RECORDS ]**********************************************************
+/******************************************************************************
+*****[ 3.7. Records ]**********************************************************
+******************************************************************************/
 
 
-const RecT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
+const RecT = (Cons => (range, children) => new Cons(range, children))
   (class RecT {
-    constructor(fromTo, typeReps) {
-      this.fromTo = fromTo;
+    constructor(range, children) {
+      this.range = range;
       this.tag = "Rec";
-      this.typeReps = typeReps;
+      this.children = children;
     }
   });
 
 
-//***[ 4.8. TUPLES ]***********************************************************
+/******************************************************************************
+*****[ 3.8. Tuples ]***********************************************************
+******************************************************************************/
 
 
-const TupT = (Cons => (fromTo, typeReps) => new Cons(fromTo, typeReps))
+const TupT = (Cons => (range, children) => new Cons(range, children))
   (class TupT {
-    constructor(fromTo, typeReps) {
-      this.fromTo = fromTo;
+    constructor(range, children) {
+      this.range = range;
       this.tag = "Tup";
-      this.typeReps = typeReps;
+      this.children = children;
     }
   });
 
 
-//***[ 4.9. UNIT ]***********************************************************
+/******************************************************************************
+*****[ 3.9. Unit ]*************************************************************
+******************************************************************************/
 
 
-const UnitT = (Cons => fromTo => new Cons(fromTo))
+const UnitT = (Cons => range => new Cons(range))
   (class UnitT {
-    constructor(fromTo) {
-      this.fromTo = fromTo;
+    constructor(range) {
+      this.range = range;
       this.tag = "Unit";
-      this.typeReps = [];
+      this.children = [];
     }
   });
 
 
 /******************************************************************************
 *******************************************************************************
-******************************[ 5. SERIALIZING ]*******************************
+******************************[ 4. SERIALIZING ]*******************************
 *******************************************************************************
 ******************************************************************************/
 
 
-const serialize = typeRep => {
-  const {tag, typeReps} = typeRep;
+const serialize = tRep => {
+  const {tag, children} = tRep;
 
   switch (tag) {
-    case "Arr": return serializeArr(tag, typeReps);
-    case "Fun": return serializeFun(typeRep.name, tag, typeReps);
-    case "_Map": return serializeMap(tag, typeReps);
-    case "Rec": return serializeRec(tag, typeReps);
-    case "Tup": return serializeTup(tag, typeReps);
+    case "Arr": return serializeArr(tag, children);
+    case "Fun": return serializeFun(tRep.name, tag, children);
+    case "_Map": return serializeMap(tag, children);
+    case "Rec": return serializeRec(tag, children);
+    case "Tup": return serializeTup(tag, children);
     case "Unit": return "[]";
     
     default: {
-      if (typeRep.constructor.name === "AdtT") return serializeAdt(tag, typeReps);
+      if (tRep.constructor.name === "AdtT") return serializeAdt(tag, children);
 
-      else if (typeReps.length > 0) throw new TypeRepError(
+      else if (children.length > 0) throw new TypeRepError(
         "invalid type representative\n\n" +
-        `${typeRep}\n\n` +
-        "invalid mono type\n"
+        `${tRep}\n\n` +
+        "invalid primitive type\n"
       );
 
       else return tag;
@@ -429,12 +380,12 @@ const serialize = typeRep => {
 };
 
 
-const serializeAdt = (tag, typeReps) => {
+const serializeAdt = (tag, tReps) => {
   return `${tag}<`
-    .concat(typeReps
-      .map(typeRep => {
-        if (typeRep.typeReps.length === 0) return typeRep.tag;
-        else return serialize(typeRep);
+    .concat(tReps
+      .map(tRep => {
+        if (tRep.children.length === 0) return tRep.tag;
+        else return serialize(tRep);
       })
       .join(", ")
     )
@@ -442,12 +393,12 @@ const serializeAdt = (tag, typeReps) => {
 };
 
 
-const serializeArr = (tag, typeReps) => {
+const serializeArr = (tag, tReps) => {
   return "["
-    .concat(typeReps
-      .map(typeRep => {
-        if (typeRep.typeReps.length === 0) return typeRep.tag;
-        else return serialize(typeRep);
+    .concat(tReps
+      .map(tRep => {
+        if (tRep.children.length === 0) return tRep.tag;
+        else return serialize(tRep);
       })
       .join("")
     )
@@ -455,45 +406,25 @@ const serializeArr = (tag, typeReps) => {
 };
 
 
-const serializeFun = (name, tag, typeReps) => {
+const serializeFun = (name, tag, tReps) => {
   return "("
     .concat(name === "" ? "" : `${name} :: `)
-    .concat(typeReps
-      .map(args => {
-        switch (args.constructor.name) {
+    .concat(tReps
+      .map(arg => {
+        switch (arg.constructor.name) {
           case "NoArgT": return "()";
 
           case "ArgT":
           case "ReturnT": {
-            const {tag: t, typeReps: r} = args[0];
-            if (r.length === 0) return t;
-            else return serialize(args[0]);
+            const {tag: t, children: c} = arg.children;
+            if (c.length === 0) return t;
+            else return serialize(arg);
           }
 
           case "RestT": {
-            const {tag: t, typeReps: r} = args[0];
-            if (r.length === 0) return `...${t}`;
-            else return `...${serialize(args[0])}`;
-          }
-
-          case "ArgsT": {
-            return args
-              .map(arg => {
-                switch (arg.constructor.name) {
-                  case "ArgT": {
-                    const {tag: t, typeReps: r} = arg[0];
-                    if (r.length === 0) return t;
-                    else return serialize(arg[0]);
-                  }
-
-                  case "RestT": {
-                    const {tag: t, typeReps: r} = arg[0];
-                    if (r.length === 0) return `...${t}`;
-                    else return `...${serialize(arg[0])}`;
-                  }
-                }
-              })
-              .join(", ");
+            const {tag: t, children: c} = arg.children;
+            if (c.length === 0) return `...${t}`;
+            else return `...${serialize(arg)}`;
           }
         }
       })
@@ -503,13 +434,13 @@ const serializeFun = (name, tag, typeReps) => {
 };
 
 
-const serializeMap = (tag, typeReps) => {
+const serializeMap = (tag, tReps) => {
   return "{"
-    .concat(typeReps
+    .concat(tReps
       .map(({k, v}) => [k, v]
-        .map(typeRep => {
-          if (typeRep.typeReps.length === 0) return typeRep.tag;
-          else return serialize(typeRep);
+        .map(tRep => {
+          if (tRep.children.length === 0) return tRep.tag;
+          else return serialize(tRep);
         })
         .join("::")
       )
@@ -518,11 +449,11 @@ const serializeMap = (tag, typeReps) => {
 };
 
 
-const serializeRec = (tag, typeReps) => {
+const serializeRec = (tag, tReps) => {
   return "{"
-    .concat(typeReps
+    .concat(tReps
       .map(({k, v}) => {
-        if (v.typeReps.length === 0) return `${k}: ${v.tag}`;
+        if (v.children.length === 0) return `${k}: ${v.tag}`;
         else return `${k}: ${serialize(v)}`;
       })
       .join(", ")
@@ -531,12 +462,12 @@ const serializeRec = (tag, typeReps) => {
 };
 
 
-const serializeTup = (tag, typeReps) => {
+const serializeTup = (tag, tReps) => {
   return "["
-    .concat(typeReps
-      .map(typeRep => {
-        if (typeRep.typeReps.length === 0) return typeRep.tag;
-        else return serialize(typeRep);
+    .concat(tReps
+      .map(tRep => {
+        if (tRep.children.length === 0) return tRep.tag;
+        else return serialize(tRep);
       })
       .join(", ")
     )
@@ -546,31 +477,31 @@ const serializeTup = (tag, typeReps) => {
 
 /******************************************************************************
 *******************************************************************************
-*****************************[ 6. DESERIALIZING ]******************************
+*****************************[ 5. DESERIALIZING ]******************************
 *******************************************************************************
 ******************************************************************************/
 
 
 // don't fear the beast...
 
-const deserialize = typeSig => {
-  const aux = (typeSig, n, state) => {
-    const {depth, context, phase, buf, fromTo, tag, typeReps} = state,
-      c = typeSig[n],
-      next = n + 1 === typeSig.length ? "" : typeSig[n + 1];
+const deserialize = tSig => {
+  const aux = (tSig, n, state) => {
+    const {depth, context, phase, buf, range, tag, tReps} = state,
+      c = tSig[n],
+      next = n + 1 === tSig.length ? "" : tSig[n + 1];
 
     if (c === undefined) _throw(
       TypeSigError,
       ["invalid type signature"],
-      typeSig,
-      {fromTo: [n, n], desc: ["unexpected end of signature"]}
+      tSig,
+      {range: [n, n], desc: ["unexpected end of signature"]}
     );
 
     else if (c.search(/[a-z0-9(\[{<>}\]), \-.:_]/i) !== 0) _throw(
       TypeSigError,
       ["invalid type signature"],
-      typeSig,
-      {fromTo: [n, n], desc: ["invalid symbol"]}
+      tSig,
+      {range: [n, n], desc: ["invalid symbol"]}
     );
 
     switch (context) {
@@ -579,58 +510,58 @@ const deserialize = typeSig => {
           case "TAG": {
             if (c.search(/[a-z]/i) === 0) {
               return aux(
-                typeSig, n + 1,
-                {depth, context, phase, buf: buf + c, fromTo, tag, typeReps}
+                tSig, n + 1,
+                {depth, context, phase, buf: buf + c, range, tag, tReps}
               );
             }
 
             else {
               return aux(
-                typeSig, n + 1,
-                {depth: depth + 1, context, phase: "TYPE_REP", buf: "", fromTo, tag: buf, typeReps}
+                tSig, n + 1,
+                {depth: depth + 1, context, phase: "TYPE_REP", buf: "", range, tag: buf, tReps}
               );
             }
           }
 
           case "TYPE_REP": {
             if (c === ",") {
-              if (typeReps.length === 0) _throw(
+              if (tReps.length === 0) _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [n, n], desc: ["unexpected symbol"]}
+                tSig,
+                {range: [n, n], desc: ["unexpected symbol"]}
               );
 
               else if (next === " ") {
                 return aux(
-                  typeSig, n + 2,
-                  {depth, context, phase, buf, fromTo, tag, typeReps}
+                  tSig, n + 2,
+                  {depth, context, phase, buf, range, tag, tReps}
                 );
               }
               
               else _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [n + 1, n + 1], desc: [`symbol " " expected`]}
+                tSig,
+                {range: [n + 1, n + 1], desc: [`symbol " " expected`]}
               );
             }
 
             else if (c === ">") {
-              return [AdtT(tag, fromTo, typeReps), n + 1, depth - 1];
+              return [AdtT(tag, range, tReps), n + 1, depth - 1];
             }
 
             else {
-              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+              const {context: c_, phase: p, buf: b} = getContext(tSig, n);
 
-              const [typeRep, m] = aux(
-                typeSig, n,
-                {depth, context: c_, phase: p, buf: b, fromTo: [n], tag: "", typeReps: []}
+              const [tRep, m] = aux(
+                tSig, n,
+                {depth, context: c_, phase: p, buf: b, range: [n], tag: "", tReps: []}
               );
               
               return aux(
-                typeSig, m,
-                {depth, context, phase, buf: "", fromTo: [fromTo[0], m], tag, typeReps: typeReps.concat(typeRep)}
+                tSig, m,
+                {depth, context, phase, buf: "", range: [range[0], m], tag, tReps: tReps.concat(tRep)}
               );
             }
           }
@@ -641,51 +572,51 @@ const deserialize = typeSig => {
         switch (phase) {
           case "OUTER": {
             return aux(
-              typeSig, n + 1,
-              {depth: depth + 1, context, phase: "INNER", buf, fromTo, tag: "Arr", typeReps}
+              tSig, n + 1,
+              {depth: depth + 1, context, phase: "INNER", buf, range, tag: "Arr", tReps}
             );
           }
 
           case "INNER": {
             if (c === ",") {
-              if (typeReps.length === 0) _throw(
+              if (tReps.length === 0) _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [n, n], desc: ["unexpected symbol"]}
+                tSig,
+                {range: [n, n], desc: ["unexpected symbol"]}
               );
 
               else if (next === " ") {
                 return aux(
-                  typeSig, n + 2,
-                  {depth, context, phase, buf, fromTo, tag: "Tup", typeReps}
+                  tSig, n + 2,
+                  {depth, context, phase, buf, range, tag: "Tup", tReps}
                 );
               }
               
               else _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [n + 1, n + 1], desc: [`symbol " " expected`]}
+                tSig,
+                {range: [n + 1, n + 1], desc: [`symbol " " expected`]}
               );
             }
 
             else if (c === "]") {
-              if (tag === "Arr") return [ArrT(fromTo, typeReps), n + 1, depth - 1];
-              else return [TupT(fromTo, typeReps), n + 1, depth - 1];
+              if (tag === "Arr") return [ArrT(range, tReps), n + 1, depth - 1];
+              else return [TupT(range, tReps), n + 1, depth - 1];
             }
 
             else {
-              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+              const {context: c_, phase: p, buf: b} = getContext(tSig, n);
 
-              const [typeRep, m] = aux(
-                typeSig, n,
-                {depth, context: c_, phase: p, buf: b, fromTo: [n], tag: "", typeReps: []}
+              const [tRep, m] = aux(
+                tSig, n,
+                {depth, context: c_, phase: p, buf: b, range: [n], tag: "", tReps: []}
               );
               
               return aux(
-                typeSig, m,
-                {depth, context, phase, buf: "", fromTo: [fromTo[0], m], tag, typeReps: typeReps.concat(typeRep)}
+                tSig, m,
+                {depth, context, phase, buf: "", range: [range[0], m], tag, tReps: tReps.concat(tRep)}
               );
             }
           }
@@ -698,217 +629,107 @@ const deserialize = typeSig => {
         switch (phase) {
           case "OUTER": {
             return aux(
-              typeSig, n + 1,
-              {depth: depth + 1, context, phase: "LOOK_AHEAD", buf, name: "", fromTo, tag: "Fun", typeReps}
+              tSig, n + 1,
+              {depth: depth + 1, context, phase: "LOOK_AHEAD", buf, name: "", range, tag: "Fun", tReps}
             );
           }
 
           case "LOOK_AHEAD": {
-            const phase_ = lookAheadFun(typeSig.slice(n));
-
-            if (phase_ === "ARGS") return aux(
-              typeSig, n,
-              {depth, context, phase: phase_, buf, name, fromTo, tag, typeReps: typeReps.concat([ArgsT([n], [])])}
-            );
-
-            else return aux(
-              typeSig, n,
-              {depth, context, phase: phase_, buf, name, fromTo, tag, typeReps}
+            return aux(
+              tSig, n,
+              {depth, context, phase: lookAheadFun(tSig.slice(n)), buf, name, range, tag, tReps}
             );
           }
 
           case "NAME": {
             if (c.search(/[a-z0-9_]/i) === 0) return aux(
-              typeSig, n + 1,
-              {depth, context, phase, buf: buf + c, name, fromTo, tag, typeReps}
+              tSig, n + 1,
+              {depth, context, phase, buf: buf + c, name, range, tag, tReps}
             );
 
             else if (c === " ") {
-              if (typeSig.slice(n, n + 4) === " :: ") return aux(
-                typeSig, n + 4,
-                {depth, context, phase: "LOOK_AHEAD", buf: "", name: buf, fromTo, tag, typeReps}
+              if (tSig.slice(n, n + 4) === " :: ") return aux(
+                tSig, n + 4,
+                {depth, context, phase: "LOOK_AHEAD", buf: "", name: buf, range, tag, tReps}
               );
 
-              else if (next === ":" && typeSig[n + 2] === ":") _throw(
+              else if (next === ":" && tSig[n + 2] === ":") _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [n + 3, n + 3], desc: [`symbol " " expected`]}
+                tSig,
+                {range: [n + 3, n + 3], desc: [`symbol " " expected`]}
               );
 
               else if (next === ":") _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [n + 2, n + 2], desc: [`symbol ":" expected`]}
+                tSig,
+                {range: [n + 2, n + 2], desc: [`symbol ":" expected`]}
               );
 
               else _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [n + 1, n + 1], desc: [`symbol ":" expected`]}
+                tSig,
+                {range: [n + 1, n + 1], desc: [`symbol ":" expected`]}
               );
             } 
 
             else _throw(
               TypeSigError,
               ["invalid type signature"],
-              typeSig,
-              {fromTo: [n, n], desc: ["unexpected symbol"]}
+              tSig,
+              {range: [n, n], desc: ["unexpected symbol"]}
+            );
+          }
+
+          case "ARG": {
+            const {context: c_, phase: p, buf: b} = getContext(tSig, n);
+
+            const [tRep, m] = aux(
+              tSig, n,
+              {depth, context: c_, phase: p, buf: b, name, range: [n], tag: "", tReps: []}
+            );
+            
+            return aux(
+              tSig, m,
+              {depth, context, phase: "ARROW", buf: "", name, range: [range[0], m], tag, tReps: tReps.concat(ArgT(tRep))}
             );
           }
 
           case "NO_ARG": {
             return aux(
-              typeSig, n + 2,
-              {depth, context, phase: "ARROW", buf, name, fromTo: [n, n + 1], tag, typeReps: typeReps.concat([NoArgT([n, n + 1])])}
-            );
-          }
-
-          case "ARG": {
-            const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
-
-            const [typeRep, m] = aux(
-              typeSig, n,
-              {depth, context: c_, phase: p, buf: b, name, fromTo: [n], tag: "", typeReps: []}
-            );
-            
-            return aux(
-              typeSig, m,
-              {depth, context, phase: "ARROW", buf: "", name, fromTo: [fromTo[0], m], tag, typeReps: typeReps.concat([ArgT(typeRep)])}
+              tSig, n + 2,
+              {depth, context, phase: "ARROW", buf, name, range: [n, n + 1], tag, tReps: tReps.concat(NoArgT([n, n + 1]))}
             );
           }
 
           case "REST": {
             if (c === ".") {
-              if (next === "." && typeSig[n + 2] === ".") return aux(
-                typeSig, n + 3,
-                {depth, context, phase, buf, name, fromTo, tag, typeReps}
+              if (next === "." && tSig[n + 2] === ".") return aux(
+                tSig, n + 3,
+                {depth, context, phase, buf, name, range, tag, tReps}
               );
 
               else _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [n, n], desc: ["unexpected symbol"]}
+                tSig,
+                {range: [n, n], desc: ["unexpected symbol"]}
               );
             }
 
             else {
-              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+              const {context: c_, phase: p, buf: b} = getContext(tSig, n);
 
-              const [typeRep, m] = aux(
-                typeSig, n,
-                {depth, context: c_, phase: p, buf: b, name, fromTo: [n], tag: "", typeReps: []}
+              const [tRep, m] = aux(
+                tSig, n,
+                {depth, context: c_, phase: p, buf: b, name, range: [n], tag: "", tReps: []}
               );
               
               return aux(
-                typeSig, m,
-                {depth, context, phase: "ARROW", buf: "", name, fromTo: [fromTo[0], m], tag, typeReps: typeReps.concat([RestT(typeRep)])}
-              );
-            }
-          }
-
-          case "ARGS": {
-            if (c === ",") {
-              if (last(typeReps).length === 0) _throw(
-                TypeSigError,
-                ["invalid type signature"],
-                typeSig,
-                {fromTo: [n, n], desc: ["unexpected symbol"]}
-              );
-
-              else if (next === " ") {
-                return aux(
-                  typeSig, n + 2,
-                  {depth, context, phase, buf, name, fromTo, tag, typeReps}
-                );
-              }
-              
-              else _throw(
-                TypeSigError,
-                ["invalid type signature"],
-                typeSig,
-                {fromTo: [n + 1, n + 1], desc: [`symbol " " expected`]}
-              );
-            }
-
-            else if (c === " ") {
-              last(typeReps).fromTo.push(n - 1);
-
-              return aux(
-                typeSig, n,
-                {depth, context, phase: "ARROW", buf, name, fromTo, tag, typeReps}
-              );
-            }
-
-            else if (c === ".") return aux(
-              typeSig, n,
-              {depth, context, phase: "ARGS_REST", buf, name, fromTo, tag, typeReps}
-            );
-
-            else {
-              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
-
-              const [typeRep, m] = aux(
-                typeSig, n,
-                {depth, context: c_, phase: p, buf: b, name, fromTo: [n], tag: "", typeReps: []}
-              );
-              
-              last(typeReps).push(ArgT(typeRep));
-
-              return aux(
-                typeSig, m,
-                {depth, context, phase, buf: "", name, fromTo: [fromTo[0], m], tag, typeReps}
-              );
-            }
-          }
-
-          case "ARGS_REST": {
-            if (c === ".") {
-              if (next === "." && typeSig[n + 2] === ".") return aux(
-                typeSig, n + 3,
-                {depth, context, phase, buf, name, fromTo, tag, typeReps}
-              );
-
-              else _throw(
-                TypeSigError,
-                ["invalid type signature"],
-                typeSig,
-                {fromTo: [n, n], desc: ["unexpected symbol"]}
-              );
-            }
-
-            else if (c === ",") _throw(
-              TypeSigError,
-              ["invalid type signature"],
-              typeSig,
-              {fromTo: [n, n], desc: ["rest parameter must be the last formal one"]}
-            );
-
-            else if (c === " ") {
-              last(typeReps).fromTo.push(n - 1);
-
-              return aux(
-                typeSig, n,
-                {depth, context, phase: "ARROW", buf, name, fromTo, tag, typeReps}
-              );
-            }
-
-            else {
-              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
-
-              const [typeRep, m] = aux(
-                typeSig, n,
-                {depth, context: c_, phase: p, buf: b, name, fromTo: [n], tag: "", typeReps: []}
-              );
-              
-              last(typeReps).push(RestT(typeRep));
-
-              return aux(
-                typeSig, m,
-                {depth, context, phase, buf: "", name, fromTo: [fromTo[0], m], tag, typeReps}
+                tSig, m,
+                {depth, context, phase: "ARROW", buf: "", name, range: [range[0], m], tag, tReps: tReps.concat([RestT(tRep)])}
               );
             }
           }
@@ -918,59 +739,51 @@ const deserialize = typeSig => {
               if (next === ")") _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [fromTo[0], n], desc: ["unnecessary parenthesis"]}
+                tSig,
+                {range: [range[0], n], desc: ["unnecessary parenthesis"]}
               );
 
-              else if (last(typeReps)[0].constructor.name === "PolyT") {
-                if (typeSig[n - 1].search(new RegExp(`[${TYPE_RANK_RANGE}]`)) === 0) _throw(
-                  TypeSigError,
-                  ["invalid type signature"],
-                  typeSig,
-                  {fromTo: [n - 2, n - 1], desc: ["return value must be rank-1 polymorphic"]}
-                );
-
-                else return [FunT(name, {isAbstract: true}, fromTo, typeReps), n + 1, depth - 1];
+              else {
+                return [FunT(name, range, tReps), n + 1, depth - 1];
               }
   
-              else return [FunT(name, {isAbstract: false}, fromTo, typeReps), n + 1, depth - 1];
             }
 
             else {
-              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+              const {context: c_, phase: p, buf: b} = getContext(tSig, n);
 
-              const [typeRep, m] = aux(
-                typeSig, n,
-                {depth, context: c_, phase: p, buf: b, name, fromTo: [n], tag: "", typeReps: []}
+              const [tRep, m] = aux(
+                tSig, n,
+                {depth, context: c_, phase: p, buf: b, name, range: [n], tag: "", tReps: []}
               );
 
               return aux(
-                typeSig, m,
-                {depth, context, phase, buf: "", name, fromTo: [fromTo[0], m], tag, typeReps: typeReps.concat([ReturnT(typeRep)])}
+                tSig, m,
+                {depth, context, phase, buf: "", name, range: [range[0], m], tag, tReps: tReps.concat([ReturnT(tRep)])}
               );
             }
           }
 
           case "ARROW": {
             if (c === " ") {
-              if (typeSig.slice(n, n + 4) === " -> ") return aux(
-                typeSig, n + 4,
-                {depth, context, phase: "LOOK_AHEAD", buf: "", name, fromTo, tag, typeReps}
+              if (tSig.slice(n, n + 4) === " -> ") return aux(
+                tSig, n + 4,
+                {depth, context, phase: "LOOK_AHEAD", buf: "", name, range, tag, tReps}
               );
 
               else _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [n, n], desc: [`token " -> " expected`]}
+                tSig,
+                {range: [n, n], desc: [`token " -> " expected`]}
               );
             }
 
             else _throw(
               TypeSigError,
               ["invalid type signature"],
-              typeSig,
-              {fromTo: [n, n], desc: ["unexpected symbol"]}
+              tSig,
+              {range: [n, n], desc: ["unexpected symbol"]}
             );
           }
         }
@@ -980,79 +793,79 @@ const deserialize = typeSig => {
         switch (phase) {
           case "OUTER": {
             return aux(
-              typeSig, n + 1,
-              {depth: depth + 1, context, phase: "KEY", buf, fromTo, tag: "_Map", typeReps}
+              tSig, n + 1,
+              {depth: depth + 1, context, phase: "KEY", buf, range, tag: "_Map", tReps}
             );
           }
 
           case "KEY": {
-            const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+            const {context: c_, phase: p, buf: b} = getContext(tSig, n);
 
-            const [typeRep, m] = aux(
-              typeSig, n,
-              {depth, context: c_, phase: p, buf: b, fromTo: [n], tag: "", typeReps: []}
+            const [tRep, m] = aux(
+              tSig, n,
+              {depth, context: c_, phase: p, buf: b, range: [n], tag: "", tReps: []}
             );
 
             return aux(
-              typeSig, m + 2,
-              {depth, context, phase: "VALUE", buf: "", fromTo: fromTo.concat(m), tag, typeReps: typeReps.concat({k: typeRep, v: null})}
+              tSig, m + 2,
+              {depth, context, phase: "VALUE", buf: "", range: range.concat(m), tag, tReps: tReps.concat({k: tRep, v: null})}
             );
           }
 
           case "VALUE": {
             if (c === "}") {
-              return [_MapT(fromTo, typeReps), n + 1, depth - 1];
+              return [_MapT(range, tReps), n + 1, depth - 1];
             }
 
             else {
-              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+              const {context: c_, phase: p, buf: b} = getContext(tSig, n);
 
-              const [typeRep, m] = aux(
-                typeSig, n,
-                {depth, context: c_, phase: p, buf: b, fromTo: [n], tag: "", typeReps: []}
+              const [tRep, m] = aux(
+                tSig, n,
+                {depth, context: c_, phase: p, buf: b, range: [n], tag: "", tReps: []}
               );
               
-              typeReps[0].v = typeRep;
+              tReps[0].v = tRep;
 
               return aux(
-                typeSig, m,
-                {depth, context, phase, buf: "", fromTo: [fromTo[0], m], tag, typeReps}
+                tSig, m,
+                {depth, context, phase, buf: "", range: [range[0], m], tag, tReps}
               );
             }
           }
         }
       }
 
-      case "MONO": {
+      case "PRIM": {
         switch (phase) {
           case "UC": {
-            if (next === "") return [MonoT(fromTo.concat(n), c), n + 1, depth];
+            if (next === "") return [PrimT(range.concat(n), c), n + 1, depth];
 
             else return aux(
-              typeSig, n + 1,
-              {depth, context, phase: "LETTER", buf: buf + c, fromTo, tag, typeReps}
+              tSig, n + 1,
+              {depth, context, phase: "LETTER", buf: buf + c, range, tag, tReps}
             );
           }
 
           case "LETTER": {
             if (c.search(/[a-z]/i) === 0) {
-              if (next === "") return [MonoT(fromTo.concat(n), buf + c), n + 1, depth]
+              if (next === "") return [PrimT(range.concat(n), buf + c), n + 1, depth]
 
               else return aux(
-                typeSig, n + 1,
-                {depth, context, phase, buf: buf + c, fromTo, tag, typeReps}
+                tSig, n + 1,
+                {depth, context, phase, buf: buf + c, range, tag, tReps}
               );
             }
             
             else if (c.search(/[)\]}>, :]/) === 0) {
-              return [MonoT(fromTo.concat(n - 1), buf), n, depth];
+              return [PrimT(range.concat(n - 1), buf), n, depth];
             }
 
             else _throw(
               TypeSigError,
               ["invalid type signature"],
-              typeSig,
-              {fromTo: [n, n], desc: ["unexpected symbol"]}
+              tSig,
+              {range: [n, n], desc: ["unexpected symbol"]}
             );
           }
         }
@@ -1061,46 +874,46 @@ const deserialize = typeSig => {
       case "POLY": {
         switch (phase) {
           case "LETTER": {
-            if (next === "") return [PolyT(fromTo.concat(n), c), n + 1, depth];
+            if (next === "") return [PolyT(range.concat(n), c), n + 1, depth];
 
             else return aux(
-              typeSig, n + 1,
-              {depth, context, phase: "NUMBER", buf: buf + c, fromTo, tag, typeReps}
+              tSig, n + 1,
+              {depth, context, phase: "NUMBER", buf: buf + c, range, tag, tReps}
             );
           }
 
           case "NUMBER": {
-            if (c.search(/[2]/) === 0) {
-              if (next === "") return [PolyT(fromTo.concat(n), buf + c), n + 1, depth]
+            if (c.search(/[0-9]/) === 0) {
+              if (next === "") return [PolyT(range.concat(n), buf + c), n + 1, depth]
               
               else return aux(
-                typeSig, n + 1,
-                {depth, context, phase: "END", buf: buf + c, fromTo, tag, typeReps}
+                tSig, n + 1,
+                {depth, context, phase: "END", buf: buf + c, range, tag, tReps}
               );
             }
           
             else if (c.search(/[)\]}>, :]/) === 0) {
-              return [PolyT(fromTo.concat(n - 1), buf), n, depth];
+              return [PolyT(range.concat(n - 1), buf), n, depth];
             }
 
             else _throw(
               TypeSigError,
               ["invalid type signature"],
-              typeSig,
-              {fromTo: [n, n], desc: ["unexpected symbol (type variable context)"]}
+              tSig,
+              {range: [n, n], desc: ["unexpected symbol (type variable context)"]}
             );
           }
 
           case "END": {
             if (c.search(/[)\]}>, :]/) === 0) {
-              return [PolyT(fromTo.concat(n - 1), buf), n, depth];
+              return [PolyT(range.concat(n - 1), buf), n, depth];
             }
 
             else _throw(
               TypeSigError,
               ["invalid type signature"],
-              typeSig,
-              {fromTo: [n, n], desc: ["unexpected symbol"]}
+              tSig,
+              {range: [n, n], desc: ["unexpected symbol"]}
             );
           }
         }
@@ -1110,89 +923,89 @@ const deserialize = typeSig => {
         switch (phase) {
           case "OUTER": {
             return aux(
-              typeSig, n + 1,
-              {depth: depth + 1, context, phase: "KEY", buf, fromTo, tag: "Rec", typeReps}
+              tSig, n + 1,
+              {depth: depth + 1, context, phase: "KEY", buf, range, tag: "Rec", tReps}
             );
           }
 
           case "KEY": {
             if (c.search(/[a-z0-9_]/i) === 0) return aux(
-              typeSig, n + 1,
-              {depth, context, phase, buf: buf + c, fromTo, tag, typeReps}
+              tSig, n + 1,
+              {depth, context, phase, buf: buf + c, range, tag, tReps}
             );
 
             else if (c === ":") {
               if (buf === "") _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [n, n], desc: ["unexpected symbol"]}
+                tSig,
+                {range: [n, n], desc: ["unexpected symbol"]}
               );
 
               else if (next === " ") {
                 return aux(
-                  typeSig, n + 2,
-                  {depth, context, phase: "VALUE", buf: "", fromTo, tag, typeReps: typeReps.concat({k: buf, v: null})}
+                  tSig, n + 2,
+                  {depth, context, phase: "VALUE", buf: "", range, tag, tReps: tReps.concat({k: buf, v: null})}
                 );
               }
               
               else _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [n + 1, n + 1], desc: [`symbol " " expected`]}
+                tSig,
+                {range: [n + 1, n + 1], desc: [`symbol " " expected`]}
               );
             }
 
             else _throw(
               TypeSigError,
               ["invalid type signature"],
-              typeSig,
-              {fromTo: [n, n], desc: ["unexpected symbol"]}
+              tSig,
+              {range: [n, n], desc: ["unexpected symbol"]}
             );
           }
 
           case "VALUE": {
             if (c === ",") {
-              if (typeReps.length === 0) _throw(
+              if (tReps.length === 0) _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [n, n], desc: ["unexpected symbol"]}
+                tSig,
+                {range: [n, n], desc: ["unexpected symbol"]}
               );
 
               else if (next === " ") {
                 return aux(
-                  typeSig, n + 2,
-                  {depth, context, phase: "KEY", buf, fromTo, tag, typeReps}
+                  tSig, n + 2,
+                  {depth, context, phase: "KEY", buf, range, tag, tReps}
                 );
               }
               
               else _throw(
                 TypeSigError,
                 ["invalid type signature"],
-                typeSig,
-                {fromTo: [n + 1, n + 1], desc: [`symbol " " expected`]}
+                tSig,
+                {range: [n + 1, n + 1], desc: [`symbol " " expected`]}
               );
             }
 
             else if (c === "}") {
-              return [RecT(fromTo, typeReps), n + 1, depth - 1];
+              return [RecT(range, tReps), n + 1, depth - 1];
             }
 
             else {
-              const {context: c_, phase: p, buf: b} = getContext(typeSig, n);
+              const {context: c_, phase: p, buf: b} = getContext(tSig, n);
 
-              const [typeRep, m] = aux(
-                typeSig, n,
-                {depth, context: c_, phase: p, buf: b, fromTo: [n], tag: "", typeReps: []}
+              const [tRep, m] = aux(
+                tSig, n,
+                {depth, context: c_, phase: p, buf: b, range: [n], tag: "", tReps: []}
               );
               
-              last(typeReps).v = typeRep;
+              last(tReps).v = tRep;
 
               return aux(
-                typeSig, m,
-                {depth, context, phase, buf: "", fromTo: [fromTo[0], m], tag, typeReps}
+                tSig, m,
+                {depth, context, phase, buf: "", range: [range[0], m], tag, tReps}
               );
             }
           }
@@ -1203,29 +1016,29 @@ const deserialize = typeSig => {
     }
   };
 
-  const {context, phase, buf} = getContext(typeSig, 0);
+  const {context, phase, buf} = getContext(tSig, 0);
 
-  const [typeRep, n, depth] = aux(
-    typeSig, 0,
-    {depth: 0, context, phase, buf, fromTo: [0], tag: "", typeReps: []}
+  const [tRep, n, depth] = aux(
+    tSig, 0,
+    {depth: 0, context, phase, buf, range: [0], tag: "", tReps: []}
   );
 
-  if (depth === 0 && typeSig.length !== n) _throw(
+  if (depth === 0 && tSig.length !== n) _throw(
     TypeSigError,
     ["invalid type signature"],
-    typeSig,
-    {fromTo: [n, typeSig.length - 1], desc: ["unexpected symbol(s)"]}
+    tSig,
+    {range: [n, tSig.length - 1], desc: ["unexpected symbol(s)"]}
   );
 
-  else return typeRep;
+  else return tRep;
 };
 
 
-const getContext = (typeSig, n) => {
-  const c = typeSig[n],
-    s = typeSig.slice(n);
+const getContext = (tSig, n) => {
+  const c = tSig[n],
+    s = tSig.slice(n);
 
-  // Adt
+  // ADT
 
   if (s.search(/^[A-Z]{1,}[a-z]*</) === 0) {
     return {context: "ADT", phase: "TAG", buf: ""};
@@ -1234,20 +1047,20 @@ const getContext = (typeSig, n) => {
   // Arr / Tup / Unit
 
   if (c === "[") {
-    if (typeSig[n + 1] === "]") return {context: "UNIT", phase: "", buf: ""};
+    if (tSig[n + 1] === "]") return {context: "UNIT", phase: "", buf: ""};
     else return {context: "ARR", phase: "OUTER", buf: ""};
   }
 
   // Fun
 
-  if (c === "(" && typeSig[n + 1] !== ")") {
+  if (c === "(" && tSig[n + 1] !== ")") {
     return {context: "FUN", phase: "OUTER", buf: ""};
   }
 
   // _Map
 
   if (s.search(/\{.+::/) === 0
-  && lookAheadMap(typeSig.slice(n + 1))) {
+  && lookAheadMap(tSig.slice(n + 1))) {
     return {context: "_MAP", phase: "OUTER", buf: ""};
   }
 
@@ -1257,10 +1070,10 @@ const getContext = (typeSig, n) => {
     return {context: "REC", phase: "OUTER", buf: ""};
   }
 
-  // Mono
+  // Prim
 
   if (c.search(/[A-Z]/) === 0) {
-    return {context: "MONO", phase: "UC", buf: ""};
+    return {context: "PRIM", phase: "UC", buf: ""};
   }
 
   // Poly
@@ -1274,16 +1087,16 @@ const getContext = (typeSig, n) => {
   _throw(
     TypeSigError,
     ["invalid type signature"],
-    typeSig,
-    {fromTo: [n, n], desc: ["unexpected symbol"]}
+    tSig,
+    {range: [n, n], desc: ["unexpected symbol"]}
   );
 };
 
 
-const lookAheadMap = (typeSig) => {
+const lookAheadMap = (tSig) => {
   const aux = (n, {context}) => {
-    const c = typeSig[n],
-      next = typeSig[n + 1] || "",
+    const c = tSig[n],
+      next = tSig[n + 1] || "",
       top = last(context);
 
     if (c === undefined) return false;
@@ -1315,10 +1128,10 @@ const lookAheadMap = (typeSig) => {
 };
 
 
-const lookAheadFun = typeSig => {
+const lookAheadFun = tSig => {
   const aux = (n, {context}) => {
-    const c = typeSig[n],
-      next = typeSig[n + 1] || "",
+    const c = tSig[n],
+      next = tSig[n + 1] || "",
       top = last(context);
 
     if (c === undefined) return false;
@@ -1331,16 +1144,11 @@ const lookAheadFun = typeSig => {
     else if (c === " ") {
       if (context.length === 0) {
         if (next === ":") return "NAME";
-        else if (typeSig[0] === "." ) return "REST";
-        else if (typeSig[1] === ")") return "NO_ARG";
+        else if (tSig[0] === "." ) return "REST";
+        else if (tSig[1] === ")") return "NO_ARG";
         else return "ARG";
       }
 
-      else return aux(n + 1, {context});
-    }
-
-    else if (c === ",") {
-      if (context.length === 0) return "ARGS";
       else return aux(n + 1, {context});
     }
 
@@ -1358,384 +1166,646 @@ const lookAheadFun = typeSig => {
 
 /******************************************************************************
 *******************************************************************************
-******************************[ 7. UNIFICTAION ]*******************************
+******************************[ 6. UNIFICTAION ]*******************************
 *******************************************************************************
 ******************************************************************************/
 
 
-const unify = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
-  switch (nominalT.constructor.name) {
-    case "AdtT": return unifyAdt(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
-    case "ArrT": return unifyArr(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
-    case "FunT": return unifyFun(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
-    case "_MapT": return unifyMap(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
-    case "MonoT": return unifyMono(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
-    case "PolyT": return unifyPoly(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
-    case "RecT": return unifyRec(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
-    case "TupT": return unifyTup(x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings);
+const unify = (t1Rep, t2Rep, {mode}, cons, fRep, s) => {
+  const t1Sig = serialize(t1Rep),
+    t2Sig = serialize(t2Rep);
+
+  switch (t1Rep.constructor.name) {
+    case "AdtT": return unifyAdt(t1Rep, t2Rep, {mode}, cons, fRep, s);
+    case "ArrT": return unifyArr(t1Rep, t2Rep, {mode}, cons, fRep, s);
+    case "FunT": return unifyFun(t1Rep, t2Rep, {mode}, cons, fRep, s);
+    case "_MapT": return unifyMap(t1Rep, t2Rep, {mode}, cons, fRep, s);
+    case "PolyT": return unifyPoly(t1Rep, t2Rep, {mode}, cons, fRep, s);
+    case "PrimT": return unifyPrim(t1Rep, t2Rep, {mode}, cons, fRep, s);
+    case "RecT": return unifyRec(t1Rep, t2Rep, {mode}, cons, fRep, s);
+    case "TupT": return unifyTup(t1Rep, t2Rep, {mode}, cons, fRep, s);
+    case "UnitT": return unifyUnit(t1Rep, t2Rep, {mode}, cons, fRep, s);
   }
 };
 
 
-const unifyAdt = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
-  return nominalT.typeReps
-    .reduce((bindings_, nominalT_, n) => {
-      const nominalS_ = serialize(nominalT_),
-        realT_ = realT.typeReps[n],
-        realS_ = serialize(realT_);
-
-      return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings_);
-    }, bindings);
-};
-
-
-const unifyArr = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
-  return nominalT.typeReps
-    .reduce((bindings_, nominalT_, n) => {
-      const nominalS_ = serialize(nominalT_),
-        realT_ = realT.typeReps[n],
-        realS_ = serialize(realT_);
-
-      return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings_);
-    }, bindings);
-};
-
-
-const unifyFun = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
-  if (nominalT.typeReps.length < realT.typeReps.length) {
-    if (!nominalT.isAbstract) {
-      const [from, to] = nominalT.fromTo;
-
+const unifyArr = (t1Rep, t2Rep, {mode}, cons, fRep, s) => {
+  switch (t2Rep.constructor.name) {
+    case "AdtT":
+    case "FunT":
+    case "_MapT":
+    case "PrimT":
+    case "RecT":
+    case "TupT":
+    case "UnitT": {
       _throw(
-        ArityError,
-        [`${name} expects`],
-        typeSig,
-        {fromTo: [from, to], desc: [`${realS} received`]}
+        cons,
+        [`${fRep.name} expects`],
+        serialize(fRep),
+        {range: [from, to], desc: [`${serialize(t2Rep)} received`]}
       );
     }
 
-    else if (realT.typeReps[0][0].tag === "Fun") {
-      realT = realT.typeReps[0][0];
-      realS = serialize(realT);
+    case "ArrT": {
+      return unify(t1Rep.children[0], t2Rep.children[0], {mode}, cons, fRep, s);
+    }
+
+    case "PolyT": {
+      return mapConstraints(t2Rep, t2Rep, {mode}, cons, fRep, s);
+    }
+  }
+};
+
+
+const unifyFun = (t1Rep, t2Rep, {mode}, cons, fRep, s) => {
+  switch (t2Rep.constructor.name) {
+    case "AdtT":
+    case "ArrT":
+    case "_MapT":
+    case "PrimT":
+    case "RecT": 
+    case "TupT":
+    case "UnitT": {
+      _throw(
+        cons,
+        [`${fRep.name} expects`],
+        serialize(fRep),
+        {range: [from, to], desc: [`${serialize(t2Rep)} received`]}
+      );
+    }
+    
+    case "FunT": {
+      [t2Rep, s.i] = fresh(t2Rep, s.i);
+
+      if (t1Rep.children.length < t2Rep.children.length) {
+        t1Rep.forEach((arg, n) => {
+          if (n === t1Rep.children.length - 1) {
+            s = mapConstraints(arg.children, t2Rep.slice(n), {mode}, cons, fRep, s);
+            s = unify(arg, t2Rep.slice(n), {mode}, cons, fRep, s);
+          }
+          
+          else {
+            s = mapConstraints(arg.children, t2Rep[n], {mode}, cons, fRep, s);
+            s = unify(arg, t2Rep[n], {mode}, cons, fRep, s);
+          }
+        });
+      }
+
+      else if (t1Rep.children.length > t2Rep.children.length) {
+        t2Rep.forEach((arg, n) => {
+          if (n === t2Rep.children.length - 1) {
+            s = mapConstraints(t1Rep.slice(n), arg, {mode}, cons, fRep, s);
+            s = unify(t1Rep.slice(n), arg, {mode}, cons, fRep, s);
+          }
+          
+          else {
+            s = mapConstraints(t1Rep[n], arg, {mode}, cons, fRep, s);
+            s = unify(t1Rep[n], arg, {mode}, cons, fRep, s);
+          }
+        });
+      }
+
+      else {
+        t1Rep.forEach((arg, n) => {
+          s = mapConstraints(arg, t2Rep[n], {mode}, cons, fRep, s);
+          s = unify(arg, t2Rep[n], {mode}, cons, fRep, s);
+        });
+      }
+
+      return s;
+    }
+
+    case "PolyT": {
+      return mapConstraints(t2Rep, t1Rep, {mode}, cons, fRep, s);
+    }
+  }
+};
+
+
+const unifyPoly = (t1Rep, t2Rep, {mode}, cons, fRep, s) => {
+  return mapConstraints(t1Rep, t2Rep, {mode}, cons, fRep, s);
+};
+
+
+const unifyPrim = (t1Rep, t2Rep, {mode}, cons, fRep, s) => {
+  switch (t2Rep.constructor.name) {
+    case "AdtT":
+    case "ArrT":
+    case "FunT":
+    case "_MapT":
+    case "RecT":
+    case "TupT":
+    case "UnitT": {
+      _throw(
+        cons,
+        [`${fRep.name} expects`],
+        serialize(fRep),
+        {range: [from, to], desc: [`${serialize(t2Rep)} received`]}
+      );
+    }
+
+    case "PolyT": {
+      return mapConstraints(t2Rep, t1Rep, {mode}, cons, fRep, s);
+    }
+
+    case "PrimT": {
+      if (serialize(t1Rep) !== serialize(t2Rep)) {
+        const [from, to] = t1Rep.range;
+
+        _throw(
+          cons,
+          [`${fRep.name} expects`],
+          serialize(fRep),
+          {range: [from, to], desc: [`${serialize(t2Rep)} received`]}
+        );
+      }
+
+      else return s;
+    }
+  }
+};
+
+
+const mapConstraints = (kRep, vRep, {mode}, cons, fRep, s) => {
+  const kSig = serialize(kRep),
+    vSig = serialize(vRep);
+
+  if (kSig !== vSig) {
+    occurs(kRep, kSig, vRep, vSig, cons, fRep);
+  }
+
+  if (s.constraints.has(kSig)) {
+    const vSig_ = s.constraints.get(kSig);
+
+    if (vSig !== vSig_) {
+      return unify(deserialize(vSig_), vRep, {mode}, cons, fRep, s);
     }
   }
 
-  else if (nominalT.typeReps.length > realT.typeReps.length) {
-    const [from, to] = nominalT.fromTo;
+  else if (mode === "map") {
+    if (mgu(kSig, vSig) === LESS_GEN) {
+      s.constraints.set(vSig, kSig);
+    }
 
-    _throw(
-      ArityError,
-      [`${name} expects`],
-      typeSig,
-      {fromTo: [from, to], desc: [`${realS} received`]}
-    );
+    else s.constraints.set(kSig, vSig);
   }
 
-  nominalT.typeReps
-    .forEach((xT, n) => {
-      switch (xT.constructor.name) {
-        case "NoArgT":
-        case "ArgT":
+  // verify equivalence relations
+
+  if (s.relations.has(kSig)) {
+    const vSig_ = s.relations.get(kSig);
+
+    if (vSig !== vSig_) {
+      if (!s.lookup.has(`${vSig_} ~ ${vSig}`)) {
+        s.lookup.add(`${vSig_} ~ ${vSig}`);
+        mapCons(vSig_, vSig, {mode: "verify"}, cons, fRep, s);
+      }
+    }
+  }
+
+  else {
+    s.relations.set(kSig, vSig);
+  }
+
+  if (s.relations.has(vSig)) {
+    const kSig_ = s.relations.get(vSig);
+
+    if (kSig !== kSig_) {
+      if (!s.lookup.has(`${kSig_} ~ ${kSig}`)) {
+        s.lookup.add(`${kSig_} ~ ${kSig}`);
+        mapCons(kSig_, kSig, {mode: "verify"}, cons, fRep, s);
+      }
+    }
+  }
+
+  else {
+    s.relations.set(vSig, kSig);
+  }
+
+  return s;
+};
+
+
+const occurs = (kRep, kSig, vRep, vSig, cons, fRep) => {
+  if (kSig.search(/\b[a-z][0-9]?\b/) !== -1) {
+    if (vSig.search(new RegExp(`\\b${kSig}\\b`)) !== -1) {
+      const [from, to] = kRep.range;
+
+      _throw(
+        TypeError,
+        ["infinite type"],
+        serialize(fRep),
+        {range: [from, to], desc: [`${kSig} occurs in ${vSig}`]}
+      );
+    }
+  }
+
+  else if (vSig.search(/\b[a-z][0-9]?\b/) !== -1) {
+    if (kSig.search(new RegExp(`\\b${vSig}\\b`)) !== -1) {
+      const [from, to] = vRep.range;
+
+      _throw(
+        TypeError,
+        ["infinite type"],
+        serialize(fRep),
+        {range: [from, to], desc: [`${vSig} occurs in ${kSig}`]}
+      );
+    }
+  }
+};
+
+
+const fresh = (tRep, i) => {
+  const aux = tRep => {
+    const r = tRep.range;
+
+    switch (tRep.constructor.name)  {
+      case "AdtT": return AdtT(tRep.tag, r, tRep.children.map(tRep_ => aux(tRep_)));     
+      case "ArrT": return ArrT(r, aux(tRep.children[0]));
+      case "FunT": return FunT(tRep.name, r, tRep.children.map(tRep_ => aux(tRep_)));
+
+      case "_Map": {
+        const k = aux(tRep.children[0].k),
+          v = aux(tRep.children[0].v);
+
+        return _MapT(r, [{k, v}]);
+      }
+      
+      case "PrimT": return tRep;
+      
+      case "PolyT": {
+        isFresh = true;
+        return PolyT(r, `${tRep.tag}${i}`);
+      }
+      
+      case "Rec": {
+        return RecT(r, tRep.children.map(tRep_ => ({k: aux(tRep_.k), v: aux(tRep_.v)})));
+      }
+
+      case "Tup": return TupT(r, tRep.children.map(tRep_ => aux(tRep_)));
+      case "Unit": return tRep;
+    }
+  };
+
+  let isFresh = false;
+  return [aux(tRep), isFresh ? i + 1 : i];
+};
+
+
+const mgu = (t1Rep, t1Sig, t2Rep, t2Sig) => {
+  const aux = (t1Rep, t2Rep) => {
+    switch (t1Rep.constructor.name) {
+      case "ArrT": {
+        switch (t2Rep.constructor.name) {
+          case "ArrT": return aux(
+            t1Rep.children[0],
+            serialize(t1Rep.children[0]),
+            t2Rep.children[0],
+            serialize(t2Rep.children[0])
+          );
+
+          case "FunT": return NO_MGU;
+          case "PrimT": return NO_MGU;
+          case "PolyT": return LESS_GEN;
+        }
+      }
+
+      case "FunT": {
+        switch (t2Rep.constructor.name) {
+          case "ArrT": return NO_MGU;
+          
+          case "FunT": {
+            return mguFun(t1Rep, t2Rep, 0);
+          }
+          
+          case "PrimT": return NO_MGU;
+          case "PolyT": return LESS_GEN;
+        }
+      }
+
+      case "PrimT": {
+        switch (t2Rep.constructor.name) {
+          case "ArrT": return NO_MGU;
+          case "FunT": return NO_MGU;
+          case "PrimT": return EQ_GEN;
+          case "PolyT": return LESS_GEN;
+        }
+      }
+
+      case "PolyT": {
+        switch (introspect(t2)) {
+          case "ArrT": return MORE_GEN;
+          case "FunT": return MORE_GEN;
+          case "PrimT": return MORE_GEN;
+          
+          case "PolyT": {
+            tvars1.add(t1Rep.tag);
+            tvars2.add(t2Rep.tag);
+            return EQ_GEN;
+          }
+        }
+      }
+    }
+  };
+
+  const tvars1 = new Set(), tvars2 = new Set(),
+    r = aux(t1Rep, t2Rep, new Set(), new Set());
+
+  // swallow errors
+  if (r === NO_MGU) return EQ_GEN;
+
+  else {
+    if (r === EQ_GEN) {
+      if (tvars1.size < tvars2.size) return LESS_GEN;
+      else if (tvars1.size > tvars2.size) return MORE_GEN;
+      else return EQ_GEN;
+    }
+
+    else return r;
+  }
+};
+
+
+const mguFun = (t1Rep, t2Rep, n, aux) => {
+  switch (t1Rep.children[n].constructor.name) {
+    case "ArgT": {
+      switch (t2Rep.children[n].constructor.name) {
+        case "ArgT": {
+          const r = aux(
+            t1Rep.children[n],
+            serialize(t1Rep.children[n]),
+            t2Rep.children[n],
+            serialize(t2Rep.children[n])
+          );
+
+          if (r === EQ_GEN) {
+            return mguFun(t1Rep, t2Rep, n + 1, aux);
+          }
+
+          else return r;
+        }
+        
         case "RestT": {
-          if (xT.constructor.name !== realT.typeReps[n].constructor.name) {
-            const [from, to] = nominalT.fromTo;
-
-            _throw(
-              ArityError,
-              [`${name} expects`],
-              typeSig,
-              {fromTo: [from, to], desc: [`${realS} received`]}
+          if (t1Rep.children[n].children.tag === "Arr") {
+            const r = aux(
+              t1Rep.children[n][0],
+              serialize(t1Rep.children[n][0]),
+              t2Rep.children[n],
+              serialize(t2Rep.children[n])
             );
+
+            if (r === EQ_GEN) {
+              return mguFun(t1Rep, t2Rep, n + 1, aux);
+            }
+
+            else return r;
           }
 
-          else return;
+          else return NO_MGU;
         }
 
-        case "ArgsT": {
-          if (xT.constructor.name !== realT.typeReps[n].constructor.name
-          || xT.length !== realT.typeReps[n].length) {
-            const [from, to] = nominalT.fromTo;
+        case "NoArgT": return NO_MGU;
 
-            _throw(
-              ArityError,
-              [`${name} expects`],
-              typeSig,
-              {fromTo: [from, to], desc: [`${realS} received`]}
-            );
+        case "ReturnT": {
+          if (t1Rep.children[n].children.constructor.name === "PolyT") {
+            return MORE_GEN;
           }
 
-          else return;
+          else return NO_MGU;
+        }
+      }
+    }
+
+    case "RestT": {
+      switch (t2Rep.children[n].constructor.name) {
+        case "ArgT": {
+          if (t2Rep.children[n].children.tag === "Arr") {
+            const r = aux(
+              t1Rep.children[n],
+              serialize(t1Rep.children[n]),
+              t2Rep.children[n][0],
+              serialize(t2Rep.children[n][0])
+            );
+
+            if (r === EQ_GEN) {
+              return mguFun(t1Rep, t2Rep, n + 1, aux);
+            }
+
+            else return r;
+          }
+
+          else return NO_MGU;
+        }
+        
+        case "RestT": {
+          const r = aux(
+            t1Rep.children[n],
+            serialize(t1Rep.children[n]),
+            t2Rep.children[n],
+            serialize(t2Rep.children[n])
+          );
+
+          if (r === EQ_GEN) {
+            return mguFun(t1Rep, t2Rep, n + 1, aux);
+          }
+
+          else return r;
         }
 
-        case "ReturnT": return;
+        case "NoArgT":
+        case "ReturnT": return NO_MGU;
+      }
+    }
+
+    case "NoArgT": {
+      switch (t2Rep.children[n].constructor.name) {
+        case "NoArgT": return mguFun(t1Rep, t2Rep, n + 1, aux);
+        default: return NO_MGU;
+      }
+    }
+
+    case "ReturnT": {
+      switch (t2Rep.children[n].constructor.name) {
+        case "ArgT": {
+          if (t2Rep.children[n].children.constructor.name === "PolyT") {
+            return LESS_GEN;
+          }
+
+          else return NO_MGU;
+        }
+        
+        case "ReturnT": {
+          return aux(
+            t1Rep.children[n],
+            serialize(t1Rep.children[n]),
+            t2Rep.children[n],
+            serialize(t2Rep.children[n])
+          );
+        }
+
+        default: return NO_MGU;
+      }
+    }
+  }
+};
+
+
+const substitute = fRep => {
+  const aux = tSig_ => {
+    s.constraints.forEach((v, k) => {
+      if (tSig_.search(new RegExp(`\\b${escapeRegExp(k)}\\b`)) !== -1) {
+        if (v[0] === "(") {
+          tSig_ = tSig_.replace(new RegExp(`\\b${escapeRegExp(k)}$`), v.slice(1, -1));
+          tSig_ = tSig_.replace(new RegExp(`\\b${escapeRegExp(k)}(?=\\))`, "g"), v.slice(1, -1));
+          tSig_ = tSig_.replace(new RegExp(`\\b${escapeRegExp(k)}\\b`, "g"), v);
+        }
+
+        else {
+          tSig_ = tSig_.replace(new RegExp(`\\b${escapeRegExp(k)}\\b`, "g"), v);
+        }
       }
     });
 
-  return nominalT.typeReps
-    .reduce((bindings_, xT, n) => {
-      switch (xT.constructor.name) {
-        case "NoArgT": return _binding;
-
-        case "ArgT":
-        case "RestT":
-        case "ReturnT": {
-          const nominalT_ = xT[0],
-            nominalS_ = serialize(nominalT_),
-            realT_ = realT.typeReps[n][0],
-            realS_ = serialize(realT_);
-
-          return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings_);
-        }
-
-        case "ArgsT": {
-          return xT.reduce((bindings__, yT, m) => {
-            const nominalT_ = yT[0],
-              nominalS_ = serialize(nominalT_),
-              realT_ = realT.typeReps[n][m][0],
-              realS_ = serialize(realT_);
-
-            return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings__);
-          }, bindings_);
-        }
-      }
-    }, bindings);
-};
-
-
-const unifyMap = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
-  return nominalT.typeReps
-    .reduce((bindings_, xT, n) => {
-      const {k: nominalKeyT, v: nominalValT} = xT[0],
-        nominalKeyS = serialize(nominalKeyT),
-        nominalValS = serialize(nominalValT),
-        realKeyT = realT.typeReps[n][0].k,
-        realValT = realT.typeReps[n][0].v,
-        realKeyS = serialize(realKeyT),
-        realValS = serialize(realValT);
-
-      bindings_ = unify(x, realKeyT, realKeyS, nominalKeyT, nominalKeyS, cons, name, typeSig, bindings_);
-      return unify(x, realValT, realValS, nominalValT, nominalValS, cons, name, typeSig, bindings_);
-    }, bindings);
-};
-
-
-const unifyPoly = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
-  bindings.forEach((v, k) => {
-    // substitutes type vars on the RHS
-    if (v === nominalS) bindings.set(k, realS);
-  });
-
-  if (bindings.has(nominalS)) {
-    if (bindings.get(nominalS) === realS) return bindings;
-
-    // reverse has-a relation if RHS is a type var
-    else if (realS.search(/\b[a-z]\b/) === 0
-    && bindings.get(realS) === nominalS) return bindings
-
-    // abstraction over arity
-    else if (cons === ReturnT
-    && realT.tag === "Fun") return bindings;
+    if (tSig_ === tSig) return tSig_;
 
     else {
-      const [from, to] = nominalT.fromTo;
-
-      switch (cons) {
-        case ArgT: _throw(
-          TypeError,
-          [`${name} has bound "${nominalS}" to ${bindings.get(nominalS)}`],
-          typeSig,
-          {fromTo: [from, to], desc: [`${realS} received`]}
-        );
-
-        case ReturnT: _throw(
-          ReturnTypeError,
-          [`${name} has bound "${nominalS}" to ${bindings.get(nominalS)}`],
-          typeSig,
-          {fromTo: [from, to], desc: [`${realS} returned`]}
-        );
-      }
+      tSig = tSig_;
+      return aux(tSig_);
     }
-  }
+  };
 
-  else if (nominalS !== realS) return bindings.set(nominalS, realS);
-  else return bindings;
+  let tSig = serialize(fRep);
+  return deserialize(aux(tSig));
 };
 
 
-const unifyMono = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
-  if (nominalS === realS) return bindings;
-
-  else {
-    const [from, to] = nominalT.fromTo;
-
-    switch (cons) {
-      case ArgT: _throw(
-        TypeError,
-        [`${name} expects`],
-        typeSig,
-        {fromTo: [from, to], desc: [`${realS} received`]}
-      );
-
-      case ReturnT: _throw(
-        ReturnTypeError,
-        [`${name} must return`],
-        typeSig,
-        {fromTo: [from, to], desc: [`${realS} returned`]}
-      );
-    }
-  }
-};
-
-
-const unifyRec = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
-  return nominalT.typeReps
-    .reduce((bindings_, xT, n) => {
-      const {k: nominalKey, v: nominalValT} = xT[0],
-        nominalValS = serialize(nominalValT),
-        realKey = realT.typeReps[n][0].k,
-        realValT = realT.typeReps[n][0].v,
-        realValS = serialize(realValT);
-
-      if (nominalKey !== realKey) {
-        // TODO: add key fromTo
-        switch (cons) {
-          case ArgT: _throw(
-            TypeError,
-            [`${name} expects`],
-            typeSig,
-            {fromTo: [0, -1], desc: [`${realKey} received`]}
-          );
-
-          case ReturnT: _throw(
-            ReturnTypeError,
-            [`${name} expects`],
-            typeSig,
-            {fromTo: [0, -1], desc: [`${realKey} received`]}
-          );
-        }
-      }
-
-      return unify(x, realValT, realValS, nominalValT, nominalValS, cons, name, typeSig, bindings_);
-    }, bindings);
-};
-
-
-const unifyTup = (x, realT, realS, nominalT, nominalS, cons, name, typeSig, bindings) => {
-  return nominalT.typeReps
-    .reduce((bindings_, xT, n) => {
-      const nominalT_ = xT[0],
-        nominalS_ = serialize(nominalT_),
-        realT_ = realT.typeReps[n][0],
-        realS_ = serialize(realT_);
-
-      return unify(x, realT_, realS_, nominalT_, nominalS_, cons, name, typeSig, bindings_);
-    }, bindings);
-};
+const escapeRegExp = s => s.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 
 
 /******************************************************************************
 *******************************************************************************
-******************************[ 8. CUSTOM TYPES ]******************************
+******************************[ 7. CUSTOM TYPES ]******************************
 *******************************************************************************
 ******************************************************************************/
 
 
 /******************************************************************************
-*****[ 8.1. FUNCTIONS ]********************************************************
+*****[ 7.1. Functions ]********************************************************
 ******************************************************************************/
 
 
-export const Fun = (typeSig, f) => {
+export const Fun = (fSig, f) => {
   if (types) {
-    if (!introspect(typeSig).has("String")) _throw(
+    if (introspect(fSig) !== "String") _throw(
       TypeError,
       ["Fun expects"],
       "(String, Function -> Function)",
-      {fromTo: [1, 6], desc: [`${introspect1(typeSig)} received`]}
+      {range: [1, 6], desc: [`${introspect(fSig)} received`]}
     );
 
-    else if (!introspect(f).has("Function")) _throw(
+    else if (introspect(f) !== "Function") _throw(
       TypeError,
       ["Fun expects"],
       "(String, Function -> Function)",
-      {fromTo: [9, 8], desc: [`${introspect1(f)} received`]}
+      {range: [9, 8], desc: [`${introspect(f)} received`]}
     );
 
-    const typeRep = deserialize(typeSig);
-    Reflect.defineProperty(f, "name", {value: typeRep.name});
-    return new Proxy(f, handleFun(f, 0, typeRep, typeSig, new Map()));
+    const fRep = deserialize(fSig);
+    Reflect.defineProperty(f, "name", {value: fRep.name || "lambda"});
+
+    return new Proxy(f, handleFun(
+      f, fRep, fSig,
+      {
+        f,
+        nthCall: 0,
+        constraints: new Map(),
+        reverse: new Map()
+      }
+    ));
   }
 
   else return f;
 };
 
 
-const handleFun = (f, num, typeRep, typeSig, bindings) => {
-  const name = f.name || "lambda";
+const handleFun = (f, fRep, fSig, s) => {
+  const {tag, children} = fRep;
 
   return {
     apply: (g, _, args) => {
-      const {tag, typeReps} = typeRep,
-        xT = typeReps[num],
-        cons = xT.constructor;
+      const child = children[s.nthCall];
+      if (s.nthCall === 0) s.constraints = new Map();
 
-      if (num === 0) bindings = new Map();
-
-      switch (cons.name) {
-        case "NoArgT": {
-          verifyNullary(args, xT, name, typeSig);
-          break;
-        }
-
+      switch (child.constructor.name) {
         case "ArgT": {
-          verifyUnary(args, xT[0], name, typeSig);
-          bindings = verifyArgT(args[0], xT[0], name, typeSig, bindings);
+          verifyUnary(args, child.children, fRep);
+          
+          s = unify(
+            child.children,
+            deserialize(introspect(args[0])),
+            {mode: "map"},
+            TypeError, fRep, s
+          );
+
           break;
         }
 
-        case "ArgsT": {
-          const params = verifyNAry(args, xT, name, typeSig);
-          bindings = verifyArgsT(args, xT, params, name, typeSig, bindings);
+        case "NoArgT": {
+          verifyNullary(args, child.children, fRep);
           break;
         }
 
         case "RestT": {
-          bindings = verifyRestT(args, xT[0], name, typeSig, bindings);
+          s = unify(
+            child.children,
+            deserialize(introspect(args[0])),
+            {mode: "map"},
+            TypeError, fRep, s
+          );
+
           break;
         }
       }
 
-      if (typeReps[num + 1].constructor.name === "ReturnT") {
+      if (children[s.nthCall + 1].constructor.name === "ReturnT") {
         const r = g(...args);
 
+        // TODO: revise
         if (getStringTag(r) === "Adt") {
-          const [rep, sig] = constructType(r, bindings);
+          const [rep, sig] = constructType(r, constraints);
           r[TYPE_REP] = rep;
           r[TYPE_SIG] = sig;
         }
 
-        return verifyReturnT(r, typeReps[num + 1][0], name, typeSig, bindings);
+        s = unify(
+          children[s.nthCall + 1].children,
+          deserialize(introspect(r)),
+          {mode: "map"},
+          ReturnTypeError, fRep, s
+        );
+
+        return r;
       }
 
       else {
         const h = g(...args);
         Reflect.defineProperty(h, "name", {value: f.name});
-        return new Proxy(h, handleFun(f, num + 1, typeRep, typeSig, bindings));
+        return new Proxy(h, handleFun(f, s.nthCall + 1, fRep, fSig, s));
       }
     },
 
     get: (f, k, p) => {
       switch (k) {
-        case "toString": return () => typeSig;
+        case "toString": return () => fSig;
         case Symbol.toStringTag: return "Fun";
-        case TYPE_REP: return typeRep;
-        case TYPE_SIG: return typeSig;
+        case TYPE_REP: return fRep;
+        case TYPE_SIG: return fSig;
 
         case Symbol.toPrimitive: return hint => {
           _throw(
             TypeError,
             ["illegal implicit type conversion"],
-            typeSig,
+            fSig,
             {desc: [
               `must not be converted to ${capitalize(hint)} primitive`,
               "use explicit type casts instead"
@@ -1749,7 +1819,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
           else _throw(
             TypeError,
             ["illegal property access"],
-            typeSig,
+            fSig,
             {desc: [`unknown property ${preformatK(k)}`]}
           );
         }
@@ -1764,7 +1834,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
         default: _throw(
           TypeError,
           ["illegal property introspection"],
-          typeSig,
+          fSig,
           {desc: [
             `of property ${preformatK(k)}`,
             "duck typing is not allowed"
@@ -1780,9 +1850,9 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
         default: _throw(
           TypeError,
           ["illegal property mutation"],
-          typeSig,
+          fSig,
           {desc: [
-            `of property ${preformatK(k)} with type ${introspect1(v)}`,
+            `of property ${preformatK(k)} with type ${introspect(v)}`,
             "function Objects are immutable"
           ]}
         );
@@ -1793,9 +1863,9 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
       _throw(
         TypeError,
         ["illegal property mutation"],
-        typeSig,
+        fSig,
         {desc: [
-          `of property ${preformatK(k)} with type ${introspect1(d.value)}`,
+          `of property ${preformatK(k)} with type ${introspect(d.value)}`,
           "function Objects are immutable"
         ]}
 
@@ -1806,7 +1876,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
       _throw(
         TypeError,
         ["illegal property mutation"],
-        typeSig,
+        funS,
         {desc: [
           `removal of property ${preformatK(k)}`,
           "function Objects are immutable"
@@ -1818,7 +1888,7 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
       _throw(
         TypeError,
         ["illegal property introspection"],
-        typeSig,
+        fSig,
         {desc: [
           `of property ${preformatK(k)}`,
           "meta programming is not allowed"
@@ -1829,279 +1899,41 @@ const handleFun = (f, num, typeRep, typeSig, bindings) => {
 };
 
 
-const verifyNullary = (args, noArgT, name, typeSig) => {
-  const [from, to] = noArgT.fromTo;
+const verifyNullary = (args, child, fRep) => {
+  const [from, to] = child.range;
 
   if (args.length !== 0) _throw(
     ArityError,
-    [`${name} expects 0 arguments`],
-    typeSig,
-    {fromTo: [from, to], desc: [`${args.length} argument(s) received`]}
+    [`${fRep.name} expects 0 arguments`],
+    serialize(fRep),
+    {range: [from, to], desc: [`${args.length} argument(s) received`]}
   );
 };
 
 
-const verifyUnary = (args, xT, name, typeSig) => {
-  const [from, to] = xT.fromTo;
+const verifyUnary = (args, child, fRep) => {
+  const [from, to] = child.range;
 
   if (args.length !== 1) _throw(
     ArityError,
-    [`${name} expects 1 argument`],
-    typeSig,
-    {fromTo: [from, to], desc: [`${args.length} argument(s) received`]}
+    [`${fRep.name} expects 1 argument`],
+    serialize(fRep),
+    {range: [from, to], desc: [`${args.length} argument(s) received`]}
   );
-};
-
-
-const verifyNAry = (args, xT, name, typeSig) => {
-  const [from, to] = xT.fromTo;
-
-  const params = xT
-    .reduce(({mandatory: m, rest: r}, param) => {
-      if (param.constructor.name === "ArgT") return {mandatory: m + 1, rest: r};
-      else if (param.constructor.name === "RestT") return {mandatory: m, rest: r + 1};
-      else return {mandatory: m, rest: r};
-    }, {mandatory: 0, rest: 0});
-
-  if (params.rest === 1) {
-    if (params.mandatory > args.length) _throw(
-      ArityError,
-      [`${name} expects at least ${params.mandatory} argument(s)`],
-      typeSig,
-      {fromTo: [from, to], desc: [`${args.length} argument(s) received`]}
-    );
-  }
-
-  else {
-    if (params.mandatory !== args.length) _throw(
-      ArityError,
-      [`${name} expects ${params.mandatory} argument(s)`],
-      typeSig,
-      {fromTo: [from, to], desc: [`${args.length} argument(s) received`]}
-    );
-  }
-
-  return params;
-};
-
-
-const verifyArgT = (arg, nominalT, name, typeSig, bindings) => {
-  const [from, to] = nominalT.fromTo,
-    nominalS = serialize(nominalT),
-    realSigs = introspect(arg),
-    realS = nextVal(realSigs.values()),
-    realT = deserialize(realS);
-
-  if (nominalT.constructor.name !== "PolyT"
-  && nominalT.tag !== realT.tag) _throw(
-    TypeError,
-    [`${name} expects`],
-    typeSig,
-    {fromTo: [from, to], desc: [`${realS} received`]}
-  );
-
-  else if (nominalS.search(/\b[a-z]\b/) >= 0
-  || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings);
-
-  else {
-    if (realSigs.has(nominalS)) return bindings;
-
-    else _throw(
-      TypeError,
-      [`${name} expects`],
-      typeSig,
-      {fromTo: [from, to], desc: [`${realS} received`]}
-    );
-  }
-};
-
-
-const verifyRestT = (args, nominalT, name, typeSig, bindings) => {
-  const [from, to] = nominalT.fromTo,
-    nominalS = serialize(nominalT);
-
-  return args
-    .reduce((bindings_, arg, n) => {
-      const realSigs = introspect(arg),
-        realS = nextVal(realSigs.values()),
-        realT = deserialize(realS);
-
-      if (nominalT.constructor.name !== "PolyT"
-      && nominalT.tag !== realT.tag) _throw(
-        TypeError,
-        [`${name} expects`],
-        typeSig,
-        {fromTo: [from, to], desc: [`${realS} received`]}
-      );
-
-      else if (nominalS.search(/\b[a-z]\b/) >= 0
-      || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings_);
-
-      else {
-        if (realSigs.has(nominalS)) return bindings_;
-
-        else _throw(
-          TypeError,
-          [`${name} expects`],
-          typeSig,
-          {fromTo: [from, to], desc: [`${realS} received at index ${n}`]}
-        );
-      }
-    }, bindings);
-};
-
-
-const verifyArgsT = (args, argsT, params, name, typeSig, bindings) => {
-  if (params.rest === 1) {
-    bindings = args
-      .slice(0, params.mandatory)
-      .reduce((bindings_, arg, n) => {
-        const nominalT = argsT[n][0],
-          [from, to] = nominalT.fromTo,
-          nominalS = serialize(nominalT),
-          realSigs = introspect(arg),
-          realS = nextVal(realSigs.values()),
-          realT = deserialize(realS);
-
-        if (nominalT.constructor.name !== "PolyT"
-        && nominalT.tag !== realT.tag) _throw(
-          TypeError,
-          [`${name} expects`],
-          typeSig,
-          {fromTo: [from, to], desc: [`${realS} received`]}
-        );
-
-        else if (nominalS.search(/\b[a-z]\b/) >= 0
-        || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings_);
-
-        else {
-          if (realSigs.has(nominalS)) return bindings_;
-
-          else _throw(
-            TypeError,
-            [`${name} expects`],
-            typeSig,
-            {fromTo: [from, to], desc: [`${realS} received`]}
-          );
-        }
-      }, bindings);
-
-    const nominalT = last(argsT)[0],
-      nominalS = serialize(nominalT),
-      [from, to] = nominalT.fromTo;
-
-    return args
-      .slice(params.mandatory)
-      .reduce((bindings_, arg, n) => {
-        const realSigs = introspect(arg),
-          realS = nextVal(realSigs.values()),
-          realT = deserialize(realS);
-
-        if (nominalT.constructor.name !== "PolyT"
-        && nominalT.tag !== realT.tag) _throw(
-          TypeError,
-          [`${name} expects`],
-          typeSig,
-          {fromTo: [from, to], desc: [`${realS} received`]}
-        );
-
-        else if (nominalS.search(/\b[a-z]\b/) >= 0
-        || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings_);
-
-        else {
-          if (realSigs.has(nominalS)) return bindings_;
-
-          else _throw(
-            TypeError,
-            [`${name} expects`],
-            typeSig,
-            {fromTo: [from, to], desc: [`${realS} received at index ${params.mandatory + n}`]}
-          );
-        }
-      }, bindings);
-  }
-
-  else {
-    return args
-      .reduce((bindings_, arg, n) => {
-        const nominalT = argsT[n][0],
-          [from, to] = nominalT.fromTo,
-          nominalS = serialize(nominalT),
-          realSigs = introspect(arg),
-          realS = nextVal(realSigs.values()),
-          realT = deserialize(realS);
-
-        if (nominalT.constructor.name !== "PolyT"
-        && nominalT.tag !== realT.tag) _throw(
-          TypeError,
-          [`${name} expects`],
-          typeSig,
-          {fromTo: [from, to], desc: [`${realS} received`]}
-        );
-
-        else if (nominalS.search(/\b[a-z]\b/) >= 0
-        || realS.search(/\b[a-z]\b/) >= 0) return unify(arg, realT, realS, nominalT, nominalS, ArgT, name, typeSig, bindings_);
-
-        else {
-          if (realSigs.has(nominalS)) return bindings_;
-
-          else _throw(
-            TypeError,
-            [`${name} expects`],
-            typeSig,
-            {fromTo: [from, to], desc: [`${realS} received`]}
-          );
-        }
-      }, bindings);
-  }
-};
-
-
-const verifyReturnT = (r, nominalT, name, typeSig, bindings) => {
-  const [from, to] = nominalT.fromTo,
-    nominalS = serialize(nominalT),
-    realSigs = introspect(r),
-    realS = nextVal(realSigs.values()),
-    realT = deserialize(realS);
-
-  if (nominalT.constructor.name !== "PolyT"
-  && nominalT.tag !== realT.tag) _throw(
-    ReturnTypeError,
-    [`${name} expects`],
-    typeSig,
-    {fromTo: [from, to], desc: [`${realS} received`]}
-  );
-
-  else if (nominalS.search(/\b[a-z]\b/) >= 0
-  || realS.search(/\b[a-z]\b/) >= 0) {
-    unify(r, realT, realS, nominalT, nominalS, ReturnT, name, typeSig, bindings);
-    return r;
-  }
-
-  else {
-    if (realSigs.has(nominalS)) return r;
-
-    else _throw(
-      ReturnTypeError,
-      [`${name} must return`],
-      typeSig,
-      {fromTo: [from, to], desc: [`${realS} returned`]}
-    );
-  }
 };
 
 
 /******************************************************************************
-*****[ 8.2. ALGEBRAIC DATA TYPES ]*********************************************
+*****[ 7.2. Algebraic Data Types ]*********************************************
 ******************************************************************************/
 
 
-export const Adt = (tcons, typeSig, ...cases) => {
-  const typeRep = deserialize(typeSig),
-    tvars = typeSig.match(/\b[a-z]\b/g);
+export const Adt = (tcons, tSig, ...cases) => {
+  const tRep = deserialize(tSig),
+    tvars = tSig.match(/\b[a-z]\b/g);
 
   if (types) {
-    const typeSigs = new Map();
+    const tSigs = new Map();
 
     cases.forEach(vcons => {
       if (TYPE_SIG in vcons) {
@@ -2112,14 +1944,14 @@ export const Adt = (tcons, typeSig, ...cases) => {
           TypeError,
           [`value constructors must have a named type annotations`],
           `(name :: ${typeSig_.slice(1)}`,
-          {fromTo: [1, 8]}
+          {range: [1, 8]}
         );
 
         else if (typeSig_.search(/^\(_?[A-Z]/) !== 0) _throw(
           TypeError,
           [`value constructors must have capitalized names`],
           typeSig_,
-          {fromTo: [1, 1]}
+          {range: [1, 1]}
         );
 
         const tvars_ = typeSig_.match(/\b[a-z]\b/g);
@@ -2131,25 +1963,25 @@ export const Adt = (tcons, typeSig, ...cases) => {
 
             _throw(
               TypeError,
-              [`invalid value constructor for type "${typeSig}"`],
+              [`invalid value constructor for type "${tSig}"`],
               typeSig_,
-              {fromTo: [from, to], desc: ["type variable out of scope"]}
+              {range: [from, to], desc: ["type variable out of scope"]}
             );
           }
         });
       
-        if (serialize(last(typeRep_.typeReps)[0]) !== typeSig) {
-          const [from, to] = last(typeRep_.typeReps)[0].fromTo;
+        if (serialize(last(typeRep_.children)[0]) !== tSig) {
+          const [from, to] = last(typeRep_.children)[0].range;
 
           _throw(
             TypeError,
             [`invalid value constructor`],
             typeSig_,
-            {fromTo: [from, to], desc: [`${typeRep_.name} must return values of type "${typeSig}"`]}
+            {range: [from, to], desc: [`${typeRep_.name} must return values of type "${tSig}"`]}
           );
         }
 
-        typeSigs.set(typeRep_.name, typeSig_);
+        tSigs.set(typeRep_.name, typeSig_);
       }
 
       else _throw(
@@ -2161,7 +1993,7 @@ export const Adt = (tcons, typeSig, ...cases) => {
     });
 
     return f => {
-      const adt = new Proxy(new tcons(), handleAdt(typeRep, typeSig, typeSigs));
+      const adt = new Proxy(new tcons(), handleAdt(tRep, tSig, tSigs));
       adt.run = cases_ => f(cases_);
       return adt;
     };
@@ -2175,57 +2007,57 @@ export const Adt = (tcons, typeSig, ...cases) => {
 };
 
 
-const handleAdt = (typeRep, typeSig, typeSigs) => ({
+const handleAdt = (tRep, tSig, tSigs) => ({
   get: (o, k, p) => {
     switch (k) {
       case "run": return cases => {
         Object.keys(cases).forEach(k => {
-          if (!typeSigs.has(k)) _throw(
+          if (!tSigs.has(k)) _throw(
             TypeError,
-            [`illegal application of type "${typeSig}"`],
-            Array.from(typeSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
+            [`illegal application of type "${tSig}"`],
+            Array.from(tSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
             {desc: [`unnecessary case "${k}"`]}
           );
 
           else if (!(TYPE_REP in cases[k])) _throw(
             TypeError,
-            [`illegal application of type "${typeSig}"`],
-            Array.from(typeSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
+            [`illegal application of type "${tSig}"`],
+            Array.from(tSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
             {desc: [`case "${k}" is associated with an untyped value`]}
           );
 
           else if (cases[k][TYPE_REP].tag !== "Fun") _throw(
             TypeError,
-            [`illegal application of type "${typeSig}"`],
-            Array.from(typeSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
+            [`illegal application of type "${tSig}"`],
+            Array.from(tSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
             {desc: [`case "${k}" is associated with a non-function value`]}
           );
         });
 
-        typeSigs.forEach((v, k) => {
+        tSigs.forEach((v, k) => {
           if (!(k in cases)) _throw(
             TypeError,
-            [`illegal application of type "${typeSig}"`],
-            Array.from(typeSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
+            [`illegal application of type "${tSig}"`],
+            Array.from(tSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
             {desc: [`missing case "${k}"`]}
           );
 
-          matchFun(k, deserialize(v), v, cases[k] [TYPE_REP], cases[k] [TYPE_SIG], typeSig);
+          matchFun(k, deserialize(v), v, cases[k] [TYPE_REP], cases[k] [TYPE_SIG], tSig);
         });
 
         return o.run(cases);
       }
 
-      case "toString": return () => typeSig;
+      case "toString": return () => tSig;
       case Symbol.toStringTag: return "Adt";
-      case TYPE_REP: return typeRep;
-      case TYPE_SIG: return typeSig;
+      case TYPE_REP: return tRep;
+      case TYPE_SIG: return tSig;
 
       case Symbol.toPrimitive: return hint => {
         _throw(
           TypeError,
           ["illegal implicit type conversion"],
-          typeSig,
+          tSig,
           {desc: [
             `must not be converted to ${capitalize(hint)} primitive`,
             "use explicit type casts instead"
@@ -2239,7 +2071,7 @@ const handleAdt = (typeRep, typeSig, typeSigs) => ({
         else _throw(
           TypeError,
           ["illegal property access"],
-          typeSig,
+          tSig,
           {desc: [`unknown property ${preformatK(k)}`]}
         );
       }
@@ -2254,7 +2086,7 @@ const handleAdt = (typeRep, typeSig, typeSigs) => ({
       default: _throw(
         TypeError,
         ["illegal property introspection"],
-        typeSig,
+        tSig,
         {desc: [
           `of property ${preformatK(k)}`,
           "duck typing is not allowed"
@@ -2268,15 +2100,15 @@ const handleAdt = (typeRep, typeSig, typeSigs) => ({
       case "toString":
       case "run": return o[k] = v, o;
       
-      case TYPE_REP: return typeRep = v, o; 
-      case TYPE_SIG: return typeSig = v, o;
+      case TYPE_REP: return tRep = v, o; 
+      case TYPE_SIG: return tSig = v, o;
 
       default: _throw(
         TypeError,
         ["illegal property mutation"],
-        typeSig,
+        tSig,
         {desc: [
-          `of property ${preformatK(k)} with type ${introspect1(v)}`,
+          `of property ${preformatK(k)} with type ${introspect(v)}`,
           "function Objects are immutable"
         ]}
       );
@@ -2287,9 +2119,9 @@ const handleAdt = (typeRep, typeSig, typeSigs) => ({
     _throw(
       TypeError,
       ["illegal property mutation"],
-      typeSig,
+      tSig,
       {desc: [
-        `of property ${preformatK(k)} with type ${introspect1(d.value)}`,
+        `of property ${preformatK(k)} with type ${introspect(d.value)}`,
         "function Objects are immutable"
       ]}
 
@@ -2300,7 +2132,7 @@ const handleAdt = (typeRep, typeSig, typeSigs) => ({
     _throw(
       TypeError,
       ["illegal property mutation"],
-      typeSig,
+      tSig,
       {desc: [
         `removal of property ${preformatK(k)}`,
         "function Objects are immutable"
@@ -2312,7 +2144,7 @@ const handleAdt = (typeRep, typeSig, typeSigs) => ({
     _throw(
       TypeError,
       ["illegal property introspection"],
-      typeSig,
+      tSig,
       {desc: [
         `of property ${preformatK(k)}`,
         "meta programming is not allowed"
@@ -2322,10 +2154,10 @@ const handleAdt = (typeRep, typeSig, typeSigs) => ({
 });
 
 
-const constructType = (adt, bindings) => {
+const constructType = (adt, constraints) => {
   let rep, sig = adt[TYPE_SIG];
 
-  bindings.forEach((v, k) => {
+  constraints.forEach((v, k) => {
     sig = adt[TYPE_SIG].replace(new RegExp(`\\b${k}\\b`), v);
   });
 
@@ -2334,131 +2166,106 @@ const constructType = (adt, bindings) => {
 };
 
 
-const match = (_case, nominalT, nominalS, realT, realS, typeSig) => {
-  switch (nominalT.constructor.name) {
-    case "AdtT": return matchAdt(_case, nominalT, nominalS, realT, realS, typeSig);
-    case "ArrT": return matchArr(_case, nominalT, nominalS, realT, realS, typeSig);
-    case "FunT": return matchFun(_case, nominalT, nominalS, realT, realS, typeSig);
-    case "_MapT": return matchMap(_case, nominalT, nominalS, realT, realS, typeSig);
-    case "MonoT": return matchMono(_case, nominalT, nominalS, realT, realS, typeSig);
-    case "PolyT": return matchPoly(_case, nominalT, nominalS, realT, realS, typeSig);
-    case "RecT": return matchRec(_case, nominalT, nominalS, realT, realS, typeSig);
-    case "TupT": return matchTup(_case, nominalT, nominalS, realT, realS, typeSig);
+const match = (_case, nomT, nomS, realT, realS, tSig) => {
+  switch (nomT.constructor.name) {
+    case "AdtT": return matchAdt(_case, nomT, nomS, realT, realS, tSig);
+    case "ArrT": return matchArr(_case, nomT, nomS, realT, realS, tSig);
+    case "FunT": return matchFun(_case, nomT, nomS, realT, realS, tSig);
+    case "_MapT": return matchMap(_case, nomT, nomS, realT, realS, tSig);
+    case "PrimT": return matchPrim(_case, nomT, nomS, realT, realS, tSig);
+    case "PolyT": return matchTvar(_case, nomT, nomS, realT, realS, tSig);
+    case "RecT": return matchRec(_case, nomT, nomS, realT, realS, tSig);
+    case "TupT": return matchTup(_case, nomT, nomS, realT, realS, tSig);
   }
 };
 
 
-const matchAdt = (_case, nominalT, nominalS, realT, realS, typeSig) => {
-  if (nominalT.tag !== realT.tag) {
-    const [from, to] = nominalT.fromTo;
+const matchAdt = (_case, nomT, nomS, realT, realS, tSig) => {
+  if (nomT.tag !== realT.tag) {
+    const [from, to] = nomT.range;
 
     _throw(
       TypeError,
-      [`${typeSig} case "${_case}" expects`],
-      nominalS,
-      {fromTo: [from, to], desc: [`${serialize(realT)} received`]}
+      [`${tSig} case "${_case}" expects`],
+      nomS,
+      {range: [from, to], desc: [`${serialize(realT)} received`]}
     );
   }
 
-  return nominalT.typeReps
+  return nomT.children
     .forEach((xT, n) => {
-      const nominalT_ = xT[0],
-        nominalS_ = serialize(nominalT_),
-        realT_ = realT.typeReps[n][0],
+      const nomT_ = xT[0],
+        nomS_ = serialize(nomT_),
+        realT_ = realT.children[n][0],
         realS_ = serialize(realT_);
 
-      return match(_case, nominalT_, nominalS_, realT_, realS_, typeSig);
-    }, bindings);
+      return match(_case, nomT_, nomS_, realT_, realS_, tSig);
+    }, constraints);
 };
 
 
-const matchArr = (_case, nominalT, nominalS, realT, realS, typeSig) => {
-  if (nominalT.tag !== realT.tag) {
-    const [from, to] = nominalT.fromTo;
+const matchArr = (_case, nomT, nomS, realT, realS, tSig) => {
+  if (nomT.tag !== realT.tag) {
+    const [from, to] = nomT.range;
 
     _throw(
       TypeError,
-      [`${typeSig} case "${_case}" expects`],
-      nominalS,
-      {fromTo: [from, to], desc: [`${serialize(realT)} received`]}
+      [`${tSig} case "${_case}" expects`],
+      nomS,
+      {range: [from, to], desc: [`${serialize(realT)} received`]}
     );
   }
 
-  return nominalT.typeReps
+  return nomT.children
     .forEach((xT, n) => {
-      const nominalT_ = xT[0],
-        nominalS_ = serialize(nominalT_),
-        realT_ = realT.typeReps[n][0],
+      const nomT_ = xT[0],
+        nomS_ = serialize(nomT_),
+        realT_ = realT.children[n][0],
         realS_ = serialize(realT_);
 
-      return match(_case, nominalT_, nominalS_, realT_, realS_, typeSig);
-    }, bindings);
+      return match(_case, nomT_, nomS_, realT_, realS_, tSig);
+    }, constraints);
 };
 
 
-const matchFun = (_case, nominalT, nominalS, realT, realS, typeSig) => {
-  if (nominalT.typeReps.length !== realT.typeReps.length) {
-    const [from, to] = nominalT.fromTo;
+const matchFun = (_case, nomT, nomS, realT, realS, tSig) => {
+  if (nomT.children.length !== realT.children.length) {
+    const [from, to] = nomT.range;
 
     _throw(
       ArityError,
-      [`${typeSig} case "${_case}" expects`],
-      nominalS,
-      {fromTo: [from, to], desc: [`${realS} received`]}
+      [`${tSig} case "${_case}" expects`],
+      nomS,
+      {range: [from, to], desc: [`${realS} received`]}
     );
   }
 
-  nominalT.typeReps
+  nomT.children
     .forEach((xT, n) => {
       switch (xT.constructor.name) {
-        case "NoArgT":
         case "ArgT":
+        case "NoArgT":
         case "RestT": {
-          if (xT.constructor.name !== realT.typeReps[n].constructor.name) {
-            const [from, to] = nominalT.fromTo;
+          if (xT.constructor.name !== realT.children[n].constructor.name) {
+            const [from, to] = nomT.range;
 
             _throw(
               ArityError,
-              [`${typeSig} case "${_case}" expects`],
-              nominalS,
-              {fromTo: [from, to], desc: [`${realS} received`]}
+              [`${tSig} case "${_case}" expects`],
+              nomS,
+              {range: [from, to], desc: [`${realS} received`]}
             );
           }
 
           else if (xT.constructor.name === "NoArgT") return;
 
           else {
-            const nominalT_ = xT[0],
-              nominalS_ = serialize(nominalT_),
-              realT_ = realT.typeReps[n][0],
+            const nomT_ = xT[0],
+              nomS_ = serialize(nomT_),
+              realT_ = realT.children[n][0],
               realS_ = serialize(realT_);
 
-            return match(_case, nominalT_, nominalS_, realT_, realS_, typeSig);
-          }
-        }
-
-        case "ArgsT": {
-          if (xT.constructor.name !== realT.typeReps[n].constructor.name
-          || xT.length !== realT.typeReps[n].length) {
-            const [from, to] = nominalT.fromTo;
-
-            _throw(
-              ArityError,
-              [`${typeSig} case "${_case}" expects`],
-              nominalS,
-              {fromTo: [from, to], desc: [`${realS} received`]}
-            );
-          }
-
-          else {
-            xT.forEach((yT, m) => {
-              const nominalT_ = yT[0],
-                nominalS_ = serialize(nominalT_),
-                realT_ = realT.typeReps[n][m][0],
-                realS_ = serialize(realT_);
-
-              return match(_case, nominalT_, nominalS_, realT_, realS_, typeSig);
-            });
+            return match(_case, nomT_, nomS_, realT_, realS_, tSig);
           }
         }
 
@@ -2468,121 +2275,121 @@ const matchFun = (_case, nominalT, nominalS, realT, realS, typeSig) => {
 };
 
 
-const matchMap = (_case, nominalT, nominalS, realT, realS, typeSig) => {
-  if (nominalT.tag !== realT.tag) {
-    const [from, to] = nominalT.fromTo;
+const matchMap = (_case, nomT, nomS, realT, realS, tSig) => {
+  if (nomT.tag !== realT.tag) {
+    const [from, to] = nomT.range;
 
     _throw(
       TypeError,
-      [`${typeSig} case "${_case}" expects`],
-      nominalS,
-      {fromTo: [from, to], desc: [`${serialize(realT)} received`]}
+      [`${tSig} case "${_case}" expects`],
+      nomS,
+      {range: [from, to], desc: [`${serialize(realT)} received`]}
     );
   }
 
-  return nominalT.typeReps
+  return nomT.children
     .forEach((xT, n) => {
       const {k: nominalKeyT, v: nominalValT} = xT[0],
         nominalKeyS = serialize(nominalKeyT),
         nominalValS = serialize(nominalValT),
-        realKeyT = realT.typeReps[n][0].k,
-        realValT = realT.typeReps[n][0].v,
+        realKeyT = realT.children[n][0].k,
+        realValT = realT.children[n][0].v,
         realKeyS = serialize(realKeyT),
         realValS = serialize(realValT);
 
-      match(_case, nominalKeyT, nominalKeyS, realKeyT, realKeyS, typeSig);
-      return match(_case, nominalValT, nominalValS, realValT, realValS, typeSig);
+      match(_case, nominalKeyT, nominalKeyS, realKeyT, realKeyS, tSig);
+      return match(_case, nominalValT, nominalValS, realValT, realValS, tSig);
     });
 };
 
 
-const matchMono = (_case, nominalT, nominalS, realT, realS, typeSig) => {
-  if (nominalT.tag !== realT.tag) {
-    const [from, to] = nominalT.fromTo;
+const matchPrim = (_case, nomT, nomS, realT, realS, tSig) => {
+  if (nomT.tag !== realT.tag) {
+    const [from, to] = nomT.range;
 
     _throw(
       TypeError,
-      [`${typeSig} case "${_case}" expects`],
-      nominalS,
-      {fromTo: [from, to], desc: [`${serialize(realT)} received`]}
+      [`${tSig} case "${_case}" expects`],
+      nomS,
+      {range: [from, to], desc: [`${serialize(realT)} received`]}
     );
   }
 };
 
 
-const matchPoly = (_case, nominalT, nominalS, realT, realS, typeSig) => {};
+const matchTvar = (_case, nomT, nomS, realT, realS, tSig) => {};
 
 
-const matchRec = (_case, nominalT, nominalS, realT, realS, typeSig) => {
-  if (nominalT.tag !== realT.tag) {
-    const [from, to] = nominalT.fromTo;
+const matchRec = (_case, nomT, nomS, realT, realS, tSig) => {
+  if (nomT.tag !== realT.tag) {
+    const [from, to] = nomT.range;
 
     _throw(
       TypeError,
-      [`${typeSig} case "${_case}" expects`],
-      nominalS,
-      {fromTo: [from, to], desc: [`${serialize(realT)} received`]}
+      [`${tSig} case "${_case}" expects`],
+      nomS,
+      {range: [from, to], desc: [`${serialize(realT)} received`]}
     );
   }
 
-  return nominalT.typeReps
+  return nomT.children
     .forEach((xT, n) => {
       const {k: nominalKey, v: nominalValT} = xT[0],
         nominalValS = serialize(nominalValT),
-        realKey = realT.typeReps[n][0].k,
-        realValT = realT.typeReps[n][0].v,
+        realKey = realT.children[n][0].k,
+        realValT = realT.children[n][0].v,
         realValS = serialize(realValT);
 
       if (nominalKey !== realKey) {
-        // TODO: add key fromTo
+        // TODO: add key range
         _throw(
           TypeError,
-          [`${typeSig} case "${_case}" expects`],
-          typeSig,
-          {fromTo: [0, -1], desc: [`${realKey} received`]}
+          [`${tSig} case "${_case}" expects`],
+          tSig,
+          {range: [0, -1], desc: [`${realKey} received`]}
         );
       }
 
-      return match(_case, nominalValT, nominalValS, realValT, realValS, typeSig);
-    }, bindings);
+      return match(_case, nominalValT, nominalValS, realValT, realValS, tSig);
+    }, constraints);
 };
 
 
-const matchTup = (_case, nominalT, nominalS, realT, realS, typeSig) => {
-  if (nominalT.tag !== realT.tag) {
-    const [from, to] = nominalT.fromTo;
+const matchTup = (_case, nomT, nomS, realT, realS, tSig) => {
+  if (nomT.tag !== realT.tag) {
+    const [from, to] = nomT.range;
 
     _throw(
       TypeError,
-      [`${typeSig} case "${_case}" expects`],
-      nominalS,
-      {fromTo: [from, to], desc: [`${serialize(realT)} received`]}
+      [`${tSig} case "${_case}" expects`],
+      nomS,
+      {range: [from, to], desc: [`${serialize(realT)} received`]}
     );
   }
 
-  return nominalT.typeReps
+  return nomT.children
     .forEach((xT, n) => {
-      const nominalT_ = xT[0],
-        nominalS_ = serialize(nominalT_),
-        realT_ = realT.typeReps[n][0],
+      const nomT_ = xT[0],
+        nomS_ = serialize(nomT_),
+        realT_ = realT.children[n][0],
         realS_ = serialize(realT_);
 
-      return match(_case, nominalT_, nominalS_, realT_, realS_, typeSig);
-    }, bindings);
+      return match(_case, nomT_, nomS_, realT_, realS_, tSig);
+    }, constraints);
 };
 
 
 /******************************************************************************
-*****[ 8.3. ARRAYS ]***********************************************************
+*****[ 7.3. Arrays ]***********************************************************
 ******************************************************************************/
 
 
 const _Arr = ({immu = false, sig = ""}) => xs => {
   if (types) {
-    if (!introspect(xs).has("Array")) _throw(
+    if (introspect(xs) !== "Array") _throw(
       TypeError,
       ["Arr expects an Array"],
-      introspect1(xs),
+      introspect(xs),
       {desc: ["received"]}
     );
 
@@ -2593,7 +2400,7 @@ const _Arr = ({immu = false, sig = ""}) => xs => {
       {desc: ["received (illegal retyping)"]}
     );
 
-    let typeSig = infer(xs);
+    let tSig = introspectR(xs);
 
     if (xs.length === 0) {
       if (sig === "") _throw(
@@ -2603,32 +2410,32 @@ const _Arr = ({immu = false, sig = ""}) => xs => {
         {desc: ["explicit type annotation necessary"]}
       );
 
-      else typeSig = sig;
+      else tSig = sig;
     }
 
-    const typeRep = deserialize(typeSig),
+    const tRep = deserialize(tSig),
       voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
 
-    if (typeRep.typeReps.length > 1) _throw(
+    if (tRep.children.length > 1) _throw(
       TypeError,
       ["Arr expects homogeneous Array"],
-      typeSig,
+      tSig,
       {desc: [`mixed typed values received`]}
     );
 
-    else if (typeSig.search(voidPattern) !== -1) {
-      const {index: from, 0: match} = typeSig.match(voidPattern),
+    else if (tSig.search(voidPattern) !== -1) {
+      const {index: from, 0: match} = tSig.match(voidPattern),
         to = from + match.length - 1;
 
       _throw(
         TypeError,
         ["Arr must not contain void values"],
-        typeSig,
-        {fromTo: [from, to], desc: [`${match} received`]}
+        tSig,
+        {range: [from, to], desc: [`${match} received`]}
       );
     }
 
-    return new Proxy(xs, handleArr(typeRep, typeSig, immu));
+    return new Proxy(xs, handleArr(tRep, tSig, immu));
   }
 
   else return xs;
@@ -2641,23 +2448,23 @@ export const Arr = _Arr({});
 export const Iarr = _Arr({immu: true})
 
 
-export const Earr = typeSig => _Arr({sig: typeSig});
+export const Earr = tSig => _Arr({sig: tSig});
 
 
-const handleArr = (typeRep, typeSig, immu) => ({
+const handleArr = (tRep, tSig, immu) => ({
   get: (xs, i, p) => {
     switch (i) {
-      case "toString": return () => typeSig;
+      case "toString": return () => tSig;
       case Symbol.toStringTag: return "Arr";
       case Symbol.isConcatSpreadable: return xs[Symbol.isConcatSpreadable];
-      case TYPE_REP: return typeRep;
-      case TYPE_SIG: return typeSig;
+      case TYPE_REP: return tRep;
+      case TYPE_SIG: return tSig;
 
       case Symbol.toPrimitive: return hint => {
         _throw(
           TypeError,
           ["illegal implicit type conversion"],
-          typeSig,
+          tSig,
           {desc: [
             `must not be converted to ${capitalize(hint)} primitive`,
             "use explicit type casts instead"
@@ -2671,7 +2478,7 @@ const handleArr = (typeRep, typeSig, immu) => ({
         else _throw(
           TypeError,
           ["illegal property access"],
-          typeSig,
+          tSig,
           {desc: [`unknown property ${preformatK(i)}`]}
         );
       }
@@ -2687,7 +2494,7 @@ const handleArr = (typeRep, typeSig, immu) => ({
         default: _throw(
           TypeError,
           ["illegal property introspection"],
-          typeSig,
+          tSig,
           {desc: [
             `of property ${preformatK(i)}`,
             "duck typing is not allowed"
@@ -2699,14 +2506,14 @@ const handleArr = (typeRep, typeSig, immu) => ({
     else return i in xs;
   },
 
-  set: (xs, i, v, p) => setArr(typeRep, typeSig, immu, xs, i, {value: v}, "set"),
-  defineProperty: (xs, i, d) => setArr(typeRep, typeSig, immu, xs, i, d, "def"),
+  set: (xs, i, v, p) => setArr(tRep, tSig, immu, xs, i, {value: v}, "set"),
+  defineProperty: (xs, i, d) => setArr(tRep, tSig, immu, xs, i, d, "def"),
 
   deleteProperty: (xs, i) => {
     if (immu) _throw(
       TypeError,
       ["illegal property deletion"],
-      typeSig,
+      tSig,
       {desc: [
         `of property ${preformatK(i)}`,
         "immutable Array"
@@ -2717,7 +2524,7 @@ const handleArr = (typeRep, typeSig, immu) => ({
       if (Number.isNaN(Number(i))) _throw(
         TypeError,
         ["illegal property deletion"],
-        typeSig,
+        tSig,
         {desc: [
           `of property ${preformatK(i)}`,
           "do not use Arrays as Objects"
@@ -2728,7 +2535,7 @@ const handleArr = (typeRep, typeSig, immu) => ({
         if (Number(i) !== xs.length - 1) _throw(
           TypeError,
           ["illegal property deletion"],
-          typeSig,
+          tSig,
           {desc: [
             `of property ${preformatK(i)}`,
             `where Array includes ${xs.length} elements`,
@@ -2745,7 +2552,7 @@ const handleArr = (typeRep, typeSig, immu) => ({
   ownKeys: xs => _throw(
     TypeError,
     ["illegal property introspection"],
-    typeSig,
+    tSig,
     {desc: [
       `of property ${preformatK(i)}`,
       "meta programming is not allowed"
@@ -2754,13 +2561,13 @@ const handleArr = (typeRep, typeSig, immu) => ({
 });
 
 
-const setArr = (typeRep, typeSig, immu, xs, i, d, mode) => {
+const setArr = (tRep, tSig, immu, xs, i, d, mode) => {
   if (immu) _throw(
     TypeError,
     ["illegal property mutation"],
-    typeSig,
+    tSig,
     {desc: [
-      `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
+      `of property ${preformatK(i)} with type ${introspect(d.value)}`,
       "immutable Array"
     ]}
   );
@@ -2769,9 +2576,9 @@ const setArr = (typeRep, typeSig, immu, xs, i, d, mode) => {
     if (Number.isNaN(Number(i))) _throw(
       TypeError,
       ["illegal property setting"],
-      typeSig,
+      tSig,
       {desc: [
-        `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
+        `of property ${preformatK(i)} with type ${introspect(d.value)}`,
         "do not use Arrays as Objects"
       ]}
     );
@@ -2780,23 +2587,23 @@ const setArr = (typeRep, typeSig, immu, xs, i, d, mode) => {
       if (Number(i) > xs.length) _throw(
         TypeError,
         ["illegal property setting"],
-        typeSig,
+        tSig,
         {desc: [
-          `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
+          `of property ${preformatK(i)} with type ${introspect(d.value)}`,
           `where Array includes only ${xs.length} elements`,
           "index gaps are not allowed"
         ]}
       );
 
-      else if (typeSig !== `[${infer(d.value)}]`) {
-        const [from, to] = typeRep.typeReps[0].fromTo;
+      else if (tSig !== `[${introspectR(d.value)}]`) {
+        const [from, to] = tRep.children[0].range;
 
         _throw(
           TypeError,
           ["illegal property mutation"],
-          typeSig,
-          {fromTo: [from, to], desc: [
-            `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
+          tSig,
+          {range: [from, to], desc: [
+            `of property ${preformatK(i)} with type ${introspect(d.value)}`,
             "heterogeneous Arrays are not allowed"
           ]}
         );
@@ -2813,16 +2620,16 @@ const setArr = (typeRep, typeSig, immu, xs, i, d, mode) => {
 
 
 /******************************************************************************
-*****[ 8.4. TUPLES ]***********************************************************
+*****[ 7.4. Tuples ]***********************************************************
 ******************************************************************************/
 
 
 const _Tup = ({immu = false}) => xs => {
   if (types) {
-    if (!introspect(xs).has("Array")) _throw(
+    if (introspect(xs) !== "Array") _throw(
       TypeError,
       ["Tup expects an Array"],
-      introspect1(xs),
+      introspect(xs),
       {desc: ["received"]}
     );
 
@@ -2833,31 +2640,31 @@ const _Tup = ({immu = false}) => xs => {
       {desc: ["received (illegal retyping)"]}
     );
 
-    const typeSig = infer(xs);
+    const tSig = introspectR(xs);
 
     if (xs.length < 2) _throw(
       TypeError,
       ["Tup received an invalid Array"],
-      typeSig,
-      {fromTo: [0, typeSig.length - 1], desc: ["Tuples must comprise at least 2 fields"]}
+      tSig,
+      {range: [0, tSig.length - 1], desc: ["Tuples must comprise at least 2 fields"]}
     );
 
-    const typeRep = deserialize(typeSig),
+    const tRep = deserialize(tSig),
       voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
 
-    if (typeSig.search(voidPattern) !== -1) {
-      const {index: from, 0: match} = typeSig.match(voidPattern),
+    if (tSig.search(voidPattern) !== -1) {
+      const {index: from, 0: match} = tSig.match(voidPattern),
         to = from + match.length - 1;
 
       _throw(
         TypeError,
         ["Tup must not contain void values"],
-        typeSig,
-        {fromTo: [from, to], desc: [`${match} received`]}
+        tSig,
+        {range: [from, to], desc: [`${match} received`]}
       );
     }
 
-    return new Proxy(xs, handleTup(typeRep, typeSig, immu));
+    return new Proxy(xs, handleTup(tRep, tSig, immu));
   }
 
   else return xs;
@@ -2870,20 +2677,20 @@ export const Tup = _Tup({});
 export const Itup = _Tup({immu: true});
 
 
-const handleTup = (typeRep, typeSig, immu) => ({
+const handleTup = (tRep, tSig, immu) => ({
   get: (xs, i, p) => {
     switch (i) {
-      case "toString": return () => typeSig;
+      case "toString": return () => tSig;
       case Symbol.toStringTag: return "Tup";
       case Symbol.isConcatSpreadable: return xs[Symbol.isConcatSpreadable];
-      case TYPE_REP: return typeRep;
-      case TYPE_SIG: return typeSig;
+      case TYPE_REP: return tRep;
+      case TYPE_SIG: return tSig;
 
       case Symbol.toPrimitive: return hint => {
         _throw(
           TypeError,
           ["illegal implicit type conversion"],
-          typeSig,
+          tSig,
           {desc: [
             `must not be converted to ${capitalize(hint)} primitive`,
             "use explicit type casts instead"
@@ -2897,7 +2704,7 @@ const handleTup = (typeRep, typeSig, immu) => ({
         else _throw(
           TypeError,
           ["illegal property access"],
-          typeSig,
+          tSig,
           {desc: [`unknown property ${preformatK(i)}`]}
         );
       }
@@ -2912,7 +2719,7 @@ const handleTup = (typeRep, typeSig, immu) => ({
       default: _throw(
         TypeError,
         ["illegal property introspection"],
-        typeSig,
+        tSig,
         {desc: [
           `of property ${preformatK(i)}`,
           "duck typing is not allowed"
@@ -2921,13 +2728,13 @@ const handleTup = (typeRep, typeSig, immu) => ({
     }
   },
 
-  set: (xs, i, v, p) => setTup(typeRep, typeSig, immu, xs, i, {value: v}, "set"),
-  defineProperty: (xs, i, d) => setTup(typeRep, typeSig, immu, xs, i, d, "def"),
+  set: (xs, i, v, p) => setTup(tRep, tSig, immu, xs, i, {value: v}, "set"),
+  defineProperty: (xs, i, d) => setTup(tRep, tSig, immu, xs, i, d, "def"),
 
   deleteProperty: (xs, i) => _throw(
     TypeError,
     ["illegal property deletion"],
-    typeSig,
+    tSig,
     {desc: [
       `of property ${preformatK(i)}`,
       "Tuples are either immutable or sealed"
@@ -2937,7 +2744,7 @@ const handleTup = (typeRep, typeSig, immu) => ({
   ownKeys: xs => _throw(
     TypeError,
     ["illegal property introspection"],
-    typeSig,
+    tSig,
     {desc: [
       `of property ${preformatK(i)}`,
       "meta programming is not allowed"
@@ -2946,13 +2753,13 @@ const handleTup = (typeRep, typeSig, immu) => ({
 });
 
 
-const setTup = (typeRep, typeSig, immu, xs, i, d, mode) => {
+const setTup = (tRep, tSig, immu, xs, i, d, mode) => {
   if (immu) _throw(
     TypeError,
     ["illegal property mutation"],
-    typeSig,
+    tSig,
     {desc: [
-      `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
+      `of property ${preformatK(i)} with type ${introspect(d.value)}`,
       "immutable Tuple"
     ]}
   );
@@ -2961,9 +2768,9 @@ const setTup = (typeRep, typeSig, immu, xs, i, d, mode) => {
     if (Number.isNaN(Number(i))) _throw(
       TypeError,
       ["illegal property setting"],
-      typeSig,
+      tSig,
       {desc: [
-        `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
+        `of property ${preformatK(i)} with type ${introspect(d.value)}`,
         "do not use Tuples as Objects"
       ]}
     );
@@ -2972,23 +2779,23 @@ const setTup = (typeRep, typeSig, immu, xs, i, d, mode) => {
       if (Number(i) >= xs.length) _throw(
         TypeError,
         ["illegal property setting"],
-        typeSig,
+        tSig,
         {desc: [
-          `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
+          `of property ${preformatK(i)} with type ${introspect(d.value)}`,
           `where Tuple includes only ${xs.length} fields`,
           "sealed Tuple"
         ]}
       );
 
-      else if (serialize(typeRep.typeReps[i]) !== `${introspect1(d.value)}`) {
-        const [from, to] = typeRep.typeReps[0].fromTo;
+      else if (serialize(tRep.children[i]) !== `${introspect(d.value)}`) {
+        const [from, to] = tRep.children[0].range;
 
         _throw(
           TypeError,
           ["illegal property mutation"],
-          typeSig,
-          {fromTo: [from, to], desc: [
-            `of property ${preformatK(i)} with type ${introspect1(d.value)}`,
+          tSig,
+          {range: [from, to], desc: [
+            `of property ${preformatK(i)} with type ${introspect(d.value)}`,
             "fields must maintain their type"
           ]}
         );
@@ -3005,16 +2812,16 @@ const setTup = (typeRep, typeSig, immu, xs, i, d, mode) => {
 
 
 /******************************************************************************
-*****[ 8.5. MAPS ]*************************************************************
+*****[ 7.5. Maps ]*************************************************************
 ******************************************************************************/
 
 
 const __Map = ({immu = false, sig = ""}) => map => {
   if (types) {
-    if (!introspect(map).has("Map")) _throw(
+    if (introspect(map) !== "Map") _throw(
       TypeError,
       ["_Map expects a Map"],
-      introspect1(map),
+      introspect(map),
       {desc: ["received"]}
     );
 
@@ -3025,7 +2832,7 @@ const __Map = ({immu = false, sig = ""}) => map => {
       {desc: ["received (illegal retyping)"]}
     );
 
-    let typeSig = infer(map);
+    let tSig = introspectR(map);
 
     if (map.size === 0) {
       if (sig === "") _throw(
@@ -3035,32 +2842,32 @@ const __Map = ({immu = false, sig = ""}) => map => {
         {desc: ["explicit type annotation necessary"]}
       );
 
-      else typeSig = sig;
+      else tSig = sig;
     }
 
-    const typeRep = deserialize(typeSig),
+    const tRep = deserialize(tSig),
       voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
 
-    if (typeRep.typeReps.length > 1) _throw(
+    if (tRep.children.length > 1) _throw(
       TypeError,
       ["_Map expects homogeneous Map"],
-      typeSig,
+      tSig,
       {desc: [`mixed typed values received`]}
     );
 
-    else if (typeSig.search(voidPattern) !== -1) {
-      const {index: from, 0: match} = typeSig.match(voidPattern),
+    else if (tSig.search(voidPattern) !== -1) {
+      const {index: from, 0: match} = tSig.match(voidPattern),
         to = from + match.length - 1;
 
       _throw(
         TypeError,
         ["_Map must not contain void values"],
-        typeSig,
-        {fromTo: [from, to], desc: [`${match} received`]}
+        tSig,
+        {range: [from, to], desc: [`${match} received`]}
       );
     }
 
-    return new Proxy(map, handleMap(typeRep, typeSig, immu));
+    return new Proxy(map, handleMap(tRep, tSig, immu));
   }
 
   else return map;
@@ -3073,23 +2880,23 @@ export const _Map = __Map({});
 export const Imap = __Map({immu: true})
 
 
-export const Emap = typeSig => __Map({sig: typeSig});
+export const Emap = tSig => __Map({sig: tSig});
 
 
-const handleMap = (typeRep, typeSig, immu) => ({
+const handleMap = (tRep, tSig, immu) => ({
   get: (map, k, p) => {
     switch (k) {
-      case "toString": return () => typeSig;
+      case "toString": return () => tSig;
       case Symbol.toStringTag: return "_Map";
       case Symbol.isConcatSpreadable: return map[Symbol.isConcatSpreadable];
-      case TYPE_REP: return typeRep;
-      case TYPE_SIG: return typeSig;
+      case TYPE_REP: return tRep;
+      case TYPE_SIG: return tSig;
 
       case Symbol.toPrimitive: return hint => {
         _throw(
           TypeError,
           ["illegal implicit type conversion"],
-          typeSig,
+          tSig,
           {desc: [
             `must not be converted to ${capitalize(hint)} primitive`,
             "use explicit type casts instead"
@@ -3103,8 +2910,8 @@ const handleMap = (typeRep, typeSig, immu) => ({
         else _throw(
           TypeError,
           ["illegal property access"],
-          typeSig,
-          {desc: [`unknown key ${preformatK(introspect1(k))}`]}
+          tSig,
+          {desc: [`unknown key ${preformatK(introspect(k))}`]}
         );
       };
 
@@ -3112,37 +2919,37 @@ const handleMap = (typeRep, typeSig, immu) => ({
         if (immu) _throw(
           TypeError,
           ["illegal property mutation"],
-          typeSig,
+          tSig,
           {desc: [
-            `of property ${preformatK(introspect1(k))} with type ${introspect1(d.value)}`,
+            `of property ${preformatK(introspect(k))} with type ${introspect(d.value)}`,
             "immutable Map"
           ]}
         );
 
         else {
-          if (infer(k) !== typeRep.typeReps[0].k) {
-            // TODO: fromTo for keys            
+          if (introspectR(k) !== tRep.children[0].k) {
+            // TODO: range for keys            
 
             _throw(
               TypeError,
               ["illegal property mutation"],
-              typeSig,
-              {fromTo: [0, -1], desc: [ 
-                `of key ${preformatK(introspect1(k))} with type ${introspect1(d.value)}`,
+              tSig,
+              {range: [0, -1], desc: [ 
+                `of key ${preformatK(introspect(k))} with type ${introspect(d.value)}`,
                 "heterogeneous Maps are not allowed"
               ]}
             );
           }
 
-          else if (infer(v) !== typeRep.typeReps[0].v) {
-            const [from, to] = typeRep.typeReps[0].v.fromTo;
+          else if (introspectR(v) !== tRep.children[0].v) {
+            const [from, to] = tRep.children[0].v.range;
 
             _throw(
               TypeError,
               ["illegal property mutation"],
-              typeSig,
-              {fromTo: [from, to], desc: [
-                `of property ${preformatK(introspect1(k))} with type ${introspect1(d.value)}`,
+              tSig,
+              {range: [from, to], desc: [
+                `of property ${preformatK(introspect(k))} with type ${introspect(d.value)}`,
                 "heterogeneous Maps are not allowed"
               ]}
             );
@@ -3156,9 +2963,9 @@ const handleMap = (typeRep, typeSig, immu) => ({
         if (immu) _throw(
           TypeError,
           ["illegal property mutation"],
-          typeSig,
+          tSig,
           {desc: [
-            `of key ${preformatK(introspect1(k))} with type ${introspect1(d.value)}`,
+            `of key ${preformatK(introspect(k))} with type ${introspect(d.value)}`,
             "immutable Map"
           ]}
         );
@@ -3169,8 +2976,8 @@ const handleMap = (typeRep, typeSig, immu) => ({
           else _throw(
             TypeError,
             ["illegal property deletion"],
-            typeSig,
-            {desc: [`unknown key ${preformatK(introspect1(k))}`]}
+            tSig,
+            {desc: [`unknown key ${preformatK(introspect(k))}`]}
           );
         }
       };
@@ -3179,9 +2986,9 @@ const handleMap = (typeRep, typeSig, immu) => ({
         if (immu) _throw(
           TypeError,
           ["illegal property mutation"],
-          typeSig,
+          tSig,
           {desc: [
-            `of property ${preformatK(introspect1(k))} with type ${introspect1(d.value)}`,
+            `of property ${preformatK(introspect(k))} with type ${introspect(d.value)}`,
             "immutable Array"
           ]}
         );
@@ -3195,7 +3002,7 @@ const handleMap = (typeRep, typeSig, immu) => ({
         else _throw(
           TypeError,
           ["illegal property access"],
-          typeSig,
+          tSig,
           {desc: [`unknown property ${preformatK(k)}`]}
         );
       }
@@ -3210,7 +3017,7 @@ const handleMap = (typeRep, typeSig, immu) => ({
       default: _throw(
         TypeError,
         ["illegal property introspection"],
-        typeSig,
+        tSig,
         {desc: [
           `of property ${preformatK(k)}`,
           "duck typing is not allowed"
@@ -3226,9 +3033,9 @@ const handleMap = (typeRep, typeSig, immu) => ({
       default: _throw(
         TypeError,
         ["illegal property mutation"],
-        typeSig,
+        tSig,
         {desc: [
-          `of property ${preformatK(k)} with type ${introspect1(v)}`,
+          `of property ${preformatK(k)} with type ${introspect(v)}`,
           "map Objects are immutable"
         ]}
       );
@@ -3239,9 +3046,9 @@ const handleMap = (typeRep, typeSig, immu) => ({
     _throw(
       TypeError,
       ["illegal property mutation"],
-      typeSig,
+      tSig,
       {desc: [
-        `of property ${preformatK(k)} with type ${introspect1(d.value)}`,
+        `of property ${preformatK(k)} with type ${introspect(d.value)}`,
         "map Objects are immutable"
       ]}
 
@@ -3252,7 +3059,7 @@ const handleMap = (typeRep, typeSig, immu) => ({
     _throw(
       TypeError,
       ["illegal property mutation"],
-      typeSig,
+      tSig,
       {desc: [
         `removal of property ${preformatK(k)}`,
         "map Objects are immutable"
@@ -3263,7 +3070,7 @@ const handleMap = (typeRep, typeSig, immu) => ({
   ownKeys: map => _throw(
     TypeError,
     ["illegal property introspection"],
-    typeSig,
+    tSig,
     {desc: [
       `of property ${preformatK(k)}`,
       "meta programming is not allowed"
@@ -3273,16 +3080,16 @@ const handleMap = (typeRep, typeSig, immu) => ({
 
 
 /******************************************************************************
-*****[ 8.6. RECORDS ]**********************************************************
+*****[ 7.6. Records ]**********************************************************
 ******************************************************************************/
 
 
 const _Rec = ({immu = false, sig = ""}) => o => {
   if (types) {
-    if (!introspect(o).has("Object")) _throw(
+    if (introspect(o) !== "Object") _throw(
       TypeError,
       ["Rec expects an Object"],
-      introspect1(o),
+      introspect(o),
       {desc: ["received"]}
     );
 
@@ -3293,31 +3100,31 @@ const _Rec = ({immu = false, sig = ""}) => o => {
       {desc: ["received (illegal retyping)"]}
     );
 
-    let typeSig = infer(o);
+    let tSig = introspectR(o);
 
     if (Object.keys(o).length === 0) _throw(
       TypeError,
       ["Tup received an invalid Array"],
-      typeSig,
-      {fromTo: [0, typeSig.length - 1], desc: ["Records must comprise at least 1 field"]}
+      tSig,
+      {range: [0, tSig.length - 1], desc: ["Records must comprise at least 1 field"]}
     );
 
-    const typeRep = deserialize(typeSig),
+    const tRep = deserialize(tSig),
       voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
 
-    if (typeSig.search(voidPattern) !== -1) {
-      const {index: from, 0: match} = typeSig.match(voidPattern),
+    if (tSig.search(voidPattern) !== -1) {
+      const {index: from, 0: match} = tSig.match(voidPattern),
         to = from + match.length - 1;
 
       _throw(
         TypeError,
         ["Rec must not contain void values"],
-        typeSig,
-        {fromTo: [from, to], desc: [`${match} received`]}
+        tSig,
+        {range: [from, to], desc: [`${match} received`]}
       );
     }
 
-    return new Proxy(o, handleRec(typeRep, typeSig, immu));
+    return new Proxy(o, handleRec(tRep, tSig, immu));
   }
 
   else return o;
@@ -3330,20 +3137,20 @@ export const Rec = _Rec({});
 export const Irec = _Rec({immu: true})
 
 
-const handleRec = (typeRep, typeSig, immu) => ({
+const handleRec = (tRep, tSig, immu) => ({
   get: (o, k, p) => {
     switch (k) {
-      case "toString": return () => typeSig;
+      case "toString": return () => tSig;
       case Symbol.toStringTag: return "Rec";
       case Symbol.isConcatSpreadable: return o[Symbol.isConcatSpreadable];
-      case TYPE_REP: return typeRep;
-      case TYPE_SIG: return typeSig;
+      case TYPE_REP: return tRep;
+      case TYPE_SIG: return tSig;
 
       case Symbol.toPrimitive: return hint => {
         _throw(
           TypeError,
           ["illegal implicit type conversion"],
-          typeSig,
+          tSig,
           {desc: [
             `must not be converted to ${capitalize(hint)} primitive`,
             "use explicit type casts instead"
@@ -3357,7 +3164,7 @@ const handleRec = (typeRep, typeSig, immu) => ({
         else _throw(
           TypeError,
           ["illegal property access"],
-          typeSig,
+          tSig,
           {desc: [`unknown property ${preformatK(k)}`]}
         );
       }
@@ -3372,7 +3179,7 @@ const handleRec = (typeRep, typeSig, immu) => ({
       default: _throw(
         TypeError,
         ["illegal property introspection"],
-        typeSig,
+        tSig,
         {desc: [
           `of property ${preformatK(k)}`,
           "duck typing is not allowed"
@@ -3381,13 +3188,13 @@ const handleRec = (typeRep, typeSig, immu) => ({
     }
   },
 
-  set: (o, k, v, p) => setRec(typeRep, typeSig, immu, o, k, {value: v}, "set"),
-  defineProperty: (o, k, d) => setRec(typeRep, typeSig, immu, o, k, d, "def"),
+  set: (o, k, v, p) => setRec(tRep, tSig, immu, o, k, {value: v}, "set"),
+  defineProperty: (o, k, d) => setRec(tRep, tSig, immu, o, k, d, "def"),
 
   deleteProperty: (o, k) => _throw(
     TypeError,
     ["illegal property deletion"],
-    typeSig,
+    tSig,
     {desc: [
       `of property ${preformatK(k)}`,
       "Records are either immutable or sealed"
@@ -3397,7 +3204,7 @@ const handleRec = (typeRep, typeSig, immu) => ({
   ownKeys: o => _throw(
     TypeError,
     ["illegal property introspection"],
-    typeSig,
+    tSig,
     {desc: [
       `of property ${preformatK(k)}`,
       "meta programming is not allowed"
@@ -3406,41 +3213,41 @@ const handleRec = (typeRep, typeSig, immu) => ({
 });
 
 
-const setRec = (typeRep, typeSig, immu, o, k, d, mode) => {
+const setRec = (tRep, tSig, immu, o, k, d, mode) => {
   if (immu) _throw(
     TypeError,
     ["illegal property mutation"],
-    typeSig,
+    tSig,
     {desc: [
-      `of property ${preformatK(k)} with type ${introspect1(d.value)}`,
+      `of property ${preformatK(k)} with type ${introspect(d.value)}`,
       "immutable Record"
     ]}
   );
 
   else {
-    if (!introspect(k).has("String")) _throw(
+    if (introspect(k) !== "String") _throw(
       TypeError,
       ["illegal property mutation"],
-      typeSig,
-      {desc: [`invalid key type ${introspect1(k)}`]}
+      tSig,
+      {desc: [`invalid key type ${introspect(k)}`]}
     );
 
     else if (!(k in o)) _throw(
       TypeError,
       ["illegal property mutation"],
-      typeSig,
+      tSig,
       {desc: [`unknown key "${k}"`]}
     );
 
-    else if (serialize(typeRep.typeReps[k]) !== `${introspect1(d.value)}`) {
-      const [from, to] = typeRep.typeReps[0].fromTo;
+    else if (serialize(tRep.children[k]) !== `${introspect(d.value)}`) {
+      const [from, to] = tRep.children[0].range;
 
       _throw(
         TypeError,
         ["illegal property mutation"],
-        typeSig,
-        {fromTo: [from, to], desc: [
-          `of property ${preformatK(k)} with type ${introspect1(d.value)}`,
+        tSig,
+        {range: [from, to], desc: [
+          `of property ${preformatK(k)} with type ${introspect(d.value)}`,
           "fields must maintain their type"
         ]}
       );
@@ -3456,7 +3263,7 @@ const setRec = (typeRep, typeSig, immu, o, k, d, mode) => {
 
 
 /******************************************************************************
-*****[ 8.7. SUBTYPES ]*********************************************************
+*****[ 7.7. Subtypes ]*********************************************************
 ******************************************************************************/
 
 
@@ -3468,22 +3275,22 @@ class Int extends Number {
 
 
 /******************************************************************************
-*****[ 8.8. ERRORS ]***********************************************************
+*****[ 7.8. Errors ]***********************************************************
 ******************************************************************************/
 
 
-//---[ Subtypes ]--------------------------------------------------------------
+//***[ 7.8.1. Subtypes ]*******************************************************
 
 
-class DevModeError extends Error {
+class TypeSysError extends Error {
   constructor(x) {
     super(x);
-    Error.captureStackTrace(this, DevModeError);
+    Error.captureStackTrace(this, TypeSysError);
   }
 };
 
 
-class ArityError extends DevModeError {
+class ArityError extends TypeSysError {
   constructor(x) {
     super(x);
     Error.captureStackTrace(this, ArityError);
@@ -3491,7 +3298,7 @@ class ArityError extends DevModeError {
 };
 
 
-class ReturnTypeError extends DevModeError {
+class ReturnTypeError extends TypeSysError {
   constructor(x) {
     super(x);
     Error.captureStackTrace(this, ReturnTypeError);
@@ -3499,7 +3306,7 @@ class ReturnTypeError extends DevModeError {
 };
 
 
-class TypeInferenceError extends DevModeError {
+class TypeInferenceError extends TypeSysError {
   constructor(x) {
     super(x);
     Error.captureStackTrace(this, TypeInferenceError);
@@ -3507,7 +3314,7 @@ class TypeInferenceError extends DevModeError {
 };
 
 
-class TypeRepError extends DevModeError {
+class TypeRepError extends TypeSysError {
   constructor(x) {
     super(x);
     Error.captureStackTrace(this, TypeRepError);
@@ -3515,7 +3322,7 @@ class TypeRepError extends DevModeError {
 };
 
 
-class TypeSigError extends DevModeError {
+class TypeSigError extends TypeSysError {
   constructor(x) {
     super(x);
     Error.captureStackTrace(this, TypeSigError);
@@ -3523,7 +3330,7 @@ class TypeSigError extends DevModeError {
 };
 
 
-//---[ Formatting ]------------------------------------------------------------
+//***[ 7.8.2. Formatting ]*****************************************************
 
 
 const ul = (n, m) => Array(n + 1).join(" ") + Array(m - n + 2).join("^");
@@ -3547,13 +3354,13 @@ const preformatV = x => {
 };
 
 
-const _throw = (Cons, title, subject, {fromTo = [0, -1], desc = []}) => {
-  const [from, to] = fromTo;
+const _throw = (Cons, title, subject, {range = [0, -1], desc = []}) => {
+  const [from, to] = range;
 
   throw new Cons(title
     .join("\n")
     .concat(`\n\n${subject}`)
-    .concat(fromTo.length === 2 ? `\n${ul(from, to)}` : "")
+    .concat(range.length === 2 ? `\n${ul(from, to)}` : "")
     .concat(desc.length === 0 ? "" : `\n\n${desc.join("\n\n")}`)
     .concat("\n")
   );
@@ -3562,7 +3369,7 @@ const _throw = (Cons, title, subject, {fromTo = [0, -1], desc = []}) => {
 
 /******************************************************************************
 *******************************************************************************
-*****************************[ 9. MISCALLANIOUS ]******************************
+*****************************[ 8. MISCALLANIOUS ]******************************
 *******************************************************************************
 ******************************************************************************/
 
@@ -3575,24 +3382,28 @@ const last = xs => xs[xs.length - 1];
 
 /******************************************************************************
 *******************************************************************************
-*****************************[ 10. BUILT-IN TYPES ]*****************************
+*****************************[ 9. BUILT-IN TYPES ]*****************************
 *******************************************************************************
 ******************************************************************************/
 
 
-//***[ 10.1. VALUE TYPES ]******************************************************
+/******************************************************************************
+*****[ 9.1. Value Types ]******************************************************
+******************************************************************************/
 
 
-//---[ Boolean ]---------------------------------------------------------------
+//***[ 9.1.1. Reference Types ]************************************************
 
 
 const xor = x => y => !x === !y ? false : true;
 
 
-//***[ 10.2. REFERENCE TYPES ]**************************************************
+/******************************************************************************
+*****[ 9.2. Function Types ]***************************************************
+******************************************************************************/
 
 
-//---[ Generator functions ]---------------------------------------------------
+//***[ 9.2.1. Generator Functions ]********************************************
 
 
 function* keys(ix) {
@@ -3628,4 +3439,4 @@ function* oentries(o) {
 const next = ix => ix.next();
 
 
-const nextVal = ix => ix.next().value;
+const nextV = ix => ix.next().value;

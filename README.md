@@ -15,33 +15,35 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 <br>
 
-Version 0.9.11 (unstable)
+Version 0.9.12 (under construction)
 
-**Please note:** This repo is broken and currently under construction.
+**Please note:** This repo is experimental and still work in progress.
 <br><br>
 
 ## What
 
-ftor enables ML-like type-directed, functional programming with Javascript including reasonable debugging. In essence, it includes a runtime type system and a functional programming library building upon it.
+ftor enables ML-like type-directed, functional programming with Javascript including reasonable debugging. In essence, it consists of a runtime type system and a functional programming library building upon it.
 
 ## Why
 
 Functional programming in Javascript is frustrating as soon as you face real world problems, because...
 
-* there is no type system preventing you from writing poor code and algorithms
-* there is no runtime that helps you separating evaluation from interpretation
-* the language doesn't impose purity but let you perform effects literally everywhere
-* there are no decent debugging tools for programs with lots of lambdas
-* there is no union type to model the world with alternatives instead of hierarchies
+* there is no type system preventing you from writing poor programs
+* there is no type evaluation, which can tell you your data types at any point of your program
+* there is no mechanism to impose purity but side effects can be performed everywhere
+* there is no effect type to represent effects as first class values
+* there is no runtime that executes effects and does the plumbing with the real world
+* there are no decent debugging tools for programs written in the sense of the functional paradigm
+* there are no union types to model the world with alternatives instead of hierarchies
 
 ## Differences to _Flow_ and _TypeScript_
 
 ftor...
 
 * is a runtime type checker that cannot provide the same soundness as static type checkers can do
-* focuses on parametric and row polymorphism<sup>1</sup> and thus doesn't support subtyping
+* focuses on parametric and row polymorphism<sup>1</sup> and consequently doesn't support subtyping
 * relies on nominal typing<sup>2</sup> rather than structural
-* is meant for typing pure functional programs
+* is created to facilitate purely functional programming
 
 <sub><sup>1</sup>also known as static duck typing</sub><br>
 <sub><sup>2</sup>Nominal typing means that types are distinguished by name rather than by structure</sub>
@@ -49,7 +51,7 @@ ftor...
 ## Upcoming Milestones
 
 - [x] standalone unification algorithm (Hindley-Milner)
-- [ ] incorporate unification into the type checker
+- [x] incorporate unification into the type checker
 - [ ] revise homogeneous Array type
 - [ ] revise homogeneous Map type
 - [ ] revise Tuple type
@@ -65,42 +67,28 @@ ftor...
 
 ## Pluggable
 
-ftor doesn't ship with a compiler that removes typing information from your code base. Instead your code remains as-is and you can simply disbale the type system when you're done with the development stage. To ensure a good performance, ftor is designed to have the smallest possible footprint when it is not active.
+ftor doesn't have a compiler that removes type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint when it is not enabled.
 
-You may now be worried that your packages are bloated with useless type information. However, most of it consists of type annotations, which have a self-documenting character. So these extra bytes are worth it.
+Without type erasure you may be worried that your packages are bloated with additional information. However, most of it consists of type annotations, which have a self-documenting character that you will probably soon appriciate.
 
-ftor's type checker API doesn't create implicit dependencies on the type system. It cannot prevent you from creating explicit ones, thoug. Ultimately, it is your responsability to avoid them.
-
-You can incorporate the type checker infinitely variable into your program. It goes without saying that the more portions of your program are typed, the more type safety you get.
-
-When you import ftor the type checker is disabled by default, which means you have to enable it explicitly:
+Enabling the type checker is as easy as setting a flag:
 
 ```Javascript
 import * as F from ".../ftor.js";
 
 // untyped area
 
-F.typify(true);
+F.type(true);
 
 // typed area;
 ```
-## Type Classes
-
-You may wonder why ftor doesn't ship with bounded polymorphism<sup>1</sup>, which is often implemented via type classes. Most statically typed languages like Haskell or Scala resolve type class dependencies at compilte-time. ftor doesn't include a compile-time but erases all type information as soon as it is disabled. Hence there is no way to handle type classes without creating explicit dependencies to ftor's extended type system.
-
-As a matter of fact the only option left is to conduct explicit dictionary passing - and that is actually the recommended method. This seems tedious but explicit type class dependencies also make the code much easier to comprehend.
-
-<sub><sup>1</sup>also known as ad-hoc polymorphism</sub>
-
 # Types
 
 Let's get to the extended types without any further ado.
 
 ## Function Type
 
-You can easily create typed functions with the `Fun` constructor wherever an expression is allowed. It takes a mandatory type signature and an arrow - that's all. While explicit type signatures might be laborious at first, you will appreciate their self-documenting character.
-
-ftor's type signatures deviate from Haskell's, though. An important difference are the parentheses, which have to enclose every function signature:
+You can easily create typed functions with the `Fun` constructor. It takes a mandatory type signature and an arrow function - that's all:
 
 ```Javascript
 const inc = Fun(
@@ -110,7 +98,7 @@ const inc = Fun(
 
 inc(2); // 3
 ```
-In contrast to Haskell the name portion in the type signature doesn't declare the name of the variable but is optional and provides a useful name for debugging purposes:
+Please note that the name portion in the signature is optional and used to name the corresponding anonymous function during debugging.
 
 ```Javascript
 const inc = Fun(
@@ -122,7 +110,7 @@ inc(2); // 3
 ```
 ### Meaningful Error Messages
 
-Extensive error messages provide a better debugging experience:
+Verbose error messages provide a better debugging experience:
 
 ```Javascript
 const inc = Fun(
@@ -145,18 +133,37 @@ Boolean received
     at Object.apply (<anonymous>:1680:22)
     at <anonymous>:1:1
 ```
-### Multi-Argument Functions
+### Curried Functions
 
-As usual, you can define multi-argument functions. Please note that arguments are not enclosed by parentheses in type signatures:
+ftor doesn't support multi-argument functions but only functions in curried form, that is sequences with exactly one argument per function.
+
+But wait, what about readability?
+
+Often people have this specific syntax in mind, when they raise this objection:
 
 ```Javascript
 const add = Fun(
-  "(add :: Number, Number -> Number)",
-  (n, m) => n + m
+  "(add :: Number -> Number -> Number)",
+  n => m => n + m
 );
 
-add(2, 3); // 5
-add(2, true); // throws
+add(2) (3); // 5
+```
+Syntax is just a matter of habit, though. It is much more important that currying entails great benefits like partial application and abstraction over arity. Beyond that it greatly simplyfies the design of the type checker.
+
+And what about performance?
+
+If you are really concerned about performance rather than code reuse, productivity and more bug-free programs you should prefer imperative algorithms and mutations anyway. _Flow_ or _TypeScript_ are more suitable in this case.
+
+One of the most annoying aspects of working with functions are anonymous functions during debugging. ftor automatically assigns the optional name portion of the type signature to each subsequent lambda:
+
+```Javascript
+const add = Fun(
+  "(add :: Number -> Number -> Number)",
+  n => m => n + m
+);
+
+add(2).name; // "add"
 ```
 ### Variadic Functions
 
@@ -170,57 +177,31 @@ const sum = Fun(
 
 sum(); // 0
 sum(1, 2, 3); // 6
-sum(1, "2"); // throws
+sum(1, "2"); // type error
 ```
-And variadic functions with mandatory arguments as well:
+### Strict Function Call Arity
+
+ftor handles function arities strictly:
 
 ```Javascript
-const sum = Fun(
-  "(sum :: Number, ...Number -> Number)",
-  (n, ...ns) => ns.reduce((acc, m) => acc + m, n)
+const inc = Fun(
+  "(inc :: Number -> Number)",
+  n => n + 1
 );
 
-sum(); // throws
-sum(1); // 1
-sum(1, 2, 3); // 6
+inc(); // arity error
+add(2); // 3
+add(2, 3); // arity error
 ```
-### Curried Functions
-
-In functional programmering the definition of curried function sequences is frequently desired:
-
-```Javascript
-const add = Fun(
-  "(add :: Number -> Number -> Number)",
-  n => m => n + m
-);
-
-add(2) (3); // 5
-add(2) (true); // throws
-```
-Please note that the optional names in function type signatures denoted by the `name ::` pattern are assigned to each lambda of the corresponding sequence. This is extremely helpful for debugging a codebase with hundreds of otherwise anonymous functions.
-
 ### Nullary Functions / Thunks
 
-Sometimes thunks are needed to evaluate an expression lazily:
+You can express lazyness explicitly with thunks:
 
 ```Javascript
 const thunk = Fun("(() -> String)", () => "foo" + "bar");
 
 thunk(); // "foobar"
-thunk("foo"); // throws
-```
-### Strict Function Call Arity
-
-Except for variadic functions ftor is strict in the evaluation of function arities:
-
-```Javascript
-const add = Fun(
-  "(add :: Number, Number -> Number)",
-  (n, m) => n + m
-);
-
-add(2); // throws
-add(2, 3, 4); // throws
+thunk("foo"); // arity error
 ```
 ### Higher Order Functions
 
