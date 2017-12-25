@@ -127,25 +127,7 @@ Boolean received
 
 ftor doesn't support multi-argument functions but only functions in curried form, that is sequences with exactly one argument per call.
 
-But wait, what about readability?
-
-Often people have this specific syntax in mind, when they raise this objection:
-
-```Javascript
-const add = Fun(
-  "(add :: Number -> Number -> Number)",
-  n => m => n + m
-);
-
-add(2) (3); // 5
-```
-Syntax is just a matter of habit, though. It is much more important that currying entails great benefits like partial application and abstraction over arity. Beyond that it greatly simplyfies the design of the type checker.
-
-And what about performance?
-
-If you are really concerned about performance and micro optimizations rather than code reuse, productivity and more bug-free programs you should prefer imperative algorithms and mutations anyway. _Flow_ or _TypeScript_ are more suitable in this case.
-
-One of the most annoying aspects of working with functions in Javascript consists in debugging anonymous functions. ftor automatically assigns the name portion of type signatures to each subsequent lambda:
+Currying leads to lots of partially applied anonymous functions throughout the code. One of the most annoying aspects of working with such anonymous functions in Javascript consists in debugging them. ftor automatically assigns the name portion of type signatures to each subsequent lambda:
 
 ```Javascript
 const add = Fun(
@@ -155,6 +137,16 @@ const add = Fun(
 
 add(2).name; // "add"
 ```
+#### Readability
+
+A lot of people are concerned about the readability of the typical call pattern (`fun(x) (y) (z)`) that arises from curried functions. It is considered less readable than calling multi argument functions (`fun(x, y, z)`).
+
+Syntax is just a matter of habit, though. It is much more important that currying entails great benefits like partial application and abstraction over arity. Moreover it greatly simplyfies the design of the type checker.
+
+#### Performance
+
+If you are concerned about performance and micro optimizations rather than code reuse, productivity and more robust programs you should prefer imperative algorithms and mutations anyway. _Flow_ or _TypeScript_ are more suitable in this case.
+
 ### Variadic Functions
 
 You can define variadic functions by using the rest parameter:
