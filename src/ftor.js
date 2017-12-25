@@ -227,7 +227,7 @@ const FunT = (Cons => (name, range, children) => new Cons(name, range, children)
 const ArgT = (Cons => child => new Cons(child))
   (class ArgT {
     constructor(child) {
-      this.children = child;
+      this.value = child;
     }
   });
 
@@ -236,7 +236,7 @@ const NoArgT = (Cons => range => new Cons(range))
   (class NoArgT {
     constructor(range) {
       this.range = range;
-      this.children = null;
+      this.value = null;
     }
   });
 
@@ -244,7 +244,7 @@ const NoArgT = (Cons => range => new Cons(range))
 const RestT = (Cons => child => new Cons(child))
   (class RestT {
     constructor(child) {
-      this.children = child;
+      this.value = child;
     }
   });
 
@@ -252,7 +252,7 @@ const RestT = (Cons => child => new Cons(child))
 const ReturnT = (Cons => child => new Cons(child))
   (class ReturnT {
     constructor(child) {
-      this.children = child;
+      this.value = child;
     }
   });
 
@@ -416,13 +416,13 @@ const serializeFun = (name, tag, tReps) => {
 
           case "ArgT":
           case "ReturnT": {
-            const {tag: t, children: c} = arg.children;
+            const {tag: t, children: c} = arg.value;
             if (c.length === 0) return t;
             else return serialize(arg);
           }
 
           case "RestT": {
-            const {tag: t, children: c} = arg.children;
+            const {tag: t, children: c} = arg.value;
             if (c.length === 0) return `...${t}`;
             else return `...${serialize(arg)}`;
           }
@@ -1171,25 +1171,22 @@ const lookAheadFun = tSig => {
 ******************************************************************************/
 
 
-const unify = (t1Rep, t2Rep, {mode}, cons, fRep, s) => {
-  const t1Sig = serialize(t1Rep),
-    t2Sig = serialize(t2Rep);
-
+const unify = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) => {
   switch (t1Rep.constructor.name) {
-    case "AdtT": return unifyAdt(t1Rep, t2Rep, {mode}, cons, fRep, s);
-    case "ArrT": return unifyArr(t1Rep, t2Rep, {mode}, cons, fRep, s);
-    case "FunT": return unifyFun(t1Rep, t2Rep, {mode}, cons, fRep, s);
-    case "_MapT": return unifyMap(t1Rep, t2Rep, {mode}, cons, fRep, s);
-    case "PolyT": return unifyPoly(t1Rep, t2Rep, {mode}, cons, fRep, s);
-    case "PrimT": return unifyPrim(t1Rep, t2Rep, {mode}, cons, fRep, s);
-    case "RecT": return unifyRec(t1Rep, t2Rep, {mode}, cons, fRep, s);
-    case "TupT": return unifyTup(t1Rep, t2Rep, {mode}, cons, fRep, s);
-    case "UnitT": return unifyUnit(t1Rep, t2Rep, {mode}, cons, fRep, s);
+    case "AdtT": return unifyAdt(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons);
+    case "ArrT": return unifyArr(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons);
+    case "FunT": return unifyFun(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons);
+    case "_MapT": return unifyMap(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons);
+    case "PolyT": return unifyPoly(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons);
+    case "PrimT": return unifyPrim(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons);
+    case "RecT": return unifyRec(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons);
+    case "TupT": return unifyTup(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons);
+    case "UnitT": return unifyUnit(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons);
   }
 };
 
 
-const unifyArr = (t1Rep, t2Rep, {mode}, cons, fRep, s) => {
+const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "FunT":
@@ -1200,24 +1197,48 @@ const unifyArr = (t1Rep, t2Rep, {mode}, cons, fRep, s) => {
     case "UnitT": {
       _throw(
         cons,
-        [`${fRep.name} expects`],
-        serialize(fRep),
-        {range: [from, to], desc: [`${serialize(t2Rep)} received`]}
+        [`${fRep.name || "lambda"} expects`],
+        fSig,
+        {
+          range: t1Rep.range,
+          desc: [`${t2Sig} received`],
+          sigLog: state.sigLog
+        }
       );
     }
 
     case "ArrT": {
-      return unify(t1Rep.children[0], t2Rep.children[0], {mode}, cons, fRep, s);
+      return unify(
+        t1Rep.children[0],
+        serialize(t1Rep.children[0]),
+        t2Rep.children[0],
+        serialize(t2Rep.children[0]),
+        state,
+        {mode},
+        fRep,
+        fSig,
+        cons
+      );
     }
 
     case "PolyT": {
-      return mapConstraints(t2Rep, t2Rep, {mode}, cons, fRep, s);
+      return constrain(
+        t2Rep,
+        serialize(t2Rep),
+        t1Rep,
+        serialize(t1Rep),
+        state,
+        {mode},
+        fRep,
+        fSig,
+        cons
+      );
     }
   }
 };
 
 
-const unifyFun = (t1Rep, t2Rep, {mode}, cons, fRep, s) => {
+const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
@@ -1228,66 +1249,187 @@ const unifyFun = (t1Rep, t2Rep, {mode}, cons, fRep, s) => {
     case "UnitT": {
       _throw(
         cons,
-        [`${fRep.name} expects`],
-        serialize(fRep),
-        {range: [from, to], desc: [`${serialize(t2Rep)} received`]}
+        [`${fRep.name || "lambda"} expects`],
+        fSig,
+        {
+          range: t1Rep.range,
+          desc: [`${t2Sig} received`],
+          sigLog: state.sigLog
+        }
       );
     }
     
     case "FunT": {
-      [t2Rep, s.i] = fresh(t2Rep, s.i);
+      [t2Rep, state.nthPostfix] = fresh(t2Rep, state.nthPostfix);
 
       if (t1Rep.children.length < t2Rep.children.length) {
-        t1Rep.forEach((arg, n) => {
+        t1Rep.forEach((argRep, n) => {
           if (n === t1Rep.children.length - 1) {
-            s = mapConstraints(arg.children, t2Rep.slice(n), {mode}, cons, fRep, s);
-            s = unify(arg, t2Rep.slice(n), {mode}, cons, fRep, s);
+            t2Rep = FunT(
+              t2Rep.name,
+              [t2Rep.children[1].value.range[0], t2Rep.range[1]],
+              t2Rep.children.slice(n)
+            );
+
+            state = constrain(
+              argRep.value,
+              serialize(argRep.value),
+              t2Rep,
+              serialize(t2Rep),
+              state,
+              {mode},
+              fRep,
+              fSig,
+              cons
+            );
+
+            state = unify(
+              argRep.value,
+              serialize(argRep.value),
+              t2Rep,
+              serialize(t2Rep),
+              state,
+              {mode},
+              fRep,
+              fSig,
+              cons
+            );
           }
           
           else {
-            s = mapConstraints(arg.children, t2Rep[n], {mode}, cons, fRep, s);
-            s = unify(arg, t2Rep[n], {mode}, cons, fRep, s);
+            state = constrain(
+              argRep.value,
+              serialize(argRep.value),
+              t2Rep.children[n].value,
+              serialize(t2Rep.children[n].value),
+              state,
+              {mode},
+              fRep,
+              fSig,
+              cons
+            );
+
+            state = unify(
+              argRep.value,
+              serialize(argRep.value),
+              t2Rep.children[n].value,
+              serialize(t2Rep.children[n].value),
+              state,
+              {mode},
+              fRep,
+              fSig,
+              cons
+            );
           }
         });
       }
 
       else if (t1Rep.children.length > t2Rep.children.length) {
-        t2Rep.forEach((arg, n) => {
+        t2Rep.forEach((argRep, n) => {
           if (n === t2Rep.children.length - 1) {
-            s = mapConstraints(t1Rep.slice(n), arg, {mode}, cons, fRep, s);
-            s = unify(t1Rep.slice(n), arg, {mode}, cons, fRep, s);
+            t1Rep = FunT(
+              t1Rep.name,
+              [t1Rep.children[1].value.range[0], t1Rep.range[1]],
+              t1Rep.children.slice(n)
+            );
+
+            state = constrain(
+              t1Rep,
+              serialize(t1Rep),
+              argRep.value,
+              serialize(argRep.value),
+              state,
+              {mode},
+              fRep,
+              fSig,
+              cons
+            );
+
+            state = unify(
+              t1Rep,
+              serialize(t1Rep),
+              argRep.value,
+              serialize(argRep.value),
+              state,
+              {mode},
+              fRep,
+              fSig,
+              cons
+            );
           }
           
           else {
-            s = mapConstraints(t1Rep[n], arg, {mode}, cons, fRep, s);
-            s = unify(t1Rep[n], arg, {mode}, cons, fRep, s);
+            state = constrain(
+              t1Rep.children[n].value,
+              serialize(t1Rep.children[n].value),
+              argRep.value,
+              serialize(argRep.value),
+              state,
+              {mode},
+              fRep,
+              fSig,
+              cons
+            );
+
+            state = unify(
+              t1Rep.children[n].value,
+              serialize(t1Rep.children[n].value),
+              argRep.value,
+              serialize(argRep.value),
+              state,
+              {mode},
+              fRep,
+              fSig,
+              cons
+            );
           }
         });
       }
 
       else {
         t1Rep.forEach((arg, n) => {
-          s = mapConstraints(arg, t2Rep[n], {mode}, cons, fRep, s);
-          s = unify(arg, t2Rep[n], {mode}, cons, fRep, s);
+          state = constrain(
+            argRep.value,
+            serialize(argRep.value),
+            t2Rep.children[n].value,
+            serialize(t2Rep.children[n].value),
+            state,
+            {mode},
+            fRep,
+            fSig,
+            cons
+          );
+          
+          state = unify(
+            argRep.value,
+            serialize(argRep.value),
+            t2Rep.children[n].value,
+            serialize(t2Rep.children[n].value),
+            state,
+            {mode},
+            fRep,
+            fSig,
+            cons
+          );
         });
       }
 
-      return s;
+      return state;
     }
 
     case "PolyT": {
-      return mapConstraints(t2Rep, t1Rep, {mode}, cons, fRep, s);
+      return constrain(t2Rep, t2Sig, t1Rep, t1Sig, state, {mode}, fRep, fSig, cons);
     }
   }
 };
 
 
-const unifyPoly = (t1Rep, t2Rep, {mode}, cons, fRep, s) => {
-  return mapConstraints(t1Rep, t2Rep, {mode}, cons, fRep, s);
+const unifyPoly = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) => {
+  return constrain(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons);
 };
 
 
-const unifyPrim = (t1Rep, t2Rep, {mode}, cons, fRep, s) => {
+const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
@@ -1298,172 +1440,164 @@ const unifyPrim = (t1Rep, t2Rep, {mode}, cons, fRep, s) => {
     case "UnitT": {
       _throw(
         cons,
-        [`${fRep.name} expects`],
-        serialize(fRep),
-        {range: [from, to], desc: [`${serialize(t2Rep)} received`]}
+        [`${fRep.name || "lambda"} expects`],
+        fSig,
+        {
+          range: t1Rep.range,
+          desc: [`${t2Sig} received`],
+          sigLog: state.sigLog
+        }
       );
     }
 
     case "PolyT": {
-      return mapConstraints(t2Rep, t1Rep, {mode}, cons, fRep, s);
+      return constrain(t2Rep, t2Sig, t1Rep, t1Sig, state, {mode}, fRep, fSig, cons);
     }
 
     case "PrimT": {
-      if (serialize(t1Rep) !== serialize(t2Rep)) {
+      if (t1Sig !== t2Sig) {
         const [from, to] = t1Rep.range;
 
         _throw(
           cons,
-          [`${fRep.name} expects`],
-          serialize(fRep),
-          {range: [from, to], desc: [`${serialize(t2Rep)} received`]}
+          [`${fRep.name || "lambda"} expects`],
+          fSig,
+          {
+            range: t1Rep.range,
+            desc: [`${t2Sig} received`],
+            sigLog: state.sigLog
+          }
         );
       }
 
-      else return s;
+      else return state;
     }
   }
 };
 
 
-const mapConstraints = (kRep, vRep, {mode}, cons, fRep, s) => {
-  const kSig = serialize(kRep),
-    vSig = serialize(vRep);
-
+const constrain = (kRep, kSig, vRep, vSig, state, {mode}, fRep, fSig, cons) => {
   if (kSig !== vSig) {
-    occurs(kRep, kSig, vRep, vSig, cons, fRep);
+    occurs(kRep, kSig, vSig, state.sigLog, fRep, fSig, cons);
+    occurs(vRep, vSig, kSig, state.sigLog, fRep, fSig, cons);
   }
 
-  if (s.constraints.has(kSig)) {
-    const vSig_ = s.constraints.get(kSig);
+  if (state.constraints.has(kSig)) {
+    const vSig_ = state.constraints.get(kSig),
+      vRep_ = deserialize(vSig_);
 
     if (vSig !== vSig_) {
-      return unify(deserialize(vSig_), vRep, {mode}, cons, fRep, s);
+      return unify(vRep_, vSig_, vRep, vSig, state, {mode}, fRep, fSig, cons);
     }
   }
 
-  else if (mode === "map") {
-    if (mgu(kSig, vSig) === LESS_GEN) {
-      s.constraints.set(vSig, kSig);
-    }
+  else {
+    if (mode === "map") {
+      if (mgu(kRep, vRep) === LESS_GEN) {
+        state.constraints.set(vSig, kSig);
+      }
 
-    else s.constraints.set(kSig, vSig);
+      else state.constraints.set(kSig, vSig);
+    }
   }
 
-  // verify equivalence relations
-
-  if (s.relations.has(kSig)) {
-    const vSig_ = s.relations.get(kSig);
+  if (state.contraConst.has(kSig)) {
+    const vSig_ = state.contraConst.get(kSig),
+      vRep_ = deserialize(vSig_);
 
     if (vSig !== vSig_) {
-      if (!s.lookup.has(`${vSig_} ~ ${vSig}`)) {
-        s.lookup.add(`${vSig_} ~ ${vSig}`);
-        mapCons(vSig_, vSig, {mode: "verify"}, cons, fRep, s);
+      if (!state.contraSet.has(`${vSig_} ~ ${vSig}`)) {
+        state.contraSet.add(`${vSig_} ~ ${vSig}`);
+        constrain(vRep_, vSig_, vRep, vSig, state, {mode: "verify"}, fRep, fSig, cons);
       }
     }
   }
 
   else {
-    s.relations.set(kSig, vSig);
+    state.contraConst.set(kSig, vSig);
   }
 
-  if (s.relations.has(vSig)) {
-    const kSig_ = s.relations.get(vSig);
+  if (state.contraConst.has(vSig)) {
+    const kSig_ = state.contraConst.get(vSig),
+      kRep_ = deserialize(kSig_);
 
     if (kSig !== kSig_) {
-      if (!s.lookup.has(`${kSig_} ~ ${kSig}`)) {
-        s.lookup.add(`${kSig_} ~ ${kSig}`);
-        mapCons(kSig_, kSig, {mode: "verify"}, cons, fRep, s);
+      if (!state.contraSet.has(`${kSig_} ~ ${kSig}`)) {
+        state.contraSet.add(`${kSig_} ~ ${kSig}`);
+        constrain(kRep_, kSig_, kRep, kSig, state, {mode: "verify"}, fRep, fSig, cons);
       }
     }
   }
 
   else {
-    s.relations.set(vSig, kSig);
+    state.contraConst.set(vSig, kSig);
   }
 
-  return s;
+  return state;
 };
 
 
-const occurs = (kRep, kSig, vRep, vSig, cons, fRep) => {
+const occurs = (kRep, kSig, vSig, sigLog, fRep, fSig, cons) => {
   if (kSig.search(/\b[a-z][0-9]?\b/) !== -1) {
     if (vSig.search(new RegExp(`\\b${kSig}\\b`)) !== -1) {
-      const [from, to] = kRep.range;
-
       _throw(
-        TypeError,
-        ["infinite type"],
-        serialize(fRep),
-        {range: [from, to], desc: [`${kSig} occurs in ${vSig}`]}
-      );
-    }
-  }
-
-  else if (vSig.search(/\b[a-z][0-9]?\b/) !== -1) {
-    if (kSig.search(new RegExp(`\\b${vSig}\\b`)) !== -1) {
-      const [from, to] = vRep.range;
-
-      _throw(
-        TypeError,
-        ["infinite type"],
-        serialize(fRep),
-        {range: [from, to], desc: [`${vSig} occurs in ${kSig}`]}
+        cons,
+        [`${fRep.name || "lambda"} is an infinite type`],
+        fSig,
+        {
+          range: kRep.range,
+          desc: [`${kSig} occurs in substitution ${vSig}`],
+          sigLog
+        }
       );
     }
   }
 };
 
 
-const fresh = (tRep, i) => {
-  const aux = tRep => {
-    const r = tRep.range;
+const fresh = (fRep, nthPostfix) => {
+  const aux = fRep => {
+    const r = fRep.range;
 
-    switch (tRep.constructor.name)  {
-      case "AdtT": return AdtT(tRep.tag, r, tRep.children.map(tRep_ => aux(tRep_)));     
+    switch (fRep.constructor.name)  {
+      case "AdtT": return AdtT(fRep.tag, r, fRep.children.map(fRep_ => aux(fRep_)));     
       case "ArrT": return ArrT(r, aux(tRep.children[0]));
-      case "FunT": return FunT(tRep.name, r, tRep.children.map(tRep_ => aux(tRep_)));
+      case "FunT": return FunT(fRep.name, r, fRep.children.map(fRep_ => aux(fRep_)));
 
       case "_Map": {
-        const k = aux(tRep.children[0].k),
-          v = aux(tRep.children[0].v);
+        const k = aux(fRep.children[0].k),
+          v = aux(fRep.children[0].v);
 
         return _MapT(r, [{k, v}]);
       }
       
-      case "PrimT": return tRep;
+      case "PrimT": return fRep;
       
       case "PolyT": {
-        isFresh = true;
-        return PolyT(r, `${tRep.tag}${i}`);
+        used = true;
+        return PolyT(r, `${fRep.tag}${nthPostfix}`);
       }
       
       case "Rec": {
-        return RecT(r, tRep.children.map(tRep_ => ({k: aux(tRep_.k), v: aux(tRep_.v)})));
+        return RecT(r, fRep.children.map(fRep_ => ({k: aux(fRep_.k), v: aux(fRep_.v)})));
       }
 
-      case "Tup": return TupT(r, tRep.children.map(tRep_ => aux(tRep_)));
-      case "Unit": return tRep;
+      case "Tup": return TupT(r, fRep.children.map(fRep_ => aux(fRep_)));
+      case "Unit": return fRep;
     }
   };
 
-  let isFresh = false;
-  return [aux(tRep), isFresh ? i + 1 : i];
+  let used = false;
+  return [aux(fRep), used ? nthPostfix + 1 : nthPostfix];
 };
 
 
-const mgu = (t1Rep, t1Sig, t2Rep, t2Sig) => {
-  const aux = (t1Rep, t2Rep) => {
-    switch (t1Rep.constructor.name) {
+const mgu = (kRep, vRep) => {
+  const aux = (kRep, vRep) => {
+    switch (kRep.constructor.name) {
       case "ArrT": {
-        switch (t2Rep.constructor.name) {
-          case "ArrT": return aux(
-            t1Rep.children[0],
-            serialize(t1Rep.children[0]),
-            t2Rep.children[0],
-            serialize(t2Rep.children[0])
-          );
-
+        switch (vRep.constructor.name) {
+          case "ArrT": return aux(kRep.children[0], vRep.children[0]);
           case "FunT": return NO_MGU;
           case "PrimT": return NO_MGU;
           case "PolyT": return LESS_GEN;
@@ -1471,11 +1605,11 @@ const mgu = (t1Rep, t1Sig, t2Rep, t2Sig) => {
       }
 
       case "FunT": {
-        switch (t2Rep.constructor.name) {
+        switch (vRep.constructor.name) {
           case "ArrT": return NO_MGU;
           
           case "FunT": {
-            return mguFun(t1Rep, t2Rep, 0);
+            return mguFun(kRep, vRep, 0, aux);
           }
           
           case "PrimT": return NO_MGU;
@@ -1484,7 +1618,7 @@ const mgu = (t1Rep, t1Sig, t2Rep, t2Sig) => {
       }
 
       case "PrimT": {
-        switch (t2Rep.constructor.name) {
+        switch (vRep.constructor.name) {
           case "ArrT": return NO_MGU;
           case "FunT": return NO_MGU;
           case "PrimT": return EQ_GEN;
@@ -1499,8 +1633,8 @@ const mgu = (t1Rep, t1Sig, t2Rep, t2Sig) => {
           case "PrimT": return MORE_GEN;
           
           case "PolyT": {
-            tvars1.add(t1Rep.tag);
-            tvars2.add(t2Rep.tag);
+            kTvars.add(kRep.tag);
+            vTvars.add(vRep.tag);
             return EQ_GEN;
           }
         }
@@ -1508,16 +1642,16 @@ const mgu = (t1Rep, t1Sig, t2Rep, t2Sig) => {
     }
   };
 
-  const tvars1 = new Set(), tvars2 = new Set(),
-    r = aux(t1Rep, t2Rep, new Set(), new Set());
+  const kTvars = new Set(),
+    vTvars = new Set(),
+    r = aux(kRep, vRep, new Set(), new Set());
 
-  // swallow errors
   if (r === NO_MGU) return EQ_GEN;
 
   else {
     if (r === EQ_GEN) {
-      if (tvars1.size < tvars2.size) return LESS_GEN;
-      else if (tvars1.size > tvars2.size) return MORE_GEN;
+      if (kTvars.size < vTvars.size) return LESS_GEN;
+      else if (kTvars.size > vTvars.size) return MORE_GEN;
       else return EQ_GEN;
     }
 
@@ -1526,36 +1660,29 @@ const mgu = (t1Rep, t1Sig, t2Rep, t2Sig) => {
 };
 
 
-const mguFun = (t1Rep, t2Rep, n, aux) => {
-  switch (t1Rep.children[n].constructor.name) {
+const mguFun = (kRep, vRep, n, aux) => {
+  const kArgRep = kRep.children[n],
+    vArgRep = vRep.children[n];
+
+  switch (kArgRep.constructor.name) {
     case "ArgT": {
-      switch (t2Rep.children[n].constructor.name) {
+      switch (vArgRep.constructor.name) {
         case "ArgT": {
-          const r = aux(
-            t1Rep.children[n],
-            serialize(t1Rep.children[n]),
-            t2Rep.children[n],
-            serialize(t2Rep.children[n])
-          );
+          const r = aux(kArgRep.value, vArgRep.value);
 
           if (r === EQ_GEN) {
-            return mguFun(t1Rep, t2Rep, n + 1, aux);
+            return mguFun(kRep, vRep, n + 1, aux);
           }
 
           else return r;
         }
         
         case "RestT": {
-          if (t1Rep.children[n].children.tag === "Arr") {
-            const r = aux(
-              t1Rep.children[n][0],
-              serialize(t1Rep.children[n][0]),
-              t2Rep.children[n],
-              serialize(t2Rep.children[n])
-            );
+          if (kArgRep.value.tag === "Arr") {
+            const r = aux(kArgRep.value[0], vArgRep.value);
 
             if (r === EQ_GEN) {
-              return mguFun(t1Rep, t2Rep, n + 1, aux);
+              return mguFun(kRep, vRep, n + 1, aux);
             }
 
             else return r;
@@ -1567,7 +1694,7 @@ const mguFun = (t1Rep, t2Rep, n, aux) => {
         case "NoArgT": return NO_MGU;
 
         case "ReturnT": {
-          if (t1Rep.children[n].children.constructor.name === "PolyT") {
+          if (kArgRep.value.constructor.name === "PolyT") {
             return MORE_GEN;
           }
 
@@ -1577,18 +1704,13 @@ const mguFun = (t1Rep, t2Rep, n, aux) => {
     }
 
     case "RestT": {
-      switch (t2Rep.children[n].constructor.name) {
+      switch (vArgRep.constructor.name) {
         case "ArgT": {
-          if (t2Rep.children[n].children.tag === "Arr") {
-            const r = aux(
-              t1Rep.children[n],
-              serialize(t1Rep.children[n]),
-              t2Rep.children[n][0],
-              serialize(t2Rep.children[n][0])
-            );
+          if (vArgRep.value.tag === "Arr") {
+            const r = aux(kArgRep.value, vArgRep.value[0]);
 
             if (r === EQ_GEN) {
-              return mguFun(t1Rep, t2Rep, n + 1, aux);
+              return mguFun(kRep, vRep, n + 1, aux);
             }
 
             else return r;
@@ -1598,15 +1720,10 @@ const mguFun = (t1Rep, t2Rep, n, aux) => {
         }
         
         case "RestT": {
-          const r = aux(
-            t1Rep.children[n],
-            serialize(t1Rep.children[n]),
-            t2Rep.children[n],
-            serialize(t2Rep.children[n])
-          );
+          const r = aux(kArgRep.value, vArgRep.value);
 
           if (r === EQ_GEN) {
-            return mguFun(t1Rep, t2Rep, n + 1, aux);
+            return mguFun(kRep, vRep, n + 1, aux);
           }
 
           else return r;
@@ -1618,16 +1735,16 @@ const mguFun = (t1Rep, t2Rep, n, aux) => {
     }
 
     case "NoArgT": {
-      switch (t2Rep.children[n].constructor.name) {
-        case "NoArgT": return mguFun(t1Rep, t2Rep, n + 1, aux);
+      switch (vArgRep.constructor.name) {
+        case "NoArgT": return mguFun(kRep, vRep, n + 1, aux);
         default: return NO_MGU;
       }
     }
 
     case "ReturnT": {
-      switch (t2Rep.children[n].constructor.name) {
+      switch (vArgRep.constructor.name) {
         case "ArgT": {
-          if (t2Rep.children[n].children.constructor.name === "PolyT") {
+          if (vArgRep.value.constructor.name === "PolyT") {
             return LESS_GEN;
           }
 
@@ -1635,12 +1752,7 @@ const mguFun = (t1Rep, t2Rep, n, aux) => {
         }
         
         case "ReturnT": {
-          return aux(
-            t1Rep.children[n],
-            serialize(t1Rep.children[n]),
-            t2Rep.children[n],
-            serialize(t2Rep.children[n])
-          );
+          return aux(kArgRep.value, vArgRep.value);
         }
 
         default: return NO_MGU;
@@ -1650,32 +1762,27 @@ const mguFun = (t1Rep, t2Rep, n, aux) => {
 };
 
 
-const substitute = fRep => {
-  const aux = tSig_ => {
-    s.constraints.forEach((v, k) => {
-      if (tSig_.search(new RegExp(`\\b${escapeRegExp(k)}\\b`)) !== -1) {
+const substitute = (fSig, constraints) => {
+  const aux = (fSig, fSig_) => {
+    constraints.forEach((v, k) => {
+      if (fSig.search(new RegExp(`\\b${escapeRegExp(k)}\\b`)) !== -1) {
         if (v[0] === "(") {
-          tSig_ = tSig_.replace(new RegExp(`\\b${escapeRegExp(k)}$`), v.slice(1, -1));
-          tSig_ = tSig_.replace(new RegExp(`\\b${escapeRegExp(k)}(?=\\))`, "g"), v.slice(1, -1));
-          tSig_ = tSig_.replace(new RegExp(`\\b${escapeRegExp(k)}\\b`, "g"), v);
+          fSig = fSig.replace(new RegExp(`\\b${escapeRegExp(k)}$`), v.slice(1, -1));
+          fSig = fSig.replace(new RegExp(`\\b${escapeRegExp(k)}(?=\\))`, "g"), v.slice(1, -1));
+          fSig = fSig.replace(new RegExp(`\\b${escapeRegExp(k)}\\b`, "g"), v);
         }
 
         else {
-          tSig_ = tSig_.replace(new RegExp(`\\b${escapeRegExp(k)}\\b`, "g"), v);
+          fSig = fSig.replace(new RegExp(`\\b${escapeRegExp(k)}\\b`, "g"), v);
         }
       }
     });
 
-    if (tSig_ === tSig) return tSig_;
-
-    else {
-      tSig = tSig_;
-      return aux(tSig_);
-    }
+    if (fSig === fSig_) return [deserialize(fSig), fSig];
+    else return aux(fSig, fSig);
   };
 
-  let tSig = serialize(fRep);
-  return deserialize(aux(tSig));
+  return aux(fSig, fSig);
 };
 
 
@@ -1711,15 +1818,21 @@ export const Fun = (fSig, f) => {
     );
 
     const fRep = deserialize(fSig);
-    Reflect.defineProperty(f, "name", {value: fRep.name || "lambda"});
+
+    if (fRep.name !== "") {
+      Reflect.defineProperty(f, "name", {value: fRep.name || "lambda"});
+    }
 
     return new Proxy(f, handleFun(
-      f, fRep, fSig,
+      fRep,
+      fSig,
       {
-        f,
         nthCall: 0,
-        constraints: new Map(),
-        reverse: new Map()
+        nthPostfix: 0,
+        constraints: null,
+        contraConst: null,
+        contraSet: null,
+        sigLog: null
       }
     ));
   }
@@ -1728,69 +1841,111 @@ export const Fun = (fSig, f) => {
 };
 
 
-const handleFun = (f, fRep, fSig, s) => {
-  const {tag, children} = fRep;
-
+const handleFun = (fRep, fSig, state) => {
   return {
-    apply: (g, _, args) => {
-      const child = children[s.nthCall];
-      if (s.nthCall === 0) s.constraints = new Map();
+    apply: (g, _, arg) => {
+      if (state.nthCall === 0) {
+        state = {
+          nthCall: 0,
+          nthPostfix: 0,
+          constraints: new Map(),
+          contraConst: new Map(),
+          contraSet: new Set(),
+          sigLog: []
+        };
+      }
 
-      switch (child.constructor.name) {
+      const argRep = fRep.children[0];
+
+      switch (argRep.constructor.name) {
         case "ArgT": {
-          verifyUnary(args, child.children, fRep);
+          verifyUnary(arg, argRep, fRep, fSig, state.sigLog);
           
-          s = unify(
-            child.children,
-            deserialize(introspect(args[0])),
+          state = unify(
+            argRep.value,
+            serialize(argRep.value),
+            deserialize(introspect(arg[0])),
+            introspect(arg[0]),
+            state,
             {mode: "map"},
-            TypeError, fRep, s
+            fRep,
+            fSig,
+            TypeError
           );
 
           break;
         }
 
         case "NoArgT": {
-          verifyNullary(args, child.children, fRep);
+          verifyNullary(arg, argRep, fRep, fSig, state.sigLog);
           break;
         }
 
         case "RestT": {
-          s = unify(
-            child.children,
-            deserialize(introspect(args[0])),
+          state = unify(
+            argRep.value,
+            serialize(argRep.value),
+            deserialize(introspect(arg[0])),
+            introspect(arg[0]),
+            state,
             {mode: "map"},
-            TypeError, fRep, s
+            fRep,
+            fSig,
+            TypeError
           );
 
           break;
         }
       }
 
-      if (children[s.nthCall + 1].constructor.name === "ReturnT") {
-        const r = g(...args);
+      if (fRep.children[1].constructor.name === "ReturnT") {
+        const r = g(...arg);
 
-        // TODO: revise
-        if (getStringTag(r) === "Adt") {
-          const [rep, sig] = constructType(r, constraints);
-          r[TYPE_REP] = rep;
-          r[TYPE_SIG] = sig;
-        }
-
-        s = unify(
-          children[s.nthCall + 1].children,
+        state = unify(
+          fRep.children[0].value,
+          serialize(fRep.children[0].value),
           deserialize(introspect(r)),
+          introspect(r),
+          state,
           {mode: "map"},
-          ReturnTypeError, fRep, s
+          fRep,
+          fSig,
+          ReturnTypeError
         );
 
         return r;
       }
 
       else {
-        const h = g(...args);
-        Reflect.defineProperty(h, "name", {value: f.name});
-        return new Proxy(h, handleFun(f, s.nthCall + 1, fRep, fSig, s));
+        const h = g(...arg);
+
+        if (fRep.name !== "") {
+          Reflect.defineProperty(h, "name", {value: fRep.name});
+        }
+
+        let fRep_ = FunT(
+          fRep.name,
+          [fRep.children[1].value.range[0], fRep.range[1]],
+          fRep.children.slice(1)
+        );
+
+        let fSig_ = "";
+
+        state.sigLog.unshift(fSig);
+        [fRep_, fSig_] = substitute(serialize(fRep_), state.constraints);
+        
+        return new Proxy(h, handleFun(
+          fRep_,
+          fSig_,
+          {
+            nthCall: state.nthCall + 1,
+            nthPostfix: state.nthPostfix,
+            constraints: state.constraints,
+            contraConst: state.contraConst,
+            contraSet: state.contraSet,
+            sigLog: state.sigLog
+          }
+        ));
       }
     },
 
@@ -1853,7 +2008,7 @@ const handleFun = (f, fRep, fSig, s) => {
           fSig,
           {desc: [
             `of property ${preformatK(k)} with type ${introspect(v)}`,
-            "function Objects are immutable"
+            "function objects are immutable"
           ]}
         );
       }
@@ -1866,7 +2021,7 @@ const handleFun = (f, fRep, fSig, s) => {
         fSig,
         {desc: [
           `of property ${preformatK(k)} with type ${introspect(d.value)}`,
-          "function Objects are immutable"
+          "function objects are immutable"
         ]}
 
       );
@@ -1876,10 +2031,10 @@ const handleFun = (f, fRep, fSig, s) => {
       _throw(
         TypeError,
         ["illegal property mutation"],
-        funS,
+        fSig,
         {desc: [
           `removal of property ${preformatK(k)}`,
-          "function Objects are immutable"
+          "function objects are immutable"
         ]}
       );
     },
@@ -1899,26 +2054,30 @@ const handleFun = (f, fRep, fSig, s) => {
 };
 
 
-const verifyNullary = (args, child, fRep) => {
-  const [from, to] = child.range;
-
-  if (args.length !== 0) _throw(
+const verifyNullary = (arg, argRep, fRep, fSig, sigLog) => {
+  if (arg.length !== 0) _throw(
     ArityError,
-    [`${fRep.name} expects 0 arguments`],
-    serialize(fRep),
-    {range: [from, to], desc: [`${args.length} argument(s) received`]}
+    [`${fRep.name || "lambda"} expects 0 arguments`],
+    fSig,
+    {
+      range: argRep.value.range,
+      desc: [`${arg.length} argument(s) received`],
+      sigLog
+    }
   );
 };
 
 
-const verifyUnary = (args, child, fRep) => {
-  const [from, to] = child.range;
-
-  if (args.length !== 1) _throw(
+const verifyUnary = (arg, argRep, fRep, fSig, sigLog) => {
+  if (arg.length !== 1) _throw(
     ArityError,
-    [`${fRep.name} expects 1 argument`],
-    serialize(fRep),
-    {range: [from, to], desc: [`${args.length} argument(s) received`]}
+    [`${fRep.name || "lambda"} expects 1 argument`],
+    fSig,
+    {
+      range: argRep.value.range,
+      desc: [`${arg.length} argument(s) received`],
+      sigLog
+    }
   );
 };
 
@@ -3354,14 +3513,15 @@ const preformatV = x => {
 };
 
 
-const _throw = (Cons, title, subject, {range = [0, -1], desc = []}) => {
+const _throw = (Cons, title, sig, {range = [0, -1], desc = [], sigLog = []}) => {
   const [from, to] = range;
 
   throw new Cons(title
     .join("\n")
-    .concat(`\n\n${subject}`)
-    .concat(range.length === 2 ? `\n${ul(from, to)}` : "")
+    .concat(`\n\n${sig}`)
+    .concat(range.length === 0 ? "" : `\n${ul(from, to)}`)
     .concat(desc.length === 0 ? "" : `\n\n${desc.join("\n\n")}`)
+    .concat(sigLog.length === 0 ? "" : `\n\ntype signature log:\n\n${sigLog.join("\n")}`)
     .concat("\n")
   );
 };

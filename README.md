@@ -36,14 +36,12 @@ Functional programming in Javascript is frustrating as soon as you face real wor
 * there are no decent debugging tools for programs written in the sense of the functional paradigm
 * there are no union types to model the world with alternatives instead of hierarchies
 
-## Differences to _Flow_ and _TypeScript_
+## Differences to Flow and TypeScript
 
-ftor...
-
-* is a runtime type checker that cannot provide the same soundness as static type checkers can do
-* focuses on parametric and row polymorphism<sup>1</sup> and consequently doesn't support subtyping
-* relies on nominal typing<sup>2</sup> rather than structural
-* is created to facilitate purely functional programming
+* ftor is a runtime type checker that cannot provide the same soundness as static type checkers can do
+* it focuses on parametric and row polymorphism<sup>1</sup> and consequently doesn't support subtyping
+* it relies on nominal typing<sup>2</sup> rather than structural
+* it is created to facilitate purely functional programming
 
 <sub><sup>1</sup>also known as static duck typing</sub><br>
 <sub><sup>2</sup>Nominal typing means that types are distinguished by name rather than by structure</sub>
@@ -52,7 +50,7 @@ ftor...
 
 ftor doesn't have a compiler that erases type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint as soon as it is not enabled.
 
-You may be worried now that your packages become bloated with useless additional information. However, most of it consists of type annotations whose self-documenting character you will probably appriciate quickly.
+You may be worried now that your packages become bloated with useless additional information. However, most of this extra bytes consists of type annotations whose self-documenting character you will probably appriciate quickly.
 
 Enabling the type checker is as easy as setting a flag:
 
@@ -98,7 +96,7 @@ const inc = Fun(
 
 inc(2); // 3
 ```
-Please note that the name portion in the signature is optional and used to name the corresponding anonymous function during debugging.
+Please note that the name portion (`inc :: `) in the signature is optional and used to name the corresponding anonymous function during debugging.
 
 ### Meaningful Error Messages
 
@@ -182,8 +180,8 @@ const inc = Fun(
 );
 
 inc(); // arity error
-add(2); // 3
-add(2, 3); // arity error
+inc(2); // 3
+inc(2, 3); // arity error
 ```
 ### Nullary Functions / Thunks
 
@@ -193,7 +191,7 @@ You can explicitly express lazyness with thunks:
 const thunk = Fun("(() -> String)", () => "foo" + "bar");
 
 thunk(); // "foobar"
-thunk("foo"); // arity error
+thunk("baz"); // arity error
 ```
 ### Higher Order Functions
 
