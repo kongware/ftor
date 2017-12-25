@@ -1882,17 +1882,21 @@ const handleFun = (fRep, fSig, state) => {
         }
 
         case "RestT": {
-          state = unify(
-            argRep.value,
-            serialize(argRep.value),
-            deserialize(introspect(arg[0])),
-            introspect(arg[0]),
-            state,
-            {mode: "map"},
-            fRep,
-            fSig,
-            TypeError
-          );
+          const argSig = serialize(argRep.value);
+
+          arg.forEach((arg_, n) => {
+            state = unify(
+              argRep.value,
+              argSig,
+              deserialize(introspect(arg_)),
+              introspect(arg_),
+              state,
+              {mode: "map"},
+              fRep,
+              fSig,
+              TypeError
+            );
+          });
 
           break;
         }
@@ -1901,17 +1905,19 @@ const handleFun = (fRep, fSig, state) => {
       if (fRep.children[1].constructor.name === "ReturnT") {
         const r = g(...arg);
 
-        state = unify(
-          fRep.children[0].value,
-          serialize(fRep.children[0].value),
-          deserialize(introspect(r)),
-          introspect(r),
-          state,
-          {mode: "map"},
-          fRep,
-          fSig,
-          ReturnTypeError
-        );
+        if (argRep.constructor.name !== "NoArgT") {
+          state = unify(
+            fRep.children[1].value,
+            serialize(fRep.children[1].value),
+            deserialize(introspect(r)),
+            introspect(r),
+            state,
+            {mode: "map"},
+            fRep,
+            fSig,
+            ReturnTypeError
+          );
+        }
 
         return r;
       }
