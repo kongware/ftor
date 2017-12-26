@@ -52,6 +52,18 @@ const TUP_MAX_FIELDS = 16;
 const VOID = {Undefined: undefined, Null: null, NaN: NaN};
 
 
+const LESS_GEN = 0;
+
+
+const EQ_GEN = 1;
+
+
+const MORE_GEN = 2;
+
+
+const NO_MGU = 3;
+
+
 /******************************************************************************
 *******************************************************************************
 *****************************[ 2. INTROSPECTION ]******************************
@@ -129,12 +141,12 @@ const introspectR = x => {
                 if (s.size === 1) return `[${ss[0]}]`;
 
                 else if (ss.length > TUP_MAX_FIELDS) _throw(
-                  TypeInferenceError,
-                  ["invalid Tuple-like Array value"],
+                  IntrospectionError,
+                  ["invalid Tuple"],
                   x,
                   {desc: [
-                    `too many fields received`,
                     `Tuple must not contain more than ${TUP_MAX_FIELDS} fields`,
+                    `${ss.length} fields received`
                   ]}
                 );
                 
@@ -724,7 +736,7 @@ const deserialize = tSig => {
 
               const [tRep, m] = aux(
                 tSig, n,
-                {depth, context: c_, phase: p, buf: b, name, range: [n], tag: "", tReps: []}
+                {depth, context: c_, phase: p, buf: b, name, range: [n - 3], tag: "", tReps: []}
               );
               
               return aux(
@@ -1202,7 +1214,8 @@ const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) =
         {
           range: t1Rep.range,
           desc: [`${t2Sig} received`],
-          sigLog: state.sigLog
+          sigLog: state.sigLog,
+          constraints: state.constraints
         }
       );
     }
@@ -1254,7 +1267,8 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) =
         {
           range: t1Rep.range,
           desc: [`${t2Sig} received`],
-          sigLog: state.sigLog
+          sigLog: state.sigLog,
+          constraints: state.constraints
         }
       );
     }
@@ -1445,7 +1459,8 @@ const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) 
         {
           range: t1Rep.range,
           desc: [`${t2Sig} received`],
-          sigLog: state.sigLog
+          sigLog: state.sigLog,
+          constraints: state.constraints
         }
       );
     }
@@ -1465,7 +1480,8 @@ const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) 
           {
             range: t1Rep.range,
             desc: [`${t2Sig} received`],
-            sigLog: state.sigLog
+            sigLog: state.sigLog,
+            constraints: state.constraints
           }
         );
       }
@@ -1478,8 +1494,8 @@ const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) 
 
 const constrain = (kRep, kSig, vRep, vSig, state, {mode}, fRep, fSig, cons) => {
   if (kSig !== vSig) {
-    occurs(kRep, kSig, vSig, state.sigLog, fRep, fSig, cons);
-    occurs(vRep, vSig, kSig, state.sigLog, fRep, fSig, cons);
+    occurs(kRep, kSig, vSig, state, fRep, fSig, cons);
+    occurs(vRep, vSig, kSig, state, fRep, fSig, cons);
   }
 
   if (state.constraints.has(kSig)) {
@@ -1537,7 +1553,7 @@ const constrain = (kRep, kSig, vRep, vSig, state, {mode}, fRep, fSig, cons) => {
 };
 
 
-const occurs = (kRep, kSig, vSig, sigLog, fRep, fSig, cons) => {
+const occurs = (kRep, kSig, vSig, state, fRep, fSig, cons) => {
   if (kSig.search(/\b[a-z][0-9]?\b/) !== -1) {
     if (vSig.search(new RegExp(`\\b${kSig}\\b`)) !== -1) {
       _throw(
@@ -1547,7 +1563,8 @@ const occurs = (kRep, kSig, vSig, sigLog, fRep, fSig, cons) => {
         {
           range: kRep.range,
           desc: [`${kSig} occurs in substitution ${vSig}`],
-          sigLog
+          sigLog: state.sigLog,
+          constraints: state.constraints
         }
       );
     }
@@ -1627,7 +1644,7 @@ const mgu = (kRep, vRep) => {
       }
 
       case "PolyT": {
-        switch (introspect(t2)) {
+        switch (vRep.constructor.name) {
           case "ArrT": return MORE_GEN;
           case "FunT": return MORE_GEN;
           case "PrimT": return MORE_GEN;
@@ -3471,10 +3488,10 @@ class ReturnTypeError extends TypeSysError {
 };
 
 
-class TypeInferenceError extends TypeSysError {
+class IntrospectionError extends TypeSysError {
   constructor(x) {
     super(x);
-    Error.captureStackTrace(this, TypeInferenceError);
+    Error.captureStackTrace(this, IntrospectionError);
   }
 };
 
@@ -3519,15 +3536,30 @@ const preformatV = x => {
 };
 
 
-const _throw = (Cons, title, sig, {range = [0, -1], desc = [], sigLog = []}) => {
+const _throw = (Cons, title, sig, {range = [0, -1], desc = [], sigLog = [], constraints = new Map()}) => {
   const [from, to] = range;
 
   throw new Cons(title
     .join("\n")
     .concat(`\n\n${sig}`)
-    .concat(range.length === 0 ? "" : `\n${ul(from, to)}`)
-    .concat(desc.length === 0 ? "" : `\n\n${desc.join("\n\n")}`)
-    .concat(sigLog.length === 0 ? "" : `\n\ntype signature log:\n\n${sigLog.join("\n")}`)
+    .concat(
+      range.length === 0 ? ""
+        : `\n${ul(from, to)}`
+    )
+    .concat(
+      desc.length === 0 ? ""
+        : `\n\n${desc.join("\n\n")}`
+    )
+    .concat(
+      sigLog.length === 0 ? ""
+        : `\n\nprevious type signatures:\n\n${sigLog.join("\n")}`
+    )
+    .concat(
+      constraints.length === 0 ? ""
+        : `\n\ntype constraints:\n\n${Array.from(constraints).map(pair => {
+          return pair.join(" ~ ");
+        }, "").join("\n")}`
+    )
     .concat("\n")
   );
 };
