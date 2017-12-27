@@ -67,18 +67,18 @@ F.type(true);
 
 - [x] standalone unification algorithm (Hindley-Milner)
 - [x] incorporate unification into the type checker
-- [ ] revise homogeneous Array type
-- [ ] revise homogeneous Map type
-- [ ] revise Tuple type
-- [ ] revise Record type
-- [ ] revise Algebraic data types
-- [ ] introduce row polymorphism
-- [ ] incorporate Promise type
-- [ ] incorporate Iterator/Generator types
-- [ ] explore a special effect type / corresponding runtime
+- [ ] add homogeneous Array type
+- [ ] add homogeneous Map type
+- [ ] add Tuple type
+- [ ] add Record type
+- [ ] add Algebraic data types
+- [ ] incorporate row polymorphism
+- [ ] add Promise type
+- [ ] add Iterator/Generator types
 - [ ] add higher-rank types
-- [ ] add kind system
+- [ ] incorporate kind system
 - [ ] add higher kinded types
+- [ ] incorporate a special effect type / corresponding runtime
 
 # Types
 
