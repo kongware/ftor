@@ -195,9 +195,9 @@ const getStringTag = x => {
 ******************************************************************************/
 
 
-const AdtT = (Cons => (tag, range, children) => new Cons(tag, range, children))
+const AdtT = (Cons => (range, tag, children) => new Cons(range, tag, children))
   (class AdtT {
-    constructor(tag, range, children) {
+    constructor(range, tag, children) {
       this.range = range;
       this.tag = tag;
       this.children = children;
@@ -357,6 +357,37 @@ const UnitT = (Cons => range => new Cons(range))
       this.children = [];
     }
   });
+
+
+/******************************************************************************
+*****[ 3.10. Misc ]************************************************************
+******************************************************************************/
+
+
+const cloneT = xT => {
+  const r = xT.range;
+
+  switch (xT.constructor.name) {
+    case "AdtT": return deserialize(serialize(AdtT(r, xT.tag, xT.children)));
+    case "ArrT": return deserialize(serialize(ArrT(r, xT.children)));
+    case "FunT": return deserialize(serialize(FunT(xT.name, r, xT.children)));
+    case "_MapT": return deserialize(serialize(_MapT(r, xT.children)));
+    case "PolyT": return deserialize(serialize(PolyT(r, xT.tag)));
+    case "PrimT": return deserialize(serialize(PrimT(r, xT.tag)));
+    case "RecT": return deserialize(serialize(RecT(r, xT.children)));
+    case "TupT": return deserialize(serialize(TupT(r, xT.children)));
+    case "UnitT": return deserialize(serialize(UnitT(r)));
+  }
+};
+
+
+const sliceFunT = funT => {
+  return deserialize(
+    serialize(
+      FunT(funT.name, funT.range, funT.children.slice(1))
+    )
+  );
+};
 
 
 /******************************************************************************
@@ -560,7 +591,7 @@ const deserialize = tSig => {
             }
 
             else if (c === ">") {
-              return [AdtT(tag, range, tReps), n + 1, depth - 1];
+              return [AdtT(range, tag, tReps), n + 1, depth - 1];
             }
 
             else {
@@ -1277,13 +1308,9 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) =
       [t2Rep, state.nthPostfix] = fresh(t2Rep, state.nthPostfix);
 
       if (t1Rep.children.length < t2Rep.children.length) {
-        t1Rep.forEach((argRep, n) => {
+        t1Rep.children.forEach((argRep, n) => {
           if (n === t1Rep.children.length - 1) {
-            t2Rep = FunT(
-              t2Rep.name,
-              [t2Rep.children[1].value.range[0], t2Rep.range[1]],
-              t2Rep.children.slice(n)
-            );
+            t2Rep = sliceFunT(t2Rep);
 
             state = constrain(
               argRep.value,
@@ -1339,13 +1366,9 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) =
       }
 
       else if (t1Rep.children.length > t2Rep.children.length) {
-        t2Rep.forEach((argRep, n) => {
+        t2Rep.children.forEach((argRep, n) => {
           if (n === t2Rep.children.length - 1) {
-            t1Rep = FunT(
-              t1Rep.name,
-              [t1Rep.children[1].value.range[0], t1Rep.range[1]],
-              t1Rep.children.slice(n)
-            );
+            t1Rep = sliceFunT(t1Rep);
 
             state = constrain(
               t1Rep,
@@ -1401,7 +1424,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) =
       }
 
       else {
-        t1Rep.forEach((arg, n) => {
+        t1Rep.children.forEach((argRep, n) => {
           state = constrain(
             argRep.value,
             serialize(argRep.value),
@@ -1493,6 +1516,9 @@ const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode}, fRep, fSig, cons) 
 
 
 const constrain = (kRep, kSig, vRep, vSig, state, {mode}, fRep, fSig, cons) => {
+  kSig = kSig.replace(/\([a-z0-9_]+ :: /, "(");
+  vSig = vSig.replace(/\([a-z0-9_]+ :: /, "(");
+
   if (kSig !== vSig) {
     occurs(kRep, kSig, vSig, state, fRep, fSig, cons);
     occurs(vRep, vSig, kSig, state, fRep, fSig, cons);
@@ -1530,7 +1556,9 @@ const constrain = (kRep, kSig, vRep, vSig, state, {mode}, fRep, fSig, cons) => {
   }
 
   else {
-    state.contraConst.set(kSig, vSig);
+    if (!state.constraints.has(kSig)) {
+      state.contraConst.set(kSig, vSig);
+    }
   }
 
   if (state.contraConst.has(vSig)) {
@@ -1546,7 +1574,9 @@ const constrain = (kRep, kSig, vRep, vSig, state, {mode}, fRep, fSig, cons) => {
   }
 
   else {
-    state.contraConst.set(vSig, kSig);
+    if (!state.constraints.has(vSig)) {
+      state.contraConst.set(vSig, kSig);
+    }
   }
 
   return state;
@@ -1577,9 +1607,9 @@ const fresh = (fRep, nthPostfix) => {
     const r = fRep.range;
 
     switch (fRep.constructor.name)  {
-      case "AdtT": return AdtT(fRep.tag, r, fRep.children.map(fRep_ => aux(fRep_)));     
+      case "AdtT": return AdtT(r, fRep.tag, fRep.children.map(fRep_ => aux(fRep_.value)));
       case "ArrT": return ArrT(r, aux(tRep.children[0]));
-      case "FunT": return FunT(fRep.name, r, fRep.children.map(fRep_ => aux(fRep_)));
+      case "FunT": return cloneT(fRep);
 
       case "_Map": {
         const k = aux(fRep.children[0].k),
@@ -1946,13 +1976,8 @@ const handleFun = (fRep, fSig, state) => {
           Reflect.defineProperty(h, "name", {value: fRep.name});
         }
 
-        let fRep_ = FunT(
-          fRep.name,
-          [fRep.children[1].value.range[0], fRep.range[1]],
-          fRep.children.slice(1)
-        );
-
-        let fSig_ = "";
+        let fRep_ = sliceFunT(fRep),
+          fSig_ = "";
 
         state.sigLog.unshift(fSig);
         [fRep_, fSig_] = substitute(serialize(fRep_), state.constraints);
@@ -2038,6 +2063,10 @@ const handleFun = (fRep, fSig, state) => {
     },
 
     defineProperty: (f, k, d) => {
+      switch (k) {
+        case "name": return Reflect.defineProperty(f, k, d), f;
+      }
+
       _throw(
         TypeError,
         ["illegal property mutation"],
@@ -3552,11 +3581,11 @@ const _throw = (Cons, title, sig, {range = [0, -1], desc = [], sigLog = [], cons
     )
     .concat(
       sigLog.length === 0 ? ""
-        : `\n\nprevious type signatures:\n\n${sigLog.join("\n")}`
+        : `\n\nPREVIOUS TYPE SIGNATURES:\n\n${sigLog.join("\n")}`
     )
     .concat(
-      constraints.length === 0 ? ""
-        : `\n\ntype constraints:\n\n${Array.from(constraints).map(pair => {
+      constraints.size === 0 ? ""
+        : `\n\nTYPE CONSTRAINTS:\n\n${Array.from(constraints).map(pair => {
           return pair.join(" ~ ");
         }, "").join("\n")}`
     )
