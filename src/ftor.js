@@ -457,15 +457,15 @@ const serializeFun = (name, tag, tReps) => {
 
           case "ArgT":
           case "ReturnT": {
-            const {tag: t, children: c} = arg.value;
-            if (c.length === 0) return t;
-            else return serialize(arg);
+            const {tag: tag_, children} = arg.value;
+            if (children.length === 0) return tag;
+            else return serialize(arg.value);
           }
 
           case "RestT": {
-            const {tag: t, children: c} = arg.value;
-            if (c.length === 0) return `...${t}`;
-            else return `...${serialize(arg)}`;
+            const {tag: tag_, children} = arg.value;
+            if (c.length === 0) return `...${tag}`;
+            else return `...${serialize(arg.value)}`;
           }
         }
       })
@@ -1550,8 +1550,8 @@ const constrain = (kRep, kSig, vRep, vSig, state, {mode, nthParam}, fRep, fSig, 
   vSig = vSig.replace(/\([a-z0-9_]+ :: /, "(");
 
   if (kSig !== vSig) {
-    occurs(kRep, kSig, vSig, state, fRep, fSig, cons);
-    occurs(vRep, vSig, kSig, state, fRep, fSig, cons);
+    occurs(kRep, kSig, vSig, state, nthParam, fRep, fSig, cons);
+    occurs(vRep, vSig, kSig, state, nthParam, fRep, fSig, cons);
   }
 
   if (state.constraints.has(kSig)) {
@@ -1613,15 +1613,17 @@ const constrain = (kRep, kSig, vRep, vSig, state, {mode, nthParam}, fRep, fSig, 
 };
 
 
-const occurs = (kRep, kSig, vSig, state, fRep, fSig, cons) => {
+const occurs = (kRep, kSig, vSig, state, nthParam, fRep, fSig, cons) => {
   if (kSig.search(/\b[a-z][0-9]?\b/) !== -1) {
     if (vSig.search(new RegExp(`\\b${kSig}\\b`)) !== -1) {
+      const range = retrieveRange(fRep, nthParam);
+
       _throw(
         cons,
-        [`${fRep.name || "lambda"} is an infinite type`],
+        [`${fRep.name || "lambda"} creates an infinite type`],
         fSig,
         {
-          range: kRep.range,
+          range,
           desc: [`${kSig} occurs in substitution ${vSig}`],
           sigLog: state.sigLog,
           constraints: state.constraints
