@@ -458,7 +458,7 @@ const serializeFun = (name, tag, tReps) => {
           case "ArgT":
           case "ReturnT": {
             const {tag: tag_, children} = arg.value;
-            if (children.length === 0) return tag;
+            if (children.length === 0) return tag_;
             else return serialize(arg.value);
           }
 
@@ -1212,27 +1212,27 @@ const lookAheadFun = tSig => {
 ******************************************************************************/
 
 
-const unify = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons) => {
+const unify = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons) => {
   switch (t1Rep.constructor.name) {
-    case "AdtT": return unifyAdt(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons);
-    case "ArrT": return unifyArr(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons);
-    case "FunT": return unifyFun(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons);
-    case "_MapT": return unifyMap(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons);
-    case "PolyT": return unifyPoly(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons);
-    case "PrimT": return unifyPrim(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons);
-    case "RecT": return unifyRec(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons);
-    case "TupT": return unifyTup(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons);
-    case "UnitT": return unifyUnit(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons);
+    case "AdtT": return unifyAdt(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons);
+    case "ArrT": return unifyArr(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons);
+    case "FunT": return unifyFun(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons);
+    case "_MapT": return unifyMap(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons);
+    case "PolyT": return unifyPoly(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons);
+    case "PrimT": return unifyPrim(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons);
+    case "RecT": return unifyRec(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons);
+    case "TupT": return unifyTup(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons);
+    case "UnitT": return unifyUnit(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons);
   }
 };
 
 
-const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons) => {
+const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons) => {
 
 };
 
 
-const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons) => {
+const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "FunT":
@@ -1241,7 +1241,7 @@ const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
     case "RecT":
     case "TupT":
     case "UnitT": {
-      const range = retrieveRange(fRep, nthParam);
+      const range = retrieveRange(fRep, nthArg);
 
       _throw(
         cons,
@@ -1263,9 +1263,10 @@ const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
         t2Rep.children[0],
         serialize(t2Rep.children[0]),
         state,
-        {mode, nthParam},
+        {mode, nthArg},
         fRep,
         fSig,
+        xSig,
         cons
       );
     }
@@ -1277,9 +1278,10 @@ const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
         t1Rep,
         serialize(t1Rep),
         state,
-        {mode, nthParam},
+        {mode, nthArg},
         fRep,
         fSig,
+        xSig,
         cons
       );
     }
@@ -1287,7 +1289,7 @@ const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
 };
 
 
-const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons) => {
+const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
@@ -1296,7 +1298,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
     case "RecT": 
     case "TupT":
     case "UnitT": {
-      const range = retrieveRange(fRep, nthParam);
+      const range = retrieveRange(fRep, nthArg);
 
       _throw(
         cons,
@@ -1326,9 +1328,10 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
               t2Rep,
               serialize(t2Rep),
               state,
-              {mode, nthParam: n},
+              {mode, nthArg: n},
               fRep,
               fSig,
+              xSig,
               cons
             );
 
@@ -1338,9 +1341,10 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
               t2Rep,
               serialize(t2Rep),
               state,
-              {mode, nthParam: n},
+              {mode, nthArg: n},
               fRep,
               fSig,
+              xSig,
               cons
             );
           }
@@ -1352,9 +1356,10 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
               t2Rep.children[n].value,
               serialize(t2Rep.children[n].value),
               state,
-              {mode, nthParam: n},
+              {mode, nthArg: n},
               fRep,
               fSig,
+              xSig,
               cons
             );
 
@@ -1364,9 +1369,10 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
               t2Rep.children[n].value,
               serialize(t2Rep.children[n].value),
               state,
-              {mode, nthParam: n},
+              {mode, nthArg: n},
               fRep,
               fSig,
+              xSig,
               cons
             );
           }
@@ -1384,9 +1390,10 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
               argRep.value,
               serialize(argRep.value),
               state,
-              {mode, nthParam: n},
+              {mode, nthArg: n},
               fRep,
               fSig,
+              xSig,
               cons
             );
 
@@ -1396,9 +1403,10 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
               argRep.value,
               serialize(argRep.value),
               state,
-              {mode, nthParam: n},
+              {mode, nthArg: n},
               fRep,
               fSig,
+              xSig,
               cons
             );
           }
@@ -1410,9 +1418,10 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
               argRep.value,
               serialize(argRep.value),
               state,
-              {mode, nthParam: n},
+              {mode, nthArg: n},
               fRep,
               fSig,
+              xSig,
               cons
             );
 
@@ -1422,9 +1431,10 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
               argRep.value,
               serialize(argRep.value),
               state,
-              {mode, nthParam: n},
+              {mode, nthArg: n},
               fRep,
               fSig,
+              xSig,
               cons
             );
           }
@@ -1439,9 +1449,10 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
             t2Rep.children[n].value,
             serialize(t2Rep.children[n].value),
             state,
-            {mode, nthParam: n},
+            {mode, nthArg: n},
             fRep,
             fSig,
+            xSig,
             cons
           );
           
@@ -1451,9 +1462,10 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
             t2Rep.children[n].value,
             serialize(t2Rep.children[n].value),
             state,
-            {mode, nthParam: n},
+            {mode, nthArg: n},
             fRep,
             fSig,
+            xSig,
             cons
           );
         });
@@ -1463,23 +1475,23 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSi
     }
 
     case "PolyT": {
-      return constrain(t2Rep, t2Sig, t1Rep, t1Sig, state, {mode, nthParam}, fRep, fSig, cons);
+      return constrain(t2Rep, t2Sig, t1Rep, t1Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons);
     }
   }
 };
 
 
-const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons) => {
+const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons) => {
 
 };
 
 
-const unifyPoly = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons) => {
-  return constrain(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons);
+const unifyPoly = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons) => {
+  return constrain(t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons);
 };
 
 
-const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons) => {
+const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
@@ -1488,7 +1500,7 @@ const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fS
     case "RecT":
     case "TupT":
     case "UnitT": {
-      const range = retrieveRange(fRep, nthParam);
+      const range = retrieveRange(fRep, nthArg);
 
       _throw(
         cons,
@@ -1504,12 +1516,12 @@ const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fS
     }
 
     case "PolyT": {
-      return constrain(t2Rep, t2Sig, t1Rep, t1Sig, state, {mode, nthParam}, fRep, fSig, cons);
+      return constrain(t2Rep, t2Sig, t1Rep, t1Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons);
     }
 
     case "PrimT": {
       if (t1Sig !== t2Sig) {
-        const range = retrieveRange(fRep, nthParam);
+        const range = retrieveRange(fRep, nthArg);
 
         _throw(
           cons,
@@ -1530,28 +1542,28 @@ const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fS
 };
 
 
-const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons) => {
+const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons) => {
 
 };
 
 
-const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons) => {
+const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons) => {
 
 };
 
 
-const unifyUnit = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthParam}, fRep, fSig, cons) => {
+const unifyUnit = (t1Rep, t1Sig, t2Rep, t2Sig, state, {mode, nthArg}, fRep, fSig, xSig, cons) => {
 
 };
 
 
-const constrain = (kRep, kSig, vRep, vSig, state, {mode, nthParam}, fRep, fSig, cons) => {
+const constrain = (kRep, kSig, vRep, vSig, state, {mode, nthArg}, fRep, fSig, xSig, cons) => {
   kSig = kSig.replace(/\([a-z0-9_]+ :: /, "(");
   vSig = vSig.replace(/\([a-z0-9_]+ :: /, "(");
 
   if (kSig !== vSig) {
-    occurs(kRep, kSig, vSig, state, nthParam, fRep, fSig, cons);
-    occurs(vRep, vSig, kSig, state, nthParam, fRep, fSig, cons);
+    occurs(kRep, kSig, vSig, state, nthArg, fRep, fSig, xSig, cons);
+    occurs(vRep, vSig, kSig, state, nthArg, fRep, fSig, xSig, cons);
   }
 
   if (state.constraints.has(kSig)) {
@@ -1559,7 +1571,7 @@ const constrain = (kRep, kSig, vRep, vSig, state, {mode, nthParam}, fRep, fSig, 
       vRep_ = deserialize(vSig_);
 
     if (vSig !== vSig_) {
-      return unify(vRep_, vSig_, vRep, vSig, state, {mode, nthParam}, fRep, fSig, cons);
+      return unify(vRep_, vSig_, vRep, vSig, state, {mode, nthArg}, fRep, fSig, xSig, cons);
     }
   }
 
@@ -1580,7 +1592,7 @@ const constrain = (kRep, kSig, vRep, vSig, state, {mode, nthParam}, fRep, fSig, 
     if (vSig !== vSig_) {
       if (!state.contraSet.has(`${vSig_} ~ ${vSig}`)) {
         state.contraSet.add(`${vSig_} ~ ${vSig}`);
-        constrain(vRep_, vSig_, vRep, vSig, state, {mode: "verify", nthParam}, fRep, fSig, cons);
+        constrain(vRep_, vSig_, vRep, vSig, state, {mode: "verify", nthArg}, fRep, fSig, xSig, cons);
       }
     }
   }
@@ -1598,7 +1610,7 @@ const constrain = (kRep, kSig, vRep, vSig, state, {mode, nthParam}, fRep, fSig, 
     if (kSig !== kSig_) {
       if (!state.contraSet.has(`${kSig_} ~ ${kSig}`)) {
         state.contraSet.add(`${kSig_} ~ ${kSig}`);
-        constrain(kRep_, kSig_, kRep, kSig, state, {mode: "verify", nthParam}, fRep, fSig, cons);
+        constrain(kRep_, kSig_, kRep, kSig, state, {mode: "verify", nthArg}, fRep, fSig, xSig, cons);
       }
     }
   }
@@ -1613,15 +1625,15 @@ const constrain = (kRep, kSig, vRep, vSig, state, {mode, nthParam}, fRep, fSig, 
 };
 
 
-const occurs = (kRep, kSig, vSig, state, nthParam, fRep, fSig, cons) => {
+const occurs = (kRep, kSig, vSig, state, nthArg, fRep, fSig, xSig, cons) => {
   if (kSig.search(/\b[a-z][0-9]?\b/) !== -1) {
     if (vSig.search(new RegExp(`\\b${kSig}\\b`)) !== -1) {
-      const range = retrieveRange(fRep, nthParam);
+      const range = retrieveRange(fRep, nthArg);
 
       _throw(
         cons,
         [`${fRep.name || "lambda"} creates an infinite type`],
-        fSig,
+        `${fSig} applied to ${xSig}`,
         {
           range,
           desc: [`${kSig} occurs in substitution ${vSig}`],
@@ -1862,8 +1874,8 @@ const substitute = (fSig, constraints) => {
 const escapeRegExp = s => s.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 
 
-const retrieveRange = (fRep, nthParam) => {
-  if (nthParam === null) {
+const retrieveRange = (fRep, nthArg) => {
+  if (nthArg === null) {
     const argRep = fRep.children[0];
 
     switch (argRep.constructor.name) {
@@ -1875,7 +1887,7 @@ const retrieveRange = (fRep, nthParam) => {
   }
 
   else {
-    const argRep = fRep.children[0].value.children[nthParam];
+    const argRep = fRep.children[0].value.children[nthArg];
 
     switch (argRep.constructor.name) {
       case "ArgT":
@@ -1958,16 +1970,18 @@ const handleFun = (fRep, fSig, state) => {
       switch (argRep.constructor.name) {
         case "ArgT": {
           verifyUnary(arg, argRep, fRep, fSig, state.sigLog);
+          const tSig = introspect(arg[0]);
           
           state = unify(
             argRep.value,
             serialize(argRep.value),
-            deserialize(introspect(arg[0])),
-            introspect(arg[0]),
+            deserialize(tSig),
+            tSig,
             state,
-            {mode: "map", nthParam: null},
+            {mode: "map", nthArg: null},
             fRep,
             fSig,
+            tSig,
             TypeError
           );
 
@@ -1983,15 +1997,18 @@ const handleFun = (fRep, fSig, state) => {
           const argSig = serialize(argRep.value);
 
           arg.forEach((arg_, n) => {
+            const tSig = introspect(arg_);
+
             state = unify(
               argRep.value,
               argSig,
-              deserialize(introspect(arg_)),
-              introspect(arg_),
+              deserialize(tSig),
+              tSig,
               state,
-              {mode: "map", nthParam: null},
+              {mode: "map", nthArg: null},
               fRep,
               fSig,
+              tSig,
               TypeError
             );
           });
@@ -2001,21 +2018,21 @@ const handleFun = (fRep, fSig, state) => {
       }
 
       if (fRep.children[1].constructor.name === "ReturnT") {
-        const r = g(...arg);
+        const r = g(...arg),
+          rSig = introspect(r);
 
-        if (argRep.constructor.name !== "NoArgT") {
-          state = unify(
-            fRep.children[1].value,
-            serialize(fRep.children[1].value),
-            deserialize(introspect(r)),
-            introspect(r),
-            state,
-            {mode: "map", nthParam: null},
-            fRep,
-            fSig,
-            ReturnTypeError
-          );
-        }
+        state = unify(
+          fRep.children[1].value,
+          serialize(fRep.children[1].value),
+          deserialize(rSig),
+          rSig,
+          state,
+          {mode: "map", nthArg: null},
+          fRep,
+          fSig,
+          rSig,
+          ReturnTypeError
+        );
 
         return r;
       }
