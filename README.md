@@ -278,7 +278,40 @@ Even though the applicator `ap` merely accepts unary functions it can handle fun
 
 ### Type Hints
 
-...
+What is the intermediate type of the following partially applied function?
+
+```Javascript
+const comp = Fun(
+  "(comp :: (b -> c) -> (a -> b) -> a -> c)",
+  f => g => x => f(g(x))
+);
+
+const inc = Fun(
+  "(inc :: Number -> Number)",
+  n => n + 1
+);
+
+comp(inc); // ?
+```
+This is still a trivial case but it may not be so easy to solve for someone unfamiliar with the functional paradigm. Let's ask ftor for help:
+
+```Javascript
+comp(inc) [TS]; // "(comp :: (a -> Number) -> a -> Number)"
+```
+Just use the `TS` Symbol to access the current type signature of a typed function. Let's look at a more complex example:
+
+```Javascript
+const comp = Fun(
+  "(comp :: (b -> c) -> (a -> b) -> a -> c)",
+  f => g => x => f(g(x))
+);
+
+compx = comp(comp); // "(comp :: (a -> b0 -> c0) -> a -> (a0 -> b0) -> a0 -> c0)"
+compy = comp(comp) (comp); // "(comp :: (b1 -> c1) -> (a0 -> a1 -> b1) -> a0 -> a1 -> c1)"
+```
+You can conclude from the type signatures that `compx` takes a binary function, a value, an unary function and another value, whereas `compy` takes a binary and an unary function and two values. As a matter of fact `compy` is a pretty useful function, since it allows us to use a binary function as the inner one of the composition.
+
+Instead of examining the implementations we can stick with type signatures to comprehend complex function expressions. By leaving implementation details behind, we've reached another level of abstraction and ftor helps us to keep track of the right types.
 
 ### Parametricity
 
@@ -302,3 +335,4 @@ append("2") ("3"); // "23"
 append(true) (false); // false
 append({}) ({}); // type error
 ```
+Ultimately, it is your responsibility to avoid such functions.
