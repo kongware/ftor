@@ -337,7 +337,7 @@ append({}) ({}); // type error
 ```
 Ultimately, it is your responsibility to avoid such functions.
 
-## Array type
+## Array Type
 
 ### Construction
 
