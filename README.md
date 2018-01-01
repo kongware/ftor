@@ -356,7 +356,7 @@ xs[TS]; // "[Number]"
 
 append(xs) (ys); // [1, 2, 3, 4]
 ```
-Please note that the type of an empty typed array is polymiorphic: `[a]`.
+Please note that the type of an empty typed array is polymorphic: `[a]`.
 
 ### Homogeneous
 
@@ -396,7 +396,7 @@ Arr(ys); // type error
 ```
 ### Void Elements
 
-Typed arrays must not contain element values of type void (`undefined`/`ǸaN`):
+Typed arrays must not contain element values of type void (`undefined`/`NaN`):
 
 ```Javascript
 const xs = Arr([undefined]), // type error
@@ -426,4 +426,4 @@ Use explicit type casts instead.
 
 ### Immutability
 
-Even though mutations are restricted, typed arrays are not immutable. There will be immutable data types in ftor as soon as I am able to incorporate reliable and fast persistant data structures into Javascript and the type checker. I highly recommend to avoid globally visible mutations whenever possible, though.
+Even though mutations on typed arrays are restricted, they are not immutable. There will be immutable data types in ftor as soon as I am able to incorporate reliable and fast persistant data structures into Javascript and the type checker. I highly recommend to avoid globally visible mutations whenever possible, though.
