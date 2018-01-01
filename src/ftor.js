@@ -37,19 +37,19 @@ export const type = b => types = b;
 ******************************************************************************/
 
 
-const SYM_PREFIX = "ftor/";
+const SYM_PREFIX = "github.com/kongware/ftor/";
 
 
-const TYPE_REP = Symbol.for(`${SYM_PREFIX}tRep`);
+const TR = Symbol.for(`${SYM_PREFIX}tr`);
 
 
-const TYPE_SIG = Symbol.for(`${SYM_PREFIX}tSig`);
+const TS = Symbol.for(`${SYM_PREFIX}ts`);
 
 
 const TUP_MAX_FIELDS = 16;
 
 
-const VOID = {Undefined: undefined, Null: null, NaN: NaN};
+const VOID = {Undefined: undefined, NaN: NaN};
 
 
 const LESS_GEN = 0;
@@ -81,7 +81,7 @@ const introspect = t => {
     case "_Map":
     case "Rec":
     case "Tup":
-    case "Unit": return t[TYPE_SIG];
+    case "Unit": return t[TS];
 
     default: {
       if (tag === "Object" && "constructor" in t) {
@@ -106,7 +106,7 @@ const introspectR = x => {
     case "boolean": return "Boolean";
 
     case "function": {
-      if (tag === "Fun") return x[TYPE_SIG];
+      if (tag === "Fun") return x[TS];
       else return "Function";
     }
 
@@ -124,38 +124,38 @@ const introspectR = x => {
       if (x === null) return "Null";
 
       else {
-        if (TYPE_SIG in x) return x[TYPE_SIG];
+        if (TS in x) return x[TS];
 
         else {
           switch (tag) {
             case "Array": {
-              if (x.length === 0) return "Array";
+              if (x.length === 0) return "[a]";
               else if (x.length === 1) return `[${introspectR(x[0])}]`;
 
               else {
-                const [s, ss] = x.reduce(([s, ss], y) => {
-                    const t = introspectR(y);
-                    return [s.add(t), ss.concat(t)];
+                const [s, sigs] = x.reduce(([s, sigs], y) => {
+                    const sig = introspectR(y);
+                    return [s.add(sig), sigs.concat(sig)];
                   }, [new Set(), []]);
 
-                if (s.size === 1) return `[${ss[0]}]`;
+                if (s.size === 1) return `[${sigs[0]}]`;
 
-                else if (ss.length > TUP_MAX_FIELDS) _throw(
+                else if (sigs.length > TUP_MAX_FIELDS) _throw(
                   IntrospectionError,
                   ["invalid Tuple"],
                   x,
                   {desc: [
-                    `Tuple must not contain more than ${TUP_MAX_FIELDS} fields`,
-                    `${ss.length} fields received`
+                    `Tuple must not comprise more than ${TUP_MAX_FIELDS} fields`,
+                    `${sigs.length} fields received`
                   ]}
                 );
                 
-                else return `[${ss.join(", ")}]`;
+                else return `[${sigs.join(", ")}]`;
               }
             }
 
             case "Map": {
-              if (x.size === 0) return "Map";
+              if (x.size === 0) return "{k::v}";
               else return `{${nextVal(x.entries()).map(y => introspectR(y)).join("::")}}`;
             }
 
@@ -559,12 +559,12 @@ const deserialize = tSig => {
             else {
               return aux(
                 tSig, n + 1,
-                {depth: depth + 1, context, phase: "TYPE_REP", buf: "", range, tag: buf, tReps}
+                {depth: depth + 1, context, phase: "TR", buf: "", range, tag: buf, tReps}
               );
             }
           }
 
-          case "TYPE_REP": {
+          case "TR": {
             if (c === ",") {
               if (tReps.length === 0) _throw(
                 TypeSigError,
@@ -2057,8 +2057,8 @@ const handleFun = (fRep, fSig, state) => {
       switch (k) {
         case "toString": return () => fSig;
         case Symbol.toStringTag: return "Fun";
-        case TYPE_REP: return fRep;
-        case TYPE_SIG: return fSig;
+        case TR: return fRep;
+        case TS: return fSig;
 
         case Symbol.toPrimitive: return hint => {
           _throw(
@@ -2079,7 +2079,7 @@ const handleFun = (fRep, fSig, state) => {
             TypeError,
             ["illegal property access"],
             fSig,
-            {desc: [`unknown property ${preformatK(k)}`]}
+            {desc: [`unknown property ${prettyPrintK(k)}`]}
           );
         }
       }
@@ -2087,15 +2087,15 @@ const handleFun = (fRep, fSig, state) => {
 
     has: (f, k, p) => {
       switch (k) {
-        case TYPE_SIG: return true;
-        case TYPE_REP: return true;
+        case TS: return true;
+        case TR: return true;
 
         default: _throw(
           TypeError,
           ["illegal property introspection"],
           fSig,
           {desc: [
-            `of property ${preformatK(k)}`,
+            `of property ${prettyPrintK(k)}`,
             "duck typing is not allowed"
           ]}
         );
@@ -2111,7 +2111,7 @@ const handleFun = (fRep, fSig, state) => {
           ["illegal property mutation"],
           fSig,
           {desc: [
-            `of property ${preformatK(k)} with type ${introspect(v)}`,
+            `of property ${prettyPrintK(k)} with type ${introspect(v)}`,
             "function objects are immutable"
           ]}
         );
@@ -2128,7 +2128,7 @@ const handleFun = (fRep, fSig, state) => {
         ["illegal property mutation"],
         fSig,
         {desc: [
-          `of property ${preformatK(k)} with type ${introspect(d.value)}`,
+          `of property ${prettyPrintK(k)} with type ${introspect(d.value)}`,
           "function objects are immutable"
         ]}
 
@@ -2141,7 +2141,7 @@ const handleFun = (fRep, fSig, state) => {
         ["illegal property mutation"],
         fSig,
         {desc: [
-          `removal of property ${preformatK(k)}`,
+          `removal of property ${prettyPrintK(k)}`,
           "function objects are immutable"
         ]}
       );
@@ -2153,7 +2153,7 @@ const handleFun = (fRep, fSig, state) => {
         ["illegal property introspection"],
         fSig,
         {desc: [
-          `of property ${preformatK(k)}`,
+          `of property ${prettyPrintK(k)}`,
           "meta programming is not allowed"
         ]}
       );
@@ -2195,455 +2195,7 @@ const verifyUnary = (arg, argRep, fRep, fSig, sigLog) => {
 ******************************************************************************/
 
 
-export const Adt = (tcons, tSig, ...cases) => {
-  const tRep = deserialize(tSig),
-    tvars = tSig.match(/\b[a-z]\b/g);
-
-  if (types) {
-    const tSigs = new Map();
-
-    cases.forEach(vcons => {
-      if (TYPE_SIG in vcons) {
-        const typeSig_ = vcons[TYPE_SIG],
-          typeRep_ = deserialize(typeSig_);
-
-        if (typeSig_.search(/^\([a-z0-9_]+ :: /i) !== 0) _throw(
-          TypeError,
-          [`value constructors must have a named type annotations`],
-          `(name :: ${typeSig_.slice(1)}`,
-          {range: [1, 8]}
-        );
-
-        else if (typeSig_.search(/^\(_?[A-Z]/) !== 0) _throw(
-          TypeError,
-          [`value constructors must have capitalized names`],
-          typeSig_,
-          {range: [1, 1]}
-        );
-
-        const tvars_ = typeSig_.match(/\b[a-z]\b/g);
-
-        tvars_.forEach(tvar => {
-          if (!tvars.includes(tvar)) {
-            const from = typeSig_.search(new RegExp(`\\b${tvar}\\b`)),
-              to = from;
-
-            _throw(
-              TypeError,
-              [`invalid value constructor for type "${tSig}"`],
-              typeSig_,
-              {range: [from, to], desc: ["type variable out of scope"]}
-            );
-          }
-        });
-      
-        if (serialize(last(typeRep_.children)[0]) !== tSig) {
-          const [from, to] = last(typeRep_.children)[0].range;
-
-          _throw(
-            TypeError,
-            [`invalid value constructor`],
-            typeSig_,
-            {range: [from, to], desc: [`${typeRep_.name} must return values of type "${tSig}"`]}
-          );
-        }
-
-        tSigs.set(typeRep_.name, typeSig_);
-      }
-
-      else _throw(
-        TypeError,
-        [`invalid value constructor`],
-        "missing type annotation",
-        {desc: [`${typeRep_.name} must be a typed function`]}
-      );
-    });
-
-    return f => {
-      const adt = new Proxy(new tcons(), handleAdt(tRep, tSig, tSigs));
-      adt.run = cases_ => f(cases_);
-      return adt;
-    };
-  }
-
-  else return f => {
-    const adt = new tcons();
-    adt.run = cases_ => f(cases_);
-    return adt;
-  }
-};
-
-
-const handleAdt = (tRep, tSig, tSigs) => ({
-  get: (o, k, p) => {
-    switch (k) {
-      case "run": return cases => {
-        Object.keys(cases).forEach(k => {
-          if (!tSigs.has(k)) _throw(
-            TypeError,
-            [`illegal application of type "${tSig}"`],
-            Array.from(tSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
-            {desc: [`unnecessary case "${k}"`]}
-          );
-
-          else if (!(TYPE_REP in cases[k])) _throw(
-            TypeError,
-            [`illegal application of type "${tSig}"`],
-            Array.from(tSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
-            {desc: [`case "${k}" is associated with an untyped value`]}
-          );
-
-          else if (cases[k][TYPE_REP].tag !== "Fun") _throw(
-            TypeError,
-            [`illegal application of type "${tSig}"`],
-            Array.from(tSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
-            {desc: [`case "${k}" is associated with a non-function value`]}
-          );
-        });
-
-        tSigs.forEach((v, k) => {
-          if (!(k in cases)) _throw(
-            TypeError,
-            [`illegal application of type "${tSig}"`],
-            Array.from(tSigs).map(([k, v]) => `${k}: ${v}`).join("\n"),
-            {desc: [`missing case "${k}"`]}
-          );
-
-          matchFun(k, deserialize(v), v, cases[k] [TYPE_REP], cases[k] [TYPE_SIG], tSig);
-        });
-
-        return o.run(cases);
-      }
-
-      case "toString": return () => tSig;
-      case Symbol.toStringTag: return "Adt";
-      case TYPE_REP: return tRep;
-      case TYPE_SIG: return tSig;
-
-      case Symbol.toPrimitive: return hint => {
-        _throw(
-          TypeError,
-          ["illegal implicit type conversion"],
-          tSig,
-          {desc: [
-            `must not be converted to ${capitalize(hint)} primitive`,
-            "use explicit type casts instead"
-          ]}
-        );
-      };
-
-      default: {
-        if (k in o) return o[k];
-
-        else _throw(
-          TypeError,
-          ["illegal property access"],
-          tSig,
-          {desc: [`unknown property ${preformatK(k)}`]}
-        );
-      }
-    }
-  },
-
-  has: (o, k, p) => {
-    switch (k) {
-      case TYPE_SIG: return true;
-      case TYPE_REP: return true;
-
-      default: _throw(
-        TypeError,
-        ["illegal property introspection"],
-        tSig,
-        {desc: [
-          `of property ${preformatK(k)}`,
-          "duck typing is not allowed"
-        ]}
-      );
-    }
-  },
-
-  set: (o, k, v, p) => {
-    switch (k) {
-      case "toString":
-      case "run": return o[k] = v, o;
-      
-      case TYPE_REP: return tRep = v, o; 
-      case TYPE_SIG: return tSig = v, o;
-
-      default: _throw(
-        TypeError,
-        ["illegal property mutation"],
-        tSig,
-        {desc: [
-          `of property ${preformatK(k)} with type ${introspect(v)}`,
-          "function Objects are immutable"
-        ]}
-      );
-    }
-  },
-
-  defineProperty: (o, k, d) => {
-    _throw(
-      TypeError,
-      ["illegal property mutation"],
-      tSig,
-      {desc: [
-        `of property ${preformatK(k)} with type ${introspect(d.value)}`,
-        "function Objects are immutable"
-      ]}
-
-    );
-  },
-
-  deleteProperty: (o, k) => {
-    _throw(
-      TypeError,
-      ["illegal property mutation"],
-      tSig,
-      {desc: [
-        `removal of property ${preformatK(k)}`,
-        "function Objects are immutable"
-      ]}
-    );
-  },
-
-  ownKeys: o => {
-    _throw(
-      TypeError,
-      ["illegal property introspection"],
-      tSig,
-      {desc: [
-        `of property ${preformatK(k)}`,
-        "meta programming is not allowed"
-      ]}
-    );
-  }
-});
-
-
-const constructType = (adt, constraints) => {
-  let rep, sig = adt[TYPE_SIG];
-
-  constraints.forEach((v, k) => {
-    sig = adt[TYPE_SIG].replace(new RegExp(`\\b${k}\\b`), v);
-  });
-
-  rep = deserialize(sig);
-  return [rep, sig];
-};
-
-
-const match = (_case, nomT, nomS, realT, realS, tSig) => {
-  switch (nomT.constructor.name) {
-    case "AdtT": return matchAdt(_case, nomT, nomS, realT, realS, tSig);
-    case "ArrT": return matchArr(_case, nomT, nomS, realT, realS, tSig);
-    case "FunT": return matchFun(_case, nomT, nomS, realT, realS, tSig);
-    case "_MapT": return matchMap(_case, nomT, nomS, realT, realS, tSig);
-    case "PrimT": return matchPrim(_case, nomT, nomS, realT, realS, tSig);
-    case "PolyT": return matchTvar(_case, nomT, nomS, realT, realS, tSig);
-    case "RecT": return matchRec(_case, nomT, nomS, realT, realS, tSig);
-    case "TupT": return matchTup(_case, nomT, nomS, realT, realS, tSig);
-  }
-};
-
-
-const matchAdt = (_case, nomT, nomS, realT, realS, tSig) => {
-  if (nomT.tag !== realT.tag) {
-    const [from, to] = nomT.range;
-
-    _throw(
-      TypeError,
-      [`${tSig} case "${_case}" expects`],
-      nomS,
-      {range: [from, to], desc: [`${serialize(realT)} received`]}
-    );
-  }
-
-  return nomT.children
-    .forEach((xT, n) => {
-      const nomT_ = xT[0],
-        nomS_ = serialize(nomT_),
-        realT_ = realT.children[n][0],
-        realS_ = serialize(realT_);
-
-      return match(_case, nomT_, nomS_, realT_, realS_, tSig);
-    }, constraints);
-};
-
-
-const matchArr = (_case, nomT, nomS, realT, realS, tSig) => {
-  if (nomT.tag !== realT.tag) {
-    const [from, to] = nomT.range;
-
-    _throw(
-      TypeError,
-      [`${tSig} case "${_case}" expects`],
-      nomS,
-      {range: [from, to], desc: [`${serialize(realT)} received`]}
-    );
-  }
-
-  return nomT.children
-    .forEach((xT, n) => {
-      const nomT_ = xT[0],
-        nomS_ = serialize(nomT_),
-        realT_ = realT.children[n][0],
-        realS_ = serialize(realT_);
-
-      return match(_case, nomT_, nomS_, realT_, realS_, tSig);
-    }, constraints);
-};
-
-
-const matchFun = (_case, nomT, nomS, realT, realS, tSig) => {
-  if (nomT.children.length !== realT.children.length) {
-    const [from, to] = nomT.range;
-
-    _throw(
-      ArityError,
-      [`${tSig} case "${_case}" expects`],
-      nomS,
-      {range: [from, to], desc: [`${realS} received`]}
-    );
-  }
-
-  nomT.children
-    .forEach((xT, n) => {
-      switch (xT.constructor.name) {
-        case "ArgT":
-        case "NoArgT":
-        case "RestT": {
-          if (xT.constructor.name !== realT.children[n].constructor.name) {
-            const [from, to] = nomT.range;
-
-            _throw(
-              ArityError,
-              [`${tSig} case "${_case}" expects`],
-              nomS,
-              {range: [from, to], desc: [`${realS} received`]}
-            );
-          }
-
-          else if (xT.constructor.name === "NoArgT") return;
-
-          else {
-            const nomT_ = xT[0],
-              nomS_ = serialize(nomT_),
-              realT_ = realT.children[n][0],
-              realS_ = serialize(realT_);
-
-            return match(_case, nomT_, nomS_, realT_, realS_, tSig);
-          }
-        }
-
-        case "ReturnT": return;
-      }
-    });
-};
-
-
-const matchMap = (_case, nomT, nomS, realT, realS, tSig) => {
-  if (nomT.tag !== realT.tag) {
-    const [from, to] = nomT.range;
-
-    _throw(
-      TypeError,
-      [`${tSig} case "${_case}" expects`],
-      nomS,
-      {range: [from, to], desc: [`${serialize(realT)} received`]}
-    );
-  }
-
-  return nomT.children
-    .forEach((xT, n) => {
-      const {k: nominalKeyT, v: nominalValT} = xT[0],
-        nominalKeyS = serialize(nominalKeyT),
-        nominalValS = serialize(nominalValT),
-        realKeyT = realT.children[n][0].k,
-        realValT = realT.children[n][0].v,
-        realKeyS = serialize(realKeyT),
-        realValS = serialize(realValT);
-
-      match(_case, nominalKeyT, nominalKeyS, realKeyT, realKeyS, tSig);
-      return match(_case, nominalValT, nominalValS, realValT, realValS, tSig);
-    });
-};
-
-
-const matchPrim = (_case, nomT, nomS, realT, realS, tSig) => {
-  if (nomT.tag !== realT.tag) {
-    const [from, to] = nomT.range;
-
-    _throw(
-      TypeError,
-      [`${tSig} case "${_case}" expects`],
-      nomS,
-      {range: [from, to], desc: [`${serialize(realT)} received`]}
-    );
-  }
-};
-
-
-const matchTvar = (_case, nomT, nomS, realT, realS, tSig) => {};
-
-
-const matchRec = (_case, nomT, nomS, realT, realS, tSig) => {
-  if (nomT.tag !== realT.tag) {
-    const [from, to] = nomT.range;
-
-    _throw(
-      TypeError,
-      [`${tSig} case "${_case}" expects`],
-      nomS,
-      {range: [from, to], desc: [`${serialize(realT)} received`]}
-    );
-  }
-
-  return nomT.children
-    .forEach((xT, n) => {
-      const {k: nominalKey, v: nominalValT} = xT[0],
-        nominalValS = serialize(nominalValT),
-        realKey = realT.children[n][0].k,
-        realValT = realT.children[n][0].v,
-        realValS = serialize(realValT);
-
-      if (nominalKey !== realKey) {
-        // TODO: add key range
-        _throw(
-          TypeError,
-          [`${tSig} case "${_case}" expects`],
-          tSig,
-          {range: [0, -1], desc: [`${realKey} received`]}
-        );
-      }
-
-      return match(_case, nominalValT, nominalValS, realValT, realValS, tSig);
-    }, constraints);
-};
-
-
-const matchTup = (_case, nomT, nomS, realT, realS, tSig) => {
-  if (nomT.tag !== realT.tag) {
-    const [from, to] = nomT.range;
-
-    _throw(
-      TypeError,
-      [`${tSig} case "${_case}" expects`],
-      nomS,
-      {range: [from, to], desc: [`${serialize(realT)} received`]}
-    );
-  }
-
-  return nomT.children
-    .forEach((xT, n) => {
-      const nomT_ = xT[0],
-        nomS_ = serialize(nomT_),
-        realT_ = realT.children[n][0],
-        realS_ = serialize(realT_);
-
-      return match(_case, nomT_, nomS_, realT_, realS_, tSig);
-    }, constraints);
-};
+// the best is yet to come...
 
 
 /******************************************************************************
@@ -2651,7 +2203,7 @@ const matchTup = (_case, nomT, nomS, realT, realS, tSig) => {
 ******************************************************************************/
 
 
-const _Arr = ({immu = false, sig = ""}) => xs => {
+export const Arr = xs => {
   if (types) {
     if (introspect(xs) !== "Array") _throw(
       TypeError,
@@ -2660,25 +2212,11 @@ const _Arr = ({immu = false, sig = ""}) => xs => {
       {desc: ["received"]}
     );
 
-    else if (TYPE_REP in xs) _throw(
-      TypeError,
-      ["Arr expects an untyped Array"],
-      xs[TYPE_SIG],
-      {desc: ["received (illegal retyping)"]}
-    );
+    else if (TR in xs) return xs;
 
-    let tSig = introspectR(xs);
-
-    if (xs.length === 0) {
-      if (sig === "") _throw(
-        TypeError,
-        ["Arr received an empty Array without type annotation"],
-        "[?]",
-        {desc: ["explicit type annotation necessary"]}
-      );
-
-      else tSig = sig;
-    }
+    const tSig = xs.length === 0
+      ? "[a]"
+      : introspectR(xs);
 
     const tRep = deserialize(tSig),
       voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
@@ -2687,7 +2225,7 @@ const _Arr = ({immu = false, sig = ""}) => xs => {
       TypeError,
       ["Arr expects homogeneous Array"],
       tSig,
-      {desc: [`mixed typed values received`]}
+      {desc: [`element values of different type received`]}
     );
 
     else if (tSig.search(voidPattern) !== -1) {
@@ -2696,45 +2234,36 @@ const _Arr = ({immu = false, sig = ""}) => xs => {
 
       _throw(
         TypeError,
-        ["Arr must not contain void values"],
+        ["Arr must not contain void elements"],
         tSig,
         {range: [from, to], desc: [`${match} received`]}
       );
     }
 
-    return new Proxy(xs, handleArr(tRep, tSig, immu));
+    return new Proxy(xs, handleArr(tRep, tSig));
   }
 
   else return xs;
 };
 
 
-export const Arr = _Arr({});
-
-
-export const Iarr = _Arr({immu: true})
-
-
-export const Earr = tSig => _Arr({sig: tSig});
-
-
-const handleArr = (tRep, tSig, immu) => ({
+const handleArr = (tRep, tSig) => ({
   get: (xs, i, p) => {
     switch (i) {
       case "toString": return () => tSig;
       case Symbol.toStringTag: return "Arr";
       case Symbol.isConcatSpreadable: return xs[Symbol.isConcatSpreadable];
-      case TYPE_REP: return tRep;
-      case TYPE_SIG: return tSig;
+      case TR: return tRep;
+      case TS: return tSig;
 
       case Symbol.toPrimitive: return hint => {
         _throw(
           TypeError,
-          ["illegal implicit type conversion"],
+          ["illegal type coercion"],
           tSig,
           {desc: [
-            `must not be converted to ${capitalize(hint)} primitive`,
-            "use explicit type casts instead"
+            `to target type ${capitalize(hint)}`,
+            "implicit type convertions are not allowed"
           ]}
         );
       };
@@ -2744,9 +2273,14 @@ const handleArr = (tRep, tSig, immu) => ({
 
         else _throw(
           TypeError,
-          ["illegal property access"],
+          ["invalid property access"],
           tSig,
-          {desc: [`unknown property ${preformatK(i)}`]}
+          {desc: [
+            Number.isNaN(Number(i))
+              ? `of ${prettyPrintK(i)}`
+              : `of index #${prettyPrintK(i)}`,
+            "duck typing is not allowed"
+          ]}
         );
       }
     }
@@ -2755,16 +2289,16 @@ const handleArr = (tRep, tSig, immu) => ({
   has: (xs, i, p) => {
     if (Number.isNaN(Number(i))) {
       switch (i) {
-        case TYPE_SIG: return true;
-        case TYPE_REP: return true;
+        case TS: return true;
+        case TR: return true;
 
         default: _throw(
           TypeError,
-          ["illegal property introspection"],
+          ["illegal non-numeric property introspection"],
           tSig,
           {desc: [
-            `of property ${preformatK(i)}`,
-            "duck typing is not allowed"
+            `of ${prettyPrintK(i)}`,
+            "Arr must not be used as an POJO"
           ]}
         );
       }
@@ -2773,47 +2307,34 @@ const handleArr = (tRep, tSig, immu) => ({
     else return i in xs;
   },
 
-  set: (xs, i, v, p) => setArr(tRep, tSig, immu, xs, i, {value: v}, "set"),
-  defineProperty: (xs, i, d) => setArr(tRep, tSig, immu, xs, i, d, "def"),
+  set: (xs, i, v, p) => setArr(tRep, tSig, xs, i, {value: v}, {mode: "set"}),
+  defineProperty: (xs, i, d) => setArr(tRep, tSig, xs, i, d, {mode: "def"}),
 
   deleteProperty: (xs, i) => {
-    if (immu) _throw(
+    if (Number.isNaN(Number(i))) _throw(
       TypeError,
-      ["illegal property deletion"],
+      ["illegal non-numeric property deletion"],
       tSig,
       {desc: [
-        `of property ${preformatK(i)}`,
-        "immutable Array"
+        `of ${prettyPrintK(i)}`,
+        "Arr must not be used as an POJO"
       ]}
     );
 
     else {
-      if (Number.isNaN(Number(i))) _throw(
+      if (Number(i) !== xs.length - 1) _throw(
         TypeError,
         ["illegal property deletion"],
         tSig,
         {desc: [
-          `of property ${preformatK(i)}`,
-          "do not use Arrays as Objects"
+          `of index #${prettyPrintK(i)}`,
+          "deletion would cause an index gap"
         ]}
       );
-
-      else {
-        if (Number(i) !== xs.length - 1) _throw(
-          TypeError,
-          ["illegal property deletion"],
-          tSig,
-          {desc: [
-            `of property ${preformatK(i)}`,
-            `where Array includes ${xs.length} elements`,
-            "operation causes index gap"
-          ]}
-        );
-      }
-
-      delete xs[i];
-      return true;
     }
+
+    delete xs[i];
+    return true;
   },
 
   ownKeys: xs => _throw(
@@ -2821,66 +2342,51 @@ const handleArr = (tRep, tSig, immu) => ({
     ["illegal property introspection"],
     tSig,
     {desc: [
-      `of property ${preformatK(i)}`,
+      `of ${prettyPrintK(i)}`,
       "meta programming is not allowed"
     ]}
   )
 });
 
 
-const setArr = (tRep, tSig, immu, xs, i, d, mode) => {
-  if (immu) _throw(
+const setArr = (tRep, tSig, xs, i, d, {mode}) => {
+  if (Number.isNaN(Number(i))) _throw(
     TypeError,
-    ["illegal property mutation"],
+    ["illegal non-numeric property mutation"],
     tSig,
     {desc: [
-      `of property ${preformatK(i)} with type ${introspect(d.value)}`,
-      "immutable Array"
+      `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
+      "Arr must not be used as an POJO"
     ]}
   );
 
   else {
-    if (Number.isNaN(Number(i))) _throw(
+    if (Number(i) > xs.length) _throw(
       TypeError,
       ["illegal property setting"],
       tSig,
       {desc: [
-        `of property ${preformatK(i)} with type ${introspect(d.value)}`,
-        "do not use Arrays as Objects"
+        `of index #${prettyPrintK(i)} with type ${introspect(d.value)}`,
+        "setting would cause an index gap"
       ]}
     );
 
-    else {
-      if (Number(i) > xs.length) _throw(
+    else if (tSig !== `[${introspectR(d.value)}]`) {
+      _throw(
         TypeError,
-        ["illegal property setting"],
+        ["illegal property mutation"],
         tSig,
         {desc: [
-          `of property ${preformatK(i)} with type ${introspect(d.value)}`,
-          `where Array includes only ${xs.length} elements`,
-          "index gaps are not allowed"
+          `of index #${prettyPrintK(i)} with type ${introspect(d.value)}`,
+          "Arr must be homogeneous"
         ]}
       );
+    }
 
-      else if (tSig !== `[${introspectR(d.value)}]`) {
-        const [from, to] = tRep.children[0].range;
-
-        _throw(
-          TypeError,
-          ["illegal property mutation"],
-          tSig,
-          {range: [from, to], desc: [
-            `of property ${preformatK(i)} with type ${introspect(d.value)}`,
-            "heterogeneous Arrays are not allowed"
-          ]}
-        );
-      }
-
-      else {
-        if (mode === "set") xs[i] = d.value;
-        else Reflect.defineProperty(xs, i, d);
-        return true;
-      }
+    else {
+      if (mode === "set") xs[i] = d.value;
+      else Reflect.defineProperty(xs, i, d);
+      return true;
     }
   }
 };
@@ -2900,10 +2406,10 @@ const _Tup = ({immu = false}) => xs => {
       {desc: ["received"]}
     );
 
-    else if (TYPE_REP in xs) _throw(
+    else if (TR in xs) _throw(
       TypeError,
       ["Tup expects an untyped Array"],
-      xs[TYPE_SIG],
+      xs[TS],
       {desc: ["received (illegal retyping)"]}
     );
 
@@ -2950,8 +2456,8 @@ const handleTup = (tRep, tSig, immu) => ({
       case "toString": return () => tSig;
       case Symbol.toStringTag: return "Tup";
       case Symbol.isConcatSpreadable: return xs[Symbol.isConcatSpreadable];
-      case TYPE_REP: return tRep;
-      case TYPE_SIG: return tSig;
+      case TR: return tRep;
+      case TS: return tSig;
 
       case Symbol.toPrimitive: return hint => {
         _throw(
@@ -2972,7 +2478,7 @@ const handleTup = (tRep, tSig, immu) => ({
           TypeError,
           ["illegal property access"],
           tSig,
-          {desc: [`unknown property ${preformatK(i)}`]}
+          {desc: [`unknown property ${prettyPrintK(i)}`]}
         );
       }
     }
@@ -2980,15 +2486,15 @@ const handleTup = (tRep, tSig, immu) => ({
 
   has: (xs, i, p) => {
     switch (i) {
-      case TYPE_SIG: return true;
-      case TYPE_REP: return true;
+      case TS: return true;
+      case TR: return true;
 
       default: _throw(
         TypeError,
         ["illegal property introspection"],
         tSig,
         {desc: [
-          `of property ${preformatK(i)}`,
+          `of property ${prettyPrintK(i)}`,
           "duck typing is not allowed"
         ]}
       );
@@ -3003,7 +2509,7 @@ const handleTup = (tRep, tSig, immu) => ({
     ["illegal property deletion"],
     tSig,
     {desc: [
-      `of property ${preformatK(i)}`,
+      `of property ${prettyPrintK(i)}`,
       "Tuples are either immutable or sealed"
     ]}
   ),
@@ -3013,7 +2519,7 @@ const handleTup = (tRep, tSig, immu) => ({
     ["illegal property introspection"],
     tSig,
     {desc: [
-      `of property ${preformatK(i)}`,
+      `of property ${prettyPrintK(i)}`,
       "meta programming is not allowed"
     ]}
   )
@@ -3026,7 +2532,7 @@ const setTup = (tRep, tSig, immu, xs, i, d, mode) => {
     ["illegal property mutation"],
     tSig,
     {desc: [
-      `of property ${preformatK(i)} with type ${introspect(d.value)}`,
+      `of property ${prettyPrintK(i)} with type ${introspect(d.value)}`,
       "immutable Tuple"
     ]}
   );
@@ -3037,7 +2543,7 @@ const setTup = (tRep, tSig, immu, xs, i, d, mode) => {
       ["illegal property setting"],
       tSig,
       {desc: [
-        `of property ${preformatK(i)} with type ${introspect(d.value)}`,
+        `of property ${prettyPrintK(i)} with type ${introspect(d.value)}`,
         "do not use Tuples as Objects"
       ]}
     );
@@ -3048,7 +2554,7 @@ const setTup = (tRep, tSig, immu, xs, i, d, mode) => {
         ["illegal property setting"],
         tSig,
         {desc: [
-          `of property ${preformatK(i)} with type ${introspect(d.value)}`,
+          `of property ${prettyPrintK(i)} with type ${introspect(d.value)}`,
           `where Tuple includes only ${xs.length} fields`,
           "sealed Tuple"
         ]}
@@ -3062,7 +2568,7 @@ const setTup = (tRep, tSig, immu, xs, i, d, mode) => {
           ["illegal property mutation"],
           tSig,
           {range: [from, to], desc: [
-            `of property ${preformatK(i)} with type ${introspect(d.value)}`,
+            `of property ${prettyPrintK(i)} with type ${introspect(d.value)}`,
             "fields must maintain their type"
           ]}
         );
@@ -3092,10 +2598,10 @@ const __Map = ({immu = false, sig = ""}) => map => {
       {desc: ["received"]}
     );
 
-    else if (TYPE_REP in map) _throw(
+    else if (TR in map) _throw(
       TypeError,
       ["_Map expects an untyped Map"],
-      map[TYPE_SIG],
+      map[TS],
       {desc: ["received (illegal retyping)"]}
     );
 
@@ -3156,8 +2662,8 @@ const handleMap = (tRep, tSig, immu) => ({
       case "toString": return () => tSig;
       case Symbol.toStringTag: return "_Map";
       case Symbol.isConcatSpreadable: return map[Symbol.isConcatSpreadable];
-      case TYPE_REP: return tRep;
-      case TYPE_SIG: return tSig;
+      case TR: return tRep;
+      case TS: return tSig;
 
       case Symbol.toPrimitive: return hint => {
         _throw(
@@ -3178,7 +2684,7 @@ const handleMap = (tRep, tSig, immu) => ({
           TypeError,
           ["illegal property access"],
           tSig,
-          {desc: [`unknown key ${preformatK(introspect(k))}`]}
+          {desc: [`unknown key ${prettyPrintK(introspect(k))}`]}
         );
       };
 
@@ -3188,7 +2694,7 @@ const handleMap = (tRep, tSig, immu) => ({
           ["illegal property mutation"],
           tSig,
           {desc: [
-            `of property ${preformatK(introspect(k))} with type ${introspect(d.value)}`,
+            `of property ${prettyPrintK(introspect(k))} with type ${introspect(d.value)}`,
             "immutable Map"
           ]}
         );
@@ -3202,7 +2708,7 @@ const handleMap = (tRep, tSig, immu) => ({
               ["illegal property mutation"],
               tSig,
               {range: [0, -1], desc: [ 
-                `of key ${preformatK(introspect(k))} with type ${introspect(d.value)}`,
+                `of key ${prettyPrintK(introspect(k))} with type ${introspect(d.value)}`,
                 "heterogeneous Maps are not allowed"
               ]}
             );
@@ -3216,7 +2722,7 @@ const handleMap = (tRep, tSig, immu) => ({
               ["illegal property mutation"],
               tSig,
               {range: [from, to], desc: [
-                `of property ${preformatK(introspect(k))} with type ${introspect(d.value)}`,
+                `of property ${prettyPrintK(introspect(k))} with type ${introspect(d.value)}`,
                 "heterogeneous Maps are not allowed"
               ]}
             );
@@ -3232,7 +2738,7 @@ const handleMap = (tRep, tSig, immu) => ({
           ["illegal property mutation"],
           tSig,
           {desc: [
-            `of key ${preformatK(introspect(k))} with type ${introspect(d.value)}`,
+            `of key ${prettyPrintK(introspect(k))} with type ${introspect(d.value)}`,
             "immutable Map"
           ]}
         );
@@ -3244,7 +2750,7 @@ const handleMap = (tRep, tSig, immu) => ({
             TypeError,
             ["illegal property deletion"],
             tSig,
-            {desc: [`unknown key ${preformatK(introspect(k))}`]}
+            {desc: [`unknown key ${prettyPrintK(introspect(k))}`]}
           );
         }
       };
@@ -3255,7 +2761,7 @@ const handleMap = (tRep, tSig, immu) => ({
           ["illegal property mutation"],
           tSig,
           {desc: [
-            `of property ${preformatK(introspect(k))} with type ${introspect(d.value)}`,
+            `of property ${prettyPrintK(introspect(k))} with type ${introspect(d.value)}`,
             "immutable Array"
           ]}
         );
@@ -3270,7 +2776,7 @@ const handleMap = (tRep, tSig, immu) => ({
           TypeError,
           ["illegal property access"],
           tSig,
-          {desc: [`unknown property ${preformatK(k)}`]}
+          {desc: [`unknown property ${prettyPrintK(k)}`]}
         );
       }
     }
@@ -3278,15 +2784,15 @@ const handleMap = (tRep, tSig, immu) => ({
 
   has: (map, k, p) => {
     switch (k) {
-      case TYPE_SIG: return true;
-      case TYPE_REP: return true;
+      case TS: return true;
+      case TR: return true;
 
       default: _throw(
         TypeError,
         ["illegal property introspection"],
         tSig,
         {desc: [
-          `of property ${preformatK(k)}`,
+          `of property ${prettyPrintK(k)}`,
           "duck typing is not allowed"
         ]}
       );
@@ -3302,7 +2808,7 @@ const handleMap = (tRep, tSig, immu) => ({
         ["illegal property mutation"],
         tSig,
         {desc: [
-          `of property ${preformatK(k)} with type ${introspect(v)}`,
+          `of property ${prettyPrintK(k)} with type ${introspect(v)}`,
           "map Objects are immutable"
         ]}
       );
@@ -3315,7 +2821,7 @@ const handleMap = (tRep, tSig, immu) => ({
       ["illegal property mutation"],
       tSig,
       {desc: [
-        `of property ${preformatK(k)} with type ${introspect(d.value)}`,
+        `of property ${prettyPrintK(k)} with type ${introspect(d.value)}`,
         "map Objects are immutable"
       ]}
 
@@ -3328,7 +2834,7 @@ const handleMap = (tRep, tSig, immu) => ({
       ["illegal property mutation"],
       tSig,
       {desc: [
-        `removal of property ${preformatK(k)}`,
+        `removal of property ${prettyPrintK(k)}`,
         "map Objects are immutable"
       ]}
     );
@@ -3339,7 +2845,7 @@ const handleMap = (tRep, tSig, immu) => ({
     ["illegal property introspection"],
     tSig,
     {desc: [
-      `of property ${preformatK(k)}`,
+      `of property ${prettyPrintK(k)}`,
       "meta programming is not allowed"
     ]}
   )
@@ -3360,10 +2866,10 @@ const _Rec = ({immu = false, sig = ""}) => o => {
       {desc: ["received"]}
     );
 
-    else if (TYPE_REP in o) _throw(
+    else if (TR in o) _throw(
       TypeError,
       ["Rec expects an untyped Object"],
-      o[TYPE_SIG],
+      o[TS],
       {desc: ["received (illegal retyping)"]}
     );
 
@@ -3410,8 +2916,8 @@ const handleRec = (tRep, tSig, immu) => ({
       case "toString": return () => tSig;
       case Symbol.toStringTag: return "Rec";
       case Symbol.isConcatSpreadable: return o[Symbol.isConcatSpreadable];
-      case TYPE_REP: return tRep;
-      case TYPE_SIG: return tSig;
+      case TR: return tRep;
+      case TS: return tSig;
 
       case Symbol.toPrimitive: return hint => {
         _throw(
@@ -3432,7 +2938,7 @@ const handleRec = (tRep, tSig, immu) => ({
           TypeError,
           ["illegal property access"],
           tSig,
-          {desc: [`unknown property ${preformatK(k)}`]}
+          {desc: [`unknown property ${prettyPrintK(k)}`]}
         );
       }
     }
@@ -3440,15 +2946,15 @@ const handleRec = (tRep, tSig, immu) => ({
 
   has: (o, k, p) => {
     switch (k) {
-      case TYPE_SIG: return true;
-      case TYPE_REP: return true;
+      case TS: return true;
+      case TR: return true;
 
       default: _throw(
         TypeError,
         ["illegal property introspection"],
         tSig,
         {desc: [
-          `of property ${preformatK(k)}`,
+          `of property ${prettyPrintK(k)}`,
           "duck typing is not allowed"
         ]}
       );
@@ -3463,7 +2969,7 @@ const handleRec = (tRep, tSig, immu) => ({
     ["illegal property deletion"],
     tSig,
     {desc: [
-      `of property ${preformatK(k)}`,
+      `of property ${prettyPrintK(k)}`,
       "Records are either immutable or sealed"
     ]}
   ),
@@ -3473,7 +2979,7 @@ const handleRec = (tRep, tSig, immu) => ({
     ["illegal property introspection"],
     tSig,
     {desc: [
-      `of property ${preformatK(k)}`,
+      `of property ${prettyPrintK(k)}`,
       "meta programming is not allowed"
     ]}
   )
@@ -3486,7 +2992,7 @@ const setRec = (tRep, tSig, immu, o, k, d, mode) => {
     ["illegal property mutation"],
     tSig,
     {desc: [
-      `of property ${preformatK(k)} with type ${introspect(d.value)}`,
+      `of property ${prettyPrintK(k)} with type ${introspect(d.value)}`,
       "immutable Record"
     ]}
   );
@@ -3514,7 +3020,7 @@ const setRec = (tRep, tSig, immu, o, k, d, mode) => {
         ["illegal property mutation"],
         tSig,
         {range: [from, to], desc: [
-          `of property ${preformatK(k)} with type ${introspect(d.value)}`,
+          `of property ${prettyPrintK(k)} with type ${introspect(d.value)}`,
           "fields must maintain their type"
         ]}
       );
@@ -3603,7 +3109,7 @@ class TypeSigError extends TypeSysError {
 const ul = (n, m) => Array(n + 1).join(" ") + Array(m - n + 2).join("^");
 
 
-const preformatK = x => {
+const prettyPrintK = x => {
   const tag = getStringTag(x);
   
   if (tag === "Symbol") return x.toString();
@@ -3612,7 +3118,7 @@ const preformatK = x => {
 };
 
 
-const preformatV = x => {
+const prettyPrintV = x => {
   const tag = getStringTag(x);
   
   if (tag === "Symbol") return x.toString();

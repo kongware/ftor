@@ -15,7 +15,7 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 <br>
 
-Version 0.9.12 (under construction)
+Version 0.9.13 (under construction)
 
 **Please note:** This repo is experimental and still work in progress.
 <br><br>
@@ -67,7 +67,7 @@ F.type(true);
 
 - [x] standalone unification algorithm (Hindley-Milner)
 - [x] incorporate unification into the type checker
-- [ ] add homogeneous Array type
+- [x] add homogeneous Array type
 - [ ] add homogeneous Map type
 - [ ] add Tuple type
 - [ ] add Record type
@@ -79,6 +79,8 @@ F.type(true);
 - [ ] incorporate kind system
 - [ ] add higher kinded types
 - [ ] incorporate a special effect type / corresponding runtime
+- [ ] add persistant data structures
+- [ ] provide common combinators and functional patterns
 
 # Types
 
@@ -187,7 +189,11 @@ thunk("baz"); // arity error
 ```
 ### Higher Order Functions
 
-In functional programming we want to pass functions around as first class citizens and treat them the same way as data:
+Let's treat functions the same way as data.
+
+#### Monomorphic
+
+Here is a somewhat silly monomorphic applicator just to illustrate the principle:
 
 ```Javascript
 const ap = Fun(
@@ -200,9 +206,56 @@ const inc = Fun(
   n => n + 1
 );
 
-const toStr = Fun(
-  "(toStr :: Number -> String)",
-  n => n + ""
+ap(inc) (2); // 3
+ap(inc) ("2"); // type error
+```
+The type checker immediately evaluates partially applied functions and is therefore able to throw type errors eagerly:
+
+```Javascript
+const ap = Fun(
+  "(ap :: (Number -> Number) -> Number -> Number)",
+  f => n => f(n)
+);
+
+const toUC = Fun(
+  "(toUC :: String -> String)",
+  s => s.toUpperCase()
+);
+
+ap(toUC); // type error
+```
+#### Polymorphic
+
+Here is the applicator as a parametric polymorphic higher order function:
+
+```Javascript
+const ap = Fun(
+  "(ap :: (a -> b) -> a -> b)",
+  f => x => f(x)
+);
+
+const inc = Fun(
+  "(inc :: Number -> Number)",
+  n => n + 1
+);
+
+const toUC = Fun(
+  "(toUC :: String -> String)",
+  s => s.toUpperCase()
+);
+
+ap(inc) (2); // 3
+ap(inc) ("2"); // type error
+ap(toUC) ("foo"); // "FOO"
+```
+### Abstraction over Arity
+
+If the return type of an higher order function is a type variable (e.g. `a`), it can abstract over the arity of the passed function argument:
+
+```Javascript
+const ap = Fun(
+  "(ap :: (a -> b) -> a -> b)",
+  f => x => f(x)
 );
 
 const add = Fun(
@@ -210,43 +263,18 @@ const add = Fun(
   n => m => n + m
 );
 
-ap(inc) (2); // 3
-ap(toStr) (2); // throws
-ap(add) (2); // throws
+ap(add) (2) (3); // 5
+ap(ap(add) (2)) (3); // 5
 ```
-ftor always attempts to eagerly catch type errors and consequently checks the type of function arguments at the time of passing them to higher order functions, instead of waiting until they are finally called:
+Even though the applicator `ap` merely accepts unary functions it can handle functions argument of arbitrary arity. This property is calles abstraction over arity and is one of the nice qualities of curried functions.
 
-```Javascript
-ap(toStr); // throws
-ap(add); // throws
-```
-### Parametric Polymorphic Functions
+### Type Hints
 
-So far we've merely addressed somehow boring, monomorphic functions. Let's get to polymorphic ones.
+...
 
-#### First Order
+### Parametricity
 
-Parametric polymorphic functions accept values of any type:
-
-```Javascript
-const id = Fun("(id :: a -> a)", x => x);
-
-id(2); // 2
-id("foo"); // "foo"
-id(true); // true
-
-const first = Fun(
-  "(first :: a -> a -> a)",
-  x => y => x
-);
-
-first(2) (3); // 2
-first("foo") ("bar"; // "foo"
-first(true) (false); // true
-```
-#### Parametricity
-
-Parametric polymorphism has a nice property called <a href="https://en.wikipedia.org/wiki/Parametricity">parametricity</a>, which imposes that a function must not know anything about the types of its arguments or return value. Here is a function that violates this principle:
+<a href="https://en.wikipedia.org/wiki/Parametricity">Parametricity</a> is a property of parametric polymorphism that prevents polymorphic functions from knowing anything about the types of their arguments or return values. In return you get the ability to deduce or at least narrow down a function's behavior just from its type signature. To enfoce parametricity a type checker must analyze your entire code at compile time. Since ftor isn't a static type checker it can't preclude polymorphic functions that violate the parametricity property:
 
 ```Javascript
 const append = Fun(
@@ -263,92 +291,6 @@ const append = Fun(
 
 append(2) (3); // 5
 append("2") ("3"); // "23"
-append(2) ("3"); // throws
-append({}) ({}); // throws
+append(true) (false); // false
+append({}) ({}); // type error
 ```
-Without parametricity we lose the ability to deduce or at least narrow down a function's behavior just from its type signature. Since ftor isn't a static type checker it cannot preclude such implementations.
-
-#### Higher Order
-
-Parametric polymorphic higher order functions are applicable to many types and thus quite flexible. Here is a generic applicator:
-
-```Javascript
-const ap = Fun(
-  "(ap :: (a -> b) -> a -> b)",
-  f => x => f(x)
-);
-
-const ap_ = Fun(
-  "(ap :: (a -> a) -> a -> a)",
-  f => x => f(x)
-);
-
-const inc = F.Fun(
-  "(inc :: Number -> Number)",
-  n => n + 1
-);
-
-const toStr = F.Fun(
-  "(toStr :: Number -> String)",
-  n => n + ""
-);
-
-ap(inc) (2); // 3
-ap(toStr) (2); // "2"
-
-ap_(inc) (2); // 3
-ap_(toStr) (2); // throws
-```
-### Abstraction over Arity
-
-When both a higher order function type signature and the signature of its function argument ends with a type variable the arity of the function argument doesn't matter anymore:
-
-```Javascript
-const ap = Fun(
-  "(ap :: (a -> b) -> a -> b)", // function argument (a -> b) is unary
-  f => x => f(x)
-);
-
-const add = Fun(
-  "(add :: Number -> Number -> Number)", // binary function
-  n => m => n + m
-);
-
-ap(add) (2) (3); // 5
-ap(ap(add) (2)) (3); // 5
-```
-Now `ap` can be applied to curried functions of arbitrary arity. This property of functions in curried form is called abstraction over arity. It is most useful with function composition:
-
-```Javascript
-const comp = Fun(
-  "(comp :: (b -> c) -> (a -> b) -> a -> c)",
-  f => g => x => f(g(x))
-);
-
-const inc = F.Fun(
-  "(inc :: Number -> Number)",
-  n => n + 1
-);
-
-const add = Fun(
-  "(add :: Number -> Number -> Number)", // binary function
-  n => m => n + m
-);
-
-comp(add(2)) (inc) (3); // 6
-comp(add) (inc) (2) (3); // 6
-```
-Abstraction over arity is not always possible, though:
-
-```Javascript
-comp(inc) (add) (2) (3); // throws
-comp(inc) (add(2)) (3); // 6
-```
-But with functional combinators there is always a more or less obvious workaround:
-
-```Javascript
-...
-```
-### Bounded Polymorphic Functions
-
-...
