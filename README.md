@@ -341,7 +341,7 @@ Ultimately, it is your responsibility to avoid such functions.
 
 ### Construction
 
-Ỳou can create typed arrays with the `Arr` constructor. Unlike `Fun` you don't have to provide an explicit type signature but let the type checker introspect the type for you:
+You can create typed arrays with the `Arr` constructor. Unlike `Fun` you don't have to provide an explicit type signature but let the type checker introspect the type for you:
 
 ```Javascript
 const append = Fun(
