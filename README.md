@@ -411,9 +411,9 @@ Generally, you shouldn't use typed arrays as plain old Javascript Objects, excep
 
 ```Javascript
 const xs = Arr([1, 2, 3, 4]),
-  x = xs[10]; // illegal duck typing
+  x = xs[10]; // type error (illegal duck typing)
   
-Object.keys(xs); // illegal meta programming
+Object.keys(xs); // type error (illegal meta programming)
 ```
 ### Type Coercion
 
