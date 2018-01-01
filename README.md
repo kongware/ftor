@@ -306,8 +306,8 @@ const comp = Fun(
   f => g => x => f(g(x))
 );
 
-compx = comp(comp); // "(comp :: (a -> b0 -> c0) -> a -> (a0 -> b0) -> a0 -> c0)"
-compy = comp(comp) (comp); // "(comp :: (b1 -> c1) -> (a0 -> a1 -> b1) -> a0 -> a1 -> c1)"
+const compx = comp(comp); // "(comp :: (a -> b0 -> c0) -> a -> (a0 -> b0) -> a0 -> c0)"
+const compy = comp(comp) (comp); // "(comp :: (b1 -> c1) -> (a0 -> a1 -> b1) -> a0 -> a1 -> c1)"
 ```
 You can conclude from the type signatures that `compx` takes a binary function, a value, an unary function and another value, whereas `compy` takes an unary and then a binary function and two values. As a matter of fact `compy` is a pretty useful function, since it allows us to use a binary function as the inner one of the composition.
 
@@ -336,3 +336,94 @@ append(true) (false); // false
 append({}) ({}); // type error
 ```
 Ultimately, it is your responsibility to avoid such functions.
+
+## Arr type
+
+### Construction
+
+Ỳou can create typed arrays with the `Arr` constructor. Unlike `Fun` you don't have to provide an explicit type signature but let the type checker introspect the type for you:
+
+```Javascript
+const append = Fun(
+  "([a] -> [a] -> [a])",
+  xs => ys => Arr(xs.concat(ys))
+);
+
+const xs = Arr([1, 2]),
+  ys = Arr([3, 4]);
+
+xs[TS]; // "[Number]"
+
+append(xs) (ys); // [1, 2, 3, 4]
+```
+Please note that the type of an empty typed array is polymiorphic: `[a]`.
+
+### Homogeneous
+
+Typed arrays must be homogeneous, that is all element values must be of the same type.
+
+```Javascript
+const append = Fun(
+  "([a] -> [a] -> [a])",
+  xs => ys => Arr(xs.concat(ys))
+);
+
+const xs = Arr([1, 2]),
+  ys = Arr([3, 4]),
+  zs = Arr([true, false]);
+
+xs[TS]; // "[Number]"
+zs[TS]; // "[Boolean]"
+
+append(xs) (ys); // [1, 2, 3, 4]
+append(xs) (zs); // type error
+
+xs[0] = true; // type error
+zs[0] = "foo"; // type error
+```
+### Index Gaps
+
+ftor prevents gaps within the indices of typed arrays:
+
+```Javascript
+const xs = Arr([1, 2, 3]),
+  ys = Array(3);
+
+delete xs[1]; // type error
+
+ys[0] = 1, ys[1] = 2;
+Arr(ys); // type error
+```
+### Void Elements
+
+Typed arrays must not contain element values of type void (`undefined`/`ǸaN`):
+
+```Javascript
+const xs = Arr([undefined]), // type error
+  ys = Arr([1, NaN, 3]); // type error
+```
+### Duck Typing and Meta Programming
+
+You must not perform duck typing or meta programming on typed arrays, because in a typed language you should know your types at any point in your code:
+
+```Javascript
+const xs = Arr([1, 2, 3, 4]),
+  x = xs[10]; // illegal duck typing
+  
+Object.keys(xs); // illegal meta programming
+```
+As a general note you shouldn't use typed arrays as plain old Javascript Objects.
+
+### Type Coercion
+
+ftor prevents implicit type conversions:
+
+```Javascript
+const xs = Arr([1, 2, 3, 4]),
+  s = xs + "!"; // type error
+```
+Use explicit type casts instead.
+
+### Immutability
+
+Even though mutations are restricted, typed arrays are not immutable. There will be immutable data types in ftor as soon as I am able to incorporate reliable and fast persistant data structures into Javascript and the type checker. I highly recommend to avoid globally visible mutations whenever possible, though.
