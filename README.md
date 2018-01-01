@@ -244,13 +244,21 @@ const toUC = Fun(
   s => s.toUpperCase()
 );
 
+const show = Fun(
+  "(show :: a -> String)",
+  x => String(x)
+);
+
 ap(inc) (2); // 3
 ap(inc) ("2"); // type error
 ap(toUC) ("foo"); // "FOO"
+ap(show) (true); // "true"
 ```
+`a` and `b` are type variables, that is they can be substituted with any type. They can, but do not have to be of different type.
+
 ### Abstraction over Arity
 
-If the return type of an higher order function is a type variable (e.g. `a`), it can abstract over the arity of the passed function argument:
+If the return type of an higher order function is a type variable, it can abstract over the arity of the passed function argument:
 
 ```Javascript
 const ap = Fun(
@@ -266,7 +274,7 @@ const add = Fun(
 ap(add) (2) (3); // 5
 ap(ap(add) (2)) (3); // 5
 ```
-Even though the applicator `ap` merely accepts unary functions it can handle functions argument of arbitrary arity. This property is calles abstraction over arity and is one of the nice qualities of curried functions.
+Even though the applicator `ap` merely accepts unary functions it can handle functions argument of arbitrary arity. This property is called abstraction over arity and is one of the nice qualities of curried functions.
 
 ### Type Hints
 
