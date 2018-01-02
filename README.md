@@ -238,7 +238,7 @@ const id = Fun(
 
 const toArray = Fun(
   "(toArray :: a -> [a])",
-  x => [x]
+  x => Arr(x)
 );
 
 ap(id) ("foo"); // "foo"
@@ -260,18 +260,12 @@ const inc = Fun(
   n => n + 1
 );
 
-const id = Fun(
-  "(id :: a -> a)",
-  x => x
-);
-
 const toArray = Fun(
   "(toArray :: a -> [a])",
-  x => [x]
+  x => Arr(x)
 );
 
 ap_(inc); // passes
-ap_(id); // passes
 ap_(toArray); // type error
 ```
 ### Abstraction over Arity
