@@ -319,11 +319,12 @@ const PolyT = (Cons => (range, tvar) => new Cons(range, tvar))
 ******************************************************************************/
 
 
-const RecT = (Cons => (range, children) => new Cons(range, children))
+const RecT = (Cons => (range, rvar, children) => new Cons(range, rvar, children))
   (class RecT {
-    constructor(range, children) {
+    constructor(range, rvar, children) {
       this.range = range;
       this.tag = "Rec";
+      this.rvar = rvar;
       this.children = children;
     }
   });
@@ -372,7 +373,7 @@ const cloneT = xT => {
     case "_MapT": return deserialize(serialize(_MapT(xT.range, xT.children)));
     case "PolyT": return deserialize(serialize(PolyT(xT.range, xT.tag)));
     case "PrimT": return deserialize(serialize(PrimT(xT.range, xT.tag)));
-    case "RecT": return deserialize(serialize(RecT(xT.range, xT.children)));
+    case "RecT": return deserialize(serialize(RecT(xT.range, xT.rvar, xT.children)));
     case "TupT": return deserialize(serialize(TupT(xT.range, xT.children)));
     case "UnitT": return deserialize(serialize(UnitT(xT.range)));
   }
@@ -402,7 +403,7 @@ const serialize = tRep => {
     case "Arr": return serializeArr(tag, children);
     case "Fun": return serializeFun(tRep.name, tag, children);
     case "_Map": return serializeMap(tag, children);
-    case "Rec": return serializeRec(tag, children);
+    case "Rec": return serializeRec(tag, tRep.rvar, children);
     case "Tup": return serializeTup(tag, children);
     case "Unit": return "[]";
     
@@ -490,7 +491,7 @@ const serializeMap = (tag, tReps) => {
 };
 
 
-const serializeRec = (tag, tReps) => {
+const serializeRec = (tag, rvar, tReps) => {
   return "{"
     .concat(tReps
       .map(({k, v}) => {
@@ -499,7 +500,7 @@ const serializeRec = (tag, tReps) => {
       })
       .join(", ")
     )
-    .concat("}");
+    .concat(`${rvar}}`);
 };
 
 
@@ -970,10 +971,19 @@ const deserialize = tSig => {
           }
 
           case "KEY": {
-            if (c.search(/[a-z0-9_]/i) === 0) return aux(
-              tSig, n + 1,
-              {depth, context, phase, buf: buf + c, range, tag, tReps}
-            );
+            if (c.search(/[a-z0-9_]/i) === 0) {
+              if (c.search(/[a-z]/) === 0
+              && next === "}"
+              && buf.length === 0) return aux(
+                tSig, n,
+                {depth, context, phase: "RVAR", buf: c, range, tag, tReps}
+              );
+
+              else return aux(
+                tSig, n + 1,
+                {depth, context, phase, buf: buf + c, range, tag, tReps}
+              );
+            }
 
             else if (c === ":") {
               if (buf === "") _throw(
@@ -1031,7 +1041,7 @@ const deserialize = tSig => {
             }
 
             else if (c === "}") {
-              return [RecT(range, tReps), n + 1, depth - 1];
+              return [RecT(range, "", tReps), n + 1, depth - 1];
             }
 
             else {
@@ -1049,6 +1059,15 @@ const deserialize = tSig => {
                 {depth, context, phase, buf: "", range: [range[0], m], tag, tReps}
               );
             }
+          }
+
+          case "RVAR": {
+            return [RecT(range, buf, tReps), n + 2, depth - 1];
+
+            return aux(
+              tSig, n + 1,
+              {depth, context, phase: "VALUE", buf, range, tag, tReps}
+            );
           }
         }
       }
@@ -1228,7 +1247,17 @@ const unify = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, 
 
 
 const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
-
+  switch (t2Rep.constructor.name) {
+    case "AdtT":
+    case "ArrT":
+    case "FunT":
+    case "_MapT":
+    case "RecT":
+    case "PolyT":
+    case "PrimT":
+    case "TupT":
+    case "UnitT":
+  }
 };
 
 
@@ -1482,7 +1511,17 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 
 
 const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
-
+  switch (t2Rep.constructor.name) {
+    case "AdtT":
+    case "ArrT":
+    case "FunT":
+    case "_MapT":
+    case "RecT":
+    case "PolyT":
+    case "PrimT":
+    case "TupT":
+    case "UnitT":
+  }
 };
 
 
@@ -1543,17 +1582,72 @@ const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xS
 
 
 const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+  switch (t2Rep.constructor.name) {
+    case "AdtT":
+    case "ArrT":
+    case "FunT":
+    case "_MapT":
+    case "PrimT":
+    case "TupT":
+    case "UnitT": {
+      const range = retrieveRange(fRep, nthParam);
 
+      _throw(
+        cons,
+        [`${fRep.name || "lambda"} expects`],
+        fSig,
+        {
+          range,
+          desc: [`${t2Sig} received`],
+          sigLog: state.sigLog,
+          constraints: state.constraints
+        }
+      );
+    }
+
+    case "RecT": {
+      // loop
+        // check mandatory key
+        // unify mandatory value
+      // if exists
+        // create rvar constraint
+        // check rvar constraint
+    }
+
+    case "PolyT": {
+      return constrain(t2Rep, t2Sig, t1Rep, t1Sig, state, {nthParam}, fRep, fSig, xSig, cons);
+    }
+  }
 };
 
 
 const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
-
+  switch (t2Rep.constructor.name) {
+    case "AdtT":
+    case "ArrT":
+    case "FunT":
+    case "_MapT":
+    case "RecT":
+    case "PolyT":
+    case "PrimT":
+    case "TupT":
+    case "UnitT":
+  }
 };
 
 
 const unifyUnit = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
-
+  switch (t2Rep.constructor.name) {
+    case "AdtT":
+    case "ArrT":
+    case "FunT":
+    case "_MapT":
+    case "RecT":
+    case "PolyT":
+    case "PrimT":
+    case "TupT":
+    case "UnitT":
+  }
 };
 
 

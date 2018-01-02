@@ -15,7 +15,7 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 <br>
 
-Version 0.9.13 (under construction)
+Version 0.9.14 (under construction)
 
 **Please note:** This repo is experimental and still work in progress.
 <br><br>
@@ -64,6 +64,8 @@ F.type(true);
 // typed area;
 ```
 ## Upcoming Milestones
+
+I am currently working on records that support row polymorphism.
 
 - [x] standalone unification algorithm (Hindley-Milner)
 - [x] incorporate unification into the type checker
@@ -189,44 +191,7 @@ thunk("baz"); // arity error
 ```
 ### Higher Order Functions
 
-Let's treat functions the same way as data.
-
-#### Monomorphic
-
-Here is a somewhat silly monomorphic applicator just to illustrate the principle:
-
-```Javascript
-const ap = Fun(
-  "(ap :: (Number -> Number) -> Number -> Number)",
-  f => n => f(n)
-);
-
-const inc = Fun(
-  "(inc :: Number -> Number)",
-  n => n + 1
-);
-
-ap(inc) (2); // 3
-ap(inc) ("2"); // type error
-```
-The type checker immediately evaluates partially applied functions and is therefore able to throw type errors eagerly:
-
-```Javascript
-const ap = Fun(
-  "(ap :: (Number -> Number) -> Number -> Number)",
-  f => n => f(n)
-);
-
-const toUC = Fun(
-  "(toUC :: String -> String)",
-  s => s.toUpperCase()
-);
-
-ap(toUC); // type error
-```
-#### Polymorphic
-
-Here is the applicator as a parametric polymorphic higher order function:
+Let's treat functions the same way as data. The following applicator helps to illustrate the underlying principle:
 
 ```Javascript
 const ap = Fun(
@@ -239,23 +204,76 @@ const inc = Fun(
   n => n + 1
 );
 
-const toUC = Fun(
-  "(toUC :: String -> String)",
-  s => s.toUpperCase()
+ap(inc) (2); // 3
+ap(inc) ("2"); // type error
+```
+`a` and `b` are type variables, that is they can be substituted with any type. They can, but do not have to be of different type:
+
+```Javascript
+const ap = Fun(
+  "(ap :: (a -> b) -> a -> b)",
+  f => x => f(x)
 );
 
-const show = Fun(
-  "(show :: a -> String)",
+const toString = Fun(
+  "(toString :: Number -> String)",
   x => String(x)
 );
 
-ap(inc) (2); // 3
-ap(inc) ("2"); // type error
-ap(toUC) ("foo"); // "FOO"
-ap(show) (true); // "true"
+ap(toString) (123); // "123"
+ap(toString) (true); // type error
 ```
-`a` and `b` are type variables, that is they can be substituted with any type. They can, but do not have to be of different type.
+The passed function itself can be polymorphic:
 
+```Javascript
+const ap = Fun(
+  "(ap :: (a -> b) -> a -> b)",
+  f => x => f(x)
+);
+
+const id = Fun(
+  "(id :: a -> a)",
+  x => x
+);
+
+const toArray = Fun(
+  "(toArray :: a -> [a])",
+  x => [x]
+);
+
+ap(id) ("foo"); // "foo"
+ap(toArray) (123); // [123]
+ap(toArray) (true); // [true]
+```
+### Strict Evaluation
+
+The type checker immediately evaluates partially applied functions and is therefore able to throw type errors eagerly:
+
+```Javascript
+const ap_ = Fun(
+  "(ap_ :: (a -> a) -> a -> a)",
+  f => x => f(x)
+);
+
+const inc = Fun(
+  "(inc :: Number -> Number)",
+  n => n + 1
+);
+
+const id = Fun(
+  "(id :: a -> a)",
+  x => x
+);
+
+const toArray = Fun(
+  "(toArray :: a -> [a])",
+  x => [x]
+);
+
+ap_(inc); // passes
+ap_(id); // passes
+ap_(toArray); // type error
+```
 ### Abstraction over Arity
 
 If the return type of an higher order function is a type variable, it can abstract over the arity of the passed function argument:
