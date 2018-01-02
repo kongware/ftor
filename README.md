@@ -283,8 +283,13 @@ const add = Fun(
   n => m => n + m
 );
 
+const k = Fun(
+  "(k :: a -> b -> a)",
+  x => y => x
+);
+
 ap(add) (2) (3); // 5
-ap(ap(add) (2)) (3); // 5
+ap(k) ("foo") ("bar"); // "foo"
 ```
 Even though the applicator `ap` merely accepts unary functions it can handle functions argument of arbitrary arity. This property is called abstraction over arity and is one of the nice qualities of curried functions.
 
