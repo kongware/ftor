@@ -223,7 +223,7 @@ const toString = Fun(
 ap(toString) (123); // "123"
 ap(toString) (true); // type error
 ```
-The passed function itself can be polymorphic:
+The passed function argument itself can be polymorphic:
 
 ```Javascript
 const ap = Fun(
@@ -444,4 +444,4 @@ Use explicit type casts instead.
 
 ### Immutability
 
-Even though mutations on typed arrays are restricted, they are not immutable. There will be immutable data types in ftor as soon as I am able to incorporate reliable and fast persistant data structures into Javascript and the type checker. I highly recommend to avoid globally visible mutations whenever possible, though.
+Even though mutations are restricted, typed arrays are not fully immutable. There will be immutable data types in ftor as soon as I am able to incorporate reliable and fast persistant data structures into Javascript and the type checker. I highly recommend to avoid globally visible mutations whenever possible, though.
