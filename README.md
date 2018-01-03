@@ -39,9 +39,9 @@ Functional programming in Javascript is frustrating as soon as you face real wor
 ## Differences to Flow and TypeScript
 
 * ftor is a runtime type checker that cannot provide the same soundness as static type checkers can do
-* it focuses on parametric and row polymorphism<sup>1</sup> and consequently doesn't support subtyping
-* it relies on nominal typing<sup>2</sup> rather than structural
-* it is created to facilitate purely functional programming
+* it focuses on parametric and row polymorphism<sup>1</sup> and doesn't support subtyping
+* it mainly relies on nominal instead of structural typing<sup>2</sup>
+* it is designed to facilitate purely functional programming
 
 <sub><sup>1</sup>also known as static duck typing</sub><br>
 <sub><sup>2</sup>Nominal typing means that types are distinguished by name rather than by structure</sub>
