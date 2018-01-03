@@ -15,7 +15,7 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 <br>
 
-Version 0.9.14 (under construction)
+Version 0.9.15 (under construction)
 
 **Please note:** This repo is experimental and still work in progress.
 <br><br>
@@ -424,7 +424,7 @@ const xs = Arr([undefined]), // type error
 ```
 ### Duck Typing and Meta Programming
 
-Generally, you shouldn't use typed arrays as plain old Javascript Objects, except for applying native methods of the `Array` prototype. Moreover you must not perform duck typing or meta programming on them, because in a typed language you should know your types at any point in your code:
+You must not perform duck typing or meta programming on typed arrays, because in a typed language you should know your types at any point in your code:
 
 ```Javascript
 const xs = Arr([1, 2, 3, 4]),
@@ -432,6 +432,8 @@ const xs = Arr([1, 2, 3, 4]),
   
 Object.keys(xs); // type error (illegal meta programming)
 ```
+More generally, you shouldn't use typed arrays as plain old Javascript Objects, but solely as arrays with numerical indices.
+
 ### Type Coercion
 
 ftor prevents implicit type conversions:

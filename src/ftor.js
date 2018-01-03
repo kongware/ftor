@@ -1606,12 +1606,66 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
     }
 
     case "RecT": {
-      // loop
-        // check mandatory key
-        // unify mandatory value
-      // if exists
-        // create rvar constraint
-        // check rvar constraint
+      const keys1 = t1Rep.children.reduce((acc, [k, v], n) => {
+        return acc.set(k, n);
+      }, new Map());
+
+      const keys2 = t2Rep.children.reduce((acc, [k, v], n) => {
+        return acc.set(k, n);
+      }, new Map());
+
+      t1Rep.children.forEach(([k, v], n) => {
+        if (!keys2.has(k)) {
+          const range = retrieveRange(fRep, nthParam);
+
+          _throw(
+            cons,
+            [`${fRep.name || "lambda"} expects`],
+            fSig,
+            {
+              range,
+              desc: [`missing key "${k}"`]
+            }
+          );
+        }
+
+        state = unify(
+          v,
+          serialize(v),
+          t2Rep.children[keys2.get(k)].v,
+          serialize(t2Rep.children[keys2.get(k)]).v,
+          state,
+          {nthParam},
+          fRep,
+          fSig,
+          xSig,
+          cons
+        );
+      });
+
+      if (t1Rep.rvar !== "") {
+        const rowRep = cloneT(t2Rep);
+        rowRep.rvar = "";
+
+        rowRep.children.forEach(([k, v], n) => {
+          if (keys1.has(k)) delete rowRep.children[n];
+        });
+
+        state = constrain(
+          deserialize(t1Rep.rvar),
+          t1Rep.rvar,
+          rowRep,
+          serialize(rowRep),
+          state,
+          {nthParam},
+          fRep,
+          fSig,
+          xSig,
+          cons
+        );
+      }
+
+      return state;
     }
 
     case "PolyT": {
@@ -1743,51 +1797,76 @@ const fresh = (fSig, nthTvar) => {
 const mgu = (kRep, vRep) => {
   const aux = (kRep, vRep) => {
     switch (kRep.constructor.name) {
-      case "AdtT": {
-
-      }
+      case "AdtT": {}
 
       case "ArrT": {
         switch (vRep.constructor.name) {
-          case "ArrT": return aux(kRep.children[0], vRep.children[0]);
-          case "FunT": return NO_MGU;
-          case "PrimT": return NO_MGU;
+          case "AdtT":
+          case "FunT":
+          case "_MapT":
+          case "PrimT":
+          case "RecT":
+          case "TupT":
+          case "UnitT": return NO_MGU;
+
+          case "ArrT": {
+            return aux(kRep.children[0], vRep.children[0]);
+          }
+
           case "PolyT": return LESS_GEN;
         }
       }
 
       case "FunT": {
         switch (vRep.constructor.name) {
-          case "ArrT": return NO_MGU;
+          case "AdtT":
+          case "ArrT":
+          case "_MapT":
+          case "PrimT":
+          case "RecT":
+          case "TupT":
+          case "UnitT": return NO_MGU;
           
           case "FunT": {
             return mguFun(kRep, vRep, 0, aux);
           }
           
-          case "PrimT": return NO_MGU;
           case "PolyT": return LESS_GEN;
         }
       }
 
-      case "_MapT": {
-
-      }
+      case "_MapT": {}
       
       case "PrimT": {
         switch (vRep.constructor.name) {
-          case "ArrT": return NO_MGU;
-          case "FunT": return NO_MGU;
-          case "PrimT": return EQ_GEN;
+          case "AdtT":
+          case "ArrT":
+          case "FunT":
+          case "_MapT":
+          case "RecT":
+          case "TupT":
+          case "UnitT": return NO_MGU;
+
+          case "PrimT": {
+            if (kRep.tag === vRep.tag) return EQ_GEN;
+            else return NO_MGU;
+          }
+
           case "PolyT": return LESS_GEN;
         }
       }
 
       case "PolyT": {
         switch (vRep.constructor.name) {
-          case "ArrT": return MORE_GEN;
-          case "FunT": return MORE_GEN;
-          case "PrimT": return MORE_GEN;
-          
+          case "AdtT":
+          case "ArrT":
+          case "FunT":
+          case "_MapT":
+          case "PrimT":
+          case "RecT":
+          case "TupT":
+          case "UnitT": return MORE_GEN;
+
           case "PolyT": {
             kTvars.add(kRep.tag);
             vTvars.add(vRep.tag);
@@ -1797,16 +1876,35 @@ const mgu = (kRep, vRep) => {
       }
 
       case "RecT": {
+        switch (vRep.constructor.name) {
+          case "AdtT":
+          case "ArrT":
+          case "FunT":
+          case "_MapT":
+          case "PrimT":
+          case "TupT":
+          case "UnitT": return NO_MGU;
 
+          case "RecT": {
+            const aux_ = n => {
+              const r = aux(kRep.children[n], vRep.children[n]);
+
+              if (n === kRep.children.length - 1) return r;
+              else if (r === EQ_GEN) return aux_(n + 1);
+              else return r;
+            };
+
+            if (kRep.children.length !== vRep.children.length) return NO_MGU;
+            else return aux_(0);
+          }
+
+          case "PolyT": return LESS_GEN;
+        }
       }
       
-      case "TupT": {
-
-      }
+      case "TupT": {}
       
-      case "UnitT": {
-
-      }
+      case "UnitT": {}
     }
   };
 
@@ -3263,30 +3361,10 @@ const capitalize = s => s[0].toUpperCase() + s.slice(1);
 const last = xs => xs[xs.length - 1];
 
 
-/******************************************************************************
-*******************************************************************************
-*****************************[ 9. BUILT-IN TYPES ]*****************************
-*******************************************************************************
-******************************************************************************/
-
-
-/******************************************************************************
-*****[ 9.1. Value Types ]******************************************************
-******************************************************************************/
-
-
-//***[ 9.1.1. Reference Types ]************************************************
-
-
 const xor = x => y => !x === !y ? false : true;
 
 
-/******************************************************************************
-*****[ 9.2. Function Types ]***************************************************
-******************************************************************************/
-
-
-//***[ 9.2.1. Generator Functions ]********************************************
+//***[ 8.1. Generator Functions ]********************************************
 
 
 function* keys(ix) {
