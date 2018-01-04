@@ -378,7 +378,7 @@ append(xs) (ys); // [1, 2, 3, 4]
 ```
 Please note that the type of an empty typed array is polymorphic: `[a]`.
 
-### Homogeneous
+### Homogeneity
 
 Typed arrays must be homogeneous, that is all element values must be of the same type.
 
@@ -422,7 +422,7 @@ Typed arrays must not contain element values of type void (`undefined`/`NaN`):
 const xs = Arr([undefined]), // type error
   ys = Arr([1, NaN, 3]); // type error
 ```
-### Duck Typing and Meta Programming
+### Duck Typing / Meta Programming
 
 You must not perform duck typing or meta programming on typed arrays, because in a typed language you should know your types at any point in your code:
 
@@ -436,7 +436,7 @@ More generally, you shouldn't use typed arrays as plain old Javascript Objects, 
 
 ### Type Coercion
 
-ftor prevents implicit type conversions:
+ftor prevents implicit type conversions whereever possible:
 
 ```Javascript
 const xs = Arr([1, 2, 3, 4]),

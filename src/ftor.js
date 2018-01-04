@@ -72,7 +72,7 @@ const NO_MGU = 3;
 
 
 const introspect = t => {
-  const tag = getStringTag(t);
+  let tag = getStringTag(t);
 
   switch (tag) {
     case "Adt":
@@ -161,8 +161,7 @@ const introspectR = x => {
 
             case "Object": {
               const ks = Object.keys(x);
-              if (ks.length === 0) return "Object";
-              else return "{" + ks.map(k => `${k}: ${introspectR(x[k])}`).join(", ") + "}";
+              if (ks.length > 0) return "{" + ks.map(k => `${k}: ${introspectR(x[k])}`).join(", ") + "}";
             }
 
             default: {
@@ -2413,11 +2412,11 @@ export const Arr = xs => {
     const tRep = deserialize(tSig),
       voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
 
-    if (tRep.children.length > 1) _throw(
+    if (tRep.tag === "Tup") _throw(
       TypeError,
       ["Arr expects homogeneous Array"],
       tSig,
-      {desc: [`element values of different type received`]}
+      {desc: ["element values of different type received"]}
     );
 
     else if (tSig.search(voidPattern) !== -1) {
@@ -2426,9 +2425,9 @@ export const Arr = xs => {
 
       _throw(
         TypeError,
-        ["Arr must not contain void elements"],
+        ["Array must not contain void elements"],
         tSig,
-        {range: [from, to], desc: [`${match} received`]}
+        {range: [from, to], desc: [`such as ${Object.keys(VOID).join(", ")}`]}
       );
     }
 
@@ -2490,7 +2489,7 @@ const handleArr = (tRep, tSig) => ({
           tSig,
           {desc: [
             `of ${prettyPrintK(i)}`,
-            "Arr must not be used as an POJO"
+            "Arr instances are sealed"
           ]}
         );
       }
@@ -2578,7 +2577,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
     else {
       if (mode === "set") xs[i] = d.value;
       else Reflect.defineProperty(xs, i, d);
-      return true;
+      return xs;
     }
   }
 };
@@ -2761,7 +2760,7 @@ const setTup = (tRep, tSig, immu, xs, i, d, mode) => {
           tSig,
           {range: [from, to], desc: [
             `of property ${prettyPrintK(i)} with type ${introspect(d.value)}`,
-            "fields must maintain their type"
+            "fields must preserve their type"
           ]}
         );
       }
@@ -2769,7 +2768,7 @@ const setTup = (tRep, tSig, immu, xs, i, d, mode) => {
       else {
         if (mode === "set") xs[i] = d.value;
         else Reflect.defineProperty(xs, i, d);
-        return true;
+        return xs;
       }
     }
   }
@@ -3049,7 +3048,7 @@ const handleMap = (tRep, tSig, immu) => ({
 ******************************************************************************/
 
 
-const _Rec = ({immu = false, sig = ""}) => o => {
+export const Rec = o => {
   if (types) {
     if (introspect(o) !== "Object") _throw(
       TypeError,
@@ -3058,51 +3057,39 @@ const _Rec = ({immu = false, sig = ""}) => o => {
       {desc: ["received"]}
     );
 
-    else if (TR in o) _throw(
-      TypeError,
-      ["Rec expects an untyped Object"],
-      o[TS],
-      {desc: ["received (illegal retyping)"]}
-    );
+    else if (TR in o) return o;
 
-    let tSig = introspectR(o);
-
-    if (Object.keys(o).length === 0) _throw(
-      TypeError,
-      ["Tup received an invalid Array"],
-      tSig,
-      {range: [0, tSig.length - 1], desc: ["Records must comprise at least 1 field"]}
-    );
-
-    const tRep = deserialize(tSig),
+    const tSig = introspectR(o),
+      tRep = deserialize(tSig),
       voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
 
-    if (tSig.search(voidPattern) !== -1) {
+    if (tRep.tag !== "Rec") _throw(
+      TypeError,
+      ["Rec expects a non-empty Object"],
+      tSig,
+      {desc: ["Records must contain at least 1 field"]}
+    );
+
+    else if (tSig.search(voidPattern) !== -1) {
       const {index: from, 0: match} = tSig.match(voidPattern),
         to = from + match.length - 1;
 
       _throw(
         TypeError,
-        ["Rec must not contain void values"],
+        ["Object must not contain void elements"],
         tSig,
-        {range: [from, to], desc: [`${match} received`]}
+        {range: [from, to], desc: [`such as ${Object.keys(VOID).join(", ")}`]}
       );
     }
 
-    return new Proxy(o, handleRec(tRep, tSig, immu));
+    return new Proxy(o, handleRec(tRep, tSig));
   }
 
   else return o;
 };
 
 
-export const Rec = _Rec({});
-
-
-export const Irec = _Rec({immu: true})
-
-
-const handleRec = (tRep, tSig, immu) => ({
+const handleRec = (tRep, tSig) => ({
   get: (o, k, p) => {
     switch (k) {
       case "toString": return () => tSig;
@@ -3114,11 +3101,11 @@ const handleRec = (tRep, tSig, immu) => ({
       case Symbol.toPrimitive: return hint => {
         _throw(
           TypeError,
-          ["illegal implicit type conversion"],
+          ["illegal type coercion"],
           tSig,
           {desc: [
-            `must not be converted to ${capitalize(hint)} primitive`,
-            "use explicit type casts instead"
+            `to target type ${capitalize(hint)}`,
+            "implicit type convertions are not allowed"
           ]}
         );
       };
@@ -3128,9 +3115,12 @@ const handleRec = (tRep, tSig, immu) => ({
 
         else _throw(
           TypeError,
-          ["illegal property access"],
+          ["invalid property access"],
           tSig,
-          {desc: [`unknown property ${prettyPrintK(k)}`]}
+          {desc: [
+            `of ${prettyPrintK(k)}`,
+            "duck typing is not allowed"
+          ]}
         );
       }
     }
@@ -3146,23 +3136,23 @@ const handleRec = (tRep, tSig, immu) => ({
         ["illegal property introspection"],
         tSig,
         {desc: [
-          `of property ${prettyPrintK(k)}`,
+          `of ${prettyPrintK(k)}`,
           "duck typing is not allowed"
         ]}
       );
     }
   },
 
-  set: (o, k, v, p) => setRec(tRep, tSig, immu, o, k, {value: v}, "set"),
-  defineProperty: (o, k, d) => setRec(tRep, tSig, immu, o, k, d, "def"),
+  set: (o, k, v, p) => setRec(tRep, tSig, o, k, {value: v}, {mode: "set"}),
+  defineProperty: (o, k, d) => setRec(tRep, tSig, o, k, d, {mode: "def"}),
 
   deleteProperty: (o, k) => _throw(
     TypeError,
     ["illegal property deletion"],
     tSig,
     {desc: [
-      `of property ${prettyPrintK(k)}`,
-      "Records are either immutable or sealed"
+      `of ${prettyPrintK(k)}`,
+      "Rec instances are sealed"
     ]}
   ),
 
@@ -3171,58 +3161,42 @@ const handleRec = (tRep, tSig, immu) => ({
     ["illegal property introspection"],
     tSig,
     {desc: [
-      `of property ${prettyPrintK(k)}`,
+      `of ${prettyPrintK(k)}`,
       "meta programming is not allowed"
     ]}
   )
 });
 
 
-const setRec = (tRep, tSig, immu, o, k, d, mode) => {
-  if (immu) _throw(
+const setRec = (tRep, tSig, o, k, d, {mode}) => {
+  if (!(k in o)) _throw(
     TypeError,
     ["illegal property mutation"],
     tSig,
     {desc: [
-      `of property ${prettyPrintK(k)} with type ${introspect(d.value)}`,
-      "immutable Record"
+      `unknown key ${prettyPrintK(k)}`,
+      "Rec instances are sealed"
     ]}
   );
 
+  else if (serialize(tRep.children[k]) !== `${introspect(d.value)}`) {
+    const [from, to] = tRep.children[0].range;
+
+    _throw(
+      TypeError,
+      ["illegal property mutation"],
+      tSig,
+      {range: [from, to], desc: [
+        `of ${prettyPrintK(k)} with type ${introspect(d.value)}`,
+        "fields must preserve their type"
+      ]}
+    );
+  }
+
   else {
-    if (introspect(k) !== "String") _throw(
-      TypeError,
-      ["illegal property mutation"],
-      tSig,
-      {desc: [`invalid key type ${introspect(k)}`]}
-    );
-
-    else if (!(k in o)) _throw(
-      TypeError,
-      ["illegal property mutation"],
-      tSig,
-      {desc: [`unknown key "${k}"`]}
-    );
-
-    else if (serialize(tRep.children[k]) !== `${introspect(d.value)}`) {
-      const [from, to] = tRep.children[0].range;
-
-      _throw(
-        TypeError,
-        ["illegal property mutation"],
-        tSig,
-        {range: [from, to], desc: [
-          `of property ${prettyPrintK(k)} with type ${introspect(d.value)}`,
-          "fields must maintain their type"
-        ]}
-      );
-    }
-
-    else {
-      if (mode === "set") o[k] = d.value;
-      else Reflect.defineProperty(o, k, d);
-      return true;
-    }
+    if (mode === "set") o[k] = d.value;
+    else Reflect.defineProperty(o, k, d);
+    return o;
   }
 };
 
