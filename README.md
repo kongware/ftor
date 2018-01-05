@@ -65,7 +65,7 @@ F.type(true);
 ```
 ## Upcoming Milestones
 
-I am currently working on incorporating algebraic data types.
+I am currently working on adding algebraic data types.
 
 - [x] standalone unification algorithm (Hindley-Milner)
 - [x] incorporate unification into the type checker
