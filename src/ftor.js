@@ -80,8 +80,7 @@ const introspect = t => {
     case "Fun":
     case "_Map":
     case "Rec":
-    case "Tup":
-    case "Unit": return t[TS];
+    case "Tup": return t[TS];
 
     default: {
       if (tag === "Object" && "constructor" in t) {
@@ -220,7 +219,21 @@ const ArrT = (Cons => (range, child) => new Cons(range, child))
 
 
 /******************************************************************************
-*****[ 3.3. Functions ]********************************************************
+*****[ 3.3. Empty ]************************************************************
+******************************************************************************/
+
+
+const EmptyT = (Cons => new Cons())
+  (class EmptyT {
+    constructor() {
+      this.tag = "Empty";
+      this.children = [];
+    }
+  });
+
+
+/******************************************************************************
+*****[ 3.4. Functions ]********************************************************
 ******************************************************************************/
 
 
@@ -269,7 +282,7 @@ const ReturnT = (Cons => child => new Cons(child))
 
 
 /******************************************************************************
-*****[ 3.4. Maps ]*************************************************************
+*****[ 3.5. Maps ]*************************************************************
 ******************************************************************************/
 
 
@@ -284,7 +297,22 @@ const _MapT = (Cons => (range, children) => new Cons(range, children))
 
 
 /******************************************************************************
-*****[ 3.5. Primitives ]*******************************************************
+*****[ 3.6. Null ]*************************************************************
+******************************************************************************/
+
+
+const NullT = (Cons => range => new Cons(range))
+  (class NullT {
+    constructor(range) {
+      this.range = range;
+      this.tag = "Null";
+      this.children = [];
+    }
+  });
+
+
+/******************************************************************************
+*****[ 3.7. Primitives ]*******************************************************
 ******************************************************************************/
 
 
@@ -299,7 +327,7 @@ const PrimT = (Cons => (range, tag) => new Cons(range, tag))
 
 
 /******************************************************************************
-*****[ 3.6. Polytypes ]********************************************************
+*****[ 3.8. Polytypes ]********************************************************
 ******************************************************************************/
 
 
@@ -314,7 +342,7 @@ const PolyT = (Cons => (range, tvar) => new Cons(range, tvar))
 
 
 /******************************************************************************
-*****[ 3.7. Records ]**********************************************************
+*****[ 3.9. Records ]**********************************************************
 ******************************************************************************/
 
 
@@ -330,7 +358,7 @@ const RecT = (Cons => (range, rvar, children) => new Cons(range, rvar, children)
 
 
 /******************************************************************************
-*****[ 3.8. Tuples ]***********************************************************
+*****[ 3.10. Tuples ]***********************************************************
 ******************************************************************************/
 
 
@@ -345,22 +373,7 @@ const TupT = (Cons => (range, children) => new Cons(range, children))
 
 
 /******************************************************************************
-*****[ 3.9. Unit ]*************************************************************
-******************************************************************************/
-
-
-const UnitT = (Cons => range => new Cons(range))
-  (class UnitT {
-    constructor(range) {
-      this.range = range;
-      this.tag = "Unit";
-      this.children = [];
-    }
-  });
-
-
-/******************************************************************************
-*****[ 3.10. Misc ]************************************************************
+*****[ 3.11. Misc ]************************************************************
 ******************************************************************************/
 
 
@@ -368,13 +381,14 @@ const cloneT = xT => {
   switch (xT.constructor.name) {
     case "AdtT": return deserialize(serialize(AdtT(xT.range, xT.tag, xT.children)));
     case "ArrT": return deserialize(serialize(ArrT(xT.range, xT.children)));
+    case "EmptyT": return EmptyT;
     case "FunT": return deserialize(serialize(FunT(xT.name, xT.range, xT.children)));
     case "_MapT": return deserialize(serialize(_MapT(xT.range, xT.children)));
+    case "NullT": return deserialize(serialize(NullT(xT.range)));
     case "PolyT": return deserialize(serialize(PolyT(xT.range, xT.tag)));
     case "PrimT": return deserialize(serialize(PrimT(xT.range, xT.tag)));
     case "RecT": return deserialize(serialize(RecT(xT.range, xT.rvar, xT.children)));
     case "TupT": return deserialize(serialize(TupT(xT.range, xT.children)));
-    case "UnitT": return deserialize(serialize(UnitT(xT.range)));
   }
 };
 
@@ -400,11 +414,12 @@ const serialize = tRep => {
 
   switch (tag) {
     case "Arr": return serializeArr(tag, children);
+    case "Empty": return "";
     case "Fun": return serializeFun(tRep.name, tag, children);
     case "_Map": return serializeMap(tag, children);
+    case "Null": return tag;
     case "Rec": return serializeRec(tag, tRep.rvar, children);
     case "Tup": return serializeTup(tag, children);
-    case "Unit": return "[]";
     
     default: {
       if (tRep.constructor.name === "AdtT") return serializeAdt(tag, children);
@@ -499,7 +514,8 @@ const serializeRec = (tag, rvar, tReps) => {
       })
       .join(", ")
     )
-    .concat(`${rvar}}`);
+    .concat(rvar === "" ? "" : `, ..${rvar}`)
+    .concat("}");
 };
 
 
@@ -877,40 +893,7 @@ const deserialize = tSig => {
         }
       }
 
-      case "PRIM": {
-        switch (phase) {
-          case "UC": {
-            if (next === "") return [PrimT(range.concat(n), c), n + 1, depth];
-
-            else return aux(
-              tSig, n + 1,
-              {depth, context, phase: "LETTER", buf: buf + c, range, tag, tReps}
-            );
-          }
-
-          case "LETTER": {
-            if (c.search(/[a-z]/i) === 0) {
-              if (next === "") return [PrimT(range.concat(n), buf + c), n + 1, depth]
-
-              else return aux(
-                tSig, n + 1,
-                {depth, context, phase, buf: buf + c, range, tag, tReps}
-              );
-            }
-            
-            else if (c.search(/[)\]}>, :]/) === 0) {
-              return [PrimT(range.concat(n - 1), buf), n, depth];
-            }
-
-            else _throw(
-              TypeSigError,
-              ["invalid type signature"],
-              tSig,
-              {range: [n, n], desc: ["unexpected symbol"]}
-            );
-          }
-        }
-      }
+      case "NULL": return [NullT([n, n + 3]), n + 4, depth];
 
       case "POLY": {
         switch (phase) {
@@ -960,6 +943,41 @@ const deserialize = tSig => {
         }
       }
 
+      case "PRIM": {
+        switch (phase) {
+          case "UC": {
+            if (next === "") return [PrimT(range.concat(n), c), n + 1, depth];
+
+            else return aux(
+              tSig, n + 1,
+              {depth, context, phase: "LETTER", buf: buf + c, range, tag, tReps}
+            );
+          }
+
+          case "LETTER": {
+            if (c.search(/[a-z]/i) === 0) {
+              if (next === "") return [PrimT(range.concat(n), buf + c), n + 1, depth]
+
+              else return aux(
+                tSig, n + 1,
+                {depth, context, phase, buf: buf + c, range, tag, tReps}
+              );
+            }
+            
+            else if (c.search(/[)\]}>, :]/) === 0) {
+              return [PrimT(range.concat(n - 1), buf), n, depth];
+            }
+
+            else _throw(
+              TypeSigError,
+              ["invalid type signature"],
+              tSig,
+              {range: [n, n], desc: ["unexpected symbol"]}
+            );
+          }
+        }
+      }
+
       case "REC": {
         switch (phase) {
           case "OUTER": {
@@ -971,16 +989,16 @@ const deserialize = tSig => {
 
           case "KEY": {
             if (c.search(/[a-z0-9_]/i) === 0) {
-              if (c.search(/[a-z]/) === 0
-              && next === "}"
-              && buf.length === 0) return aux(
-                tSig, n,
-                {depth, context, phase: "RVAR", buf: c, range, tag, tReps}
-              );
-
-              else return aux(
+              return aux(
                 tSig, n + 1,
                 {depth, context, phase, buf: buf + c, range, tag, tReps}
+              );
+            }
+
+            else if (c === ".") {
+              return aux(
+                tSig, n + 1,
+                {depth, context, phase: "RVAR", buf: c, range, tag, tReps}
               );
             }
 
@@ -1061,19 +1079,71 @@ const deserialize = tSig => {
           }
 
           case "RVAR": {
-            return [RecT(range, buf, tReps), n + 2, depth - 1];
+            if (c === ".") {
+              if (buf === ".") {
+                return aux(
+                  tSig, n + 1,
+                  {depth, context, phase: "RVAR", buf: buf + ".", range, tag, tReps}
+                );
+              }
 
-            return aux(
-              tSig, n + 1,
-              {depth, context, phase: "VALUE", buf, range, tag, tReps}
+              else _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                tSig,
+                {range: [n, n], desc: ["unexpected symbol"]}
+              );
+            }
+
+            else if (c.search(/[a-z]/) === 0) {
+              if (buf === "..") {
+                return aux(
+                  tSig, n + 1,
+                  {depth, context, phase: "RVAR", buf: c, range, tag, tReps}
+                );
+              }
+
+              else _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                tSig,
+                {range: [n, n], desc: ["unexpected symbol"]}
+              );
+            }
+
+            else if (c.search(/[0-9]/) === 0) {
+              if (buf.search(/[a-z]/) === 0 && buf.length === 1) {
+                return aux(
+                  tSig, n + 1,
+                  {depth, context, phase: "RVAR", buf: buf + c, range, tag, tReps}
+                );
+              }
+
+              else _throw(
+                TypeSigError,
+                ["invalid type signature"],
+                tSig,
+                {range: [n, n], desc: ["unexpected symbol"]}
+              );
+            }
+
+            else if (c === "}") {
+              return [RecT(range, buf, tReps), n + 1, depth - 1];
+            }
+
+            else _throw(
+              TypeSigError,
+              ["invalid type signature"],
+              tSig,
+              {range: [n, n], desc: ["unexpected symbol"]}
             );
           }
         }
       }
-
-      case "UNIT": return [UnitT([n, n + 1]), n + 2, depth];
     }
   };
+
+  if (tSig === "") return EmptyT;
 
   const {context, phase, buf} = getContext(tSig, 0);
 
@@ -1103,11 +1173,10 @@ const getContext = (tSig, n) => {
     return {context: "ADT", phase: "TAG", buf: ""};
   }
 
-  // Arr / Tup / Unit
+  // Arr / Tup
 
   if (c === "[") {
-    if (tSig[n + 1] === "]") return {context: "UNIT", phase: "", buf: ""};
-    else return {context: "ARR", phase: "OUTER", buf: ""};
+    return {context: "ARR", phase: "OUTER", buf: ""};
   }
 
   // Fun
@@ -1121,6 +1190,12 @@ const getContext = (tSig, n) => {
   if (s.search(/\{.+::/) === 0
   && lookAheadMap(tSig.slice(n + 1))) {
     return {context: "_MAP", phase: "OUTER", buf: ""};
+  }
+
+  // Null
+
+  if (s.indexOf("Null") === 0) {
+    return {context: "NULL", phase: "", buf: ""};
   }
 
   // Rec
@@ -1234,13 +1309,14 @@ const unify = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, 
   switch (t1Rep.constructor.name) {
     case "AdtT": return unifyAdt(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
     case "ArrT": return unifyArr(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
+    case "EmptyT": return unifyNull(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
     case "FunT": return unifyFun(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
     case "_MapT": return unifyMap(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
+    case "NullT": return unifyNull(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
     case "PolyT": return unifyPoly(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
     case "PrimT": return unifyPrim(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
     case "RecT": return unifyRec(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
     case "TupT": return unifyTup(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
-    case "UnitT": return unifyUnit(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
   }
 };
 
@@ -1249,13 +1325,14 @@ const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
+    case "EmptyT":
     case "FunT":
     case "_MapT":
+    case "NullT":
     case "RecT":
     case "PolyT":
     case "PrimT":
     case "TupT":
-    case "UnitT":
   }
 };
 
@@ -1263,12 +1340,13 @@ const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
+    case "EmptyT":
     case "FunT":
     case "_MapT":
+    case "NullT":
     case "PrimT":
     case "RecT":
-    case "TupT":
-    case "UnitT": {
+    case "TupT": {
       const range = retrieveRange(fRep, nthParam);
 
       _throw(
@@ -1321,11 +1399,12 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
+    case "EmptyT":
     case "_MapT":
+    case "NullT":
     case "PrimT":
     case "RecT": 
-    case "TupT":
-    case "UnitT": {
+    case "TupT": {
       const range = retrieveRange(fRep, nthParam);
 
       _throw(
@@ -1513,13 +1592,14 @@ const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
+    case "EmptyT":
     case "FunT":
     case "_MapT":
+    case "NullT":
     case "RecT":
     case "PolyT":
     case "PrimT":
     case "TupT":
-    case "UnitT":
   }
 };
 
@@ -1533,11 +1613,12 @@ const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xS
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
+    case "EmptyT":
     case "FunT":
     case "_MapT":
+    case "NullT":
     case "RecT":
-    case "TupT":
-    case "UnitT": {
+    case "TupT": {
       const range = retrieveRange(fRep, nthParam);
 
       _throw(
@@ -1584,11 +1665,12 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
+    case "EmptyT":
     case "FunT":
     case "_MapT":
+    case "NullT":
     case "PrimT":
-    case "TupT":
-    case "UnitT": {
+    case "TupT": {
       const range = retrieveRange(fRep, nthParam);
 
       _throw(
@@ -1605,15 +1687,15 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
     }
 
     case "RecT": {
-      const keys1 = t1Rep.children.reduce((acc, [k, v], n) => {
+      const keys1 = t1Rep.children.reduce((acc, {k, v}, n) => {
         return acc.set(k, n);
       }, new Map());
 
-      const keys2 = t2Rep.children.reduce((acc, [k, v], n) => {
+      const keys2 = t2Rep.children.reduce((acc, {k, v}, n) => {
         return acc.set(k, n);
       }, new Map());
 
-      t1Rep.children.forEach(([k, v], n) => {
+      t1Rep.children.forEach(({k, v}, n) => {
         if (!keys2.has(k)) {
           const range = retrieveRange(fRep, nthParam);
 
@@ -1623,7 +1705,7 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
             fSig,
             {
               range,
-              desc: [`missing key "${k}"`]
+              desc: [`missing key ${prettyPrintK(k)}`]
             }
           );
         }
@@ -1632,7 +1714,7 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
           v,
           serialize(v),
           t2Rep.children[keys2.get(k)].v,
-          serialize(t2Rep.children[keys2.get(k)]).v,
+          serialize(t2Rep.children[keys2.get(k)].v),
           state,
           {nthParam},
           fRep,
@@ -1642,26 +1724,64 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
         );
       });
 
-      if (t1Rep.rvar !== "") {
+      if (t1Rep.rvar === "") {
+        if (keys1.size !== keys2.size) {
+          t2Rep.children.forEach(({k, v}, n) => {
+            if (!keys1.has(k)) {
+              const range = retrieveRange(fRep, nthParam);
+
+              _throw(
+                cons,
+                [`${fRep.name || "lambda"} expects`],
+                fSig,
+                {
+                  range,
+                  desc: [`unexpected key ${prettyPrintK(k)}`]
+                }
+              );
+            }
+          });          
+        }
+      }
+
+      else {
         const rowRep = cloneT(t2Rep);
         rowRep.rvar = "";
 
-        rowRep.children.forEach(([k, v], n) => {
-          if (keys1.has(k)) delete rowRep.children[n];
+        rowRep.children = rowRep.children.filter(({k, v}, n) => {
+          if (keys1.has(k)) return false;
+          else return true;
         });
 
-        state = constrain(
-          deserialize(t1Rep.rvar),
-          t1Rep.rvar,
-          rowRep,
-          serialize(rowRep),
-          state,
-          {nthParam},
-          fRep,
-          fSig,
-          xSig,
-          cons
-        );
+        if (rowRep.children.length === 0) {
+          state = constrain(
+            deserialize(t1Rep.rvar),
+            t1Rep.rvar,
+            EmptyT,
+            "",
+            state,
+            {nthParam},
+            fRep,
+            fSig,
+            xSig,
+            cons
+          );
+        }
+
+        else {
+          state = constrain(
+            deserialize(t1Rep.rvar),
+            t1Rep.rvar,
+            rowRep,
+            serialize(rowRep),
+            state,
+            {nthParam},
+            fRep,
+            fSig,
+            xSig,
+            cons
+          );
+        }
       }
 
       return state;
@@ -1678,28 +1798,30 @@ const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
+    case "EmptyT":
     case "FunT":
     case "_MapT":
+    case "NullT":
     case "RecT":
     case "PolyT":
     case "PrimT":
     case "TupT":
-    case "UnitT":
   }
 };
 
 
-const unifyUnit = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+const unifyNull = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
+    case "EmptyT":
     case "FunT":
     case "_MapT":
+    case "NullT":
     case "RecT":
     case "PolyT":
     case "PrimT":
     case "TupT":
-    case "UnitT":
   }
 };
 
@@ -1801,12 +1923,13 @@ const mgu = (kRep, vRep) => {
       case "ArrT": {
         switch (vRep.constructor.name) {
           case "AdtT":
+          case "EmptyT":
           case "FunT":
           case "_MapT":
+          case "NullT":
           case "PrimT":
           case "RecT":
-          case "TupT":
-          case "UnitT": return NO_MGU;
+          case "TupT": return NO_MGU;
 
           case "ArrT": {
             return aux(kRep.children[0], vRep.children[0]);
@@ -1816,15 +1939,32 @@ const mgu = (kRep, vRep) => {
         }
       }
 
+      case "EmptyT": {
+        switch (vRep.constructor.name) {
+          case "AdtT":
+          case "ArrT":
+          case "FunT":
+          case "_MapT":
+          case "NullT":
+          case "PrimT":
+          case "RecT":
+          case "TupT": return NO_MGU;
+
+          case "EmptyT": return EQ_GEN;
+          case "PolyT": return LESS_GEN;
+        }
+      }
+
       case "FunT": {
         switch (vRep.constructor.name) {
           case "AdtT":
           case "ArrT":
+          case "EmptyT":
           case "_MapT":
+          case "NullT":
           case "PrimT":
           case "RecT":
-          case "TupT":
-          case "UnitT": return NO_MGU;
+          case "TupT": return NO_MGU;
           
           case "FunT": {
             return mguFun(kRep, vRep, 0, aux);
@@ -1836,15 +1976,18 @@ const mgu = (kRep, vRep) => {
 
       case "_MapT": {}
       
+      case "NullT": {}
+
       case "PrimT": {
         switch (vRep.constructor.name) {
           case "AdtT":
           case "ArrT":
+          case "EmptyT":
           case "FunT":
           case "_MapT":
+          case "NullT":
           case "RecT":
-          case "TupT":
-          case "UnitT": return NO_MGU;
+          case "TupT": return NO_MGU;
 
           case "PrimT": {
             if (kRep.tag === vRep.tag) return EQ_GEN;
@@ -1859,12 +2002,13 @@ const mgu = (kRep, vRep) => {
         switch (vRep.constructor.name) {
           case "AdtT":
           case "ArrT":
+          case "EmptyT":
           case "FunT":
           case "_MapT":
+          case "NullT":
           case "PrimT":
           case "RecT":
-          case "TupT":
-          case "UnitT": return MORE_GEN;
+          case "TupT": return MORE_GEN;
 
           case "PolyT": {
             kTvars.add(kRep.tag);
@@ -1878,11 +2022,12 @@ const mgu = (kRep, vRep) => {
         switch (vRep.constructor.name) {
           case "AdtT":
           case "ArrT":
+          case "EmptyT":
           case "FunT":
           case "_MapT":
+          case "NullT":
           case "PrimT":
-          case "TupT":
-          case "UnitT": return NO_MGU;
+          case "TupT": return NO_MGU;
 
           case "RecT": {
             const aux_ = n => {
@@ -1902,8 +2047,6 @@ const mgu = (kRep, vRep) => {
       }
       
       case "TupT": {}
-      
-      case "UnitT": {}
     }
   };
 
@@ -2029,6 +2172,16 @@ const mguFun = (kRep, vRep, n, aux) => {
 
 const substitute = (fSig, constraints) => {
   constraints.forEach((v, k) => {
+    if (k.search(/^[a-z][0-9]?$/) === 0) {
+      if (v === "") {
+        fSig = fSig.replace(new RegExp(`, \\.\\.${escapeRegExp(k)}\\b`, "g"), v);
+      }
+
+      else {
+        fSig = fSig.replace(new RegExp(`\\.\\.${escapeRegExp(k)}\\b`, "g"), v.slice(1, -1));
+      }
+    }
+
     if (fSig.search(new RegExp(`\\b${escapeRegExp(k)}\\b`)) !== -1) {
       if (v[0] === "(") {
         fSig = fSig.replace(new RegExp(`\\b${escapeRegExp(k)}$`), v.slice(1, -1));
@@ -2470,7 +2623,7 @@ const handleArr = (tRep, tSig) => ({
             Number.isNaN(Number(i))
               ? `of ${prettyPrintK(i)}`
               : `of index #${prettyPrintK(i)}`,
-            "duck typing is not allowed"
+            "unknown property"
           ]}
         );
       }
@@ -2489,7 +2642,7 @@ const handleArr = (tRep, tSig) => ({
           tSig,
           {desc: [
             `of ${prettyPrintK(i)}`,
-            "Arr instances are sealed"
+            "duck typing is not allowed"
           ]}
         );
       }
@@ -2508,7 +2661,7 @@ const handleArr = (tRep, tSig) => ({
       tSig,
       {desc: [
         `of ${prettyPrintK(i)}`,
-        "Arr must not be used as an POJO"
+        "Arr instances are sealed for non-numeric properties"
       ]}
     );
 
@@ -2547,7 +2700,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
     tSig,
     {desc: [
       `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
-      "Arr must not be used as an POJO"
+      "Arr instances are immutable for non-numeric instances"
     ]}
   );
 
@@ -2569,7 +2722,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
         tSig,
         {desc: [
           `of index #${prettyPrintK(i)} with type ${introspect(d.value)}`,
-          "Arr must be homogeneous"
+          "Arr instances must preserve their type"
         ]}
       );
     }
@@ -3119,7 +3272,7 @@ const handleRec = (tRep, tSig) => ({
           tSig,
           {desc: [
             `of ${prettyPrintK(k)}`,
-            "duck typing is not allowed"
+            "unknown property"
           ]}
         );
       }
@@ -3188,7 +3341,7 @@ const setRec = (tRep, tSig, o, k, d, {mode}) => {
       tSig,
       {range: [from, to], desc: [
         `of ${prettyPrintK(k)} with type ${introspect(d.value)}`,
-        "fields must preserve their type"
+        "Rec fields must preserve their type"
       ]}
     );
   }

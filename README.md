@@ -15,7 +15,7 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 <br>
 
-Version 0.9.15 (under construction)
+Version 0.9.16 (under construction)
 
 **Please note:** This repo is experimental and still work in progress.
 <br><br>
@@ -65,16 +65,16 @@ F.type(true);
 ```
 ## Upcoming Milestones
 
-I am currently working on records that support row polymorphism.
+I am currently working on incorporating algebraic data types.
 
 - [x] standalone unification algorithm (Hindley-Milner)
 - [x] incorporate unification into the type checker
 - [x] add homogeneous Array type
 - [ ] add homogeneous Map type
 - [ ] add Tuple type
-- [ ] add Record type
+- [x] add Record type
 - [ ] add Algebraic data types
-- [ ] incorporate row polymorphism
+- [x] incorporate row polymorphism
 - [ ] add Promise type
 - [ ] add Iterator/Generator types
 - [ ] add higher-rank types
@@ -436,7 +436,7 @@ More generally, you shouldn't use typed arrays as plain old Javascript Objects, 
 
 ### Type Coercion
 
-ftor prevents implicit type conversions whereever possible:
+ftor prevents implicit type conversions wherever possible:
 
 ```Javascript
 const xs = Arr([1, 2, 3, 4]),
