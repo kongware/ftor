@@ -2569,7 +2569,47 @@ const verifyUnary = (arg, argRep, fRep, fSig, sigLog) => {
 ******************************************************************************/
 
 
-// the best is yet to come...
+const Adt = (cons, {length}, tSig) => {
+  const Adt = f => {
+    const instance = new cons();
+    
+    // check f = typed function
+    // check capitalized f.name
+
+    if (cases.has(f.name)) {
+      // throw
+    }
+
+    cases.set(f.name, f);
+
+    if (length < cases.size) {
+      // throw
+    }
+
+    // check that type vars of current case are in scope
+
+    instance.run = cases => {
+      // check that ADT is closed (cases.size = length)
+      // check existence of all cases
+      // check type for all cases
+      return f(cases);
+    }
+    
+    return instance;
+  };
+
+  // check cons = Function
+  // check length = Number
+  // check tSig = String
+
+  const cases = new Map();
+  return Adt;
+};
+
+
+const handleAdt = (tRep, tSig) => ({
+
+});
 
 
 /******************************************************************************
