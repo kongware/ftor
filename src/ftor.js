@@ -133,8 +133,8 @@ const introspectR = x => {
 
               else {
                 const [s, sigs] = x.reduce(([s, sigs], y) => {
-                    const sig = introspectR(y);
-                    return [s.add(sig), sigs.concat(sig)];
+                    y = introspectR(y);
+                    return [s.add(y), sigs.concat(y)];
                   }, [new Set(), []]);
 
                 if (s.size === 1) return `[${sigs[0]}]`;
@@ -142,10 +142,10 @@ const introspectR = x => {
                 else if (sigs.length > TUP_MAX_FIELDS) _throw(
                   IntrospectionError,
                   ["invalid Tuple"],
-                  x,
+                  `[${sigs.slice(0, 3).join(", ").concat("...")}]`,
                   {desc: [
-                    `Tuple must not comprise more than ${TUP_MAX_FIELDS} fields`,
-                    `${sigs.length} fields received`
+                    `Tuple must not contain more than ${TUP_MAX_FIELDS} fields`,
+                    `${s.size} fields received`
                   ]}
                 );
                 
@@ -154,13 +154,43 @@ const introspectR = x => {
             }
 
             case "Map": {
-              if (x.size === 0) return "{k::v}";
-              else return `{${nextVal(x.entries()).map(y => introspectR(y)).join("::")}}`;
+              const s = Array.from(x).reduce((s, [k, v]) => {
+                  k = ${introspectR(k)};
+                  v = ${introspectR(v)};
+                  return s.add(`{${k}::${v}}`);
+                }, new Set());
+
+              if (s.size === 0) return "{k::v}";
+              else if (s.size === 1) return s.values().value;
+
+              else {
+                const sigs = Array.from(s);
+
+                _throw(
+                  IntrospectionError,
+                  ["_Map expects homogeneous Map"],
+                  sigs.length > 3
+                    ? sigs.slice(0, 3).join(", ").concat("...")
+                    : sigs.join(", "),
+                  {desc: [`${s.zize} pairs of different type received`]}
+                );
+              }
             }
 
             case "Object": {
-              const ks = Object.keys(x);
-              if (ks.length > 0) return "{" + ks.map(k => `${k}: ${introspectR(x[k])}`).join(", ") + "}";
+              const sigs = Object.entries(x).reduce((sigs, [k, v]) => {
+                  v = introspectR(v);
+                  return sigs.concat(`${k}: ${v}`);
+                }, []);
+
+              if (m.size === 0) _throw(
+                IntrospectionError,
+                ["invalid Record"],
+                `{${sigs.join(", ")}}`,
+                {desc: ["Records must at least contain 1 field"]}
+              );
+
+              else return `{${sigs.join(", ")}}`
             }
 
             default: {
@@ -2456,7 +2486,7 @@ const handleFun = (fRep, fSig, state) => {
           fSig,
           {desc: [
             `of property ${prettyPrintK(k)} with type ${introspect(v)}`,
-            "function objects are immutable"
+            "Fun objects are immutable"
           ]}
         );
       }
@@ -2558,18 +2588,15 @@ export const Arr = xs => {
 
     else if (TR in xs) return xs;
 
-    const tSig = xs.length === 0
-      ? "[a]"
-      : introspectR(xs);
-
-    const tRep = deserialize(tSig),
+    const tSig = introspectR(xs),
+      tRep = deserialize(tSig),
       voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
 
     if (tRep.tag === "Tup") _throw(
       TypeError,
       ["Arr expects homogeneous Array"],
       tSig,
-      {desc: ["element values of different type received"]}
+      {desc: [`${s.zize} elements of different type received`]}
     );
 
     else if (tSig.search(voidPattern) !== -1) {
@@ -2661,7 +2688,7 @@ const handleArr = (tRep, tSig) => ({
       tSig,
       {desc: [
         `of ${prettyPrintK(i)}`,
-        "Arr instances are sealed for non-numeric properties"
+        "Arrays are immutable for non-numeric properties"
       ]}
     );
 
@@ -2700,7 +2727,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
     tSig,
     {desc: [
       `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
-      "Arr instances are immutable for non-numeric instances"
+      "Arrays are immutable for non-numeric properties"
     ]}
   );
 
@@ -2722,7 +2749,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
         tSig,
         {desc: [
           `of index #${prettyPrintK(i)} with type ${introspect(d.value)}`,
-          "Arr instances must preserve their type"
+          "Arrays must preserve their type"
         ]}
       );
     }
@@ -2737,239 +2764,30 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
 
 
 /******************************************************************************
-*****[ 7.4. Tuples ]***********************************************************
-******************************************************************************/
-
-
-const _Tup = ({immu = false}) => xs => {
-  if (types) {
-    if (introspect(xs) !== "Array") _throw(
-      TypeError,
-      ["Tup expects an Array"],
-      introspect(xs),
-      {desc: ["received"]}
-    );
-
-    else if (TR in xs) _throw(
-      TypeError,
-      ["Tup expects an untyped Array"],
-      xs[TS],
-      {desc: ["received (illegal retyping)"]}
-    );
-
-    const tSig = introspectR(xs);
-
-    if (xs.length < 2) _throw(
-      TypeError,
-      ["Tup received an invalid Array"],
-      tSig,
-      {range: [0, tSig.length - 1], desc: ["Tuples must comprise at least 2 fields"]}
-    );
-
-    const tRep = deserialize(tSig),
-      voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
-
-    if (tSig.search(voidPattern) !== -1) {
-      const {index: from, 0: match} = tSig.match(voidPattern),
-        to = from + match.length - 1;
-
-      _throw(
-        TypeError,
-        ["Tup must not contain void values"],
-        tSig,
-        {range: [from, to], desc: [`${match} received`]}
-      );
-    }
-
-    return new Proxy(xs, handleTup(tRep, tSig, immu));
-  }
-
-  else return xs;
-};
-
-
-export const Tup = _Tup({});
-
-
-export const Itup = _Tup({immu: true});
-
-
-const handleTup = (tRep, tSig, immu) => ({
-  get: (xs, i, p) => {
-    switch (i) {
-      case "toString": return () => tSig;
-      case Symbol.toStringTag: return "Tup";
-      case Symbol.isConcatSpreadable: return xs[Symbol.isConcatSpreadable];
-      case TR: return tRep;
-      case TS: return tSig;
-
-      case Symbol.toPrimitive: return hint => {
-        _throw(
-          TypeError,
-          ["illegal implicit type conversion"],
-          tSig,
-          {desc: [
-            `must not be converted to ${capitalize(hint)} primitive`,
-            "use explicit type casts instead"
-          ]}
-        );
-      };
-
-      default: {
-        if (i in xs) return xs[i];
-
-        else _throw(
-          TypeError,
-          ["illegal property access"],
-          tSig,
-          {desc: [`unknown property ${prettyPrintK(i)}`]}
-        );
-      }
-    }
-  },
-
-  has: (xs, i, p) => {
-    switch (i) {
-      case TS: return true;
-      case TR: return true;
-
-      default: _throw(
-        TypeError,
-        ["illegal property introspection"],
-        tSig,
-        {desc: [
-          `of property ${prettyPrintK(i)}`,
-          "duck typing is not allowed"
-        ]}
-      );
-    }
-  },
-
-  set: (xs, i, v, p) => setTup(tRep, tSig, immu, xs, i, {value: v}, "set"),
-  defineProperty: (xs, i, d) => setTup(tRep, tSig, immu, xs, i, d, "def"),
-
-  deleteProperty: (xs, i) => _throw(
-    TypeError,
-    ["illegal property deletion"],
-    tSig,
-    {desc: [
-      `of property ${prettyPrintK(i)}`,
-      "Tuples are either immutable or sealed"
-    ]}
-  ),
-
-  ownKeys: xs => _throw(
-    TypeError,
-    ["illegal property introspection"],
-    tSig,
-    {desc: [
-      `of property ${prettyPrintK(i)}`,
-      "meta programming is not allowed"
-    ]}
-  )
-});
-
-
-const setTup = (tRep, tSig, immu, xs, i, d, mode) => {
-  if (immu) _throw(
-    TypeError,
-    ["illegal property mutation"],
-    tSig,
-    {desc: [
-      `of property ${prettyPrintK(i)} with type ${introspect(d.value)}`,
-      "immutable Tuple"
-    ]}
-  );
-
-  else {
-    if (Number.isNaN(Number(i))) _throw(
-      TypeError,
-      ["illegal property setting"],
-      tSig,
-      {desc: [
-        `of property ${prettyPrintK(i)} with type ${introspect(d.value)}`,
-        "do not use Tuples as Objects"
-      ]}
-    );
-
-    else {
-      if (Number(i) >= xs.length) _throw(
-        TypeError,
-        ["illegal property setting"],
-        tSig,
-        {desc: [
-          `of property ${prettyPrintK(i)} with type ${introspect(d.value)}`,
-          `where Tuple includes only ${xs.length} fields`,
-          "sealed Tuple"
-        ]}
-      );
-
-      else if (serialize(tRep.children[i]) !== `${introspect(d.value)}`) {
-        const [from, to] = tRep.children[0].range;
-
-        _throw(
-          TypeError,
-          ["illegal property mutation"],
-          tSig,
-          {range: [from, to], desc: [
-            `of property ${prettyPrintK(i)} with type ${introspect(d.value)}`,
-            "fields must preserve their type"
-          ]}
-        );
-      }
-
-      else {
-        if (mode === "set") xs[i] = d.value;
-        else Reflect.defineProperty(xs, i, d);
-        return xs;
-      }
-    }
-  }
-};
-
-
-/******************************************************************************
 *****[ 7.5. Maps ]*************************************************************
 ******************************************************************************/
 
 
-const __Map = ({immu = false, sig = ""}) => map => {
+export const _Map = map => {
   if (types) {
     if (introspect(map) !== "Map") _throw(
       TypeError,
-      ["_Map expects a Map"],
+      ["_Map expects a ES2015 Map"],
       introspect(map),
       {desc: ["received"]}
     );
 
-    else if (TR in map) _throw(
-      TypeError,
-      ["_Map expects an untyped Map"],
-      map[TS],
-      {desc: ["received (illegal retyping)"]}
-    );
+    else if (TR in xs) return xs;
 
-    let tSig = introspectR(map);
-
-    if (map.size === 0) {
-      if (sig === "") _throw(
-        TypeError,
-        ["_Map received an empty Map without type annotation"],
-        "[?]",
-        {desc: ["explicit type annotation necessary"]}
-      );
-
-      else tSig = sig;
-    }
-
-    const tRep = deserialize(tSig),
+    const tSig = introspectR(map),
+      tRep = deserialize(tSig),
       voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
 
     if (tRep.children.length > 1) _throw(
       TypeError,
       ["_Map expects homogeneous Map"],
       tSig,
-      {desc: [`mixed typed values received`]}
+      {desc: [`${tRep.children.length} pairs of different type received`]}
     );
 
     else if (tSig.search(voidPattern) !== -1) {
@@ -2978,29 +2796,20 @@ const __Map = ({immu = false, sig = ""}) => map => {
 
       _throw(
         TypeError,
-        ["_Map must not contain void values"],
+        ["Map must not contain void values"],
         tSig,
-        {range: [from, to], desc: [`${match} received`]}
+        {range: [from, to], desc: [`such as ${Object.keys(VOID).join(", ")}`]}
       );
     }
 
-    return new Proxy(map, handleMap(tRep, tSig, immu));
+    return new Proxy(map, handleMap(tRep, tSig));
   }
 
   else return map;
 };
 
 
-export const _Map = __Map({});
-
-
-export const Imap = __Map({immu: true})
-
-
-export const Emap = tSig => __Map({sig: tSig});
-
-
-const handleMap = (tRep, tSig, immu) => ({
+const handleMap = (tRep, tSig) => ({
   get: (map, k, p) => {
     switch (k) {
       case "toString": return () => tSig;
@@ -3012,11 +2821,11 @@ const handleMap = (tRep, tSig, immu) => ({
       case Symbol.toPrimitive: return hint => {
         _throw(
           TypeError,
-          ["illegal implicit type conversion"],
+          ["illegal type coercion"],
           tSig,
           {desc: [
-            `must not be converted to ${capitalize(hint)} primitive`,
-            "use explicit type casts instead"
+            `to target type ${capitalize(hint)}`,
+            "implicit type convertions are not allowed"
           ]}
         );
       };
@@ -3028,99 +2837,67 @@ const handleMap = (tRep, tSig, immu) => ({
           TypeError,
           ["illegal property access"],
           tSig,
-          {desc: [`unknown key ${prettyPrintK(introspect(k))}`]}
+          {desc: [
+            `of ${prettyPrintK(introspect(k))}`,
+            "unknown property"
+          ]}
         );
       };
 
       case "set": (k, v) => {
-        if (immu) _throw(
-          TypeError,
-          ["illegal property mutation"],
-          tSig,
-          {desc: [
-            `of property ${prettyPrintK(introspect(k))} with type ${introspect(d.value)}`,
-            "immutable Map"
-          ]}
-        );
-
-        else {
-          if (introspectR(k) !== tRep.children[0].k) {
-            // TODO: range for keys            
-
-            _throw(
-              TypeError,
-              ["illegal property mutation"],
-              tSig,
-              {range: [0, -1], desc: [ 
-                `of key ${prettyPrintK(introspect(k))} with type ${introspect(d.value)}`,
-                "heterogeneous Maps are not allowed"
-              ]}
-            );
-          }
-
-          else if (introspectR(v) !== tRep.children[0].v) {
-            const [from, to] = tRep.children[0].v.range;
-
-            _throw(
-              TypeError,
-              ["illegal property mutation"],
-              tSig,
-              {range: [from, to], desc: [
-                `of property ${prettyPrintK(introspect(k))} with type ${introspect(d.value)}`,
-                "heterogeneous Maps are not allowed"
-              ]}
-            );
-          }
-
-          else return map.set(k, v);
-        }
-      };
-
-      case "delete": k => {
-        if (immu) _throw(
-          TypeError,
-          ["illegal property mutation"],
-          tSig,
-          {desc: [
-            `of key ${prettyPrintK(introspect(k))} with type ${introspect(d.value)}`,
-            "immutable Map"
-          ]}
-        );
-
-        else {
-          if (map.has(k)) return map.delete(k);
-
-          else _throw(
+        if (introspectR(k) !== tRep.children[0].k) {
+          _throw(
             TypeError,
-            ["illegal property deletion"],
+            ["illegal property mutation"],
             tSig,
-            {desc: [`unknown key ${prettyPrintK(introspect(k))}`]}
+            {desc: [ 
+              `of key ${prettyPrintK(introspect(k))} with type ${introspect(d.value)}`,
+              "Maps must preserve their type"
+            ]}
           );
         }
-      };
 
-      case "clear": () => {
-        if (immu) _throw(
+        else if (introspectR(v) !== tRep.children[0].v) {
+          const [from, to] = tRep.children[0].v.range;
+
+          _throw(
+            TypeError,
+            ["illegal property mutation"],
+            tSig,
+            {range: [from, to], desc: [
+              `of value ${prettyPrintV(introspect(k))} with type ${introspect(d.value)}`,
+            ]}
+          );
+        }
+
+        else return map.set(k, v);
+      }
+
+      case "delete": k => {
+        if (map.has(k)) return map.delete(k);
+
+        else _throw(
           TypeError,
-          ["illegal property mutation"],
+          ["illegal property deletion"],
           tSig,
           {desc: [
-            `of property ${prettyPrintK(introspect(k))} with type ${introspect(d.value)}`,
-            "immutable Array"
+            `of ${prettyPrintK(introspect(k))}`,
+            "unknown property"
           ]}
         );
-
-        else return map.clear();
-      };
+      }
 
       default: {
         if (k in map) return map[k];
 
         else _throw(
           TypeError,
-          ["illegal property access"],
+          ["invalid property access"],
           tSig,
-          {desc: [`unknown property ${prettyPrintK(k)}`]}
+          {desc: [
+            `of ${prettyPrintK(k)}`,
+            "unknown property"
+          ]}
         );
       }
     }
@@ -3136,7 +2913,7 @@ const handleMap = (tRep, tSig, immu) => ({
         ["illegal property introspection"],
         tSig,
         {desc: [
-          `of property ${prettyPrintK(k)}`,
+          `of ${prettyPrintK(k)}`,
           "duck typing is not allowed"
         ]}
       );
@@ -3152,8 +2929,8 @@ const handleMap = (tRep, tSig, immu) => ({
         ["illegal property mutation"],
         tSig,
         {desc: [
-          `of property ${prettyPrintK(k)} with type ${introspect(v)}`,
-          "map Objects are immutable"
+          `of ${prettyPrintK(k)} with type ${introspect(v)}`,
+          "_Map objects are immutable"
         ]}
       );
     }
@@ -3165,8 +2942,8 @@ const handleMap = (tRep, tSig, immu) => ({
       ["illegal property mutation"],
       tSig,
       {desc: [
-        `of property ${prettyPrintK(k)} with type ${introspect(d.value)}`,
-        "map Objects are immutable"
+        `of ${prettyPrintK(k)} with type ${introspect(d.value)}`,
+        "_Map objects are immutable"
       ]}
 
     );
@@ -3175,11 +2952,11 @@ const handleMap = (tRep, tSig, immu) => ({
   deleteProperty: (map, k) => {
     _throw(
       TypeError,
-      ["illegal property mutation"],
+      ["illegal property deletion"],
       tSig,
       {desc: [
-        `removal of property ${prettyPrintK(k)}`,
-        "map Objects are immutable"
+        `of ${prettyPrintK(k)}`,
+        "_Map objects are immutable"
       ]}
     );
   },
@@ -3189,7 +2966,7 @@ const handleMap = (tRep, tSig, immu) => ({
     ["illegal property introspection"],
     tSig,
     {desc: [
-      `of property ${prettyPrintK(k)}`,
+      `of ${prettyPrintK(k)}`,
       "meta programming is not allowed"
     ]}
   )
@@ -3197,7 +2974,7 @@ const handleMap = (tRep, tSig, immu) => ({
 
 
 /******************************************************************************
-*****[ 7.6. Records ]**********************************************************
+*****[ 7.5. Records ]**********************************************************
 ******************************************************************************/
 
 
@@ -3216,14 +2993,7 @@ export const Rec = o => {
       tRep = deserialize(tSig),
       voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
 
-    if (tRep.tag !== "Rec") _throw(
-      TypeError,
-      ["Rec expects a non-empty Object"],
-      tSig,
-      {desc: ["Records must contain at least 1 field"]}
-    );
-
-    else if (tSig.search(voidPattern) !== -1) {
+    if (tSig.search(voidPattern) !== -1) {
       const {index: from, 0: match} = tSig.match(voidPattern),
         to = from + match.length - 1;
 
@@ -3305,7 +3075,7 @@ const handleRec = (tRep, tSig) => ({
     tSig,
     {desc: [
       `of ${prettyPrintK(k)}`,
-      "Rec instances are sealed"
+      "Records are sealed"
     ]}
   ),
 
@@ -3328,7 +3098,7 @@ const setRec = (tRep, tSig, o, k, d, {mode}) => {
     tSig,
     {desc: [
       `unknown key ${prettyPrintK(k)}`,
-      "Rec instances are sealed"
+      "Records are sealed"
     ]}
   );
 
@@ -3341,7 +3111,7 @@ const setRec = (tRep, tSig, o, k, d, {mode}) => {
       tSig,
       {range: [from, to], desc: [
         `of ${prettyPrintK(k)} with type ${introspect(d.value)}`,
-        "Rec fields must preserve their type"
+        "Record fields must preserve their type"
       ]}
     );
   }
@@ -3350,6 +3120,180 @@ const setRec = (tRep, tSig, o, k, d, {mode}) => {
     if (mode === "set") o[k] = d.value;
     else Reflect.defineProperty(o, k, d);
     return o;
+  }
+};
+
+
+/******************************************************************************
+*****[ 7.6. Tuples ]***********************************************************
+******************************************************************************/
+
+
+export const Tup = xs => {
+  if (types) {
+    if (introspect(xs) !== "Array") _throw(
+      TypeError,
+      ["Tup expects an Array"],
+      introspect(xs),
+      {desc: ["received"]}
+    );
+
+    else if (TR in xs) return xs;
+
+    const tSig = introspectR(xs),
+      tRep = deserialize(tSig),
+      voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
+
+    if (tRep.tag === "Arr") _throw(
+      TypeError,
+      ["Tup received an invalid Array"],
+      tSig,
+      {desc: [
+        "Tuples must contain at least 2 fields",
+        `${tRep.children.length} field(s) received`
+      ]}
+    );
+
+    else if (tSig.search(voidPattern) !== -1) {
+      const {index: from, 0: match} = tSig.match(voidPattern),
+        to = from + match.length - 1;
+
+      _throw(
+        TypeError,
+        ["Tuple must not contain void values"],
+        tSig,
+        {range: [from, to], desc: [`such as ${Object.keys(VOID).join(", ")}`]}
+      );
+    }
+
+    return new Proxy(xs, handleTup(tRep, tSig));
+  }
+
+  else return xs;
+};
+
+
+const handleTup = (tRep, tSig) => ({
+  get: (xs, i, p) => {
+    switch (i) {
+      case "toString": return () => tSig;
+      case Symbol.toStringTag: return "Tup";
+      case Symbol.isConcatSpreadable: return xs[Symbol.isConcatSpreadable];
+      case TR: return tRep;
+      case TS: return tSig;
+
+      case Symbol.toPrimitive: return hint => {
+        _throw(
+          TypeError,
+          ["illegal type coercion"],
+          tSig,
+          {desc: [
+            `to target type ${capitalize(hint)}`,
+            "implicit type convertions are not allowed"
+          ]}
+        );
+      };
+
+      default: {
+        if (i in xs) return xs[i];
+
+        else _throw(
+          TypeError,
+          ["invalid property access"],
+          tSig,
+          {desc: [
+            `of ${prettyPrintK(i)}`,
+            "unknown property"
+          ]}
+        );
+      }
+    }
+  },
+
+  has: (xs, i, p) => {
+    switch (i) {
+      case TS: return true;
+      case TR: return true;
+
+      default: _throw(
+        TypeError,
+        ["illegal property introspection"],
+        tSig,
+        {desc: [
+          `of ${prettyPrintK(i)}`,
+          "duck typing is not allowed"
+        ]}
+      );
+    }
+  },
+
+  set: (xs, i, v, p) => setTup(tRep, tSig, xs, i, {value: v}, {mode: "set"}),
+  defineProperty: (xs, i, d) => setTup(tRep, tSig, xs, i, d, {mode: "def"}),
+
+  deleteProperty: (xs, i) => _throw(
+    TypeError,
+    ["illegal property deletion"],
+    tSig,
+    {desc: [
+      `of property ${prettyPrintK(i)}`,
+      "Tuples are sealed"
+    ]}
+  ),
+
+  ownKeys: xs => _throw(
+    TypeError,
+    ["illegal property introspection"],
+    tSig,
+    {desc: [
+      `of ${prettyPrintK(i)}`,
+      "meta programming is not allowed"
+    ]}
+  )
+});
+
+
+const setTup = (tRep, tSig, xs, i, d, {mode}) => {
+  if (Number.isNaN(Number(i))) _throw(
+    TypeError,
+    ["illegal property mutation"],
+    tSig,
+    {desc: [
+      `of property ${prettyPrintK(i)} with type ${introspect(d.value)}`,
+      "Tuples are immutable for non-numeric properties"
+    ]}
+  );
+
+  else {
+    if (Number(i) >= xs.length) _throw(
+      TypeError,
+      ["illegal property setting"],
+      tSig,
+      {desc: [
+        `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
+        `where Tuple includes only ${xs.length} fields`,
+        "Tuples are sealed"
+      ]}
+    );
+
+    else if (serialize(tRep.children[i]) !== `${introspect(d.value)}`) {
+      const [from, to] = tRep.children[0].range;
+
+      _throw(
+        TypeError,
+        ["illegal property mutation"],
+        tSig,
+        {range: [from, to], desc: [
+          `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
+          "Tuple fields must preserve their type"
+        ]}
+      );
+    }
+
+    else {
+      if (mode === "set") xs[i] = d.value;
+      else Reflect.defineProperty(xs, i, d);
+      return xs;
+    }
   }
 };
 
