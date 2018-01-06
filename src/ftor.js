@@ -2591,9 +2591,10 @@ const Adt = (cons, {length}, tSig) => {
     if (cases.size === length) {
       /* define run method with type signature as typed function,
        * whose single argument is a record of all cases (completeness check)
-       * It seems as soon as you have parametric and row polymorphism, records
-       * and typed functions, ADTs result quite naturally from such a setup.
-       * Beautiful!
+       *
+       * It seems that you only need parametric and row polymorhism, typed
+       * functions and record types to construct convenient ADTs. ADTs are
+       * a way to impose that function apllied to them are always total.
        */
       instance.run = cases => {
         return f(cases);
