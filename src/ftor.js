@@ -2588,13 +2588,22 @@ const Adt = (cons, {length}, tSig) => {
 
     // check that type vars of current case are in scope
 
-    instance.run = cases => {
-      // check that ADT is closed (cases.size = length)
-      // check existence of all cases
-      // check type for all cases
-      return f(cases);
+    if (cases.size === length) {
+      /* define run method with type signature as typed function,
+       * whose single argument is a record of all cases (completeness check)
+       * It seems as soon as you have parametric and row polymorphism, records
+       * and typed functions, ADTs result quite naturally from such a setup.
+       * Beautiful!
+       */
+      instance.run = cases => {
+        return f(cases);
+      }
     }
-    
+
+    else {
+      instance.run = () => throw new TypeError("ADT must be closed");
+    }
+
     return instance;
   };
 
