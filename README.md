@@ -15,7 +15,7 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 <br>
 
-Version 0.9.17 (under construction)
+Version 0.9.18 (under construction)
 
 **Please note:** This repo is experimental and still work in progress.
 <br><br>
@@ -65,7 +65,7 @@ F.type(true);
 ```
 ## Upcoming Milestones
 
-I am currently working on adding algebraic data types.
+I am currently working on adding typed Maps and Tuples.
 
 - [x] standalone unification algorithm (Hindley-Milner)
 - [x] incorporate unification into the type checker
@@ -73,13 +73,14 @@ I am currently working on adding algebraic data types.
 - [ ] add homogeneous Map type
 - [ ] add Tuple type
 - [x] add Record type
-- [ ] add Algebraic data types
+- [x] add Algebraic data types
 - [x] incorporate row polymorphism
 - [ ] add Promise type
+- [ ] add Set type
 - [ ] add Iterator/Generator types
-- [ ] add higher-rank types
-- [ ] incorporate kind system
-- [ ] add higher kinded types
+- [ ] add higher-rank types?
+- [ ] incorporate kind system?
+- [ ] add higher kinded types?
 - [ ] incorporate a special effect type / corresponding runtime
 - [ ] add persistant data structures
 - [ ] provide common combinators and functional patterns

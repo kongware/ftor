@@ -71,28 +71,45 @@ const NO_MGU = 3;
 ******************************************************************************/
 
 
-const introspect = t => {
-  let tag = getStringTag(t);
+const introspect = x => {
+  switch (typeof x) {
+    case "boolean": return "Boolean";
 
-  switch (tag) {
-    case "Adt":
-    case "Arr":
-    case "Fun":
-    case "_Map":
-    case "Rec":
-    case "Tup": return t[TS];
+    case "function": {
+      if (TS in x) return x[TS];
+      else return "Function";
+    }
 
-    default: {
-      if (tag === "Object" && "constructor" in t) {
-        tag = t.constructor.name;
+    case "number": {
+      if (Number.isNaN(x)) return "NaN";
+      else return "Number";
+    }
+
+    case "string": return "String";
+    case "symbol": return "Symbol";
+    case "undefined": return "Undefined";
+
+    case "object": {
+      if (x === null) return "Null";
+
+      else {
+        if (TS in x) return x[TS];
+
+        else {
+          let tag = getStringTag(x);
+
+          if (tag === "Object" && "constructor" in x) {
+            tag = x.constructor.name;
+          }
+
+          if (tag === "Number") {
+            if (Number.isNaN(x)) return "NaN";
+            else return tag;
+          }
+
+          else return tag;
+        }
       }
-
-      if (tag === "Number") {
-        if (Number.isNaN(t)) return "NaN";
-        else return tag;
-      }
-
-      else return tag;
     }
   }
 };
@@ -155,8 +172,8 @@ const introspectR = x => {
 
             case "Map": {
               const s = Array.from(x).reduce((s, [k, v]) => {
-                  k = ${introspectR(k)};
-                  v = ${introspectR(v)};
+                  k = introspectR(k);
+                  v = introspectR(v);
                   return s.add(`{${k}::${v}}`);
                 }, new Set());
 
@@ -183,7 +200,7 @@ const introspectR = x => {
                   return sigs.concat(`${k}: ${v}`);
                 }, []);
 
-              if (m.size === 0) _throw(
+              if (sigs.length === 0) _throw(
                 IntrospectionError,
                 ["invalid Record"],
                 `{${sigs.join(", ")}}`,
@@ -327,22 +344,7 @@ const _MapT = (Cons => (range, children) => new Cons(range, children))
 
 
 /******************************************************************************
-*****[ 3.6. Null ]*************************************************************
-******************************************************************************/
-
-
-const NullT = (Cons => range => new Cons(range))
-  (class NullT {
-    constructor(range) {
-      this.range = range;
-      this.tag = "Null";
-      this.children = [];
-    }
-  });
-
-
-/******************************************************************************
-*****[ 3.7. Primitives ]*******************************************************
+*****[ 3.6. Primitives ]*******************************************************
 ******************************************************************************/
 
 
@@ -357,7 +359,7 @@ const PrimT = (Cons => (range, tag) => new Cons(range, tag))
 
 
 /******************************************************************************
-*****[ 3.8. Polytypes ]********************************************************
+*****[ 3.7. Polytypes ]********************************************************
 ******************************************************************************/
 
 
@@ -372,7 +374,7 @@ const PolyT = (Cons => (range, tvar) => new Cons(range, tvar))
 
 
 /******************************************************************************
-*****[ 3.9. Records ]**********************************************************
+*****[ 3.8. Records ]**********************************************************
 ******************************************************************************/
 
 
@@ -388,7 +390,7 @@ const RecT = (Cons => (range, rvar, children) => new Cons(range, rvar, children)
 
 
 /******************************************************************************
-*****[ 3.10. Tuples ]***********************************************************
+*****[ 3.9. Tuples ]***********************************************************
 ******************************************************************************/
 
 
@@ -403,7 +405,7 @@ const TupT = (Cons => (range, children) => new Cons(range, children))
 
 
 /******************************************************************************
-*****[ 3.11. Misc ]************************************************************
+*****[ 3.10. Misc ]************************************************************
 ******************************************************************************/
 
 
@@ -414,7 +416,6 @@ const cloneT = xT => {
     case "EmptyT": return EmptyT;
     case "FunT": return deserialize(serialize(FunT(xT.name, xT.range, xT.children)));
     case "_MapT": return deserialize(serialize(_MapT(xT.range, xT.children)));
-    case "NullT": return deserialize(serialize(NullT(xT.range)));
     case "PolyT": return deserialize(serialize(PolyT(xT.range, xT.tag)));
     case "PrimT": return deserialize(serialize(PrimT(xT.range, xT.tag)));
     case "RecT": return deserialize(serialize(RecT(xT.range, xT.rvar, xT.children)));
@@ -447,7 +448,6 @@ const serialize = tRep => {
     case "Empty": return "";
     case "Fun": return serializeFun(tRep.name, tag, children);
     case "_Map": return serializeMap(tag, children);
-    case "Null": return tag;
     case "Rec": return serializeRec(tag, tRep.rvar, children);
     case "Tup": return serializeTup(tag, children);
     
@@ -923,8 +923,6 @@ const deserialize = tSig => {
         }
       }
 
-      case "NULL": return [NullT([n, n + 3]), n + 4, depth];
-
       case "POLY": {
         switch (phase) {
           case "LETTER": {
@@ -1222,12 +1220,6 @@ const getContext = (tSig, n) => {
     return {context: "_MAP", phase: "OUTER", buf: ""};
   }
 
-  // Null
-
-  if (s.indexOf("Null") === 0) {
-    return {context: "NULL", phase: "", buf: ""};
-  }
-
   // Rec
 
   if (s.search(/\{[a-z0-9_]+: /i) === 0) {
@@ -1339,10 +1331,9 @@ const unify = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, 
   switch (t1Rep.constructor.name) {
     case "AdtT": return unifyAdt(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
     case "ArrT": return unifyArr(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
-    case "EmptyT": return unifyNull(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
+    case "EmptyT": return unifyEmpty(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
     case "FunT": return unifyFun(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
     case "_MapT": return unifyMap(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
-    case "NullT": return unifyNull(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
     case "PolyT": return unifyPoly(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
     case "PrimT": return unifyPrim(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
     case "RecT": return unifyRec(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
@@ -1353,16 +1344,61 @@ const unify = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, 
 
 const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
-    case "AdtT":
     case "ArrT":
     case "EmptyT":
     case "FunT":
     case "_MapT":
-    case "NullT":
     case "RecT":
-    case "PolyT":
     case "PrimT":
-    case "TupT":
+    case "TupT": {
+      const range = retrieveRange(fRep, nthParam);
+
+      _throw(
+        cons,
+        [`${fRep.name || "lambda"} expects`],
+        fSig,
+        {
+          range,
+          desc: [`${t2Sig} received`],
+          sigLog: state.sigLog,
+          constraints: state.constraints
+        }
+      );
+    }
+
+    case "AdtT": {
+      t1Rep.children.forEach((tRep, n) => {
+        state = unify(
+          tRep,
+          serialize(tRep),
+          t2Rep.children[n],
+          serialize(t2Rep.children[n]),
+          state,
+          {nthParam},
+          fRep,
+          fSig,
+          xSig,
+          cons
+        );
+      });
+
+      return state;
+    }
+
+    case "PolyT": {
+      return constrain(
+        t2Rep,
+        serialize(t2Rep),
+        t1Rep,
+        serialize(t1Rep),
+        state,
+        {nthParam},
+        fRep,
+        fSig,
+        xSig,
+        cons
+      );
+    }
   }
 };
 
@@ -1373,7 +1409,6 @@ const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
     case "EmptyT":
     case "FunT":
     case "_MapT":
-    case "NullT":
     case "PrimT":
     case "RecT":
     case "TupT": {
@@ -1425,13 +1460,56 @@ const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 };
 
 
+const unifyEmpty = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+  switch (t2Rep.constructor.name) {
+    case "AdtT":
+    case "ArrT":
+    case "FunT":
+    case "_MapT":
+    case "RecT":
+    case "PrimT":
+    case "TupT": {
+      const range = retrieveRange(fRep, nthParam);
+
+      _throw(
+        cons,
+        [`${fRep.name || "lambda"} expects`],
+        fSig,
+        {
+          range,
+          desc: [`${t2Sig} received`],
+          sigLog: state.sigLog,
+          constraints: state.constraints
+        }
+      );
+    }
+
+    case "EmptyT": return state;
+
+    case "PolyT": {
+      return constrain(
+        t2Rep,
+        serialize(t2Rep),
+        t1Rep,
+        serialize(t1Rep),
+        state,
+        {nthParam},
+        fRep,
+        fSig,
+        xSig,
+        cons
+      );
+    }
+  }
+};
+
+
 const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
     case "EmptyT":
     case "_MapT":
-    case "NullT":
     case "PrimT":
     case "RecT": 
     case "TupT": {
@@ -1624,12 +1702,40 @@ const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
     case "ArrT":
     case "EmptyT":
     case "FunT":
-    case "_MapT":
-    case "NullT":
     case "RecT":
-    case "PolyT":
     case "PrimT":
-    case "TupT":
+    case "TupT": {
+      const range = retrieveRange(fRep, nthParam);
+
+      _throw(
+        cons,
+        [`${fRep.name || "lambda"} expects`],
+        fSig,
+        {
+          range,
+          desc: [`${t2Sig} received`],
+          sigLog: state.sigLog,
+          constraints: state.constraints
+        }
+      );
+    }
+
+    case "_MapT": {}
+
+    case "PolyT": {
+      return constrain(
+        t2Rep,
+        serialize(t2Rep),
+        t1Rep,
+        serialize(t1Rep),
+        state,
+        {nthParam},
+        fRep,
+        fSig,
+        xSig,
+        cons
+      );
+    }
   }
 };
 
@@ -1646,7 +1752,6 @@ const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xS
     case "EmptyT":
     case "FunT":
     case "_MapT":
-    case "NullT":
     case "RecT":
     case "TupT": {
       const range = retrieveRange(fRep, nthParam);
@@ -1698,7 +1803,6 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
     case "EmptyT":
     case "FunT":
     case "_MapT":
-    case "NullT":
     case "PrimT":
     case "TupT": {
       const range = retrieveRange(fRep, nthParam);
@@ -1831,27 +1935,40 @@ const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
     case "EmptyT":
     case "FunT":
     case "_MapT":
-    case "NullT":
     case "RecT":
     case "PolyT":
-    case "PrimT":
-    case "TupT":
-  }
-};
+    case "PrimT": {
+      const range = retrieveRange(fRep, nthParam);
 
+      _throw(
+        cons,
+        [`${fRep.name || "lambda"} expects`],
+        fSig,
+        {
+          range,
+          desc: [`${t2Sig} received`],
+          sigLog: state.sigLog,
+          constraints: state.constraints
+        }
+      );
+    }
 
-const unifyNull = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
-  switch (t2Rep.constructor.name) {
-    case "AdtT":
-    case "ArrT":
-    case "EmptyT":
-    case "FunT":
-    case "_MapT":
-    case "NullT":
-    case "RecT":
-    case "PolyT":
-    case "PrimT":
-    case "TupT":
+    case "PolyT": {
+      return constrain(
+        t2Rep,
+        serialize(t2Rep),
+        t1Rep,
+        serialize(t1Rep),
+        state,
+        {nthParam},
+        fRep,
+        fSig,
+        xSig,
+        cons
+      );
+    }
+
+    case "TupT": {}
   }
 };
 
@@ -1898,7 +2015,7 @@ const occurs = (state, nthParam, fRep, fSig, xSig, cons) => {
   state.constraints.forEach((v1, k1) => {
     if (k1.search(/\b[a-z][0-9]?\b/) !== -1) {
       state.constraints.forEach((v2, k2) => {
-        if (k1 !== k2) {
+        /*if (k1 !== k2) {
           if (k2.search(new RegExp(`\\b${k1}\\b`)) !== -1) {
             const range = retrieveRange(fRep, nthParam);
 
@@ -1914,7 +2031,7 @@ const occurs = (state, nthParam, fRep, fSig, xSig, cons) => {
               }
             );
           }
-        }
+        }*/
           
         if (k1 !== v2) {
           if (v2.search(new RegExp(`\\b${k1}\\b`)) !== -1) {
@@ -1948,7 +2065,32 @@ const fresh = (fSig, nthTvar) => {
 const mgu = (kRep, vRep) => {
   const aux = (kRep, vRep) => {
     switch (kRep.constructor.name) {
-      case "AdtT": {}
+      case "AdtT": {
+        switch (vRep.constructor.name) {
+          case "ArrT":
+          case "EmptyT":
+          case "FunT":
+          case "_MapT":
+          case "PrimT":
+          case "RecT":
+          case "TupT": return NO_MGU;
+
+          case "AdtT": {
+            const aux_ = n => {
+              const r = aux(kRep.children[n], vRep.children[n]);
+
+              if (n === kRep.children.length - 1) return r;
+              else if (r === EQ_GEN) return aux_(n + 1);
+              else return r;
+            };
+
+            if (kRep.children.length !== vRep.children.length) return NO_MGU;
+            else return aux_(0);
+          }
+
+          case "PolyT": return LESS_GEN;
+        }
+      }
 
       case "ArrT": {
         switch (vRep.constructor.name) {
@@ -1956,7 +2098,6 @@ const mgu = (kRep, vRep) => {
           case "EmptyT":
           case "FunT":
           case "_MapT":
-          case "NullT":
           case "PrimT":
           case "RecT":
           case "TupT": return NO_MGU;
@@ -1975,7 +2116,6 @@ const mgu = (kRep, vRep) => {
           case "ArrT":
           case "FunT":
           case "_MapT":
-          case "NullT":
           case "PrimT":
           case "RecT":
           case "TupT": return NO_MGU;
@@ -1991,7 +2131,6 @@ const mgu = (kRep, vRep) => {
           case "ArrT":
           case "EmptyT":
           case "_MapT":
-          case "NullT":
           case "PrimT":
           case "RecT":
           case "TupT": return NO_MGU;
@@ -2006,8 +2145,6 @@ const mgu = (kRep, vRep) => {
 
       case "_MapT": {}
       
-      case "NullT": {}
-
       case "PrimT": {
         switch (vRep.constructor.name) {
           case "AdtT":
@@ -2015,7 +2152,6 @@ const mgu = (kRep, vRep) => {
           case "EmptyT":
           case "FunT":
           case "_MapT":
-          case "NullT":
           case "RecT":
           case "TupT": return NO_MGU;
 
@@ -2035,7 +2171,6 @@ const mgu = (kRep, vRep) => {
           case "EmptyT":
           case "FunT":
           case "_MapT":
-          case "NullT":
           case "PrimT":
           case "RecT":
           case "TupT": return MORE_GEN;
@@ -2055,7 +2190,6 @@ const mgu = (kRep, vRep) => {
           case "EmptyT":
           case "FunT":
           case "_MapT":
-          case "NullT":
           case "PrimT":
           case "TupT": return NO_MGU;
 
@@ -2476,9 +2610,9 @@ const handleFun = (fRep, fSig, state) => {
       }
     },
 
-    set: (o, k, v, p) => {
+    set: (f, k, v, p) => {
       switch (k) {
-        case "toString": return o[k] = v, o;
+        case "toString": return f[k] = v, f;
 
         default: _throw(
           TypeError,
@@ -2486,7 +2620,7 @@ const handleFun = (fRep, fSig, state) => {
           fSig,
           {desc: [
             `of property ${prettyPrintK(k)} with type ${introspect(v)}`,
-            "Fun objects are immutable"
+            "function objects are immutable"
           ]}
         );
       }
@@ -2569,57 +2703,168 @@ const verifyUnary = (arg, argRep, fRep, fSig, sigLog) => {
 ******************************************************************************/
 
 
-const Adt = (cons, {length}, tSig) => {
-  const Adt = f => {
-    const instance = new cons();
-    
-    // check f = typed function
-    // check capitalized f.name
+export const Adt = (cons, tSig) => _case => {
+  // check case = record of typed functions with capitalized names
+  // check that type vars of all cases are in scope
+  const adt = new cons();
 
-    if (cases.has(f.name)) {
-      // throw
-    }
+  if (types) {
+    if (introspect(cons) !== "Function") _throw(
+      TypeError,
+      ["Adt expects"],
+      "(Function, String -> Function -> {run: Function})",
+      {range: [1, 9], desc: [`${introspect(cons)} received`]}
+    );
 
-    cases.set(f.name, f);
+    else if (cons.name.toLowerCase() === cons.name) _throw(
+      TypeError,
+      ["Adt expects type constructor with capitalized name"],
+      "(Function, String -> Function -> {run: Function})",
+      {range: [1, 9], desc: [`name "${cons.name}" received`]}
+    );
 
-    if (length < cases.size) {
-      // throw
-    }
+    else if (introspect(tSig) !== "String") _throw(
+      TypeError,
+      ["Adt expects"],
+      "(Function, String -> Function -> {run: Function})",
+      {range: [11, 17], desc: [`${introspect(tSig)} received`]}
+    );
 
-    // check that type vars of current case are in scope
+    else if (getStringTag(_case) !== "Fun") _throw(
+      TypeError,
+      ["Adt expects"],
+      "(Function, String -> Function -> {run: Function})",
+      {range: [21, 28], desc: [
+        "a typed function"
+        `${introspect(_case)} received`,
+      ]}
+    );
 
-    if (cases.size === length) {
-      /* define run method with type signature as typed function,
-       * whose single argument is a record of all cases (completeness check)
-       *
-       * It seems that you only need parametric and row polymorhism, typed
-       * functions and record types to construct convenient ADTs. ADTs are
-       * a way to impose that function apllied to them are always total.
-       */
-      instance.run = cases => {
-        return f(cases);
-      }
-    }
+    else if (_case.name.toLowerCase() === _case.name) _throw(
+      TypeError,
+      ["Adt expects data constructor with capitalized name"],
+      "(Function, String -> Function -> {run: Function})",
+      {range: [21, 28], desc: [`name "${_case.name}" received`]}
+    );
 
-    else {
-      instance.run = () => throw new TypeError("ADT must be closed");
-    }
+    const tRep = deserialize(tSig);
+    adt.run = cases => _case(cases);
+    return new Proxy(adt, handleAdt(tRep, tSig, cons));
+  }
 
-    return instance;
-  };
-
-  // check cons = Function
-  // check length = Number
-  // check tSig = String
-
-  const cases = new Map();
-  return Adt;
+  else return adt;
 };
 
 
-const handleAdt = (tRep, tSig) => ({
+const handleAdt = (tRep, tSig, cons) => {
+  return {
+    get: (o, k, p) => {
+      switch (k) {
+        case "toString": return () => tSig;
+        case Symbol.toStringTag: return cons.name;
+        case TR: return tRep;
+        case TS: return tSig;
 
-});
+        case Symbol.toPrimitive: return hint => {
+          _throw(
+            TypeError,
+            ["illegal implicit type conversion"],
+            tSig,
+            {desc: [
+              `must not be converted to ${capitalize(hint)} primitive`,
+              "use explicit type casts instead"
+            ]}
+          );          
+        };
+
+        default: {
+          if (k in o) return o[k];
+
+          else _throw(
+            TypeError,
+            ["illegal property access"],
+            tSig,
+            {desc: [`unknown property ${prettyPrintK(k)}`]}
+          );
+        }
+      }
+    },
+
+    has: (o, k, p) => {
+      switch (k) {
+        case TS: return true;
+        case TR: return true;
+
+        default: _throw(
+          TypeError,
+          ["illegal property introspection"],
+          tSig,
+          {desc: [
+            `of property ${prettyPrintK(k)}`,
+            "duck typing is not allowed"
+          ]}
+        );
+      }
+    },
+
+    set: (o, k, v, p) => {
+      switch (k) {
+        case "toString": return o[k] = v, o;
+
+        default: _throw(
+          TypeError,
+          ["illegal property mutation"],
+          tSig,
+          {desc: [
+            `of property ${prettyPrintK(k)} with type ${introspect(v)}`,
+            "ADTs are immutable"
+          ]}
+        );
+      }
+    },
+
+    defineProperty: (o, k, d) => {
+      switch (k) {
+        case "name": return Reflect.defineProperty(o, k, d), o;
+      }
+
+      _throw(
+        TypeError,
+        ["illegal property mutation"],
+        tSig,
+        {desc: [
+          `of property ${prettyPrintK(k)} with type ${introspect(d.value)}`,
+          "ADTs are immutable"
+        ]}
+
+      );
+    },
+
+    deleteProperty: (o, k) => {
+      _throw(
+        TypeError,
+        ["illegal property mutation"],
+        tSig,
+        {desc: [
+          `removal of property ${prettyPrintK(k)}`,
+          "ADTs are immutable"
+        ]}
+      );
+    },
+
+    ownKeys: o => {
+      _throw(
+        TypeError,
+        ["illegal property introspection"],
+        tSig,
+        {desc: [
+          `of property ${prettyPrintK(k)}`,
+          "meta programming is not allowed"
+        ]}
+      );
+    }
+  };
+};
 
 
 /******************************************************************************

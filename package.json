@@ -1,7 +1,7 @@
 {
   "name": "ftor",
   "author": "Iven Marquardt <info@kongware.net>",
-  "version": "0.9.17",
+  "version": "0.9.18",
   "description": "ftor enables ML-like type-directed, functional programming with Javascript including reasonable debugging.",
   "main": "src/ftor.js",
   "license": "MIT",
