@@ -1720,7 +1720,33 @@ const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
       );
     }
 
-    case "_MapT": {}
+    case "_MapT": {
+      state = unify(
+        t1Rep.children[0].k,
+        serialize(t1Rep.children[0].k),
+        t2Rep.children[0].k,
+        serialize(t2Rep.children[0].k),
+        state,
+        {nthParam},
+        fRep,
+        fSig,
+        xSig,
+        cons
+      );
+
+      return unify(
+        t1Rep.children[0].v,
+        serialize(t1Rep.children[0].v),
+        t2Rep.children[0].v,
+        serialize(t2Rep.children[0].v),
+        state,
+        {nthParam},
+        fRep,
+        fSig,
+        xSig,
+        cons
+      );
+    }
 
     case "PolyT": {
       return constrain(
@@ -1968,7 +1994,22 @@ const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
       );
     }
 
-    case "TupT": {}
+    case "TupT": {
+      t1Rep.children.forEach((tRep, n) => {
+        state = unify(
+          tRep,
+          serialize(tRep),
+          t2Rep.children[n],
+          serialize(t2Rep.children[n]),
+          state,
+          {nthParam},
+          fRep,
+          fSig,
+          xSig,
+          cons
+        );
+      }
+    }
   }
 };
 
@@ -2143,7 +2184,25 @@ const mgu = (kRep, vRep) => {
         }
       }
 
-      case "_MapT": {}
+      case "_MapT": {
+        switch (vRep.constructor.name) {
+          case "AdtT":
+          case "ArrT":
+          case "EmptyT":
+          case "FunT":
+          case "PrimT":
+          case "RecT":
+          case "TupT": return NO_MGU;
+
+          case "_MapT": {
+            const r = aux(kRep.children[0].k, vRep.children[0].k);
+            if (r === EQ_GEN) return aux(kRep.children[0].v, vRep.children[0].v);
+            else return r;
+          }
+
+          case "PolyT": return LESS_GEN;
+        }
+      }
       
       case "PrimT": {
         switch (vRep.constructor.name) {
@@ -2210,7 +2269,32 @@ const mgu = (kRep, vRep) => {
         }
       }
       
-      case "TupT": {}
+      case "TupT": {
+        switch (vRep.constructor.name) {
+          case "AdtT":
+          case "ArrT":
+          case "EmptyT":
+          case "FunT":
+          case "_MapT":
+          case "PrimT":
+          case "RecT": return NO_MGU;
+
+          case "PolyT": return LESS_GEN;
+
+          case "TupT": {
+            const aux_ = n => {
+              const r = aux(kRep.children[n], vRep.children[n]);
+
+              if (n === kRep.children.length - 1) return r;
+              else if (r === EQ_GEN) return aux_(n + 1);
+              else return r;
+            };
+
+            if (kRep.children.length !== vRep.children.length) return NO_MGU;
+            else return aux_(0);
+          }
+        }
+      }
     }
   };
 
