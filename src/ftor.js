@@ -2561,7 +2561,7 @@ const handleFun = (fRep, fSig, state) => {
       switch (argRep.constructor.name) {
         case "ArgT": {
           verifyUnary(arg, argRep, fRep, fSig, state.sigLog);
-          const tSig = introspect(arg[0]);
+          const tSig = introspectR(arg[0]);
           
           state = unify(
             argRep.value,
@@ -2588,7 +2588,7 @@ const handleFun = (fRep, fSig, state) => {
           const argSig = serialize(argRep.value);
 
           arg.forEach((arg_, n) => {
-            const tSig = introspect(arg_);
+            const tSig = introspectR(arg_);
 
             state = unify(
               argRep.value,
@@ -2610,7 +2610,7 @@ const handleFun = (fRep, fSig, state) => {
 
       if (fRep.children[1].constructor.name === "ReturnT") {
         const r = g(...arg),
-          rSig = introspect(r);
+          rSig = introspectR(r);
 
         state = unify(
           fRep.children[1].value,
