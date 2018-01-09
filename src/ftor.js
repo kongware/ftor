@@ -2831,6 +2831,22 @@ export const Adt = (cons, tSig) => _case => {
       {range: [21, 28], desc: [`name "${_case.name}" received`]}
     );
 
+    const tvars = U(f => r => {
+      const s = r.replace(/\([^()]+\)/g, "");
+      return s === r ? s : f(f) (s);
+    }) (_case[TS].slice(1, -1)).match(/\b[a-z]\b/g);
+
+    const tvars_ = new Set(tSig.match(/\b[a-z]\b/g));
+
+    tvars.forEach(tvar => {
+      if (!tvars_.has(tvar)) _throw(
+        TypeError,
+        [`invalid case for ${tSig}`],
+        _case[TS],
+        {desc: [`"${tvar}" is out of scope`]}
+      );
+    });
+
     const tRep = deserialize(tSig);
     adt.run = cases => _case(cases);
     return new Proxy(adt, handleAdt(tRep, tSig, cons));
@@ -3812,6 +3828,9 @@ const last = xs => xs[xs.length - 1];
 
 
 const xor = x => y => !x === !y ? false : true;
+
+
+const U = f => f(f);
 
 
 //***[ 8.1. Generator Functions ]********************************************

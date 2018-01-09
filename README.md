@@ -74,11 +74,11 @@ I am currently working on adding unit tests.
 - [x] add Record type
 - [x] add Algebraic data types
 - [x] incorporate row polymorphism
+- [x] add rank-2 types
 - [ ] add unit tests
 - [ ] add Promise type
 - [ ] add Iterator/Generator types
 - [ ] add homogeneous Set type
-- [ ] add higher-rank types?
 - [ ] incorporate kind system/higher kinded types?
 - [ ] incorporate a special effect type / corresponding runtime
 - [ ] add persistant data structures
