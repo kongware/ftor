@@ -40,10 +40,10 @@ export const type = b => types = b;
 const SYM_PREFIX = "github.com/kongware/ftor/";
 
 
-const TR = Symbol.for(`${SYM_PREFIX}tr`);
+export const TR = Symbol.for(`${SYM_PREFIX}tr`);
 
 
-const TS = Symbol.for(`${SYM_PREFIX}ts`);
+export const TS = Symbol.for(`${SYM_PREFIX}ts`);
 
 
 const TUP_MAX_FIELDS = 16;
@@ -509,7 +509,7 @@ const serializeFun = (name, tag, tReps) => {
 
           case "RestT": {
             const {tag: tag_, children} = arg.value;
-            if (c.length === 0) return `...${tag}`;
+            if (children.length === 0) return `...${tag_}`;
             else return `...${serialize(arg.value)}`;
           }
         }
@@ -2769,7 +2769,7 @@ const verifyNullary = (arg, argRep, fRep, fSig, sigLog) => {
     [`${fRep.name || "lambda"} expects 0 arguments`],
     fSig,
     {
-      range: argRep.value.range,
+      range: argRep.range,
       desc: [`${arg.length} argument(s) received`],
       sigLog
     }
@@ -2783,7 +2783,7 @@ const verifyUnary = (arg, argRep, fRep, fSig, sigLog) => {
     [`${fRep.name || "lambda"} expects 1 argument`],
     fSig,
     {
-      range: argRep.value.range,
+      range: argRep.range,
       desc: [`${arg.length} argument(s) received`],
       sigLog
     }
