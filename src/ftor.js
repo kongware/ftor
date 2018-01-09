@@ -454,7 +454,7 @@ const serialize = tRep => {
     default: {
       if (tRep.constructor.name === "AdtT") return serializeAdt(tag, children);
 
-      else if (children.length > 0) throw new TypeRepError(
+      else if (children.length > 0) throw new SerialError(
         "invalid type representative\n\n" +
         `${tRep}\n\n` +
         "invalid primitive type\n"
@@ -578,14 +578,14 @@ const deserialize = tSig => {
       next = n + 1 === tSig.length ? "" : tSig[n + 1];
 
     if (c === undefined) _throw(
-      TypeSigError,
+      ParseError,
       ["invalid type signature"],
       tSig,
       {range: [n, n], desc: ["unexpected end of signature"]}
     );
 
     else if (c.search(/[a-z0-9(\[{<>}\]), \-.:_]/i) !== 0) _throw(
-      TypeSigError,
+      ParseError,
       ["invalid type signature"],
       tSig,
       {range: [n, n], desc: ["invalid symbol"]}
@@ -605,15 +605,15 @@ const deserialize = tSig => {
             else {
               return aux(
                 tSig, n + 1,
-                {depth: depth + 1, context, phase: "TR", buf: "", range, tag: buf, tReps}
+                {depth: depth + 1, context, phase: "TVAR", buf: "", range, tag: buf, tReps}
               );
             }
           }
 
-          case "TR": {
+          case "TVAR": {
             if (c === ",") {
               if (tReps.length === 0) _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n, n], desc: ["unexpected symbol"]}
@@ -627,7 +627,7 @@ const deserialize = tSig => {
               }
               
               else _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n + 1, n + 1], desc: [`symbol " " expected`]}
@@ -667,7 +667,7 @@ const deserialize = tSig => {
           case "INNER": {
             if (c === ",") {
               if (tReps.length === 0) _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n, n], desc: ["unexpected symbol"]}
@@ -681,7 +681,7 @@ const deserialize = tSig => {
               }
               
               else _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n + 1, n + 1], desc: [`symbol " " expected`]}
@@ -722,9 +722,18 @@ const deserialize = tSig => {
           }
 
           case "LOOK_AHEAD": {
+            const phase_ = lookAheadFun(tSig.slice(n));
+
+            if (phase_ === false) _throw(
+              ParseError,
+              ["invalid type signature"],
+              tSig,
+              {range: [tSig.length, tSig.length], desc: [`symbol ")" expected`]}
+            );
+
             return aux(
               tSig, n,
-              {depth, context, phase: lookAheadFun(tSig.slice(n)), buf, name, range, tag, tReps}
+              {depth, context, phase: phase_, buf, name, range, tag, tReps}
             );
           }
 
@@ -741,21 +750,21 @@ const deserialize = tSig => {
               );
 
               else if (next === ":" && tSig[n + 2] === ":") _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n + 3, n + 3], desc: [`symbol " " expected`]}
               );
 
               else if (next === ":") _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n + 2, n + 2], desc: [`symbol ":" expected`]}
               );
 
               else _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n + 1, n + 1], desc: [`symbol ":" expected`]}
@@ -763,7 +772,7 @@ const deserialize = tSig => {
             } 
 
             else _throw(
-              TypeSigError,
+              ParseError,
               ["invalid type signature"],
               tSig,
               {range: [n, n], desc: ["unexpected symbol"]}
@@ -799,7 +808,7 @@ const deserialize = tSig => {
               );
 
               else _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n, n], desc: ["unexpected symbol"]}
@@ -824,7 +833,7 @@ const deserialize = tSig => {
           case "RETURN": {
             if (c === ")") {
               if (next === ")") _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [range[0], n], desc: ["unnecessary parenthesis"]}
@@ -859,7 +868,7 @@ const deserialize = tSig => {
               );
 
               else _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n, n], desc: [`token " -> " expected`]}
@@ -867,7 +876,7 @@ const deserialize = tSig => {
             }
 
             else _throw(
-              TypeSigError,
+              ParseError,
               ["invalid type signature"],
               tSig,
               {range: [n, n], desc: ["unexpected symbol"]}
@@ -949,7 +958,7 @@ const deserialize = tSig => {
             }
 
             else _throw(
-              TypeSigError,
+              ParseError,
               ["invalid type signature"],
               tSig,
               {range: [n, n], desc: ["unexpected symbol (type variable context)"]}
@@ -962,7 +971,7 @@ const deserialize = tSig => {
             }
 
             else _throw(
-              TypeSigError,
+              ParseError,
               ["invalid type signature"],
               tSig,
               {range: [n, n], desc: ["unexpected symbol"]}
@@ -997,7 +1006,7 @@ const deserialize = tSig => {
             }
 
             else _throw(
-              TypeSigError,
+              ParseError,
               ["invalid type signature"],
               tSig,
               {range: [n, n], desc: ["unexpected symbol"]}
@@ -1032,7 +1041,7 @@ const deserialize = tSig => {
 
             else if (c === ":") {
               if (buf === "") _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n, n], desc: ["unexpected symbol"]}
@@ -1046,7 +1055,7 @@ const deserialize = tSig => {
               }
               
               else _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n + 1, n + 1], desc: [`symbol " " expected`]}
@@ -1054,7 +1063,7 @@ const deserialize = tSig => {
             }
 
             else _throw(
-              TypeSigError,
+              ParseError,
               ["invalid type signature"],
               tSig,
               {range: [n, n], desc: ["unexpected symbol"]}
@@ -1064,7 +1073,7 @@ const deserialize = tSig => {
           case "VALUE": {
             if (c === ",") {
               if (tReps.length === 0) _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n, n], desc: ["unexpected symbol"]}
@@ -1078,7 +1087,7 @@ const deserialize = tSig => {
               }
               
               else _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n + 1, n + 1], desc: [`symbol " " expected`]}
@@ -1116,7 +1125,7 @@ const deserialize = tSig => {
               }
 
               else _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n, n], desc: ["unexpected symbol"]}
@@ -1132,7 +1141,7 @@ const deserialize = tSig => {
               }
 
               else _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n, n], desc: ["unexpected symbol"]}
@@ -1148,7 +1157,7 @@ const deserialize = tSig => {
               }
 
               else _throw(
-                TypeSigError,
+                ParseError,
                 ["invalid type signature"],
                 tSig,
                 {range: [n, n], desc: ["unexpected symbol"]}
@@ -1160,7 +1169,7 @@ const deserialize = tSig => {
             }
 
             else _throw(
-              TypeSigError,
+              ParseError,
               ["invalid type signature"],
               tSig,
               {range: [n, n], desc: ["unexpected symbol"]}
@@ -1181,7 +1190,7 @@ const deserialize = tSig => {
   );
 
   if (depth === 0 && tSig.length !== n) _throw(
-    TypeSigError,
+    ParseError,
     ["invalid type signature"],
     tSig,
     {range: [n, tSig.length - 1], desc: ["unexpected symbol(s)"]}
@@ -1241,7 +1250,7 @@ const getContext = (tSig, n) => {
   // Error
 
   _throw(
-    TypeSigError,
+    ParseError,
     ["invalid type signature"],
     tSig,
     {range: [n, n], desc: ["unexpected symbol"]}
@@ -2008,7 +2017,7 @@ const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
           xSig,
           cons
         );
-      }
+      });
     }
   }
 };
@@ -3713,15 +3722,7 @@ class Int extends Number {
 //***[ 7.8.1. Subtypes ]*******************************************************
 
 
-class TypeSysError extends Error {
-  constructor(x) {
-    super(x);
-    Error.captureStackTrace(this, TypeSysError);
-  }
-};
-
-
-class ArityError extends TypeSysError {
+class ArityError extends Error {
   constructor(x) {
     super(x);
     Error.captureStackTrace(this, ArityError);
@@ -3729,7 +3730,7 @@ class ArityError extends TypeSysError {
 };
 
 
-class ReturnTypeError extends TypeSysError {
+class ReturnTypeError extends Error {
   constructor(x) {
     super(x);
     Error.captureStackTrace(this, ReturnTypeError);
@@ -3737,7 +3738,7 @@ class ReturnTypeError extends TypeSysError {
 };
 
 
-class IntrospectionError extends TypeSysError {
+class IntrospectionError extends Error {
   constructor(x) {
     super(x);
     Error.captureStackTrace(this, IntrospectionError);
@@ -3745,44 +3746,23 @@ class IntrospectionError extends TypeSysError {
 };
 
 
-class TypeRepError extends TypeSysError {
+class ParseError extends Error {
   constructor(x) {
     super(x);
-    Error.captureStackTrace(this, TypeRepError);
+    Error.captureStackTrace(this, ParseError);
   }
 };
 
 
-class TypeSigError extends TypeSysError {
+class SerialError extends Error {
   constructor(x) {
     super(x);
-    Error.captureStackTrace(this, TypeSigError);
+    Error.captureStackTrace(this, SerialError);
   }
 };
 
 
-//***[ 7.8.2. Formatting ]*****************************************************
-
-
-const ul = (n, m) => Array(n + 1).join(" ") + Array(m - n + 2).join("^");
-
-
-const prettyPrintK = x => {
-  const tag = getStringTag(x);
-  
-  if (tag === "Symbol") return x.toString();
-  else if (tag === "String" && Number.isNaN(Number(x))) return `"${x}"`;
-  else return x;
-};
-
-
-const prettyPrintV = x => {
-  const tag = getStringTag(x);
-  
-  if (tag === "Symbol") return x.toString();
-  else if (tag === "String") return `"${x}"`;
-  else return x;
-};
+//***[ 7.8.2. Throwing ]*******************************************************
 
 
 const _throw = (Cons, title, sig, {range = [0, -1], desc = [], sigLog = [], constraints = new Map()}) => {
@@ -3811,6 +3791,30 @@ const _throw = (Cons, title, sig, {range = [0, -1], desc = [], sigLog = [], cons
     )
     .concat("\n")
   );
+};
+
+
+//***[ 7.8.3. Formatting ]*****************************************************
+
+
+const ul = (n, m) => Array(n + 1).join(" ") + Array(m - n + 2).join("^");
+
+
+const prettyPrintK = x => {
+  const tag = getStringTag(x);
+  
+  if (tag === "Symbol") return x.toString();
+  else if (tag === "String" && Number.isNaN(Number(x))) return `"${x}"`;
+  else return x;
+};
+
+
+const prettyPrintV = x => {
+  const tag = getStringTag(x);
+  
+  if (tag === "Symbol") return x.toString();
+  else if (tag === "String") return `"${x}"`;
+  else return x;
 };
 
 
