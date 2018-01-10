@@ -15,7 +15,7 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 <br>
 
-Version 0.9.19 (under construction)
+Version 0.9.20 (under construction)
 
 **Please note:** This repo is experimental and still work in progress.
 <br><br>
@@ -93,14 +93,44 @@ Let's get to the extended types without any further ado.
 You can easily create typed functions with the `Fun` constructor. It takes a mandatory type signature and an arrow function - that's all:
 
 ```Javascript
-const inc = Fun(
-  "(inc :: Number -> Number)",
-  n => n + 1
+const add = Fun(
+  "(add :: Number -> Number -> Number)",
+  m => n => m + n
 );
 
-inc(2); // 3
+add(2) (3); // 5
 ```
-Please note that the name portion (`inc :: `) in the signature is optional and used to name the corresponding anonymous function during debugging.
+Please note that the name portion (`add :: `) in the signature is optional and used to give the corresponding anonymous function sequence a name.
+
+### Pure Functions
+
+ftor relies on functions being pure<sup>1</sup> but cannot enfoce this characteristic in Javascript. There will be a special data type in the near future, with which effects can be expressed in such a pure environment.
+
+<sub><sup>1</sup>a function is pure if it is referential transparent</sub>
+
+### Curried Functions
+
+ftor doesn't support multi-argument functions but only functions in curried form, that is sequences with exactly one argument per call.
+
+Currying leads to lots of partially applied anonymous functions throughout the code. One of the most annoying aspects of working with such anonymous functions in Javascript consists in debugging them. ftor automatically assigns the name portion of type signatures to each subsequent lambda:
+
+```Javascript
+const add = Fun(
+  "(add :: Number -> Number -> Number)",
+  n => m => n + m
+);
+
+add(2).name; // "add"
+```
+#### Readability
+
+A lot of people are concerned about the readability of the typical call pattern (`fun(x) (y) (z)`) that arises from curried functions. It is considered less readable than calling multi argument functions (`fun(x, y, z)`).
+
+Syntax is just a matter of habit, though. It is much more important that currying entails great benefits like partial application and abstraction over arity. Moreover it greatly simplyfies the design of the type checker.
+
+#### Performance
+
+If you are concerned about performance and micro optimizations rather than code reuse, productivity and more robust programs you should prefer imperative algorithms and mutations anyway. _Flow_ or _TypeScript_ are more suitable in this case.
 
 ### Meaningful Error Messages
 
@@ -127,30 +157,6 @@ Boolean received
     at Object.apply (<anonymous>:1680:22)
     at <anonymous>:1:1
 ```
-### Curried Functions
-
-ftor doesn't support multi-argument functions but only functions in curried form, that is sequences with exactly one argument per call.
-
-Currying leads to lots of partially applied anonymous functions throughout the code. One of the most annoying aspects of working with such anonymous functions in Javascript consists in debugging them. ftor automatically assigns the name portion of type signatures to each subsequent lambda:
-
-```Javascript
-const add = Fun(
-  "(add :: Number -> Number -> Number)",
-  n => m => n + m
-);
-
-add(2).name; // "add"
-```
-#### Readability
-
-A lot of people are concerned about the readability of the typical call pattern (`fun(x) (y) (z)`) that arises from curried functions. It is considered less readable than calling multi argument functions (`fun(x, y, z)`).
-
-Syntax is just a matter of habit, though. It is much more important that currying entails great benefits like partial application and abstraction over arity. Moreover it greatly simplyfies the design of the type checker.
-
-#### Performance
-
-If you are concerned about performance and micro optimizations rather than code reuse, productivity and more robust programs you should prefer imperative algorithms and mutations anyway. _Flow_ or _TypeScript_ are more suitable in this case.
-
 ### Variadic Functions
 
 You can define variadic functions by using the rest parameter:
@@ -167,7 +173,7 @@ sum(1, "2"); // type error
 ```
 ### Strict Function Call Arity
 
-ftor handles function arities strictly:
+Otherwise, ftor handles function arities strictly:
 
 ```Javascript
 const inc = Fun(
@@ -181,7 +187,7 @@ inc(2, 3); // arity error
 ```
 ### Nullary Functions / Thunks
 
-You can explicitly express lazyness with thunks:
+You can explicitly express non-strict evaluation with thunks:
 
 ```Javascript
 const thunk = Fun("(() -> String)", () => "foo" + "bar");
@@ -189,6 +195,31 @@ const thunk = Fun("(() -> String)", () => "foo" + "bar");
 thunk(); // "foobar"
 thunk("baz"); // arity error
 ```
+### Parametric Polymorphic functions
+
+ftor supports parametric polymorphism:
+
+```Javascript
+const k = Fun("
+  "(k :: a -> b -> a)",
+  x => y => x
+");
+
+const snd = Fun("
+  "(fst :: a -> a -> a)",
+  x => y => y
+");
+
+k(true) (false); // true
+k("foo") ("bar"); // "foo"
+k("foo") (123); // "foo"
+
+snd(true) (false); // false
+snd("foo") ("bar"); // "bar"
+snd("foo") (123); // type error
+```
+`a` and `b` are type variables, that is they can be substituted with any type. They can, but do not have to be of different type:
+
 ### Higher Order Functions
 
 Let's treat functions the same way as data. The following applicator helps to illustrate the underlying principle:
@@ -204,24 +235,16 @@ const inc = Fun(
   n => n + 1
 );
 
+const toStr = Fun(
+  "(toStr :: Number -> String)",
+  n => String(n)
+);
+
 ap(inc) (2); // 3
 ap(inc) ("2"); // type error
-```
-`a` and `b` are type variables, that is they can be substituted with any type. They can, but do not have to be of different type:
 
-```Javascript
-const ap = Fun(
-  "(ap :: (a -> b) -> a -> b)",
-  f => x => f(x)
-);
-
-const toString = Fun(
-  "(toString :: Number -> String)",
-  x => String(x)
-);
-
-ap(toString) (123); // "123"
-ap(toString) (true); // type error
+ap(toStr) (2); // "3"
+ap(toStr) (true); // type error
 ```
 The passed function argument itself can be polymorphic:
 
@@ -236,14 +259,16 @@ const id = Fun(
   x => x
 );
 
-const toArray = Fun(
-  "(toArray :: a -> [a])",
-  x => Arr(x)
+const toArr = Fun(
+  "(toArr :: a -> [a])",
+  x => Arr([x]) // typed array
 );
 
 ap(id) ("foo"); // "foo"
-ap(toArray) (123); // [123]
-ap(toArray) (true); // [true]
+ap(id) ([1, 2, 3]); // [1, 2, 3]
+
+ap(toArr) (123); // [123]
+ap(toArr) (true); // [true]
 ```
 ### Strict Evaluation
 
@@ -260,17 +285,23 @@ const inc = Fun(
   n => n + 1
 );
 
-const toArray = Fun(
-  "(toArray :: a -> [a])",
-  x => Arr(x)
+const add = Fun(
+  "(add :: Number -> Number -> Number)",
+  m => n => m + n
+);
+
+const toArr = Fun(
+  "(toArr :: a -> [a])",
+  x => Arr([x]) // typed array
 );
 
 ap_(inc); // passes
-ap_(toArray); // type error
+ap_(add); // type error
+ap_(toArr); // type error
 ```
 ### Abstraction over Arity
 
-If the return type of an higher order function is a type variable, it can abstract over the arity of the passed function argument:
+If the type signature of an higher order function returns a type variable, this means it can return any type thus also another function. As a result such higher order function types can abstract over the passed function argument's arity:
 
 ```Javascript
 const ap = Fun(
@@ -291,11 +322,11 @@ const k = Fun(
 ap(add) (2) (3); // 5
 ap(k) ("foo") ("bar"); // "foo"
 ```
-Even though the applicator `ap` merely accepts unary functions it can handle functions argument of arbitrary arity. This property is called abstraction over arity and is one of the nice qualities of curried functions.
+Even though `ap` merely accepts unary functions it can handle function arguments of arbitrary arity.
 
 ### Type Hints
 
-What is the intermediate type of the following partially applied function?
+As soon as you combine monomorphic and polymorphic curried functions in various ways, you quickly lose track of the partial applied function's intermediate types:
 
 ```Javascript
 const comp = Fun(
