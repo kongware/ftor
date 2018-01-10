@@ -3000,7 +3000,7 @@ export const Arr = xs => {
       TypeError,
       ["Arr expects homogeneous Array"],
       tSig,
-      {desc: [`${s.zize} elements of different type received`]}
+      {desc: [`${tRep.children.length} elements of different type received`]}
     );
 
     else if (tSig.search(voidPattern) !== -1) {

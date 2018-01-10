@@ -246,30 +246,6 @@ ap(inc) ("2"); // type error
 ap(toStr) (2); // "3"
 ap(toStr) (true); // type error
 ```
-The passed function argument itself can be polymorphic:
-
-```Javascript
-const ap = Fun(
-  "(ap :: (a -> b) -> a -> b)",
-  f => x => f(x)
-);
-
-const id = Fun(
-  "(id :: a -> a)",
-  x => x
-);
-
-const toArr = Fun(
-  "(toArr :: a -> [a])",
-  x => Arr([x]) // typed array
-);
-
-ap(id) ("foo"); // "foo"
-ap(id) ([1, 2, 3]); // [1, 2, 3]
-
-ap(toArr) (123); // [123]
-ap(toArr) (true); // [true]
-```
 ### Strict Evaluation
 
 The type checker immediately evaluates partially applied functions and is therefore able to throw type errors eagerly:
@@ -299,31 +275,6 @@ ap_(inc); // passes
 ap_(add); // type error
 ap_(toArr); // type error
 ```
-### Abstraction over Arity
-
-If the type signature of an higher order function returns a type variable, this means it can return any type thus also another function. As a result such higher order function types can abstract over the passed function argument's arity:
-
-```Javascript
-const ap = Fun(
-  "(ap :: (a -> b) -> a -> b)",
-  f => x => f(x)
-);
-
-const add = Fun(
-  "(add :: Number -> Number -> Number)",
-  n => m => n + m
-);
-
-const k = Fun(
-  "(k :: a -> b -> a)",
-  x => y => x
-);
-
-ap(add) (2) (3); // 5
-ap(k) ("foo") ("bar"); // "foo"
-```
-Even though `ap` merely accepts unary functions it can handle function arguments of arbitrary arity.
-
 ### Type Hints
 
 As soon as you combine monomorphic and polymorphic curried functions in various ways, you quickly lose track of the partial applied function's intermediate types:
@@ -364,9 +315,34 @@ You can derive from the type signatures that `compx` takes a binary function, a 
 
 Instead of examining implementations we can stick with type signatures to comprehend complex function expressions. By leaving implementation details behind, we've reached another level of abstraction and ftor helps us to keep track of the right types.
 
+### Abstraction over Arity
+
+If the type signature of an higher order function returns a type variable, this means it can return any type thus also another function. As a result such higher order function types can abstract over the passed function argument's arity:
+
+```Javascript
+const ap = Fun(
+  "(ap :: (a -> b) -> a -> b)",
+  f => x => f(x)
+);
+
+const add = Fun(
+  "(add :: Number -> Number -> Number)",
+  n => m => n + m
+);
+
+const k = Fun(
+  "(k :: a -> b -> a)",
+  x => y => x
+);
+
+ap(add) (2) (3); // 5
+ap(k) ("foo") ("bar"); // "foo"
+```
+Even though `ap` merely accepts unary functions it can handle function arguments of arbitrary arity.
+
 ### Parametricity
 
-<a href="https://en.wikipedia.org/wiki/Parametricity">Parametricity</a> is a property of parametric polymorphism that prevents polymorphic functions from knowing anything about the types of their arguments or return values. In return you get the ability to deduce or at least narrow down a function's behavior just from its type signature. To enfoce parametricity a type checker must analyze your entire code at compile time. Since ftor isn't a static type checker it can't preclude polymorphic functions that violate the parametricity property:
+<a href="https://en.wikipedia.org/wiki/Parametricity">Parametricity</a> is a property of parametric polymorphism that prevents polymorphic functions from knowing anything about the types of their arguments or return values. In return you get the ability to deduce or at least narrow down a function's behavior just from its type signature. To enfoce parametricity a type checker must analyze your entire code at compile time. Since ftor isn't a static type checker it can't preclude polymorphic functions that violate this property:
 
 ```Javascript
 const append = Fun(
@@ -384,9 +360,9 @@ const append = Fun(
 append(2) (3); // 5
 append("2") ("3"); // "23"
 append(true) (false); // false
-append({}) ({}); // type error
+append({}) ({}); // type error (returns null instead of {})
 ```
-Ultimately, it is your responsibility to avoid such functions.
+As with purity it is ultimately your responsibility to avoid such behavior.
 
 ## Array Type
 
@@ -404,10 +380,11 @@ const xs = Arr([1, 2]),
   ys = Arr([3, 4]);
 
 xs[TS]; // "[Number]"
+ys[TS]; // "[Number]"
 
 append(xs) (ys); // [1, 2, 3, 4]
 ```
-Please note that the type of an empty typed array is polymorphic: `[a]`.
+Please note that an empty typed array has the polymorphic type `[a]`.
 
 ### Homogeneity
 
