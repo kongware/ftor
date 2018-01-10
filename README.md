@@ -157,6 +157,20 @@ Boolean received
     at Object.apply (<anonymous>:1680:22)
     at <anonymous>:1:1
 ```
+### Strict Function Call Arity
+
+ftor handles function call arities strictly:
+
+```Javascript
+const inc = Fun(
+  "(inc :: Number -> Number)",
+  n => n + 1
+);
+
+inc(); // arity error
+inc(2); // 3
+inc(2, 3); // arity error
+```
 ### Variadic Functions
 
 You can define variadic functions by using the rest parameter:
@@ -170,20 +184,6 @@ const sum = Fun(
 sum(); // 0
 sum(1, 2, 3); // 6
 sum(1, "2"); // type error
-```
-### Strict Function Call Arity
-
-Otherwise, ftor handles function arities strictly:
-
-```Javascript
-const inc = Fun(
-  "(inc :: Number -> Number)",
-  n => n + 1
-);
-
-inc(); // arity error
-inc(2); // 3
-inc(2, 3); // arity error
 ```
 ### Nullary Functions / Thunks
 
@@ -200,15 +200,15 @@ thunk("baz"); // arity error
 ftor supports parametric polymorphism:
 
 ```Javascript
-const k = Fun("
+const k = Fun(
   "(k :: a -> b -> a)",
   x => y => x
-");
+);
 
-const snd = Fun("
+const snd = Fun(
   "(fst :: a -> a -> a)",
   x => y => y
-");
+);
 
 k(true) (false); // true
 k("foo") ("bar"); // "foo"
