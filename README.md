@@ -362,66 +362,51 @@ append("2") ("3"); // "23"
 append(true) (false); // false
 append({}) ({}); // type error (returns null instead of {})
 ```
-As with purity it is ultimately your responsibility to avoid such behavior.
+As with purity it is ultimately your responsibility to maintain this property.
 
 ## Array Type
+
+[This entire section needs to be revised!]
 
 ### Construction
 
 You can create typed arrays with the `Arr` constructor. Unlike `Fun` you don't have to provide an explicit type signature but let the type checker introspect the type for you:
 
 ```Javascript
-const append = Fun(
-  "([a] -> [a] -> [a])",
-  xs => ys => Arr(xs.concat(ys))
-);
-
-const xs = Arr([1, 2]),
-  ys = Arr([3, 4]);
-
-xs[TS]; // "[Number]"
-ys[TS]; // "[Number]"
-
-append(xs) (ys); // [1, 2, 3, 4]
+Arr([1, 2, 3]); // "[Number]"
+Arr(["foo", "bar", "baz"]); "[String]"
 ```
 Please note that an empty typed array has the polymorphic type `[a]`.
 
 ### Homogeneity
 
-Typed arrays must be homogeneous, that is all element values must be of the same type.
+Typed arrays must be homogeneous, that is all element values must be of the same type:
 
 ```Javascript
-const append = Fun(
-  "([a] -> [a] -> [a])",
-  xs => ys => Arr(xs.concat(ys))
-);
-
-const xs = Arr([1, 2]),
-  ys = Arr([3, 4]),
-  zs = Arr([true, false]);
-
-xs[TS]; // "[Number]"
-zs[TS]; // "[Boolean]"
-
-append(xs) (ys); // [1, 2, 3, 4]
-append(xs) (zs); // type error
-
-xs[0] = true; // type error
-zs[0] = "foo"; // type error
+Arr([1, "foo", true]); // type error
 ```
 ### Index Gaps
 
-ftor prevents gaps within the indices of typed arrays:
+They must have a continuous index without gaps:
+
+```Javascript
+const xs = [1, 2, 3];
+xs[10] = 4;
+
+Arr(xs); // type error
+```
+### Duck Typing
+
+You must not perform duck typing or other forms of meta programming on typed arrays, because in a typed language you should always know your types:
 
 ```Javascript
 const xs = Arr([1, 2, 3]),
-  ys = Array(3);
-
-delete xs[1]; // type error
-
-ys[0] = 1, ys[1] = 2;
-Arr(ys); // type error
+  x = xs[10]; // type error (illegal duck typing)
+  
+Object.keys(xs); // type error (illegal meta programming)
 ```
+Arrays must be used as such and not as plain old Javascript objects.
+
 ### Void Elements
 
 Typed arrays must not contain element values of type void (`undefined`/`NaN`):
@@ -430,18 +415,6 @@ Typed arrays must not contain element values of type void (`undefined`/`NaN`):
 const xs = Arr([undefined]), // type error
   ys = Arr([1, NaN, 3]); // type error
 ```
-### Duck Typing / Meta Programming
-
-You must not perform duck typing or meta programming on typed arrays, because in a typed language you should know your types at any point in your code:
-
-```Javascript
-const xs = Arr([1, 2, 3, 4]),
-  x = xs[10]; // type error (illegal duck typing)
-  
-Object.keys(xs); // type error (illegal meta programming)
-```
-More generally, you shouldn't use typed arrays as plain old Javascript Objects, but solely as arrays with numerical indices.
-
 ### Type Coercion
 
 ftor prevents implicit type conversions wherever possible:

@@ -49,9 +49,6 @@ export const TS = Symbol.for(`${SYM_PREFIX}ts`);
 const TUP_MAX_FIELDS = 16;
 
 
-const VOID = {Undefined: undefined, NaN: NaN};
-
-
 const LESS_GEN = 0;
 
 
@@ -149,15 +146,22 @@ const introspectR = x => {
               else if (x.length === 1) return `[${introspectR(x[0])}]`;
 
               else {
-                const [s, sigs] = x.reduce(([s, sigs], y) => {
+                const [s, sigs] = x.reduce(([s, sigs, n], y, m) => {
+                    if (m !== n + 1) _throw(
+                      TypeError,
+                      ["invalid Array"],
+                      "Array",
+                      {desc: [`index gap at #${n + 1} detected`]}
+                    );
+
                     y = introspectR(y);
-                    return [s.add(y), sigs.concat(y)];
-                  }, [new Set(), []]);
+                    return [s.add(y), sigs.concat(y), n + 1];
+                  }, [new Set(), [], -1]);
 
                 if (s.size === 1) return `[${sigs[0]}]`;
 
                 else if (sigs.length > TUP_MAX_FIELDS) _throw(
-                  IntrospectionError,
+                  TypeError,
                   ["invalid Tuple"],
                   `[${sigs.slice(0, 3).join(", ").concat("...")}]`,
                   {desc: [
@@ -184,7 +188,7 @@ const introspectR = x => {
                 const sigs = Array.from(s);
 
                 _throw(
-                  IntrospectionError,
+                  TypeError,
                   ["_Map expects homogeneous Map"],
                   sigs.length > 3
                     ? sigs.slice(0, 3).join(", ").concat("...")
@@ -201,7 +205,7 @@ const introspectR = x => {
                 }, []);
 
               if (sigs.length === 0) _throw(
-                IntrospectionError,
+                TypeError,
                 ["invalid Record"],
                 `{${sigs.join(", ")}}`,
                 {desc: ["Records must at least contain 1 field"]}
@@ -2993,8 +2997,7 @@ export const Arr = xs => {
     else if (TR in xs) return xs;
 
     const tSig = introspectR(xs),
-      tRep = deserialize(tSig),
-      voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
+      tRep = deserialize(tSig);
 
     if (tRep.tag === "Tup") _throw(
       TypeError,
@@ -3002,18 +3005,6 @@ export const Arr = xs => {
       tSig,
       {desc: [`${tRep.children.length} elements of different type received`]}
     );
-
-    else if (tSig.search(voidPattern) !== -1) {
-      const {index: from, 0: match} = tSig.match(voidPattern),
-        to = from + match.length - 1;
-
-      _throw(
-        TypeError,
-        ["Array must not contain void elements"],
-        tSig,
-        {range: [from, to], desc: [`such as ${Object.keys(VOID).join(", ")}`]}
-      );
-    }
 
     return new Proxy(xs, handleArr(tRep, tSig));
   }
@@ -3117,7 +3108,7 @@ const handleArr = (tRep, tSig) => ({
     ["illegal property introspection"],
     tSig,
     {desc: [
-      `of ${prettyPrintK(i)}`,
+      `of own keys/values/entries`,
       "meta programming is not allowed"
     ]}
   )
@@ -3184,8 +3175,7 @@ export const _Map = map => {
     else if (TR in xs) return xs;
 
     const tSig = introspectR(map),
-      tRep = deserialize(tSig),
-      voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
+      tRep = deserialize(tSig);
 
     if (tRep.children.length > 1) _throw(
       TypeError,
@@ -3193,18 +3183,6 @@ export const _Map = map => {
       tSig,
       {desc: [`${tRep.children.length} pairs of different type received`]}
     );
-
-    else if (tSig.search(voidPattern) !== -1) {
-      const {index: from, 0: match} = tSig.match(voidPattern),
-        to = from + match.length - 1;
-
-      _throw(
-        TypeError,
-        ["Map must not contain void values"],
-        tSig,
-        {range: [from, to], desc: [`such as ${Object.keys(VOID).join(", ")}`]}
-      );
-    }
 
     return new Proxy(map, handleMap(tRep, tSig));
   }
@@ -3394,20 +3372,7 @@ export const Rec = o => {
     else if (TR in o) return o;
 
     const tSig = introspectR(o),
-      tRep = deserialize(tSig),
-      voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
-
-    if (tSig.search(voidPattern) !== -1) {
-      const {index: from, 0: match} = tSig.match(voidPattern),
-        to = from + match.length - 1;
-
-      _throw(
-        TypeError,
-        ["Object must not contain void elements"],
-        tSig,
-        {range: [from, to], desc: [`such as ${Object.keys(VOID).join(", ")}`]}
-      );
-    }
+      tRep = deserialize(tSig);
 
     return new Proxy(o, handleRec(tRep, tSig));
   }
@@ -3545,8 +3510,7 @@ export const Tup = xs => {
     else if (TR in xs) return xs;
 
     const tSig = introspectR(xs),
-      tRep = deserialize(tSig),
-      voidPattern = new RegExp(`\\b(?:${Object.keys(VOID).join("|")})\\b`);
+      tRep = deserialize(tSig);
 
     if (tRep.tag === "Arr") _throw(
       TypeError,
@@ -3557,18 +3521,6 @@ export const Tup = xs => {
         `${tRep.children.length} field(s) received`
       ]}
     );
-
-    else if (tSig.search(voidPattern) !== -1) {
-      const {index: from, 0: match} = tSig.match(voidPattern),
-        to = from + match.length - 1;
-
-      _throw(
-        TypeError,
-        ["Tuple must not contain void values"],
-        tSig,
-        {range: [from, to], desc: [`such as ${Object.keys(VOID).join(", ")}`]}
-      );
-    }
 
     return new Proxy(xs, handleTup(tRep, tSig));
   }
@@ -3734,14 +3686,6 @@ class ReturnTypeError extends Error {
   constructor(x) {
     super(x);
     Error.captureStackTrace(this, ReturnTypeError);
-  }
-};
-
-
-class IntrospectionError extends Error {
-  constructor(x) {
-    super(x);
-    Error.captureStackTrace(this, IntrospectionError);
   }
 };
 
