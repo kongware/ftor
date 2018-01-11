@@ -477,7 +477,7 @@ const xs = Arr([1, 2, 3]),
 ```
 Since there is no way to distinguish implicit from explicit conversions you unfortunatelly have to convert types manually.
 
-### Array Arguments
+### Function Passing
 
 You can pass typed arrays to typed functions as usual:
 
@@ -506,8 +506,40 @@ delete xs[2]; // passes, but evil
 
 Since typed maps share a lot of properties with typed arrays, I am going to focus on the differences.
 
-...
+### Construction
 
+You can create a typed maps by passing an ES2015 map to the `_Map` constructor:
+
+```Javascript
+const m = _Map(new Map([["Kalib", 42], ["Liz", 38], ["Dev", 35]]));
+
+m.get("liz"); // 42
+m.get("byron"); // type error
+m.has("byron"); // false
+m.set("byron") = 40;
+
+m[TS]; // "{String::Number}"
+Boolean]"
+```
+The type signature of typed maps differs from that of typed records in that the key value pair is seperated by two consecutive colons without spaces.
+
+Please note that the type of the empty typed map is `{k::v}`.
+
+### Function Passing
+
+You can pass typed maps to typed functions as usual:
+
+```Javascript
+const getOr = Fun(
+  "{String::Number} -> Number",
+  x => k => m => m.has(k) ? m.get(k) : x
+);
+
+const m = _Map(new Map([["Kalib", 42], ["Liz", 38], ["Dev", 35]]));
+
+getOr(0) ("Dev") (m); // 35
+getOr(0) ("Byron") (m); // 0
+```
 ## Typed Records
 
 Since typed records share a lot of properties with typed arrays, I am going to focus on the differences.
@@ -550,7 +582,7 @@ Since record types are sealed and you should know your types in the typed enviro
 const r = Rec("{foo: "abc", bar: 123}");
 "foo" in r; // type error
 ```
-### Record Arguments
+### Function Passing
 
 You can pass typed records to typed functions as usual:
 
@@ -642,9 +674,9 @@ The type signature of typed tuples differs from that of typed arrays in that the
 
 Please note that typed tuples must not be empty but have to contain at least 2 fields.
 
-### Tuple Arguments
+### Function Passing
 
-You can pass tuples to functions as usual:
+You can pass typed tuples to typed functions as usual:
 
 ```Javascript
 const fst = Fun(
@@ -664,10 +696,11 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
-...
+The best is yet to come...
 
 # Missing Topics
 
 - [ ] Unit Type
-- [ ] Do issues arise from ftor with regard to object identity?
+- [ ] Does ftor cause issues with regard to object identity?
 - [ ] Don't create dependencies to ftor since it is pluggable!
+- [ ] Best practice for incorporating ftor into third party code
