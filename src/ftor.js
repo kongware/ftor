@@ -182,7 +182,7 @@ const introspectR = x => {
                 }, new Set());
 
               if (s.size === 0) return "{k::v}";
-              else if (s.size === 1) return s.values().value;
+              else if (s.size === 1) return nextV(s.values());
 
               else {
                 const sigs = Array.from(s);
@@ -3175,7 +3175,7 @@ export const _Map = map => {
       {desc: ["received"]}
     );
 
-    else if (TR in xs) return xs;
+    else if (TR in map) return map;
 
     const tSig = introspectR(map),
       tRep = deserialize(tSig);
@@ -3229,7 +3229,7 @@ const handleMap = (tRep, tSig) => ({
         );
       }
 
-      case "has": k => map.has(k);
+      case "has": return k => map.has(k);
 
       case "set": (k, v) => {
         if (introspectR(k) !== tRep.children[0].k) {
