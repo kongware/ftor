@@ -2022,6 +2022,8 @@ const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
           cons
         );
       });
+
+      return state;
     }
   }
 };

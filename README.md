@@ -669,5 +669,5 @@ snd(t); // "foo"
 # Missing Topics
 
 [ ] Unit Type
-[ ] Do ftor arise issues with object identity?
-[ ] Don't create dependencies to ftor since it is pluggable
+[ ] Do issues arise from ftor with regard to object identity?
+[ ] Don't create dependencies to ftor since it is pluggable!
