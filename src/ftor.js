@@ -2071,24 +2071,6 @@ const occurs = (state, nthParam, fRep, fSig, xSig, cons) => {
   state.constraints.forEach((v1, k1) => {
     if (k1.search(/\b[a-z][0-9]?\b/) !== -1) {
       state.constraints.forEach((v2, k2) => {
-        /*if (k1 !== k2) {
-          if (k2.search(new RegExp(`\\b${k1}\\b`)) !== -1) {
-            const range = retrieveRange(fRep, nthParam);
-
-            _throw(
-              cons,
-              [`${fRep.name || "lambda"} applied to ${xSig} creates an infinite type`],
-              fSig,
-              {
-                range,
-                desc: [`"${k1}" occurs in substitution ${k2}`],
-                sigLog: state.sigLog,
-                constraints: state.constraints
-              }
-            );
-          }
-        }*/
-          
         if (k1 !== v2) {
           if (v2.search(new RegExp(`\\b${k1}\\b`)) !== -1) {
             const range = retrieveRange(fRep, nthParam);
@@ -2685,7 +2667,7 @@ const handleFun = (fRep, fSig, state) => {
             ExtendedTypeError,
             ["illegal property access"],
             fSig,
-            {desc: [`unknown property ${prettyPrintK(k)}`]}
+            {desc: [`unknown ${prettyPrintK(k)}`]}
           );
         }
       }
@@ -2701,7 +2683,7 @@ const handleFun = (fRep, fSig, state) => {
           ["illegal property introspection"],
           fSig,
           {desc: [
-            `of property ${prettyPrintK(k)}`,
+            `of ${prettyPrintK(k)}`,
             "duck typing is not allowed"
           ]}
         );
@@ -2717,7 +2699,7 @@ const handleFun = (fRep, fSig, state) => {
           ["illegal property mutation"],
           fSig,
           {desc: [
-            `of property ${prettyPrintK(k)} with type ${introspectR(v)}`,
+            `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(v))}`,
             "function objects are immutable"
           ]}
         );
@@ -2734,7 +2716,7 @@ const handleFun = (fRep, fSig, state) => {
         ["illegal property mutation"],
         fSig,
         {desc: [
-          `of property ${prettyPrintK(k)} with type ${introspectR(d.value)}`,
+          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(d.value))}`,
           "function objects are immutable"
         ]}
 
@@ -2747,7 +2729,7 @@ const handleFun = (fRep, fSig, state) => {
         ["illegal property mutation"],
         fSig,
         {desc: [
-          `removal of property ${prettyPrintK(k)}`,
+          `removal of ${prettyPrintK(k)}`,
           "function objects are immutable"
         ]}
       );
@@ -2759,7 +2741,7 @@ const handleFun = (fRep, fSig, state) => {
         ["illegal property introspection"],
         fSig,
         {desc: [
-          `of property ${prettyPrintK(k)}`,
+          `of ${prettyPrintK(k)}`,
           "meta programming is not allowed"
         ]}
       );
@@ -2897,7 +2879,7 @@ const handleAdt = (tRep, tSig, cons) => {
             ExtendedTypeError,
             ["illegal property access"],
             tSig,
-            {desc: [`unknown property ${prettyPrintK(k)}`]}
+            {desc: [`unknown ${prettyPrintK(k)}`]}
           );
         }
       }
@@ -2913,7 +2895,7 @@ const handleAdt = (tRep, tSig, cons) => {
           ["illegal property introspection"],
           tSig,
           {desc: [
-            `of property ${prettyPrintK(k)}`,
+            `of ${prettyPrintK(k)}`,
             "duck typing is not allowed"
           ]}
         );
@@ -2929,7 +2911,7 @@ const handleAdt = (tRep, tSig, cons) => {
           ["illegal property mutation"],
           tSig,
           {desc: [
-            `of property ${prettyPrintK(k)} with type ${introspectR(v)}`,
+            `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(v))}`,
             "ADTs are immutable"
           ]}
         );
@@ -2946,7 +2928,7 @@ const handleAdt = (tRep, tSig, cons) => {
         ["illegal property mutation"],
         tSig,
         {desc: [
-          `of property ${prettyPrintK(k)} with type ${introspectR(d.value)}`,
+          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(d.value))}`,
           "ADTs are immutable"
         ]}
 
@@ -2959,7 +2941,7 @@ const handleAdt = (tRep, tSig, cons) => {
         ["illegal property mutation"],
         tSig,
         {desc: [
-          `removal of property ${prettyPrintK(k)}`,
+          `removal of ${prettyPrintK(k)}`,
           "ADTs are immutable"
         ]}
       );
@@ -2971,7 +2953,7 @@ const handleAdt = (tRep, tSig, cons) => {
         ["illegal property introspection"],
         tSig,
         {desc: [
-          `of property ${prettyPrintK(k)}`,
+          `of ${prettyPrintK(k)}`,
           "meta programming is not allowed"
         ]}
       );
@@ -3091,7 +3073,7 @@ const handleArr = (tRep, tSig) => ({
         ["illegal property deletion"],
         tSig,
         {desc: [
-          `of index #${prettyPrintK(i)}`,
+          `of ${prettyPrintK(i)}`,
           "deletion would cause an index gap"
         ]}
       );
@@ -3122,7 +3104,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
         ["illegal non-numeric property mutation"],
         tSig,
         {desc: [
-          `of ${prettyPrintK(i)} with type ${introspectR(d.value)}`,
+          `of ${prettyPrintK(i)} with type ${prettyPrintV(introspectR(d.value))}`,
           "Arrays are immutable for non-numeric properties"
         ]}
       );
@@ -3135,7 +3117,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
       ["illegal property setting"],
       tSig,
       {desc: [
-        `of ${prettyPrintK(i)} with type ${introspectR(d.value)}`,
+        `of ${prettyPrintK(i)} with type ${prettyPrintV(introspectR(d.value))}`,
         "setting would cause an index gap"
       ]}
     );
@@ -3146,7 +3128,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
         ["illegal property mutation"],
         tSig,
         {desc: [
-          `of ${prettyPrintK(i)} with type ${introspectR(d.value)}`,
+          `of ${prettyPrintK(i)} with type ${prettyPrintV(introspectR(d.value))}`,
           "Arrays must preserve their type"
         ]}
       );
@@ -3170,7 +3152,7 @@ export const _Map = map => {
   if (types) {
     if (introspect(map) !== "Map") _throw(
       ExtendedTypeError,
-      ["_Map expects a ES2015 Map"],
+      ["_Map expects an ES2015 Map"],
       introspectR(map),
       {desc: ["received"]}
     );
@@ -3215,7 +3197,7 @@ const handleMap = (tRep, tSig) => ({
         );
       };
 
-      case "get": k => {
+      case "get": return k => {
         if (map.has(k)) return map.get(k);
 
         else _throw(
@@ -3223,7 +3205,7 @@ const handleMap = (tRep, tSig) => ({
           ["illegal property access"],
           tSig,
           {desc: [
-            `of ${prettyPrintK(introspectR(k))}`,
+            `of ${prettyPrintK(k)}`,
             "unknown property"
           ]}
         );
@@ -3231,20 +3213,20 @@ const handleMap = (tRep, tSig) => ({
 
       case "has": return k => map.has(k);
 
-      case "set": (k, v) => {
-        if (introspectR(k) !== tRep.children[0].k) {
+      case "set": return (k, v) => {
+        if (introspectR(k) !== serialize(tRep.children[0].k)) {
           _throw(
             ExtendedTypeError,
             ["illegal property mutation"],
             tSig,
             {desc: [ 
-              `of key ${prettyPrintK(introspectR(k))} with type ${introspectR(d.value)}`,
+              `of ${prettyPrintK(k)} with type ${prettyPrintK(serialize(tRep.children[0].k))}`,
               "Maps must preserve their type"
             ]}
           );
         }
 
-        else if (introspectR(v) !== tRep.children[0].v) {
+        else if (introspectR(v) !== serialize(tRep.children[0].v)) {
           const [from, to] = tRep.children[0].v.range;
 
           _throw(
@@ -3252,7 +3234,7 @@ const handleMap = (tRep, tSig) => ({
             ["illegal property mutation"],
             tSig,
             {range: [from, to], desc: [
-              `of value ${prettyPrintV(introspectR(k))} with type ${introspectR(d.value)}`,
+              `from type ${prettyPrintV(introspectR(v))} to ${prettyPrintV(serialize(tRep.children[0].v))}`,
               "Maps must preserve their type"
             ]}
           );
@@ -3261,7 +3243,7 @@ const handleMap = (tRep, tSig) => ({
         else return map.set(k, v);
       }
 
-      case "delete": k => {
+      case "delete": return k => {
         if (map.has(k)) return map.delete(k);
 
         else _throw(
@@ -3269,7 +3251,7 @@ const handleMap = (tRep, tSig) => ({
           ["illegal property deletion"],
           tSig,
           {desc: [
-            `of ${prettyPrintK(introspectR(k))}`,
+            `of ${prettyPrintK(k)}`,
             "unknown property"
           ]}
         );
@@ -3317,7 +3299,7 @@ const handleMap = (tRep, tSig) => ({
         ["illegal property mutation"],
         tSig,
         {desc: [
-          `of ${prettyPrintK(k)} with type ${introspectR(v)}`,
+          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(v))}`,
           "_Map objects are immutable"
         ]}
       );
@@ -3330,7 +3312,7 @@ const handleMap = (tRep, tSig) => ({
       ["illegal property mutation"],
       tSig,
       {desc: [
-        `of ${prettyPrintK(k)} with type ${introspectR(d.value)}`,
+        `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(d.value))}`,
         "_Map objects are immutable"
       ]}
 
@@ -3472,12 +3454,12 @@ const setRec = (tRep, tSig, o, k, d, {mode}) => {
     ["illegal property mutation"],
     tSig,
     {desc: [
-      `unknown key ${prettyPrintK(k)}`,
+      `unknown ${prettyPrintK(k)}`,
       "Records are sealed"
     ]}
   );
 
-  else if (introspectR(o[k]) !== `${introspectR(d.value)}`) {
+  else if (introspectR(o[k]) !== introspectR(d.value)) {
     const [from, to] = tRep.children.filter(tRep_ => {
       return tRep_.k === k ? tRep_.v : false}
     )[0].v.range;
@@ -3487,7 +3469,7 @@ const setRec = (tRep, tSig, o, k, d, {mode}) => {
       ["illegal property mutation"],
       tSig,
       {range: [from, to], desc: [
-        `of ${prettyPrintK(k)} with type ${introspectR(d.value)}`,
+        `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(d.value))}`,
         "Record fields must preserve their type"
       ]}
     );
@@ -3599,7 +3581,7 @@ const handleTup = (tRep, tSig) => ({
     ["illegal property deletion"],
     tSig,
     {desc: [
-      `of property ${prettyPrintK(i)}`,
+      `of ${prettyPrintK(i)}`,
       "Tuples are sealed"
     ]}
   ),
@@ -3622,7 +3604,7 @@ const setTup = (tRep, tSig, xs, i, d, {mode}) => {
     ["illegal property mutation"],
     tSig,
     {desc: [
-      `of property ${prettyPrintK(i)} with type ${introspectR(d.value)}`,
+      `of ${prettyPrintK(i)} with type ${prettyPrintV(introspectR(d.value))}`,
       "Tuples are immutable for non-numeric properties"
     ]}
   );
@@ -3633,7 +3615,7 @@ const setTup = (tRep, tSig, xs, i, d, {mode}) => {
       ["illegal property setting"],
       tSig,
       {desc: [
-        `of ${prettyPrintK(i)} with type ${introspectR(d.value)}`,
+        `of ${prettyPrintK(i)} with type ${prettyPrintV(introspectR(d.value))}`,
         `where Tuple includes only ${xs.length} fields`,
         "Tuples are sealed"
       ]}
@@ -3647,7 +3629,7 @@ const setTup = (tRep, tSig, xs, i, d, {mode}) => {
         ["illegal property mutation"],
         tSig,
         {range: [from, to], desc: [
-          `of ${prettyPrintK(i)} with type ${introspectR(d.value)}`,
+          `of ${prettyPrintK(i)} with type ${prettyPrintV(introspectR(d.value))}`,
           "Tuple fields must preserve their type"
         ]}
       );
@@ -3755,8 +3737,8 @@ const ul = (n, m) => Array(n + 1).join(" ") + Array(m - n + 2).join("^");
 const prettyPrintK = x => {
   const tag = getStringTag(x);
   
-  if (tag === "Symbol") return x.toString();
-  else if (tag === "String" && Number.isNaN(Number(x))) return `"${x}"`;
+  if (tag === "Symbol") return `symbol ${x.toString()}`;
+  else if (tag === "String" && Number.isNaN(Number(x))) return `key "${x}"`;
   else return `index #${x}`;
 };
 

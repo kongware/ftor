@@ -514,12 +514,12 @@ You can create a typed maps by passing an ES2015 map to the `_Map` constructor:
 const m = _Map(new Map([["Kalib", 42], ["Liz", 38], ["Dev", 35]]));
 
 m.get("liz"); // 42
-m.get("byron"); // type error
-m.has("byron"); // false
-m.set("byron") = 40;
+m.get("Byron"); // type error
+m.has("Byron"); // false
+m.set("Byron", 30); // passes
+m.set("Zara", "50"); // type error
 
 m[TS]; // "{String::Number}"
-Boolean]"
 ```
 The type signature of typed maps differs from that of typed records in that the key value pair is seperated by two consecutive colons without spaces.
 
@@ -531,8 +531,8 @@ You can pass typed maps to typed functions as usual:
 
 ```Javascript
 const getOr = Fun(
-  "{String::Number} -> Number",
-  x => k => m => m.has(k) ? m.get(k) : x
+  "(getOr :: Number -> String -> {String::Number} -> Number)",
+  n => k => m => m.has(k) ? m.get(k) : n
 );
 
 const m = _Map(new Map([["Kalib", 42], ["Liz", 38], ["Dev", 35]]));
@@ -696,8 +696,38 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
-The best is yet to come...
+ftor uses Scott encoding to provide ADTs. Along with record types and row polymorphism we can take advantage of functional pattern matching with guaranteed case completeness. Here is a little preview:
 
+```Javascript
+const List = Adt(function List() {}, "List<a>");
+
+const Nil = List(
+  Fun(
+    "(Nil :: {Nil: r, Cons: (a -> List<a> -> r)} -> r)",
+    cases => cases.Nil
+  )
+);
+
+const Cons = x => tx => List(
+  Fun(
+    "(Cons :: {Nil: r, Cons: (a -> List<a> -> r)} -> r)",
+    cases => cases.Cons(x) (tx)
+  )
+);
+
+const uncons = Fun(
+  "(uncons :: {Nil: r, Cons: (a -> List<a> -> r)} -> List<a> -> r)",
+  cases => tx => tx.run(cases)
+);
+
+const empty = uncons(Rec({Nil: true, Cons: Fun("(a -> List<a> -> Boolean)", x => tx => false)}));
+
+const xs = Cons("foo") (Nil),
+  ys = Nil;
+
+empty(xs); // false
+empty(ys); // true
+```
 # Missing Topics
 
 - [ ] Unit Type
