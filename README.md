@@ -477,7 +477,7 @@ const xs = Arr([1, 2, 3]),
 ```
 Since there is no way to distinguish implicit from explicit conversions you unfortunatelly have to convert types manually.
 
-### Passing To Funtions
+### Array Arguments
 
 You can pass typed arrays to typed functions as usual:
 
@@ -504,13 +504,13 @@ delete xs[2]; // passes, but evil
 ```
 ## Typed Maps
 
-Since typed maps share a lot of properties with typed arrays, I am going to focus in the differences.
+Since typed maps share a lot of properties with typed arrays, I am going to focus on the differences.
 
 ...
 
 ## Typed Records
 
-Since typed records share a lot of properties with typed arrays, I am going to focus in the differences.
+Since typed records share a lot of properties with typed arrays, I am going to focus on the differences.
 
 ### Construction
 
@@ -550,7 +550,7 @@ Since record types are sealed and you should know your types in the typed enviro
 const r = Rec("{foo: "abc", bar: 123}");
 "foo" in r; // type error
 ```
-### Passing To Funtions
+### Record Arguments
 
 You can pass typed records to typed functions as usual:
 
@@ -624,10 +624,50 @@ Row polymorphism is also known as static duck typing, that is to say duck typing
 
 ## Typed Tuples
 
-Since typed tuples share a lot of properties with typed arrays, I am going to focus in the differences.
+Since typed tuples share a lot of properties with typed records, I am going to focus on the differences.
 
-...
+### Construction
 
+You can create a typed tuple by passing an array to the `Tup` constructor:
+
+```Javascript
+const t = Tup([123, "foo", true]);
+
+t[0]; // 123
+t[1]; // "foo"
+
+t[TS]; // "[Number, String, Boolean]"
+```
+The type signature of typed tuples differs from that of typed arrays in that there are several fields. 
+
+Please note that typed tuples must not be empty but have to contain at least 2 fields.
+
+### Tuple Arguments
+
+You can pass tuples to functions as usual:
+
+```Javascript
+const fst = Fun(
+  "(fst :: [a] -> a)",
+  t => t[0]
+);
+
+const snd = Fun(
+  "(snd :: [a] -> a)",
+  t => t[1]
+);
+
+const t = Tup([123, "foo", true]);
+
+fst(t); // 123
+snd(t); // "foo"
+```
 ## Algebraic Data Types
 
 ...
+
+# Missing Topics
+
+[ ] Unit Type
+[ ] Do ftor arise issues with object identity?
+[ ] Don't create dependencies to ftor since it is pluggable
