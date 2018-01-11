@@ -477,6 +477,23 @@ const xs = Arr([1, 2, 3]),
 ```
 Since there is no way to distinguish implicit from explicit conversions you unfortunatelly have to convert types manually.
 
+### As Arguments
+
+You can pass typed arrays to typed functions as usual:
+
+```Javascript
+const append = Fun(
+  "(append :: [a] -> [a] -> [a])",
+  xs => ys => xs.concat(ys)
+);
+
+const xs = Arr([1, 2]),
+  ys = Arr([3, 4]),
+  zs = Arr["foo", "bar"]);
+  
+append(xs) (ys); // [1, 2, 3, 4]
+append(xs) (zs); // type error
+```
 ### Delete Operator
 
 Please don't use the `delete` operator or the corresponding `Reflect.deleteProperty` function, because they silently produce index gaps. Since `Array.prototype.pop` and `Array.prototype.unshift` internally also use `delete` I cannot disable it by default.
@@ -486,6 +503,8 @@ const xs = Arr([1, 2, 3]);
 delete xs[2]; // passes, but evil
 ```
 ## Typed Maps
+
+Since typed maps share a lot of properties with typed arrays, I am going to focus in the differences.
 
 ...
 
@@ -502,10 +521,14 @@ const r = Rec("{foo: "abc", bar: 123}");
 
 r.foo; // "bar"
 r.baz; // 123
+
+r[TS]; // "{foo: String, bar: Number}"
 ```
+Please note that empty records are not allowed.
+
 ### Mutations
 
-Typed records are mutable but sealed:
+Typed records are mutable but sealed, that is all properties are determined at declaration time:
 
 ```Javascript
 const r = Rec("{foo: "abc", bar: 123}");
@@ -521,13 +544,87 @@ r.foo = true; // type error
 ```
 ### Duck Typing
 
-As alread noted typed records are sealed, that is all properties are determined at declaration time. Since you should know your types in a typed environemnt, there is no need for duck typing in conjunction with typed records and corresponding attempts will raise an type error:
+Since record types are sealed and you should know your types in the typed environemnt provided by ftor, there is no need for duck typing in conjunction with typed records. In fact, ftor raises an type error for any corresponding attempt:
 
 ```Javascript
 const r = Rec("{foo: "abc", bar: 123}");
 "foo" in r; // type error
 ```
+### As Arguments
+
+You can pass typed records to typed functions as usual:
+
+```Javascript
+const showName = Fun(
+  "(showName :: {first: String, last: String} -> String)",
+  person => `${person.first} ${person.last}`
+);
+
+const o = Rec({first: "John", last: "Doe"}),
+  p = Rec({first: "John", last: null}),
+  q = Rec({first: "John"}),
+
+showName(o); // "John Doe"
+showName(p); // type error
+showName(q); // type error
+```
+So far all records have a static type, which makes their handling quite awkward:
+
+```Javascript
+const showName = Fun(
+  "(showName :: {first: String, last: String} -> String)",
+  person => `${person.first} ${person.last}`
+);
+
+const o = Rec({first: "John", last: "Doe", age: 30});
+showName(o); // type error
+```
+As you can see typed records require exact type matches. That is, of course, intolerable.
+
+### Row Polymorphism
+
+Forunately, with row polymorphism there is a property that offers more flexibility:
+
+```Javascript
+const showName = Fun(
+  "(showName :: {first: String, last: String, ..r} -> String)",
+  o => `${o.first} ${o.last}`
+);
+
+const o = Rec({first: "John", last: "Doe", age: 30}),
+  p = Rec({first: "Jane", last: "Doe", gender: "f"});
+
+showName(o); // "John Doe"
+showName(p); // "Jane Doe"
+```
+`r` is a so called row variable, which includes the types of all unnecessary properties. Apart form that row variables act like any other type variable in a parametric polymorphic function:
+
+```Javascript
+const combineName = Fun(
+  "(combineName :: {first: String, last: String, ..r} -> {first: String, last: String, ..r} -> String)",
+  o => p => `${o.first} ${p.last}`
+);
+
+const combineName_ = Fun(
+  "(combineName_ :: {first: String, last: String, ..r} -> {first: String, last: String, ..s} -> String)",
+  o => p => `${o.first} ${p.last}`
+);
+
+const o = Rec({first: "Sean", last: "Penn", age: 60}),
+  p = Rec({first: "Juliette", last: "Binoche", age: 45}),
+  q = Rec({first: "Stan", last: "Kubrick", gender: "m"});
+
+combineName(o) (p); // "Sean Binoche"
+combineName(o) (q); // type error
+
+combineName_(o) (p); // "Sean Binoche"
+combineName_(o) (q); // "Sean Kubrick"
+```
+Row polymorphism is also known as static duck typing, that is to say duck typing with static type guarantees.
+
 ## Typed Tuples
+
+Since typed tuples share a lot of properties with typed arrays, I am going to focus in the differences.
 
 ...
 
