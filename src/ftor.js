@@ -2514,14 +2514,14 @@ export const Fun = (fSig, f) => {
       ExtendedTypeError,
       ["Fun expects"],
       "(String, Function -> Function)",
-      {range: [1, 6], desc: [`${introspect(fSig)} received`]}
+      {range: [1, 6], desc: [`${introspectR(fSig)} received`]}
     );
 
     else if (introspect(f) !== "Function") _throw(
       ExtendedTypeError,
       ["Fun expects"],
       "(String, Function -> Function)",
-      {range: [9, 8], desc: [`${introspect(f)} received`]}
+      {range: [9, 8], desc: [`${introspectR(f)} received`]}
     );
 
     const fRep = deserialize(fSig);
@@ -2715,7 +2715,7 @@ const handleFun = (fRep, fSig, state) => {
           ["illegal property mutation"],
           fSig,
           {desc: [
-            `of property ${prettyPrintK(k)} with type ${introspect(v)}`,
+            `of property ${prettyPrintK(k)} with type ${introspectR(v)}`,
             "function objects are immutable"
           ]}
         );
@@ -2732,7 +2732,7 @@ const handleFun = (fRep, fSig, state) => {
         ["illegal property mutation"],
         fSig,
         {desc: [
-          `of property ${prettyPrintK(k)} with type ${introspect(d.value)}`,
+          `of property ${prettyPrintK(k)} with type ${introspectR(d.value)}`,
           "function objects are immutable"
         ]}
 
@@ -2809,7 +2809,7 @@ export const Adt = (cons, tSig) => _case => {
       ExtendedTypeError,
       ["Adt expects"],
       "(Function, String -> Function -> {run: Function})",
-      {range: [1, 9], desc: [`${introspect(cons)} received`]}
+      {range: [1, 9], desc: [`${introspectR(cons)} received`]}
     );
 
     else if (cons.name.toLowerCase() === cons.name) _throw(
@@ -2823,7 +2823,7 @@ export const Adt = (cons, tSig) => _case => {
       ExtendedTypeError,
       ["Adt expects"],
       "(Function, String -> Function -> {run: Function})",
-      {range: [11, 17], desc: [`${introspect(tSig)} received`]}
+      {range: [11, 17], desc: [`${introspectR(tSig)} received`]}
     );
 
     else if (getStringTag(_case) !== "Fun") _throw(
@@ -2832,7 +2832,7 @@ export const Adt = (cons, tSig) => _case => {
       "(Function, String -> Function -> {run: Function})",
       {range: [21, 28], desc: [
         "a typed function"
-        `${introspect(_case)} received`,
+        `${introspectR(_case)} received`,
       ]}
     );
 
@@ -2927,7 +2927,7 @@ const handleAdt = (tRep, tSig, cons) => {
           ["illegal property mutation"],
           tSig,
           {desc: [
-            `of property ${prettyPrintK(k)} with type ${introspect(v)}`,
+            `of property ${prettyPrintK(k)} with type ${introspectR(v)}`,
             "ADTs are immutable"
           ]}
         );
@@ -2944,7 +2944,7 @@ const handleAdt = (tRep, tSig, cons) => {
         ["illegal property mutation"],
         tSig,
         {desc: [
-          `of property ${prettyPrintK(k)} with type ${introspect(d.value)}`,
+          `of property ${prettyPrintK(k)} with type ${introspectR(d.value)}`,
           "ADTs are immutable"
         ]}
 
@@ -2988,7 +2988,7 @@ export const Arr = xs => {
     if (introspect(xs) !== "Array") _throw(
       ExtendedTypeError,
       ["Arr expects an Array"],
-      introspect(xs),
+      introspectR(xs),
       {desc: ["received"]}
     );
 
@@ -3049,7 +3049,7 @@ const handleArr = (tRep, tSig) => ({
   },
 
   has: (xs, i, p) => {
-    if (Number.isNaN(Number(i))) {
+    if (getStringTag(i) === "Symbol" || Number.isNaN(Number(i))) {
       switch (i) {
         case TS: return true;
         case TR: return true;
@@ -3073,7 +3073,7 @@ const handleArr = (tRep, tSig) => ({
   defineProperty: (xs, i, d) => setArr(tRep, tSig, xs, i, d, {mode: "def"}),
 
   deleteProperty: (xs, i) => {
-    if (Number.isNaN(Number(i))) _throw(
+    if (getStringTag(i) === "Symbol" || Number.isNaN(Number(i))) _throw(
       ExtendedTypeError,
       ["illegal non-numeric property deletion"],
       tSig,
@@ -3111,7 +3111,7 @@ const handleArr = (tRep, tSig) => ({
 
 
 const setArr = (tRep, tSig, xs, i, d, {mode}) => {
-  if (Number.isNaN(Number(i))) {
+  if (getStringTag(i) === "Symbol" || Number.isNaN(Number(i))) {
     switch (i) {
       case "length": return xs.length = d.value;
 
@@ -3120,7 +3120,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
         ["illegal non-numeric property mutation"],
         tSig,
         {desc: [
-          `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
+          `of ${prettyPrintK(i)} with type ${introspectR(d.value)}`,
           "Arrays are immutable for non-numeric properties"
         ]}
       );
@@ -3133,7 +3133,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
       ["illegal property setting"],
       tSig,
       {desc: [
-        `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
+        `of ${prettyPrintK(i)} with type ${introspectR(d.value)}`,
         "setting would cause an index gap"
       ]}
     );
@@ -3144,7 +3144,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
         ["illegal property mutation"],
         tSig,
         {desc: [
-          `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
+          `of ${prettyPrintK(i)} with type ${introspectR(d.value)}`,
           "Arrays must preserve their type"
         ]}
       );
@@ -3169,7 +3169,7 @@ export const _Map = map => {
     if (introspect(map) !== "Map") _throw(
       ExtendedTypeError,
       ["_Map expects a ES2015 Map"],
-      introspect(map),
+      introspectR(map),
       {desc: ["received"]}
     );
 
@@ -3221,11 +3221,13 @@ const handleMap = (tRep, tSig) => ({
           ["illegal property access"],
           tSig,
           {desc: [
-            `of ${prettyPrintK(introspect(k))}`,
+            `of ${prettyPrintK(introspectR(k))}`,
             "unknown property"
           ]}
         );
-      };
+      }
+
+      case "has": k => map.has(k);
 
       case "set": (k, v) => {
         if (introspectR(k) !== tRep.children[0].k) {
@@ -3234,7 +3236,7 @@ const handleMap = (tRep, tSig) => ({
             ["illegal property mutation"],
             tSig,
             {desc: [ 
-              `of key ${prettyPrintK(introspect(k))} with type ${introspect(d.value)}`,
+              `of key ${prettyPrintK(introspectR(k))} with type ${introspectR(d.value)}`,
               "Maps must preserve their type"
             ]}
           );
@@ -3248,7 +3250,8 @@ const handleMap = (tRep, tSig) => ({
             ["illegal property mutation"],
             tSig,
             {range: [from, to], desc: [
-              `of value ${prettyPrintV(introspect(k))} with type ${introspect(d.value)}`,
+              `of value ${prettyPrintV(introspectR(k))} with type ${introspectR(d.value)}`,
+              "Maps must preserve their type"
             ]}
           );
         }
@@ -3264,7 +3267,7 @@ const handleMap = (tRep, tSig) => ({
           ["illegal property deletion"],
           tSig,
           {desc: [
-            `of ${prettyPrintK(introspect(k))}`,
+            `of ${prettyPrintK(introspectR(k))}`,
             "unknown property"
           ]}
         );
@@ -3312,7 +3315,7 @@ const handleMap = (tRep, tSig) => ({
         ["illegal property mutation"],
         tSig,
         {desc: [
-          `of ${prettyPrintK(k)} with type ${introspect(v)}`,
+          `of ${prettyPrintK(k)} with type ${introspectR(v)}`,
           "_Map objects are immutable"
         ]}
       );
@@ -3325,7 +3328,7 @@ const handleMap = (tRep, tSig) => ({
       ["illegal property mutation"],
       tSig,
       {desc: [
-        `of ${prettyPrintK(k)} with type ${introspect(d.value)}`,
+        `of ${prettyPrintK(k)} with type ${introspectR(d.value)}`,
         "_Map objects are immutable"
       ]}
 
@@ -3366,7 +3369,7 @@ export const Rec = o => {
     if (introspect(o) !== "Object") _throw(
       ExtendedTypeError,
       ["Rec expects an Object"],
-      introspect(o),
+      introspectR(o),
       {desc: ["received"]}
     );
 
@@ -3506,7 +3509,7 @@ export const Tup = xs => {
     if (introspect(xs) !== "Array") _throw(
       ExtendedTypeError,
       ["Tup expects an Array"],
-      introspect(xs),
+      introspectR(xs),
       {desc: ["received"]}
     );
 
@@ -3612,12 +3615,12 @@ const handleTup = (tRep, tSig) => ({
 
 
 const setTup = (tRep, tSig, xs, i, d, {mode}) => {
-  if (Number.isNaN(Number(i))) _throw(
+  if (getStringTag(i) === "Symbol" || Number.isNaN(Number(i))) _throw(
     ExtendedTypeError,
     ["illegal property mutation"],
     tSig,
     {desc: [
-      `of property ${prettyPrintK(i)} with type ${introspect(d.value)}`,
+      `of property ${prettyPrintK(i)} with type ${introspectR(d.value)}`,
       "Tuples are immutable for non-numeric properties"
     ]}
   );
@@ -3628,7 +3631,7 @@ const setTup = (tRep, tSig, xs, i, d, {mode}) => {
       ["illegal property setting"],
       tSig,
       {desc: [
-        `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
+        `of ${prettyPrintK(i)} with type ${introspectR(d.value)}`,
         `where Tuple includes only ${xs.length} fields`,
         "Tuples are sealed"
       ]}

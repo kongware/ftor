@@ -63,6 +63,10 @@ F.type(true);
 
 // typed area;
 ```
+## Immutability
+
+ftor restricts the ability of mutating data types rather than enforcing strict immutability. There will be proper immutable data types in ftor as soon as I am able to incorporate reliable and fast persistant data structures into Javascript and the type checker, though. In the meantime I highly recommend to avoid globally visible mutations whenever possible, though.
+
 ## Upcoming Milestones
 
 I am currently working on adding unit tests.
@@ -84,10 +88,6 @@ I am currently working on adding unit tests.
 - [ ] incorporate a special effect type / corresponding runtime
 - [ ] add persistant data structures
 - [ ] provide common functional combinators/patterns
-
-## Immutability
-
-ftor restricts the ability of mutating data types rather than enforcing strict immutability. There will be proper immutable data types in ftor as soon as I am able to incorporate reliable and fast persistant data structures into Javascript and the type checker, though. In the meantime I highly recommend to avoid globally visible mutations whenever possible, though.
 
 # Types
 
@@ -477,7 +477,7 @@ const xs = Arr([1, 2, 3]),
 ```
 Since there is no way to distinguish implicit from explicit conversions you unfortunatelly have to convert types manually.
 
-### As Arguments
+### Passing To Funtions
 
 You can pass typed arrays to typed functions as usual:
 
@@ -550,7 +550,7 @@ Since record types are sealed and you should know your types in the typed enviro
 const r = Rec("{foo: "abc", bar: 123}");
 "foo" in r; // type error
 ```
-### As Arguments
+### Passing To Funtions
 
 You can pass typed records to typed functions as usual:
 
@@ -597,7 +597,7 @@ const o = Rec({first: "John", last: "Doe", age: 30}),
 showName(o); // "John Doe"
 showName(p); // "Jane Doe"
 ```
-`r` is a so called row variable, which includes the types of all unnecessary properties. Apart form that row variables act like any other type variable in a parametric polymorphic function:
+`r` is a so-called row variable, which includes the types of all unnecessary properties. Apart form that row variables act like any other type variable in a parametric polymorphic function type:
 
 ```Javascript
 const combineName = Fun(
