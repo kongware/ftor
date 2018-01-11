@@ -2671,8 +2671,7 @@ const handleFun = (fRep, fSig, state) => {
             ["illegal implicit type conversion"],
             fSig,
             {desc: [
-              `must not be converted to ${capitalize(hint)} primitive`,
-              "use explicit type casts instead"
+              `must not be converted to ${capitalize(hint)} primitive`
             ]}
           );          
         };
@@ -2884,8 +2883,7 @@ const handleAdt = (tRep, tSig, cons) => {
             ["illegal implicit type conversion"],
             tSig,
             {desc: [
-              `must not be converted to ${capitalize(hint)} primitive`,
-              "use explicit type casts instead"
+              `must not be converted to ${capitalize(hint)} primitive`
             ]}
           );          
         };

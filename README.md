@@ -435,17 +435,17 @@ Other forms of meta-programming are restricted as well:
 const xs = Arr([1, 2, 3]);
 Object.keys(xs); // type error
 ```
-As a general advice typed arrays should be used as arrays rather than as plain old Javascript objects.
+As a general advice typed arrays should be used as arrays rather than plain old Javascript objects.
 
 ### Type Coercion
 
-ftor prevents implicit type conversions wherever possible:
+ftor prevents implicit type conversions whenever possible:
 
 ```Javascript
 const xs = Arr([1, 2, 3]),
   s = xs + "!"; // type error
 ```
-Use explicit type casts instead.
+Since there is no way to distinguish implicit from explicit conversions you unfortunatelly have to convert types manually.
 
 ### Mutations
 
@@ -481,6 +481,10 @@ xs[1] = "2"; // type error
 
 Please don't use the `delete` operator or the corresponding `Reflect.deleteProperty` function, because they silently produce index gaps. Since `Array.prototype.pop` and `Array.prototype.unshift` internally also use `delete` I cannot disable it by default.
 
+```Javascript
+const xs = Arr([1, 2, 3]);
+delete xs[2]; // passes, but evil
+```
 ## Typed Records
 
 ftor replaces plain old Javascript objects with typed records and maps.
