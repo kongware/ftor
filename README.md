@@ -104,6 +104,7 @@ const add = Fun(
 );
 
 add(2) (3); // 5
+add(2) ("3"); // type error
 ```
 Please note that the name portion (`add :: `) in the signature is optional and used to give the corresponding anonymous function sequence a name.
 
@@ -437,16 +438,6 @@ Object.keys(xs); // type error
 ```
 As a general advice typed arrays should be used as arrays rather than plain old Javascript objects.
 
-### Type Coercion
-
-ftor prevents implicit type conversions whenever possible:
-
-```Javascript
-const xs = Arr([1, 2, 3]),
-  s = xs + "!"; // type error
-```
-Since there is no way to distinguish implicit from explicit conversions you unfortunatelly have to convert types manually.
-
 ### Mutations
 
 Typed arrays are immutable for properties with non-numeric keys:
@@ -473,9 +464,18 @@ Mutations must not alter the typed array's type:
 ```Javascript
 const xs = Arr([1, 2, 3]);
 
-xs[1] = 20; // passes
+xs[1] = 20; // 20
 xs[1] = "2"; // type error
 ```
+### Type Coercion
+
+ftor prevents implicit type conversions whenever possible:
+
+```Javascript
+const xs = Arr([1, 2, 3]),
+  s = xs + "!"; // type error
+```
+Since there is no way to distinguish implicit from explicit conversions you unfortunatelly have to convert types manually.
 
 ### Delete Operator
 
@@ -485,6 +485,52 @@ Please don't use the `delete` operator or the corresponding `Reflect.deletePrope
 const xs = Arr([1, 2, 3]);
 delete xs[2]; // passes, but evil
 ```
+## Typed Maps
+
+...
+
 ## Typed Records
 
-ftor replaces plain old Javascript objects with typed records and maps.
+Since typed records share a lot of properties with typed arrays, I am going to focus in the differences.
+
+### Construction
+
+Use the `Rec` constructor and pass it a plain old Javascript object as argument to cronstruct a typed record:
+
+```Javascript
+const r = Rec("{foo: "abc", bar: 123}");
+
+r.foo; // "bar"
+r.baz; // 123
+```
+### Mutations
+
+Typed records are mutable but sealed:
+
+```Javascript
+const r = Rec("{foo: "abc", bar: 123}");
+
+r.foo = "FOO"; // "FOO"
+r.baz = true; // type error
+```
+As with typed arrays record fields must not change their type during mutation:
+
+```Javascript
+const r = Rec("{foo: "abc", bar: 123}");
+r.foo = true; // type error
+```
+### Duck Typing
+
+As alread noted typed records are sealed, that is all properties are determined at declaration time. Since you should know your types in a typed environemnt, there is no need for duck typing in conjunction with typed records and corresponding attempts will raise an type error:
+
+```Javascript
+const r = Rec("{foo: "abc", bar: 123}");
+"foo" in r; // type error
+```
+## Typed Tuples
+
+...
+
+## Algebraic Data Types
+
+...

@@ -148,7 +148,7 @@ const introspectR = x => {
               else {
                 const [s, sigs] = x.reduce(([s, sigs, n], y, m) => {
                     if (m !== n + 1) _throw(
-                      TypeError,
+                      ExtendedTypeError,
                       ["invalid Array"],
                       "Array",
                       {desc: [`index gap at #${n + 1} detected`]}
@@ -161,7 +161,7 @@ const introspectR = x => {
                 if (s.size === 1) return `[${sigs[0]}]`;
 
                 else if (sigs.length > TUP_MAX_FIELDS) _throw(
-                  TypeError,
+                  ExtendedTypeError,
                   ["invalid Tuple"],
                   `[${sigs.slice(0, 3).join(", ").concat("...")}]`,
                   {desc: [
@@ -188,7 +188,7 @@ const introspectR = x => {
                 const sigs = Array.from(s);
 
                 _throw(
-                  TypeError,
+                  ExtendedTypeError,
                   ["_Map expects homogeneous Map"],
                   sigs.length > 3
                     ? sigs.slice(0, 3).join(", ").concat("...")
@@ -205,7 +205,7 @@ const introspectR = x => {
                 }, []);
 
               if (sigs.length === 0) _throw(
-                TypeError,
+                ExtendedTypeError,
                 ["invalid Record"],
                 `{${sigs.join(", ")}}`,
                 {desc: ["Records must at least contain 1 field"]}
@@ -458,7 +458,7 @@ const serialize = tRep => {
     default: {
       if (tRep.constructor.name === "AdtT") return serializeAdt(tag, children);
 
-      else if (children.length > 0) throw new SerialError(
+      else if (children.length > 0) throw new ExtendedTypeError(
         "invalid type representative\n\n" +
         `${tRep}\n\n` +
         "invalid primitive type\n"
@@ -2511,14 +2511,14 @@ const prettyPrint = fSig => {};
 export const Fun = (fSig, f) => {
   if (types) {
     if (introspect(fSig) !== "String") _throw(
-      TypeError,
+      ExtendedTypeError,
       ["Fun expects"],
       "(String, Function -> Function)",
       {range: [1, 6], desc: [`${introspect(fSig)} received`]}
     );
 
     else if (introspect(f) !== "Function") _throw(
-      TypeError,
+      ExtendedTypeError,
       ["Fun expects"],
       "(String, Function -> Function)",
       {range: [9, 8], desc: [`${introspect(f)} received`]}
@@ -2577,7 +2577,7 @@ const handleFun = (fRep, fSig, state) => {
             fRep,
             fSig,
             tSig,
-            TypeError
+            ExtendedTypeError
           );
 
           break;
@@ -2604,7 +2604,7 @@ const handleFun = (fRep, fSig, state) => {
               fRep,
               fSig,
               tSig,
-              TypeError
+              ExtendedTypeError
             );
           });
 
@@ -2667,7 +2667,7 @@ const handleFun = (fRep, fSig, state) => {
 
         case Symbol.toPrimitive: return hint => {
           _throw(
-            TypeError,
+            ExtendedTypeError,
             ["illegal implicit type conversion"],
             fSig,
             {desc: [
@@ -2680,7 +2680,7 @@ const handleFun = (fRep, fSig, state) => {
           if (k in f) return f[k];
 
           else _throw(
-            TypeError,
+            ExtendedTypeError,
             ["illegal property access"],
             fSig,
             {desc: [`unknown property ${prettyPrintK(k)}`]}
@@ -2695,7 +2695,7 @@ const handleFun = (fRep, fSig, state) => {
         case TR: return true;
 
         default: _throw(
-          TypeError,
+          ExtendedTypeError,
           ["illegal property introspection"],
           fSig,
           {desc: [
@@ -2711,7 +2711,7 @@ const handleFun = (fRep, fSig, state) => {
         case "toString": return f[k] = v, f;
 
         default: _throw(
-          TypeError,
+          ExtendedTypeError,
           ["illegal property mutation"],
           fSig,
           {desc: [
@@ -2728,7 +2728,7 @@ const handleFun = (fRep, fSig, state) => {
       }
 
       _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal property mutation"],
         fSig,
         {desc: [
@@ -2741,7 +2741,7 @@ const handleFun = (fRep, fSig, state) => {
 
     deleteProperty: (f, k) => {
       _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal property mutation"],
         fSig,
         {desc: [
@@ -2753,7 +2753,7 @@ const handleFun = (fRep, fSig, state) => {
 
     ownKeys: f => {
       _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal property introspection"],
         fSig,
         {desc: [
@@ -2806,28 +2806,28 @@ export const Adt = (cons, tSig) => _case => {
 
   if (types) {
     if (introspect(cons) !== "Function") _throw(
-      TypeError,
+      ExtendedTypeError,
       ["Adt expects"],
       "(Function, String -> Function -> {run: Function})",
       {range: [1, 9], desc: [`${introspect(cons)} received`]}
     );
 
     else if (cons.name.toLowerCase() === cons.name) _throw(
-      TypeError,
+      ExtendedTypeError,
       ["Adt expects type constructor with capitalized name"],
       "(Function, String -> Function -> {run: Function})",
       {range: [1, 9], desc: [`name "${cons.name}" received`]}
     );
 
     else if (introspect(tSig) !== "String") _throw(
-      TypeError,
+      ExtendedTypeError,
       ["Adt expects"],
       "(Function, String -> Function -> {run: Function})",
       {range: [11, 17], desc: [`${introspect(tSig)} received`]}
     );
 
     else if (getStringTag(_case) !== "Fun") _throw(
-      TypeError,
+      ExtendedTypeError,
       ["Adt expects"],
       "(Function, String -> Function -> {run: Function})",
       {range: [21, 28], desc: [
@@ -2837,7 +2837,7 @@ export const Adt = (cons, tSig) => _case => {
     );
 
     else if (_case.name.toLowerCase() === _case.name) _throw(
-      TypeError,
+      ExtendedTypeError,
       ["Adt expects data constructor with capitalized name"],
       "(Function, String -> Function -> {run: Function})",
       {range: [21, 28], desc: [`name "${_case.name}" received`]}
@@ -2852,7 +2852,7 @@ export const Adt = (cons, tSig) => _case => {
 
     tvars.forEach(tvar => {
       if (!tvars_.has(tvar)) _throw(
-        TypeError,
+        ExtendedTypeError,
         [`invalid case for ${tSig}`],
         _case[TS],
         {desc: [`"${tvar}" is out of scope`]}
@@ -2879,7 +2879,7 @@ const handleAdt = (tRep, tSig, cons) => {
 
         case Symbol.toPrimitive: return hint => {
           _throw(
-            TypeError,
+            ExtendedTypeError,
             ["illegal implicit type conversion"],
             tSig,
             {desc: [
@@ -2892,7 +2892,7 @@ const handleAdt = (tRep, tSig, cons) => {
           if (k in o) return o[k];
 
           else _throw(
-            TypeError,
+            ExtendedTypeError,
             ["illegal property access"],
             tSig,
             {desc: [`unknown property ${prettyPrintK(k)}`]}
@@ -2907,7 +2907,7 @@ const handleAdt = (tRep, tSig, cons) => {
         case TR: return true;
 
         default: _throw(
-          TypeError,
+          ExtendedTypeError,
           ["illegal property introspection"],
           tSig,
           {desc: [
@@ -2923,7 +2923,7 @@ const handleAdt = (tRep, tSig, cons) => {
         case "toString": return o[k] = v, o;
 
         default: _throw(
-          TypeError,
+          ExtendedTypeError,
           ["illegal property mutation"],
           tSig,
           {desc: [
@@ -2940,7 +2940,7 @@ const handleAdt = (tRep, tSig, cons) => {
       }
 
       _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal property mutation"],
         tSig,
         {desc: [
@@ -2953,7 +2953,7 @@ const handleAdt = (tRep, tSig, cons) => {
 
     deleteProperty: (o, k) => {
       _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal property mutation"],
         tSig,
         {desc: [
@@ -2965,7 +2965,7 @@ const handleAdt = (tRep, tSig, cons) => {
 
     ownKeys: o => {
       _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal property introspection"],
         tSig,
         {desc: [
@@ -2986,7 +2986,7 @@ const handleAdt = (tRep, tSig, cons) => {
 export const Arr = xs => {
   if (types) {
     if (introspect(xs) !== "Array") _throw(
-      TypeError,
+      ExtendedTypeError,
       ["Arr expects an Array"],
       introspect(xs),
       {desc: ["received"]}
@@ -2998,7 +2998,7 @@ export const Arr = xs => {
       tRep = deserialize(tSig);
 
     if (tRep.tag === "Tup") _throw(
-      TypeError,
+      ExtendedTypeError,
       ["Arr expects homogeneous Array"],
       tSig,
       {desc: [`${tRep.children.length} elements of different type received`]}
@@ -3022,7 +3022,7 @@ const handleArr = (tRep, tSig) => ({
 
       case Symbol.toPrimitive: return hint => {
         _throw(
-          TypeError,
+          ExtendedTypeError,
           ["illegal type coercion"],
           tSig,
           {desc: [
@@ -3036,7 +3036,7 @@ const handleArr = (tRep, tSig) => ({
         if (i in xs) return xs[i];
 
         else _throw(
-          TypeError,
+          ExtendedTypeError,
           ["invalid property access"],
           tSig,
           {desc: [
@@ -3055,7 +3055,7 @@ const handleArr = (tRep, tSig) => ({
         case TR: return true;
 
         default: _throw(
-          TypeError,
+          ExtendedTypeError,
           ["illegal non-numeric property introspection"],
           tSig,
           {desc: [
@@ -3074,7 +3074,7 @@ const handleArr = (tRep, tSig) => ({
 
   deleteProperty: (xs, i) => {
     if (Number.isNaN(Number(i))) _throw(
-      TypeError,
+      ExtendedTypeError,
       ["illegal non-numeric property deletion"],
       tSig,
       {desc: [
@@ -3085,7 +3085,7 @@ const handleArr = (tRep, tSig) => ({
 
     else {
       if (Number(i) !== xs.length - 1) _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal property deletion"],
         tSig,
         {desc: [
@@ -3099,7 +3099,7 @@ const handleArr = (tRep, tSig) => ({
   },
 
   ownKeys: xs => _throw(
-    TypeError,
+    ExtendedTypeError,
     ["illegal property introspection"],
     tSig,
     {desc: [
@@ -3116,7 +3116,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
       case "length": return xs.length = d.value;
 
       default: _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal non-numeric property mutation"],
         tSig,
         {desc: [
@@ -3129,7 +3129,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
 
   else {
     if (Number(i) > xs.length) _throw(
-      TypeError,
+      ExtendedTypeError,
       ["illegal property setting"],
       tSig,
       {desc: [
@@ -3140,7 +3140,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
 
     else if (tSig !== `[${introspectR(d.value)}]`) {
       _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal property mutation"],
         tSig,
         {desc: [
@@ -3167,7 +3167,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
 export const _Map = map => {
   if (types) {
     if (introspect(map) !== "Map") _throw(
-      TypeError,
+      ExtendedTypeError,
       ["_Map expects a ES2015 Map"],
       introspect(map),
       {desc: ["received"]}
@@ -3179,7 +3179,7 @@ export const _Map = map => {
       tRep = deserialize(tSig);
 
     if (tRep.children.length > 1) _throw(
-      TypeError,
+      ExtendedTypeError,
       ["_Map expects homogeneous Map"],
       tSig,
       {desc: [`${tRep.children.length} pairs of different type received`]}
@@ -3203,7 +3203,7 @@ const handleMap = (tRep, tSig) => ({
 
       case Symbol.toPrimitive: return hint => {
         _throw(
-          TypeError,
+          ExtendedTypeError,
           ["illegal type coercion"],
           tSig,
           {desc: [
@@ -3217,7 +3217,7 @@ const handleMap = (tRep, tSig) => ({
         if (map.has(k)) return map.get(k);
 
         else _throw(
-          TypeError,
+          ExtendedTypeError,
           ["illegal property access"],
           tSig,
           {desc: [
@@ -3230,7 +3230,7 @@ const handleMap = (tRep, tSig) => ({
       case "set": (k, v) => {
         if (introspectR(k) !== tRep.children[0].k) {
           _throw(
-            TypeError,
+            ExtendedTypeError,
             ["illegal property mutation"],
             tSig,
             {desc: [ 
@@ -3244,7 +3244,7 @@ const handleMap = (tRep, tSig) => ({
           const [from, to] = tRep.children[0].v.range;
 
           _throw(
-            TypeError,
+            ExtendedTypeError,
             ["illegal property mutation"],
             tSig,
             {range: [from, to], desc: [
@@ -3260,7 +3260,7 @@ const handleMap = (tRep, tSig) => ({
         if (map.has(k)) return map.delete(k);
 
         else _throw(
-          TypeError,
+          ExtendedTypeError,
           ["illegal property deletion"],
           tSig,
           {desc: [
@@ -3274,7 +3274,7 @@ const handleMap = (tRep, tSig) => ({
         if (k in map) return map[k];
 
         else _throw(
-          TypeError,
+          ExtendedTypeError,
           ["invalid property access"],
           tSig,
           {desc: [
@@ -3292,7 +3292,7 @@ const handleMap = (tRep, tSig) => ({
       case TR: return true;
 
       default: _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal property introspection"],
         tSig,
         {desc: [
@@ -3308,7 +3308,7 @@ const handleMap = (tRep, tSig) => ({
       case "toString": return map[k] = v, map;
 
       default: _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal property mutation"],
         tSig,
         {desc: [
@@ -3321,7 +3321,7 @@ const handleMap = (tRep, tSig) => ({
 
   defineProperty: (map, k, d) => {
     _throw(
-      TypeError,
+      ExtendedTypeError,
       ["illegal property mutation"],
       tSig,
       {desc: [
@@ -3334,7 +3334,7 @@ const handleMap = (tRep, tSig) => ({
 
   deleteProperty: (map, k) => {
     _throw(
-      TypeError,
+      ExtendedTypeError,
       ["illegal property deletion"],
       tSig,
       {desc: [
@@ -3345,7 +3345,7 @@ const handleMap = (tRep, tSig) => ({
   },
 
   ownKeys: map => _throw(
-    TypeError,
+    ExtendedTypeError,
     ["illegal property introspection"],
     tSig,
     {desc: [
@@ -3364,7 +3364,7 @@ const handleMap = (tRep, tSig) => ({
 export const Rec = o => {
   if (types) {
     if (introspect(o) !== "Object") _throw(
-      TypeError,
+      ExtendedTypeError,
       ["Rec expects an Object"],
       introspect(o),
       {desc: ["received"]}
@@ -3393,7 +3393,7 @@ const handleRec = (tRep, tSig) => ({
 
       case Symbol.toPrimitive: return hint => {
         _throw(
-          TypeError,
+          ExtendedTypeError,
           ["illegal type coercion"],
           tSig,
           {desc: [
@@ -3407,7 +3407,7 @@ const handleRec = (tRep, tSig) => ({
         if (k in o) return o[k];
 
         else _throw(
-          TypeError,
+          ExtendedTypeError,
           ["invalid property access"],
           tSig,
           {desc: [
@@ -3425,7 +3425,7 @@ const handleRec = (tRep, tSig) => ({
       case TR: return true;
 
       default: _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal property introspection"],
         tSig,
         {desc: [
@@ -3440,7 +3440,7 @@ const handleRec = (tRep, tSig) => ({
   defineProperty: (o, k, d) => setRec(tRep, tSig, o, k, d, {mode: "def"}),
 
   deleteProperty: (o, k) => _throw(
-    TypeError,
+    ExtendedTypeError,
     ["illegal property deletion"],
     tSig,
     {desc: [
@@ -3450,11 +3450,11 @@ const handleRec = (tRep, tSig) => ({
   ),
 
   ownKeys: o => _throw(
-    TypeError,
+    ExtendedTypeError,
     ["illegal property introspection"],
     tSig,
     {desc: [
-      `of ${prettyPrintK(k)}`,
+      `of own keys/values/entries`,
       "meta programming is not allowed"
     ]}
   )
@@ -3463,7 +3463,7 @@ const handleRec = (tRep, tSig) => ({
 
 const setRec = (tRep, tSig, o, k, d, {mode}) => {
   if (!(k in o)) _throw(
-    TypeError,
+    ExtendedTypeError,
     ["illegal property mutation"],
     tSig,
     {desc: [
@@ -3472,15 +3472,17 @@ const setRec = (tRep, tSig, o, k, d, {mode}) => {
     ]}
   );
 
-  else if (serialize(tRep.children[k]) !== `${introspect(d.value)}`) {
-    const [from, to] = tRep.children[0].range;
+  else if (introspectR(o[k]) !== `${introspectR(d.value)}`) {
+    const [from, to] = tRep.children.filter(tRep_ => {
+      return tRep_.k === k ? tRep_.v : false}
+    )[0].v.range;
 
     _throw(
-      TypeError,
+      ExtendedTypeError,
       ["illegal property mutation"],
       tSig,
       {range: [from, to], desc: [
-        `of ${prettyPrintK(k)} with type ${introspect(d.value)}`,
+        `of ${prettyPrintK(k)} with type ${introspectR(d.value)}`,
         "Record fields must preserve their type"
       ]}
     );
@@ -3502,7 +3504,7 @@ const setRec = (tRep, tSig, o, k, d, {mode}) => {
 export const Tup = xs => {
   if (types) {
     if (introspect(xs) !== "Array") _throw(
-      TypeError,
+      ExtendedTypeError,
       ["Tup expects an Array"],
       introspect(xs),
       {desc: ["received"]}
@@ -3514,7 +3516,7 @@ export const Tup = xs => {
       tRep = deserialize(tSig);
 
     if (tRep.tag === "Arr") _throw(
-      TypeError,
+      ExtendedTypeError,
       ["Tup received an invalid Array"],
       tSig,
       {desc: [
@@ -3541,7 +3543,7 @@ const handleTup = (tRep, tSig) => ({
 
       case Symbol.toPrimitive: return hint => {
         _throw(
-          TypeError,
+          ExtendedTypeError,
           ["illegal type coercion"],
           tSig,
           {desc: [
@@ -3555,7 +3557,7 @@ const handleTup = (tRep, tSig) => ({
         if (i in xs) return xs[i];
 
         else _throw(
-          TypeError,
+          ExtendedTypeError,
           ["invalid property access"],
           tSig,
           {desc: [
@@ -3573,7 +3575,7 @@ const handleTup = (tRep, tSig) => ({
       case TR: return true;
 
       default: _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal property introspection"],
         tSig,
         {desc: [
@@ -3588,7 +3590,7 @@ const handleTup = (tRep, tSig) => ({
   defineProperty: (xs, i, d) => setTup(tRep, tSig, xs, i, d, {mode: "def"}),
 
   deleteProperty: (xs, i) => _throw(
-    TypeError,
+    ExtendedTypeError,
     ["illegal property deletion"],
     tSig,
     {desc: [
@@ -3598,7 +3600,7 @@ const handleTup = (tRep, tSig) => ({
   ),
 
   ownKeys: xs => _throw(
-    TypeError,
+    ExtendedTypeError,
     ["illegal property introspection"],
     tSig,
     {desc: [
@@ -3611,7 +3613,7 @@ const handleTup = (tRep, tSig) => ({
 
 const setTup = (tRep, tSig, xs, i, d, {mode}) => {
   if (Number.isNaN(Number(i))) _throw(
-    TypeError,
+    ExtendedTypeError,
     ["illegal property mutation"],
     tSig,
     {desc: [
@@ -3622,7 +3624,7 @@ const setTup = (tRep, tSig, xs, i, d, {mode}) => {
 
   else {
     if (Number(i) >= xs.length) _throw(
-      TypeError,
+      ExtendedTypeError,
       ["illegal property setting"],
       tSig,
       {desc: [
@@ -3632,15 +3634,15 @@ const setTup = (tRep, tSig, xs, i, d, {mode}) => {
       ]}
     );
 
-    else if (serialize(tRep.children[i]) !== `${introspect(d.value)}`) {
-      const [from, to] = tRep.children[0].range;
+    else if (introspectR(xs[i]) !== `${introspectR(d.value)}`) {
+      const [from, to] = tRep.children[i].range;
 
       _throw(
-        TypeError,
+        ExtendedTypeError,
         ["illegal property mutation"],
         tSig,
         {range: [from, to], desc: [
-          `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
+          `of ${prettyPrintK(i)} with type ${introspectR(d.value)}`,
           "Tuple fields must preserve their type"
         ]}
       );
@@ -3683,10 +3685,10 @@ class ArityError extends Error {
 };
 
 
-class ReturnTypeError extends Error {
+class ExtendedTypeError extends Error {
   constructor(x) {
     super(x);
-    Error.captureStackTrace(this, ReturnTypeError);
+    Error.captureStackTrace(this, ExtendedTypeError);
   }
 };
 
@@ -3699,10 +3701,10 @@ class ParseError extends Error {
 };
 
 
-class SerialError extends Error {
+class ReturnTypeError extends Error {
   constructor(x) {
     super(x);
-    Error.captureStackTrace(this, SerialError);
+    Error.captureStackTrace(this, ReturnTypeError);
   }
 };
 
