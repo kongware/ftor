@@ -79,10 +79,15 @@ I am currently working on adding unit tests.
 - [ ] add Promise type
 - [ ] add Iterator/Generator types
 - [ ] add homogeneous Set type
+- [ ] improve error messages
 - [ ] incorporate kind system/higher kinded types?
 - [ ] incorporate a special effect type / corresponding runtime
 - [ ] add persistant data structures
 - [ ] provide common functional combinators/patterns
+
+## Immutability
+
+ftor restricts the ability of mutating data types rather than enforcing strict immutability. There will be proper immutable data types in ftor as soon as I am able to incorporate reliable and fast persistant data structures into Javascript and the type checker, though. In the meantime I highly recommend to avoid globally visible mutations whenever possible, though.
 
 # Types
 
@@ -206,7 +211,7 @@ const k = Fun(
 );
 
 const snd = Fun(
-  "(fst :: a -> a -> a)",
+  "(snd :: a -> a -> a)",
   x => y => y
 );
 
@@ -342,7 +347,7 @@ Even though `ap` merely accepts unary functions it can handle function arguments
 
 ### Parametricity
 
-<a href="https://en.wikipedia.org/wiki/Parametricity">Parametricity</a> is a property of parametric polymorphism that prevents polymorphic functions from knowing anything about the types of their arguments or return values. In return you get the ability to deduce or at least narrow down a function's behavior just from its type signature. To enfoce parametricity a type checker must analyze your entire code at compile time. Since ftor isn't a static type checker it can't preclude polymorphic functions that violate this property:
+<a href="https://en.wikipedia.org/wiki/Parametricity">Parametricity</a> is a property of parametric polymorphism that prevents polymorphic functions from knowing anything about the types of their arguments or return values. In return you get the ability to deduce or at least narrow down a function's behavior just from its type signature. To enforce parametricity a type checker must analyze your entire code at compile time. Since ftor isn't a static type checker it can't preclude polymorphic functions that violate this property:
 
 ```Javascript
 const append = Fun(
@@ -364,17 +369,18 @@ append({}) ({}); // type error (returns null instead of {})
 ```
 As with purity it is ultimately your responsibility to maintain this property.
 
-## Array Type
-
-[This entire section needs to be revised!]
+## Typed Arrays
 
 ### Construction
 
 You can create typed arrays with the `Arr` constructor. Unlike `Fun` you don't have to provide an explicit type signature but let the type checker introspect the type for you:
 
 ```Javascript
-Arr([1, 2, 3]); // "[Number]"
-Arr(["foo", "bar", "baz"]); "[String]"
+const xs = Arr([1, 2, 3]);
+const ys = Arr(["foo", "bar", "baz"]);
+
+xs[TS]; // "[Number]"
+ys[TS]; // "[String]"
 ```
 Please note that an empty typed array has the polymorphic type `[a]`.
 
@@ -395,36 +401,86 @@ xs[10] = 4;
 
 Arr(xs); // type error
 ```
+### Property Access
+
+You must not access unknown properties:
+
+```Javascript
+const xs = Arr([1, 2, 3]);
+
+xs[0]; // 1
+xs[10]; // type error
+
+ys.concat; // function
+ys.foo; // type error
+```
 ### Duck Typing
 
-You must not perform duck typing or other forms of meta programming on typed arrays, because in a typed language you should always know your types:
+Duck typing for properties with numeric keys works as usual:
 
 ```Javascript
 const xs = Arr([1, 2, 3]),
-  x = xs[10]; // type error (illegal duck typing)
-  
-Object.keys(xs); // type error (illegal meta programming)
+  x = 0 in xs ? xs[0] : 0, // 1
+  y = 10 in xs ? xs[10] : 0; // 0
 ```
-Arrays must be used as such and not as plain old Javascript objects.
-
-### Void Elements
-
-Typed arrays must not contain element values of type void (`undefined`/`NaN`):
+However, you must not duck type with non-numeric keys:
 
 ```Javascript
-const xs = Arr([undefined]), // type error
-  ys = Arr([1, NaN, 3]); // type error
+const xs = Arr([1, 2, 3]),
+  foo = "foo" in xs ? xs.foo : false;
 ```
+Other forms of meta-programming are restricted as well:
+
+```Javascript
+const xs = Arr([1, 2, 3]);
+Object.keys(xs); // type error
+```
+As a general advice typed arrays should be used as arrays rather than as plain old Javascript objects.
+
 ### Type Coercion
 
 ftor prevents implicit type conversions wherever possible:
 
 ```Javascript
-const xs = Arr([1, 2, 3, 4]),
+const xs = Arr([1, 2, 3]),
   s = xs + "!"; // type error
 ```
 Use explicit type casts instead.
 
-### Immutability
+### Mutations
 
-Even though mutations are restricted, typed arrays are not fully immutable. There will be immutable data types in ftor as soon as I am able to incorporate reliable and fast persistant data structures into Javascript and the type checker. I highly recommend to avoid globally visible mutations whenever possible, though.
+Typed arrays are immutable for properties with non-numeric keys:
+
+```Javascript
+const xs = Arr([1, 2, 3]);
+xs.foo = "bar"; // type error
+```
+
+Indexed properties can be added or removed as long as there are no index gaps:
+
+```Javascript
+const xs = Arr([1, 2, 3]),
+  ys = Arr([1, 2, 3]);
+
+xs.push(4); // passes
+xs[10] = 5; // type error
+
+delete ys[2]; // passes
+delete ys[1]; // type error
+```
+Mutations must not alter the typed array's type:
+
+```Javascript
+const xs = Arr([1, 2, 3]);
+
+xs[1] = 20; // passes
+xs[1] = "2"; // type error
+```
+
+### Delete Operator
+
+Please don't use the `delete` operator or the corresponding `Reflect.deleteProperty` function, because they silently produce index gaps. Since `Array.prototype.pop` and `Array.prototype.unshift` internally also use `delete` I cannot disable it by default.
+
+## Typed Records
+
+ftor replaces plain old Javascript objects with typed records and maps.

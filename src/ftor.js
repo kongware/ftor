@@ -3042,9 +3042,7 @@ const handleArr = (tRep, tSig) => ({
           ["invalid property access"],
           tSig,
           {desc: [
-            Number.isNaN(Number(i))
-              ? `of ${prettyPrintK(i)}`
-              : `of index #${prettyPrintK(i)}`,
+            `of ${prettyPrintK(i)}`,
             "unknown property"
           ]}
         );
@@ -3099,8 +3097,7 @@ const handleArr = (tRep, tSig) => ({
       );
     }
 
-    delete xs[i];
-    return true;
+    return delete xs[i];
   },
 
   ownKeys: xs => _throw(
@@ -3116,15 +3113,21 @@ const handleArr = (tRep, tSig) => ({
 
 
 const setArr = (tRep, tSig, xs, i, d, {mode}) => {
-  if (Number.isNaN(Number(i))) _throw(
-    TypeError,
-    ["illegal non-numeric property mutation"],
-    tSig,
-    {desc: [
-      `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
-      "Arrays are immutable for non-numeric properties"
-    ]}
-  );
+  if (Number.isNaN(Number(i))) {
+    switch (i) {
+      case "length": return xs.length = d.value;
+
+      default: _throw(
+        TypeError,
+        ["illegal non-numeric property mutation"],
+        tSig,
+        {desc: [
+          `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
+          "Arrays are immutable for non-numeric properties"
+        ]}
+      );
+    }
+  }
 
   else {
     if (Number(i) > xs.length) _throw(
@@ -3132,7 +3135,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
       ["illegal property setting"],
       tSig,
       {desc: [
-        `of index #${prettyPrintK(i)} with type ${introspect(d.value)}`,
+        `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
         "setting would cause an index gap"
       ]}
     );
@@ -3143,7 +3146,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
         ["illegal property mutation"],
         tSig,
         {desc: [
-          `of index #${prettyPrintK(i)} with type ${introspect(d.value)}`,
+          `of ${prettyPrintK(i)} with type ${introspect(d.value)}`,
           "Arrays must preserve their type"
         ]}
       );
@@ -3749,7 +3752,7 @@ const prettyPrintK = x => {
   
   if (tag === "Symbol") return x.toString();
   else if (tag === "String" && Number.isNaN(Number(x))) return `"${x}"`;
-  else return x;
+  else return `index #${x}`;
 };
 
 
