@@ -696,7 +696,7 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
-[Please note: There is still an unfixed bug with regard to rank-2 types.]
+[Please note: ADT implementation is still quite buggy.]
 
 ADTs give ftor's type system the notion of alternatives. They are composite types that can contain several types but only one can exist at a time. For each case you have a constructor to create the corresponding values and with pattern matching you can determine which case exists respectively. ADTs are a refinement of tagged unions, which are a refinement of union types themselves.
 
