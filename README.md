@@ -703,12 +703,18 @@ ADTs give ftor's type system the notion of alternatives. They are composite type
 ftor uses Scott encoding to enable ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are considered. Here is a little preview:
 
 ```Javascript
-const List = Adt(function List() {}, "({Cons: (a -> List<a> -> r), Nil: r} -> r) -> List<a>");
+const List = Adt(
+  function List() {},
+  "({Cons: (a -> List<a> -> r), Nil: r} -> r) -> List<a>"
+);
 
-const Nil = List(cases => cases.Nil);
 const Cons = x => tx => List(cases => cases.Cons(x) (tx));
+const Nil = List(cases => cases.Nil);
 
-const uncons = cases => tx => tx.run(cases);
+const uncons = Fun(
+  "(uncons :: {Cons: (a -> List<a> -> r), Nil: r} -> List<a> -> r)",
+  cases => tx => tx.run(cases)
+);
 
 const empty = uncons(Rec({
   Cons: Fun(
@@ -718,11 +724,20 @@ const empty = uncons(Rec({
   Nil: true
 }));
 
+const empty_ = uncons(Rec({
+  Cons: Fun(
+    "(empty :: a -> List<a> -> Boolean)",
+    x => tx => false
+  )
+}));
+
 const xs = Cons("foo") (Nil),
   ys = Nil;
 
 empty(xs); // false
 empty(ys); // true
+empty_(xs); // type error
+
 ```
 # Missing Topics
 

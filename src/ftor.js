@@ -1878,7 +1878,7 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
             fSig,
             {
               range,
-              desc: [`missing key ${prettyPrintK(k)}`]
+              desc: [`missing ${prettyPrintK(k)}`]
             }
           );
         }
