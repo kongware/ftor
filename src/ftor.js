@@ -2511,6 +2511,13 @@ export const Fun = (fSig, f) => {
     const fRep = deserialize(fSig);
 
     if (fRep.name !== "") {
+      if (fRep.name[0].toLowerCase() !== fRep.name[0]) _throw(
+        ExtendedTypeError,
+        ["Fun expects a lowercase function name"],
+        fSig,
+        {range: [1, fRep.name.length], desc: ["capitalized names are reserved for constructors"]}
+      );
+
       Reflect.defineProperty(f, "name", {value: fRep.name || "lambda"});
     }
 
@@ -2784,8 +2791,6 @@ const verifyUnary = (arg, argRep, fRep, fSig, sigLog) => {
 
 
 export const Adt = (cons, tSig) => _case => {
-  // check case = record of typed functions with capitalized names
-  // check that type vars of all cases are in scope
   const adt = new cons();
 
   if (types) {
@@ -2800,7 +2805,10 @@ export const Adt = (cons, tSig) => _case => {
       ExtendedTypeError,
       ["Adt expects type constructor with capitalized name"],
       "(Function, String -> Function -> {run: Function})",
-      {range: [1, 9], desc: [`name "${cons.name}" received`]}
+      {range: [1, 9], desc: [
+        `name "${cons.name}" received`,
+        "lowercase names are reserved for functions"
+      ]}
     );
 
     else if (introspect(tSig) !== "String") _throw(
@@ -2810,50 +2818,50 @@ export const Adt = (cons, tSig) => _case => {
       {range: [11, 17], desc: [`${introspectR(tSig)} received`]}
     );
 
-    else if (getStringTag(_case) !== "Fun") _throw(
+    else if (introspect(_case) !== "Function") _throw(
       ExtendedTypeError,
       ["Adt expects"],
       "(Function, String -> Function -> {run: Function})",
-      {range: [21, 28], desc: [
-        "a typed function"
-        `${introspectR(_case)} received`,
-      ]}
+      {range: [21, 28], desc: [`${introspectR(_case)} received`]}
     );
 
-    else if (_case.name.toLowerCase() === _case.name) _throw(
+    const tvars_ = tSig.split(" -> ").slice(-1)[0].match(/\b[a-z]\b/g),
+      tvars = new Set(tvars_),
+      tRep = deserialize(tSig);
+
+    if (tvars_.length !== tvars.size) _throw(
       ExtendedTypeError,
-      ["Adt expects data constructor with capitalized name"],
-      "(Function, String -> Function -> {run: Function})",
-      {range: [21, 28], desc: [`name "${_case.name}" received`]}
+      [`conflicting type variables`],
+      tSig,
+      {
+        range: tRep.children.slice(-1)[0].value.range,
+        desc: ["type variables must be unique"]
+      }
     );
 
-    /*
-     * Bug: Adt needs its own type signature, which is essentially the type sig
-     * of the corresponding _case function. Here is an example for the List ADT:
-     * ({Nil: r, Cons: (a -> List<a> -> r)} -> r) -> List<a>
-     * This is clearly a rank-2 type and we can safely ignore all occurances of
-     * r during the scope check.
-    **/
-
-    const tvars = U(f => r => {
+    const rank1 = new Set(U(f => r => {
       const s = r.replace(/\([^()]+\)/g, "");
       return s === r ? s : f(f) (s);
-    }) (_case[TS].slice(1, -1)).match(/\b[a-z]\b/g);
+    }) (tSig.slice(1, -1))
+      .split(" -> ")
+      .slice(0, -1)
+      .join(" -> ")
+      .match(/\b[a-z]\b/g));
 
-    const tvars_ = new Set(tSig.match(/\b[a-z]\b/g));
-
-    tvars.forEach(tvar => {
-      if (!tvars_.has(tvar)) _throw(
+    rank1.forEach(r1 => {
+      if (!tvars.has(r1)) _throw(
         ExtendedTypeError,
-        [`invalid case for ${tSig}`],
-        _case[TS],
-        {desc: [`"${tvar}" is out of scope`]}
+        [`invalid type signature`],
+        tSig,
+        {desc: [`"${r1}" is out of scope`]}
       );
     });
 
-    const tRep = deserialize(tSig);
+    const tRep_ = tRep.children.slice(-1)[0].value,
+      tSig_ = serialize(tRep_);
+
     adt.run = cases => _case(cases);
-    return new Proxy(adt, handleAdt(tRep, tSig, cons));
+    return new Proxy(adt, handleAdt(tRep_, tSig_, cons));
   }
 
   else return adt;
