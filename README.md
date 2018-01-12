@@ -696,9 +696,9 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
-[Please note: There is still a unfixed bug with regard to rank-2 types.]
+[Please note: There is still an unfixed bug with regard to rank-2 types.]
 
-ADTs give your type system the notion of alternatives. They are composite types that can contain several types but only one type can exist at a time. For each case you have a constructor to create the corresponding values and with pattern matching you can determine which case exists respectively.
+ADTs give ftor's type system the notion of alternatives. They are composite types that can contain several types but only one can exist at a time. For each case you have a constructor to create the corresponding values and with pattern matching you can determine which case exists respectively. ADTs are a refinement of tagged unions, which are a refinement of union types themselves.
 
 ftor uses Scott encoding to enable ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are considered. Here is a little preview:
 
