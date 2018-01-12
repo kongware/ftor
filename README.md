@@ -696,7 +696,11 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
-ftor uses Scott encoding to provide ADTs. Along with record types and row polymorphism we can take advantage of functional pattern matching with guaranteed case completeness. Here is a little preview:
+[Please note: There is still a unfixed bug with regard to rank-2 types.]
+
+ADTs give your type system the notion of alternatives. They are composite types that can contain several types but only one type can exist at a time. For each case you have a constructor to create the corresponding values and with pattern matching you can determine which case exists respectively.
+
+ftor uses Scott encoding to enable ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are considered. Here is a little preview:
 
 ```Javascript
 const List = Adt(function List() {}, "List<a>");
@@ -720,7 +724,13 @@ const uncons = Fun(
   cases => tx => tx.run(cases)
 );
 
-const empty = uncons(Rec({Nil: true, Cons: Fun("(a -> List<a> -> Boolean)", x => tx => false)}));
+const empty = uncons(Rec({
+  Nil: true,
+  Cons: Fun(
+    "(empty :: a -> List<a> -> Boolean)",
+    x => tx => false
+  )
+}));
 
 const xs = Cons("foo") (Nil),
   ys = Nil;
