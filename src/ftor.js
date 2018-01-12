@@ -2827,6 +2827,14 @@ export const Adt = (cons, tSig) => _case => {
       {range: [21, 28], desc: [`name "${_case.name}" received`]}
     );
 
+    /*
+     * Bug: Adt needs its own type signature, which is essentially the type sig
+     * of the corresponding _case function. Here is an example for the List ADT:
+     * ({Nil: r, Cons: (a -> List<a> -> r)} -> r) -> List<a>
+     * This is clearly a rank-2 type and we can safely ignore all occurances of
+     * r during the scope check.
+    **/
+
     const tvars = U(f => r => {
       const s = r.replace(/\([^()]+\)/g, "");
       return s === r ? s : f(f) (s);
