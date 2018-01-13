@@ -1355,6 +1355,11 @@ const unify = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, 
 };
 
 
+/******************************************************************************
+*****[ 6.1. ADT ]**************************************************************
+******************************************************************************/
+
+
 const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "ArrT":
@@ -1416,6 +1421,11 @@ const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 };
 
 
+/******************************************************************************
+*****[ 6.2. Arr ]**************************************************************
+******************************************************************************/
+
+
 const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
@@ -1473,6 +1483,11 @@ const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 };
 
 
+/******************************************************************************
+*****[ 6.3. Empty ]************************************************************
+******************************************************************************/
+
+
 const unifyEmpty = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
@@ -1515,6 +1530,11 @@ const unifyEmpty = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, x
     }
   }
 };
+
+
+/******************************************************************************
+*****[ 6.4. Fun ]**************************************************************
+******************************************************************************/
 
 
 const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
@@ -1709,6 +1729,11 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 };
 
 
+/******************************************************************************
+*****[ 6.5. _Map ]*************************************************************
+******************************************************************************/
+
+
 const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
@@ -1779,9 +1804,19 @@ const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 };
 
 
+/******************************************************************************
+*****[ 6.6. Poly ]*************************************************************
+******************************************************************************/
+
+
 const unifyPoly = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
   return constrain(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
 };
+
+
+/******************************************************************************
+*****[ 6.7. Prim ]*************************************************************
+******************************************************************************/
 
 
 const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
@@ -1833,6 +1868,11 @@ const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xS
     }
   }
 };
+
+
+/******************************************************************************
+*****[ 6.8. Rec ]**************************************************************
+******************************************************************************/
 
 
 const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
@@ -1967,6 +2007,11 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 };
 
 
+/******************************************************************************
+*****[ 6.9. Tup ]**************************************************************
+******************************************************************************/
+
+
 const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
@@ -2029,6 +2074,11 @@ const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 };
 
 
+/******************************************************************************
+*****[ 6.10. Map Constraints ]*************************************************
+******************************************************************************/
+
+
 const constrain = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
   let kRep, kSig, vRep, vSig;
 
@@ -2067,6 +2117,11 @@ const constrain = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xS
 };
 
 
+/******************************************************************************
+*****[ 6.11. Occurs Check ]****************************************************
+******************************************************************************/
+
+
 const occurs = (state, nthParam, fRep, fSig, xSig, cons) => {
   state.constraints.forEach((v1, k1) => {
     if (k1.search(/\b[a-z][0-9]?\b/) !== -1) {
@@ -2094,10 +2149,20 @@ const occurs = (state, nthParam, fRep, fSig, xSig, cons) => {
 };
 
 
+/******************************************************************************
+*****[ 6.12. Fresh Type Vars ]*************************************************
+******************************************************************************/
+
+
 const fresh = (fSig, nthTvar) => {
   const fSig_ = fSig.replace(/\b([a-z])\b/g, `$1${nthTvar}`);
   return [fSig_, fSig_ === fSig ? nthTvar : nthTvar + 1];
 };
+
+
+/******************************************************************************
+*****[ 6.13. Most General Unifier ]********************************************
+******************************************************************************/
 
 
 const mgu = (kRep, vRep) => {
@@ -2415,6 +2480,11 @@ const mguFun = (kRep, vRep, n, aux) => {
 };
 
 
+/******************************************************************************
+*****[ 6.14. Substitution ]****************************************************
+******************************************************************************/
+
+
 const substitute = (fSig, constraints) => {
   constraints.forEach((v, k) => {
     if (k.search(/^[a-z][0-9]?$/) === 0) {
@@ -2445,39 +2515,11 @@ const substitute = (fSig, constraints) => {
 
 
 /******************************************************************************
-*****[ 6.1. Misc ]*************************************************************
+*****[ 6.15. Misc ]*************************************************************
 ******************************************************************************/
 
 
 const escapeRegExp = s => s.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-
-
-const retrieveRange = (fRep, nthParam) => {
-  if (nthParam === null) {
-    const argRep = fRep.children[0];
-
-    switch (argRep.constructor.name) {
-      case "ArgT":
-      case "RestT":
-      case "ReturnT": return argRep.value.range;
-      case "NoArgT": return argRep.range;
-    }
-  }
-
-  else {
-    const argRep = fRep.children[0].value.children[nthParam];
-
-    switch (argRep.constructor.name) {
-      case "ArgT":
-      case "RestT":
-      case "ReturnT": return argRep.value.range;
-      case "NoArgT": return argRep.range;
-    }
-  }
-};
-
-
-const prettyPrint = fSig => {};
 
 
 /******************************************************************************
@@ -3770,9 +3812,34 @@ const prettyPrintV = x => {
 
 /******************************************************************************
 *******************************************************************************
-*****************************[ 8. MISCALLANIOUS ]******************************
+**************************[ 8. AUXILIARY FUNCTIONS ]***************************
 *******************************************************************************
 ******************************************************************************/
+
+
+const retrieveRange = (fRep, nthParam) => {
+  if (nthParam === null) {
+    const argRep = fRep.children[0];
+
+    switch (argRep.constructor.name) {
+      case "ArgT":
+      case "RestT":
+      case "ReturnT": return argRep.value.range;
+      case "NoArgT": return argRep.range;
+    }
+  }
+
+  else {
+    const argRep = fRep.children[0].value.children[nthParam];
+
+    switch (argRep.constructor.name) {
+      case "ArgT":
+      case "RestT":
+      case "ReturnT": return argRep.value.range;
+      case "NoArgT": return argRep.range;
+    }
+  }
+};
 
 
 const capitalize = s => s[0].toUpperCase() + s.slice(1);
@@ -3787,8 +3854,16 @@ const xor = x => y => !x === !y ? false : true;
 const U = f => f(f);
 
 
-//***[ 8.1. Generator Functions ]********************************************
+/******************************************************************************
+*******************************************************************************
+***************************[ 9. FUNCTIONAL LIBRARY ]***************************
+*******************************************************************************
+******************************************************************************/
 
+
+//***[ 9.1. Generator Functions ]********************************************
+
+// NOTE: For the time being there is no way to type generator functions
 
 function* keys(ix) {
   for (let k of ix) yield k;  
