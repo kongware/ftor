@@ -141,7 +141,7 @@ add(2).name; // "add"
 
 A lot of people are concerned about the readability of the typical call pattern (`fun(x) (y) (z)`) that arises from curried functions. It is considered less readable than calling multi argument functions (`fun(x, y, z)`).
 
-Syntax is just a matter of habit, though. It is much more important that currying entails great benefits like partial application and abstraction over arity. Moreover it greatly simplyfies the design of the type checker.
+In this case syntax is just a matter of habit, though. It is much more important that currying entails great benefits like partial application and abstraction over arity. Moreover it greatly simplyfies the design of the type checker.
 
 #### Performance
 
@@ -641,13 +641,13 @@ showName(p); // "Jane Doe"
 `r` is a so-called row variable, which includes the types of all unnecessary properties. Apart form that row variables act like any other type variable in a parametric polymorphic function type:
 
 ```Javascript
-const combineName = Fun(
-  "(combineName :: {first: String, last: String, ..r} -> {first: String, last: String, ..r} -> String)",
+const showName = Fun(
+  "(showName :: {first: String, last: String, ..r} -> {first: String, last: String, ..r} -> String)",
   o => p => `${o.first} ${p.last}`
 );
 
-const combineName_ = Fun(
-  "(combineName_ :: {first: String, last: String, ..r} -> {first: String, last: String, ..s} -> String)",
+const showName_ = Fun(
+  "(showName_ :: {first: String, last: String, ..r} -> {first: String, last: String, ..s} -> String)",
   o => p => `${o.first} ${p.last}`
 );
 
@@ -655,11 +655,11 @@ const o = Rec({first: "Sean", last: "Penn", age: 60}),
   p = Rec({first: "Juliette", last: "Binoche", age: 45}),
   q = Rec({first: "Stan", last: "Kubrick", gender: "m"});
 
-combineName(o) (p); // "Sean Binoche"
-combineName(o) (q); // type error
+showName(o) (p); // "Sean Binoche"
+showName(o) (q); // type error
 
-combineName_(o) (p); // "Sean Binoche"
-combineName_(o) (q); // "Sean Kubrick"
+showName_(o) (p); // "Sean Binoche"
+showName_(o) (q); // "Sean Kubrick"
 ```
 Row polymorphism is also known as static duck typing, that is to say duck typing with static type guarantees.
 
@@ -707,7 +707,7 @@ snd(t); // "foo"
 
 ADTs give ftor's type system the notion of alternatives. They are composite types that can contain several types but only one can exist at a time. For each case you have a constructor to create the corresponding values and with pattern matching you can determine which case exists respectively. ADTs are a refinement of tagged unions, which are a refinement of union types themselves.
 
-ftor uses Scott encoding to enable ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that all cases are considered. Scrott encoding defines data types by their deconstruction operator. As opposed to Chruch it has explicit recursion both at the type and the value level. Interestingly, it seems sufficient to type the type constructor and the deconstruction operator, whereas the value constructors remain untyped. Here is a little sketch, which, however, may still change:
+ftor uses Scott encoding to enable ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are considered. Scrott encoding defines data types by their deconstruction operator. As opposed to Chruch it has explicit recursion both at the type and the value level. Interestingly, it seems sufficient to type the type constructor and the deconstruction operator, whereas the value constructors remain untyped. Here is a little sketch, which, however, may still change:
 
 ```Javascript
 const List = Adt(
