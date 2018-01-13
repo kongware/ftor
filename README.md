@@ -42,8 +42,6 @@ Functional programming in Javascript is frustrating as soon as you face real wor
 
 ## Differences to Static Type Checkers
 
-[PLEASE NOTE: ftor's ADT implementation is still premature and untested.]
-
 As a runtime type checker ftor isn't able to analyze your code and infere the type of every single expression and statement. Doing this for each and every request would certainly cause serious performance problems. A reasonable compromise is to focus on functions and their arguments and use Javascript's introspection capabilities. Apart from functions themselves, promises and a few other types, argument values passed to functions usually can be easily introspected. For the rest we need explicit type annotations, though.
 
 With the proposed approach we have to make sure that type signatures match their corresponding functions. For this reason ftor will provide a comprehensive library of typed functional combinators and patterns, which are guaranteed to match their signatures. Consumers of this library can focus on composing and combining these basic building blocks and ftor ensures that they keep track of their partially applied funcions' intermediate types. I think this is a sensible and practical approach.
@@ -705,6 +703,8 @@ fst(t); // 123
 snd(t); // "foo"
 ```
 ## Algebraic Data Types
+
+[PLEASE NOTE: ftor's ADT implementation is still premature and untested.]
 
 ADTs give ftor's type system the notion of alternatives. They are composite types that can contain several types but only one can exist at a time. For each case you have a constructor to create the corresponding values and with pattern matching you can determine which case exists respectively. ADTs are a refinement of tagged unions, which are a refinement of union types themselves.
 
