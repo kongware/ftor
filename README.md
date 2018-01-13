@@ -708,7 +708,7 @@ snd(t); // "foo"
 
 ADTs give ftor's type system the notion of alternatives. They are composite types that can contain several types but only one can exist at a time. For each case you have a constructor to create the corresponding values and with pattern matching you can determine which case exists respectively. ADTs are a refinement of tagged unions, which are a refinement of union types themselves.
 
-ftor uses Scott encoding to enable ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are considered. Scrott encoding defines data types by their deconstruction operator. As opposed to Chruch it has explicit recursion both at the type and the value level. Interestingly, it seems sufficient to type the type constructor and the deconstruction operator, whereas the value constructors remain untyped. Here is a little sketch, which, however, may still change:
+ftor uses Scott encoding to enable ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are provided. Scott encoding defines data types by their deconstruction operator. As opposed to Chruch it has explicit recursion both at the type and the value level. Interestingly, it seems sufficient to type the type constructor and the deconstruction operator, whereas the value constructors remain untyped. Here is a little sketch, which, however, may still change:
 
 ```Javascript
 const List = Adt(
