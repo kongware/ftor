@@ -75,7 +75,7 @@ F.type(true);
 ```
 ## Immutability
 
-ftor restricts the ability of mutating data types rather than enforcing strict immutability. There will be proper immutable data types in ftor as soon as I am able to incorporate reliable and fast persistant data structures into Javascript and the type checker, though. In the meantime I highly recommend to avoid globally visible mutations whenever possible, though.
+ftor restricts the ability of mutating data types rather than enforcing strict immutability. There will be proper immutable data types in ftor as soon as I am able to incorporate reliable and fast persistant data structures into Javascript and the type checker, though.
 
 ## Upcoming Milestones
 
@@ -746,8 +746,6 @@ empty_(xs); // type error
 ```
 # Missing Topics
 
-- [ ] There is no type inference and thus no guarantee that your code matches your type signatures
 - [ ] Explore issues caused by ftor's use of proxies with regard to object identity
 - [ ] Note that creating dependencies to ftor's pluggable type system is bad
-- [ ] Sum up best practice for incorporating ftor into third party code
 - [ ] Why don't ftor need its own unit type?
