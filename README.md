@@ -713,7 +713,7 @@ ftor uses Scott encoding to enable ADTs in Javascript. Along with record types w
 ```Javascript
 const List = Adt(
   function List() {},
-  "({Cons: (a -> List<a> -> r), Nil: r} -> r) -> List<a>"
+  "(List :: ({Cons: (a -> List<a> -> r), Nil: r} -> r) -> List<a>)"
 );
 
 const Cons = x => tx => List(cases => cases.Cons(x) (tx));
