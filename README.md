@@ -42,7 +42,7 @@ Functional programming in Javascript is frustrating as soon as you face real wor
 
 ## Differences to Static Type Checkers
 
-As a runtime type checker ftor isn't able to analyze your code and infere the type of every single expression and statement. Doing this for each and every request would certainly cause serious performance problems. A reasonable compromise is to focus on functions and their arguments and use Javascript's introspection capabilities. Apart from functions themselves, promises and a few other types, argument values passed to functions usually can be easily introspected. For the rest we need explicit type annotations, though.
+As a runtime type checker ftor isn't able to analyze your code and infere the type of every single expression and statement. Doing this for each and every request would certainly cause serious performance problems. Besides it is really hard if not impossible to reliably perform type inference for Javascript code. A reasonable compromise is to focus on functions and their arguments and use Javascript's introspection capabilities. Apart from functions themselves, promises and a few other types, argument values passed to functions usually can be easily introspected. For the rest we need explicit type annotations, though.
 
 With the proposed approach we have to make sure that type signatures match their corresponding functions. For this reason ftor will provide a comprehensive library of typed functional combinators and patterns, which are guaranteed to match their signatures. Consumers of this library can focus on composing and combining these basic building blocks and ftor ensures that they keep track of their partially applied funcions' intermediate types. I think this is a sensible and practical approach.
 
