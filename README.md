@@ -40,7 +40,7 @@ Functional programming in Javascript is frustrating as soon as you face real wor
 * there are no decent debugging tools for programs written in the sense of the functional paradigm
 * there are no union types to model the world with alternatives instead of hierarchies
 
-## Differences to Flow and TypeScript
+## Differences to Static Type Checkers
 
 As a runtime type checker ftor isn't able to analyze your code and infere the type of every single expression and statement. Doing this for each and every request would certainly cause serious performance problems. A reasonable compromise is to focus on functions and their arguments and use Javascript's introspection capabilities. Apart from functions themselves, promises and a few other types, argument values passed to functions usually can be easily introspected. For the rest we need explicit type annotations, though.
 
