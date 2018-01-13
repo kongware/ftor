@@ -73,8 +73,6 @@ ftor restricts the ability of mutating data types rather than enforcing strict i
 
 ## Upcoming Milestones
 
-I am currently working on adding unit tests.
-
 - [x] incorporate parametric polymorphism
 - [x] add homogeneous Array type
 - [x] add homogeneous Map type
@@ -83,7 +81,7 @@ I am currently working on adding unit tests.
 - [x] add Algebraic data types
 - [x] incorporate row polymorphism
 - [x] add rank-2 types
-- [ ] add unit tests
+- [x] add unit tests
 - [ ] add Promise type
 - [ ] add Iterator/Generator types
 - [ ] add homogeneous Set type
@@ -742,8 +740,8 @@ empty_(xs); // type error
 ```
 # Missing Topics
 
-- [ ] Unit Type
-- [ ] Does ftor cause issues with regard to object identity?
-- [ ] Don't create dependencies to ftor since it is pluggable!
-- [ ] Best practice for incorporating ftor into third party code
-- [ ] type checker doesn't check code against type signatures
+- [ ] There is no type inference and thus no guarantee that your code matches your type signatures
+- [ ] Explore issues caused by ftor's use of proxies with regard to object identity
+- [ ] Note that creating dependencies to ftor's pluggable type system is bad
+- [ ] Sum up best practice for incorporating ftor into third party code
+- [ ] Why don't ftor need its own unit type?
