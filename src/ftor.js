@@ -3703,6 +3703,124 @@ const setTup = (tRep, tSig, xs, i, d, {mode}) => {
 
 
 /******************************************************************************
+*****[ 7.7. Promise ]**********************************************************
+******************************************************************************/
+
+
+export const Prom = (p, tSig) => {};
+
+
+const handleProm = (tRep, tSig) => {
+  return {
+    get: (o, k, p) => {
+      switch (k) {
+        case "toString": return () => tSig;
+        case Symbol.toStringTag: return cons.name;
+        case TR: return tRep;
+        case TS: return tSig;
+
+        case Symbol.toPrimitive: return hint => {
+          _throw(
+            ExtendedTypeError,
+            ["illegal implicit type conversion"],
+            tSig,
+            {desc: [
+              `must not be converted to ${capitalize(hint)} primitive`
+            ]}
+          );          
+        };
+
+        default: {
+          if (k in o) return o[k];
+
+          else _throw(
+            ExtendedTypeError,
+            ["illegal property access"],
+            tSig,
+            {desc: [`unknown ${prettyPrintK(k)}`]}
+          );
+        }
+      }
+    },
+
+    has: (o, k, p) => {
+      switch (k) {
+        case TS: return true;
+        case TR: return true;
+
+        default: _throw(
+          ExtendedTypeError,
+          ["illegal property introspection"],
+          tSig,
+          {desc: [
+            `of ${prettyPrintK(k)}`,
+            "duck typing is not allowed"
+          ]}
+        );
+      }
+    },
+
+    set: (o, k, v, p) => {
+      switch (k) {
+        case "toString": return o[k] = v, o;
+
+        default: _throw(
+          ExtendedTypeError,
+          ["illegal property mutation"],
+          tSig,
+          {desc: [
+            `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(v))}`,
+            "ADTs are immutable"
+          ]}
+        );
+      }
+    },
+
+    defineProperty: (o, k, d) => {
+      switch (k) {
+        case "name": return Reflect.defineProperty(o, k, d), o;
+      }
+
+      _throw(
+        ExtendedTypeError,
+        ["illegal property mutation"],
+        tSig,
+        {desc: [
+          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(d.value))}`,
+          "ADTs are immutable"
+        ]}
+
+      );
+    },
+
+    deleteProperty: (o, k) => {
+      _throw(
+        ExtendedTypeError,
+        ["illegal property mutation"],
+        tSig,
+        {desc: [
+          `removal of ${prettyPrintK(k)}`,
+          "ADTs are immutable"
+        ]}
+      );
+    },
+
+    ownKeys: o => {
+      _throw(
+        ExtendedTypeError,
+        ["illegal property introspection"],
+        tSig,
+        {desc: [
+          `of ${prettyPrintK(k)}`,
+          "meta programming is not allowed"
+        ]}
+      );
+    }
+  };
+};
+
+
+/******************************************************************************
 *****[ 7.7. Subtypes ]*********************************************************
 ******************************************************************************/
 
