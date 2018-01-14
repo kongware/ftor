@@ -2839,15 +2839,15 @@ export const Adt = (cons, tSig) => _case => {
     if (introspect(cons) !== "Function") _throw(
       ExtendedTypeError,
       ["Adt expects"],
-      "(Function, String -> Function -> {run: Function})",
-      {range: [1, 9], desc: [`${introspectR(cons)} received`]}
+      "Function",
+      {desc: [`${introspectR(cons)} received`]}
     );
 
     else if (cons.name.toLowerCase() === cons.name) _throw(
       ExtendedTypeError,
       ["Adt expects type constructor with capitalized name"],
-      "(Function, String -> Function -> {run: Function})",
-      {range: [1, 9], desc: [
+      "Name",
+      {desc: [
         `name "${cons.name}" received`,
         "lowercase names are reserved for functions"
       ]}
@@ -2856,15 +2856,15 @@ export const Adt = (cons, tSig) => _case => {
     else if (introspect(tSig) !== "String") _throw(
       ExtendedTypeError,
       ["Adt expects"],
-      "(Function, String -> Function -> {run: Function})",
-      {range: [11, 17], desc: [`${introspectR(tSig)} received`]}
+      "String",
+      {desc: [`${introspectR(tSig)} received`]}
     );
 
     else if (introspect(_case) !== "Function") _throw(
       ExtendedTypeError,
       ["Adt expects"],
-      "(Function, String -> Function -> {run: Function})",
-      {range: [21, 28], desc: [`${introspectR(_case)} received`]}
+      "Function",
+      {desc: [`${introspectR(_case)} received`]}
     );
 
     const tvars_ = tSig.split(" -> ").slice(-1)[0].match(/\b[a-z]\b/g),
@@ -3707,7 +3707,79 @@ const setTup = (tRep, tSig, xs, i, d, {mode}) => {
 ******************************************************************************/
 
 
-export const Prom = (p, tSig) => {};
+export const Pro = (ator, tSig) => {
+  if (types) {
+    if (introspect(ator) !== "Function") _throw(
+      ExtendedTypeError,
+      ["Pro expects"],
+      "Function",
+      {desc: [`${introspectR(ator)} received`]}
+    );
+
+    else if (ator.length !== 2) _throw(
+      ArityError,
+      ["Pro expects"],
+      "binary Function",
+      {desc: [`${ator.length}-ary Function received`]}
+    );
+
+    else if (introspect(tSig) !== "String") _throw(
+      ExtendedTypeError,
+      ["Pro expects"],
+      "String",
+      {desc: [`${introspectR(tSig)} received`]}
+    );
+
+    else if (tSig.search(/Pro<[^,>]+, [^>]+>/) !== 0) _throw(
+      ExtendedTypeError,
+      ["Pro expects"],
+      "Promise<?, ?>",
+      {desc: [
+        "type signature",
+        `"${tSig}" received`
+      ]}
+    );
+
+    const tRep = deserizalize(tSig);
+    return new Proxy(new Promise(ator), handlePro(tRep, tSig));
+  }
+
+  else return new Promise(ator);
+};
+
+
+export const Pro_ = (p, tSig) => {
+  if (types) {
+    if (introspect(p) !== "Promise") _throw(
+      ExtendedTypeError,
+      ["Pro expects"],
+      "Promise",
+      {desc: [`${introspectR(ator)} received`]}
+    );
+
+    else if (introspect(tSig) !== "String") _throw(
+      ExtendedTypeError,
+      ["Pro expects"],
+      "String",
+      {desc: [`${introspectR(tSig)} received`]}
+    );
+
+    else if (tSig.search(/Pro<[^,>]+, [^>]+>/) !== 0) _throw(
+      ExtendedTypeError,
+      ["Pro expects"],
+      "Promise<?, ?>",
+      {desc: [
+        "type signature",
+        `"${tSig}" received`
+      ]}
+    );
+
+    const tRep = deserizalize(tSig);
+    return new Proxy(p, handlePro(tRep, tSig));
+  }
+
+  else return p;
+};
 
 
 const handleProm = (tRep, tSig) => {
@@ -3770,7 +3842,7 @@ const handleProm = (tRep, tSig) => {
           tSig,
           {desc: [
             `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(v))}`,
-            "ADTs are immutable"
+            "Promises are immutable"
           ]}
         );
       }
@@ -3787,7 +3859,7 @@ const handleProm = (tRep, tSig) => {
         tSig,
         {desc: [
           `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(d.value))}`,
-          "ADTs are immutable"
+          "Promises are immutable"
         ]}
 
       );
@@ -3800,7 +3872,146 @@ const handleProm = (tRep, tSig) => {
         tSig,
         {desc: [
           `removal of ${prettyPrintK(k)}`,
-          "ADTs are immutable"
+          "Promises are immutable"
+        ]}
+      );
+    },
+
+    ownKeys: o => {
+      _throw(
+        ExtendedTypeError,
+        ["illegal property introspection"],
+        tSig,
+        {desc: [
+          `of ${prettyPrintK(k)}`,
+          "meta programming is not allowed"
+        ]}
+      );
+    }
+  };
+};
+
+
+/******************************************************************************
+*****[ 7.8. Iterator ]*********************************************************
+******************************************************************************/
+
+
+export const Itor = (iterable, tSig) => {
+  if (types) {
+    // ...
+
+    const tRep = deserizalize(tSig);
+    return new Proxy(iterable(), handleItor(tRep, tSig));
+  }
+
+  else return iterable();
+};
+
+
+export const Itor_ = (itor, tSig) => {
+  if (types) {
+    // ...
+
+    const tRep = deserizalize(tSig);
+    return new Proxy(itor, handleItor(tRep, tSig));
+  }
+
+  else return itor;
+};
+
+
+const handleItor = (tRep, tSig) => {
+  return {
+    get: (o, k, p) => {
+      switch (k) {
+        case "toString": return () => tSig;
+        case Symbol.toStringTag: return cons.name;
+        case TR: return tRep;
+        case TS: return tSig;
+
+        case Symbol.toPrimitive: return hint => {
+          _throw(
+            ExtendedTypeError,
+            ["illegal implicit type conversion"],
+            tSig,
+            {desc: [
+              `must not be converted to ${capitalize(hint)} primitive`
+            ]}
+          );          
+        };
+
+        default: {
+          if (k in o) return o[k];
+
+          else _throw(
+            ExtendedTypeError,
+            ["illegal property access"],
+            tSig,
+            {desc: [`unknown ${prettyPrintK(k)}`]}
+          );
+        }
+      }
+    },
+
+    has: (o, k, p) => {
+      switch (k) {
+        case TS: return true;
+        case TR: return true;
+
+        default: _throw(
+          ExtendedTypeError,
+          ["illegal property introspection"],
+          tSig,
+          {desc: [
+            `of ${prettyPrintK(k)}`,
+            "duck typing is not allowed"
+          ]}
+        );
+      }
+    },
+
+    set: (o, k, v, p) => {
+      switch (k) {
+        case "toString": return o[k] = v, o;
+
+        default: _throw(
+          ExtendedTypeError,
+          ["illegal property mutation"],
+          tSig,
+          {desc: [
+            `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(v))}`,
+            "Iterators are immutable"
+          ]}
+        );
+      }
+    },
+
+    defineProperty: (o, k, d) => {
+      switch (k) {
+        case "name": return Reflect.defineProperty(o, k, d), o;
+      }
+
+      _throw(
+        ExtendedTypeError,
+        ["illegal property mutation"],
+        tSig,
+        {desc: [
+          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(d.value))}`,
+          "Iterators are immutable"
+        ]}
+
+      );
+    },
+
+    deleteProperty: (o, k) => {
+      _throw(
+        ExtendedTypeError,
+        ["illegal property mutation"],
+        tSig,
+        {desc: [
+          `removal of ${prettyPrintK(k)}`,
+          "Iterators are immutable"
         ]}
       );
     },

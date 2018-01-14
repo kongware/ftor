@@ -81,7 +81,7 @@ ftor restricts the ability of mutating data types rather than enforcing strict i
 
 ## Upcoming Milestones
 
-I am currently working on incorporating promises.
+I am currently working on incorporating promises and iterators.
 
 - [x] incorporate parametric polymorphism
 - [x] add homogeneous Array type
@@ -92,12 +92,13 @@ I am currently working on incorporating promises.
 - [x] incorporate row polymorphism
 - [x] add rank-2 types
 - [x] add unit tests
-- [ ] revise error messages and pretty printing
 - [ ] add Promise type
 - [ ] add Iterator/Generator types
+- [ ] revise error messages and pretty printing
+- [ ] revise documentation
 - [ ] add homogeneous Set type
 - [ ] incorporate kind system/higher kinded types?
-- [ ] incorporate a special effect type / corresponding runtime
+- [ ] incorporate a special effect type / corresponding runtime?
 - [ ] add persistant data structures
 - [ ] provide common functional combinators/patterns
 
