@@ -75,13 +75,17 @@ F.type(true);
 
 // typed area;
 ```
+## Native Type Support
+
+Currently ftor neither supports iterators, generators nor promises. The former two are inherently stateful and hence not that functional, so I'll try to avoid them for the time being. If necessary, it should not be too difficult to type them, though. Promises on the other hand are very hard to type, because they are optimized for an untyped environment and contain a lof of magic to allow a convinient usage. Moreover, they conflate different tasks like asynchronous control flow and error handling. It is very likely that ftor won't support them ever, but will provide a wrapper to adapt promises to a purely functional Future type.
+
 ## Immutability
 
 ftor restricts the ability of mutating data types rather than enforcing strict immutability. There will be proper immutable data types in ftor as soon as I am able to incorporate reliable and fast persistant data structures into Javascript and the type checker, though.
 
 ## Upcoming Milestones
 
-I am currently working on incorporating promises and iterators.
+I am currently working on the typed, functional library.
 
 - [x] incorporate parametric polymorphism
 - [x] add homogeneous Array type
@@ -92,15 +96,15 @@ I am currently working on incorporating promises and iterators.
 - [x] incorporate row polymorphism
 - [x] add rank-2 types
 - [x] add unit tests
-- [ ] add Promise type
-- [ ] add Iterator/Generator types
 - [ ] revise error messages and pretty printing
 - [ ] revise documentation
 - [ ] add homogeneous Set type
-- [ ] incorporate kind system/higher kinded types?
-- [ ] incorporate a special effect type / corresponding runtime?
+- [ ] incorporate a special effect type / corresponding runtime
 - [ ] add persistant data structures
 - [ ] provide common functional combinators/patterns
+- [ ] incorporate kind system/higher kinded types (questionable)
+- [ ] add Promise type (questionable)
+- [ ] add Iterator/Generator types (questionable)
 
 # Types
 
