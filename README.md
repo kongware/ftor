@@ -85,7 +85,7 @@ ftor restricts the ability of mutating data types rather than enforcing strict i
 
 ## Upcoming Milestones
 
-I am currently working on the typed, functional library.
+I am currently working on the typed, functional library and the newtype wrapper for single constructor ADTs.
 
 - [x] incorporate parametric polymorphism
 - [x] add homogeneous Array type
@@ -96,6 +96,7 @@ I am currently working on the typed, functional library.
 - [x] incorporate row polymorphism
 - [x] add rank-2 types
 - [x] add unit tests
+- [ ] add a newtype for single constructor ADTs
 - [ ] revise error messages and pretty printing
 - [ ] revise documentation
 - [ ] add homogeneous Set type
