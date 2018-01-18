@@ -588,7 +588,7 @@ const deserialize = tSig => {
       {range: [n, n], desc: ["unexpected end of signature"]}
     );
 
-    else if (c.search(/[a-z0-9(\[{<>}\]), \-.:_]/i) !== 0) _throw(
+    else if (c.search(/[a-z0-9(\[{<>}\]), \-.:$_]/i) !== 0) _throw(
       ParseError,
       ["invalid type signature"],
       tSig,
@@ -742,7 +742,7 @@ const deserialize = tSig => {
           }
 
           case "NAME": {
-            if (c.search(/[a-z0-9_]/i) === 0) return aux(
+            if (c.search(/[a-z0-9$_]/i) === 0) return aux(
               tSig, n + 1,
               {depth, context, phase, buf: buf + c, name, range, tag, tReps}
             );
@@ -3936,10 +3936,151 @@ const U = f => f(f);
 ******************************************************************************/
 
 
-const id = Fun("id :: a -> a", x => x);
+// identity function
+const id = Fun(
+  "id :: a -> a",
+  x => x
+);
 
 
-const co = Fun("co :: a -> b -> a", x => y => x);
+// constant function
+const co = Fun(
+  "co :: a -> b -> a",
+  x => y => x
+);
 
 
-const co2 = Fun("co2 :: a -> b -> b", x => y => y);
+// constant function in the 2nd argument
+const co2 = Fun(
+  "co2 :: a -> b -> b",
+  x => y => y
+);
+
+
+// applicator
+const ap = Fun(
+  "(ap :: (a -> b) -> a -> b)",
+  f => x => f(x)
+);
+
+
+// continuation
+const cont = Fun(
+  "(cont :: a -> (a -> b) -> a -> b)",
+  x => k => k(x)
+);
+
+
+// binary applicator
+const ap2 = Fun(
+  "(ap :: (a -> b -> c) -> a -> b -> c)",
+  f => x => y => f(x) (y)
+);
+
+
+// flip arguments function
+const flip = Fun(
+  "(flip :: (a -> b -> c) -> b -> a -> c)",
+  f => y => x => f(x) (y)
+);
+
+
+// infix operator
+const $ = Fun(
+  "($ :: a -> (a -> b -> c) -> b -> c)",
+  x => f => y => f(x) (y)
+);
+
+
+// untyped u (aka omega) combinator
+const u = f => f(f);
+
+
+// flipped prefix operator
+const $$ = flip;
+
+
+// on combinator
+const on = Fun(
+  "(on :: (b -> b -> c) -> (a -> b) -> a -> a -> c)",
+  f => g => x => y => f(g(x)) (g(y))
+);
+
+
+// function composition
+const comp = Fun(
+  "(comp :: (b -> c) -> (a -> b) -> a -> c)",
+  f => g => x => f(g(x))
+);
+
+
+// composition with three functions
+const comp3 = Fun(
+  "(comp3 :: (c -> d) -> (b -> c) -> (a -> b) -> a -> d)",
+  f => g => h => x => f(g(h(x)))
+);
+
+
+// composition with four functions
+const comp4 = Fun(
+  "(comp4 :: (d -> e) -> (c -> d) -> (b -> c) -> (a -> b) -> a -> e)",
+  f => g => h => i => x => f(g(h(i(x))))
+);
+
+
+// composition with five functions
+const comp5 = Fun(
+  "(comp5 :: (e -> f) -> (d -> e) -> (c -> d) -> (b -> c) -> (a -> b) -> a -> f)",
+  f => g => h => i => x => f(g(h(i(j(x)))))
+);
+
+
+// composition with six functions
+const comp6 = Fun(
+  "(comp6 :: (f -> g) -> (e -> f) -> (d -> e) -> (c -> d) -> (b -> c) -> (a -> b) -> a -> f)",
+  f => g => h => i => x => f(g(h(i(j(k(x))))))
+);
+
+
+// composition with inner binary function
+const compBin = Fun(
+  "(compgBin :: (c -> d) -> (a -> b -> c) -> a -> b -> d)",
+  f => g => x => y => f(g(x) (y))
+);
+
+
+// composition in the 2nd argument of a binary function
+const compSnd = Fun(
+  "(compSnd :: (a -> c -> d) -> (b -> c) -> a -> b -> d)",
+  f => g => x => y => f(x) (g(y))
+);
+
+
+Fun.map = comp;
+
+
+Fun.ap = Fun(
+  "(ap :: (r -> a -> b) -> (r -> a) -> r -> b)",
+  f => g => x => f(x) (g(x))
+);
+
+
+Fun.chain = Fun(
+  "(chain :: (a -> r -> b) -> (r -> a) -> r -> b)",
+  f => g => x => f(g(x)) (x)
+);
+
+
+Fun.of = id;
+
+
+Fun.join = Fun(
+  "(join :: (r -> r -> a) -> r -> a)",
+  f => x => f(x) (x)
+);
+
+
+Fun.liftA2 = Fun(
+  "(liftA2 :: (b -> c -> d) -> (a -> b) -> (a -> c) -> a -> d)",
+  f => g => h => x => f(g(x)) (h(x))
+);

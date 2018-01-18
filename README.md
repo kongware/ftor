@@ -762,3 +762,5 @@ Besides `Adt` there is the `Type` constructor to create ADTs with exactly one va
 - [ ] Explore issues caused by ftor's use of proxies with regard to object identity
 - [ ] Note that creating dependencies to ftor's pluggable type system is bad
 - [ ] Why don't ftor need its own unit type?
+- [ ] ftor doesn't support typed multi argument functions and hence doesn't support `curry`/``uncurry`
+- [ ] ftor doesn't support variadic functions with heterogeneous arguments
