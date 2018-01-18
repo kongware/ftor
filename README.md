@@ -85,7 +85,7 @@ ftor restricts the ability of mutating data types rather than enforcing strict i
 
 ## Upcoming Milestones
 
-I am currently working on the typed, functional library and the newtype wrapper for single constructor ADTs.
+I am currently working on the typed, functional library.
 
 - [x] incorporate parametric polymorphism
 - [x] add homogeneous Array type
@@ -96,7 +96,6 @@ I am currently working on the typed, functional library and the newtype wrapper 
 - [x] incorporate row polymorphism
 - [x] add rank-2 types
 - [x] add unit tests
-- [ ] add a newtype for single constructor ADTs
 - [ ] revise error messages and pretty printing
 - [ ] revise documentation
 - [ ] add homogeneous Set type
@@ -756,6 +755,8 @@ empty(xs); // false
 empty(ys); // true
 empty_(xs); // type error
 ```
+Besides `Adt` there is the `Type` constructor to create ADTs with exactly one value constructor, that is to say without different cases and the need for functional pattern matching.
+
 # Missing Topics
 
 - [ ] Explore issues caused by ftor's use of proxies with regard to object identity

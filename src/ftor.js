@@ -2832,23 +2832,21 @@ const verifyUnary = (arg, argRep, fRep, fSig, sigLog) => {
 ******************************************************************************/
 
 
-export const Adt = (cons, tSig) => _case => {
-  const adt = new cons();
-
+export const Adt = (tCons, tSig) => _case => {
   if (types) {
-    if (introspect(cons) !== "Function") _throw(
+    if (introspect(tCons) !== "Function") _throw(
       ExtendedTypeError,
       ["Adt expects"],
       "Function",
-      {desc: [`${introspectR(cons)} received`]}
+      {desc: [`${introspectR(tCons)} received`]}
     );
 
-    else if (cons.name.toLowerCase() === cons.name) _throw(
+    else if (tCons.name.toLowerCase() === tCons.name) _throw(
       ExtendedTypeError,
       ["Adt expects type constructor with capitalized name"],
       "Name",
       {desc: [
-        `name "${cons.name}" received`,
+        `name "${tCons.name}" received`,
         "lowercase names are reserved for functions"
       ]}
     );
@@ -2865,6 +2863,87 @@ export const Adt = (cons, tSig) => _case => {
       ["Adt expects"],
       "Function",
       {desc: [`${introspectR(_case)} received`]}
+    );
+
+    const tvars_ = tSig.split(" -> ").slice(-1)[0].match(/\b[a-z]\b/g),
+      tvars = new Set(tvars_),
+      tRep = deserialize(tSig),
+      adt = new tCons();
+
+    if (tvars_.length !== tvars.size) _throw(
+      ExtendedTypeError,
+      [`conflicting type variables`],
+      tSig,
+      {
+        range: tRep.children.slice(-1)[0].value.range,
+        desc: ["type variables must be unique"]
+      }
+    );
+
+    const rank1 = new Set(U(f => r => {
+      const s = r.replace(/\([^()]+\)/g, "");
+      return s === r ? s : f(f) (s);
+    }) (tSig.slice(1, -1))
+      .split(" -> ")
+      .slice(0, -1)
+      .join(" -> ")
+      .match(/\b[a-z]\b/g));
+
+    rank1.forEach(r1 => {
+      if (!tvars.has(r1)) _throw(
+        ExtendedTypeError,
+        [`invalid type signature`],
+        tSig,
+        {desc: [`"${r1}" is out of scope`]}
+      );
+    });
+
+    const tRep_ = tRep.children.slice(-1)[0].value,
+      tSig_ = serialize(tRep_);
+
+    adt.run = cases => _case(cases);
+    return new Proxy(adt, handleAdt(tRep_, tSig_, tCons));
+  }
+
+  else {
+    adt = new tCons();
+    adt.run = cases => _case(cases);
+    return adt;
+  }
+};
+
+
+export const Type = (tCons, tSig) => dCons => {
+  if (types) {
+    if (introspect(tCons) !== "Function") _throw(
+      ExtendedTypeError,
+      ["Adt expects"],
+      "Function",
+      {desc: [`${introspectR(tCons)} received`]}
+    );
+
+    else if (tCons.name.toLowerCase() === tCons.name) _throw(
+      ExtendedTypeError,
+      ["Adt expects type constructor with capitalized name"],
+      "Name",
+      {desc: [
+        `name "${tCons.name}" received`,
+        "lowercase names are reserved for functions"
+      ]}
+    );
+
+    else if (introspect(tSig) !== "String") _throw(
+      ExtendedTypeError,
+      ["Adt expects"],
+      "String",
+      {desc: [`${introspectR(tSig)} received`]}
+    );
+
+    else if (introspect(dCons) !== "Function") _throw(
+      ExtendedTypeError,
+      ["Adt expects"],
+      "Function",
+      {desc: [`${introspectR(dCons)} received`]}
     );
 
     const tvars_ = tSig.split(" -> ").slice(-1)[0].match(/\b[a-z]\b/g),
@@ -2902,20 +2981,19 @@ export const Adt = (cons, tSig) => _case => {
     const tRep_ = tRep.children.slice(-1)[0].value,
       tSig_ = serialize(tRep_);
 
-    adt.run = cases => _case(cases);
-    return new Proxy(adt, handleAdt(tRep_, tSig_, cons));
+    return new Proxy(dCons(tCons), handleAdt(tRep_, tSig_, tCons));
   }
 
-  else return adt;
+  else return dCons(tCons);
 };
 
 
-const handleAdt = (tRep, tSig, cons) => {
+const handleAdt = (tRep, tSig, tCons) => {
   return {
     get: (o, k, p) => {
       switch (k) {
         case "toString": return () => tSig;
-        case Symbol.toStringTag: return cons.name;
+        case Symbol.toStringTag: return tCons.name;
         case TR: return tRep;
         case TS: return tSig;
 
