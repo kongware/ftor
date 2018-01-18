@@ -3936,10 +3936,33 @@ const U = f => f(f);
 ******************************************************************************/
 
 
-// identity function
-const id = Fun(
-  "id :: a -> a",
-  x => x
+/******************************************************************************
+*****[ 9.1. Combinators ]******************************************************
+******************************************************************************/
+
+
+// flipped prefix operator
+const _ = flip;
+
+
+// infix operator
+const $ = Fun(
+  "($ :: a -> (a -> b -> c) -> b -> c)",
+  x => f => y => f(x) (y)
+);
+
+
+// applicator
+const ap = Fun(
+  "(ap :: (a -> b) -> a -> b)",
+  f => x => f(x)
+);
+
+
+// binary applicator
+const ap2 = Fun(
+  "(ap :: (a -> b -> c) -> a -> b -> c)",
+  f => x => y => f(x) (y)
 );
 
 
@@ -3954,56 +3977,6 @@ const co = Fun(
 const co2 = Fun(
   "co2 :: a -> b -> b",
   x => y => y
-);
-
-
-// applicator
-const ap = Fun(
-  "(ap :: (a -> b) -> a -> b)",
-  f => x => f(x)
-);
-
-
-// continuation
-const cont = Fun(
-  "(cont :: a -> (a -> b) -> a -> b)",
-  x => k => k(x)
-);
-
-
-// binary applicator
-const ap2 = Fun(
-  "(ap :: (a -> b -> c) -> a -> b -> c)",
-  f => x => y => f(x) (y)
-);
-
-
-// flip arguments function
-const flip = Fun(
-  "(flip :: (a -> b -> c) -> b -> a -> c)",
-  f => y => x => f(x) (y)
-);
-
-
-// infix operator
-const $ = Fun(
-  "($ :: a -> (a -> b -> c) -> b -> c)",
-  x => f => y => f(x) (y)
-);
-
-
-// untyped u (aka omega) combinator
-const u = f => f(f);
-
-
-// flipped prefix operator
-const $$ = flip;
-
-
-// on combinator
-const on = Fun(
-  "(on :: (b -> b -> c) -> (a -> b) -> a -> a -> c)",
-  f => g => x => y => f(g(x)) (g(y))
 );
 
 
@@ -4054,6 +4027,64 @@ const compSnd = Fun(
   "(compSnd :: (a -> c -> d) -> (b -> c) -> a -> b -> d)",
   f => g => x => y => f(x) (g(y))
 );
+
+
+// first class conditional operator
+const cond = Fun(
+  "(cond :: a -> a -> Boolean -> a)",
+  x => y => b => b ? x : y;
+);
+
+
+// continuation
+const cont = Fun(
+  "(cont :: a -> (a -> b) -> a -> b)",
+  x => k => k(x)
+);
+
+
+// flip combinator
+const flip = Fun(
+  "(flip :: (a -> b -> c) -> b -> a -> c)",
+  f => y => x => f(x) (y)
+);
+
+
+// identity function
+const id = Fun(
+  "id :: a -> a",
+  x => x
+);
+
+
+// on combinator
+const on = Fun(
+  "(on :: (b -> b -> c) -> (a -> b) -> a -> a -> c)",
+  f => g => x => y => f(g(x)) (g(y))
+);
+
+
+// rotate arguments left
+const rotateL = Fun(
+  "(rotateL :: (a -> b -> c -> d) -> b -> c -> a -> d)",
+  f => y => z => x => f(x) (y) (z)
+);
+
+
+// rotate arguments right
+const rotateR = Fun(
+  "(rotateR :: (a -> b -> c -> d) -> c -> a -> b -> d)",
+  f => z => x => y => f(x) (y) (z)
+);
+
+
+// u combinator (untyped)
+const u = f => f(f);
+
+
+/******************************************************************************
+*****[ 9.1. Fun ]**************************************************************
+******************************************************************************/
 
 
 Fun.map = comp;
