@@ -2821,7 +2821,7 @@ export const Adt = (cons, tSig) => _case => {
       {desc: [`${introspect(_case)} received`]}
     );
 
-    const tvars_ = tSig.split(" -> ").slice(-1)[0].match(/\b[a-z]\b/g),
+    const tvars_ = tSig.slice(tSig.lastIndexOf(" -> ") + 4).match(/\b[a-z]\b/g),
       tvars = new Set(tvars_),
       tRep = deserialize(tSig),
       adt = new cons();
@@ -2865,90 +2865,6 @@ export const Adt = (cons, tSig) => _case => {
     adt = new cons();
     adt.run = cases => _case(cases);
     return adt;
-  }
-};
-
-
-export const Type = (cons, key, tSig) => x => {
-  if (types) {
-    if (getStringTag(cons) !== "Function") _throw(
-      ExtendedTypeError,
-      [`Type expects "cons" argument of type`],
-      "Function",
-      {desc: [`${introspect(cons)} received`]}
-    );
-
-    else if (cons.name.toLowerCase() === cons.name) _throw(
-      ExtendedTypeError,
-      [
-        `Type expects "cons" argument to be`,
-        "a constructor with capitalized name"
-      ],
-      "Name",
-      {desc: [
-        `"${cons.name}" received`,
-        "lowercase names are reserved for functions"
-      ]}
-    );
-
-    else if (getStringTag(key) !== "String") _throw(
-      ExtendedTypeError,
-      [`Type expects "key" argument of type`],
-      "String",
-      {desc: [`${introspect(key)} received`]}
-    );
-
-    else if (getStringTag(tSig) !== "String") _throw(
-      ExtendedTypeError,
-      [`Type expects "tSig" argument of type`],
-      "String",
-      {desc: [`${introspect(tSig)} received`]}
-    );
-
-    const tvars_ = tSig.split(" -> ").slice(-1)[0].match(/\b[a-z]\b/g),
-      tvars = new Set(tvars_),
-      tRep = deserialize(tSig);
-
-    if (tvars_.length !== tvars.size) _throw(
-      ExtendedTypeError,
-      [`conflicting type variables`],
-      tSig,
-      {
-        range: tRep.children.slice(-1)[0].value.range,
-        desc: ["type variables must be unique"]
-      }
-    );
-
-    const rank1 = new Set(U(f => r => {
-      const s = r.replace(/\([^()]+\)/g, "");
-      return s === r ? s : f(f) (s);
-    }) (tSig.slice(1, -1))
-      .split(" -> ")
-      .slice(0, -1)
-      .join(" -> ")
-      .match(/\b[a-z]\b/g));
-
-    rank1.forEach(r1 => {
-      if (!tvars.has(r1)) _throw(
-        ExtendedTypeError,
-        [`invalid type signature`],
-        tSig,
-        {desc: [`"${r1}" is out of scope`]}
-      );
-    });
-
-    const tRep_ = tRep.children.slice(-1)[0].value,
-      tSig_ = serialize(tRep_),
-      type = new cons();
-
-    type.run = x;
-    return new Proxy(type, handleAdt(tRep_, tSig_, cons));
-  }
-
-  else {
-    const type = new cons();
-    type[key] = x;
-    return type;
   }
 };
 
@@ -3064,7 +2980,210 @@ const handleAdt = (tRep, tSig, cons) => {
 
 
 /******************************************************************************
-*****[ 7.3. Arrays ]***********************************************************
+*****[ 7.3. ADTs (1 Constructor/1 Field) ]*************************************
+******************************************************************************/
+
+
+export const Type = (cons, key, tSig, f) => {
+  if (types) {
+    if (getStringTag(cons) !== "Function") _throw(
+      ExtendedTypeError,
+      [`Type expects "cons" argument of type`],
+      "Function",
+      {desc: [`${introspect(cons)} received`]}
+    );
+
+    else if (cons.name.toLowerCase() === cons.name) _throw(
+      ExtendedTypeError,
+      [
+        `Type expects "cons" argument to be`,
+        "a constructor with capitalized name"
+      ],
+      "Name",
+      {desc: [
+        `"${cons.name}" received`,
+        "lowercase names are reserved for functions"
+      ]}
+    );
+
+    else if (getStringTag(key) !== "String") _throw(
+      ExtendedTypeError,
+      [`Type expects "key" argument of type`],
+      "String",
+      {desc: [`${introspect(key)} received`]}
+    );
+
+    else if (getStringTag(tSig) !== "String") _throw(
+      ExtendedTypeError,
+      [`Type expects "tSig" argument of type`],
+      "String",
+      {desc: [`${introspect(tSig)} received`]}
+    );
+
+    else if (getStringTag(f) !== "Function") _throw(
+      ExtendedTypeError,
+      [`Type expects "f" argument of type`],
+      "Function",
+      {desc: [`${introspect(f)} received`]}
+    );
+
+    const tvars_ = tSig.slice(tSig.lastIndexOf(" -> ") + 4).match(/\b[a-z]\b/g),
+      tvars = new Set(tvars_),
+      tRep = deserialize(tSig);
+
+    if (tvars_.length !== tvars.size) _throw(
+      ExtendedTypeError,
+      [`conflicting type variables`],
+      tSig,
+      {
+        range: tRep.children.slice(-1)[0].value.range,
+        desc: ["type variables must be unique"]
+      }
+    );
+
+    const rank1 = new Set(U(f => r => {
+      const s = r.replace(/\([^()]+\)/g, "");
+      return s === r ? s : f(f) (s);
+    }) (tSig.slice(1, -1))
+      .split(" -> ")
+      .slice(0, -1)
+      .join(" -> ")
+      .match(/\b[a-z]\b/g));
+
+    rank1.forEach(r1 => {
+      if (!tvars.has(r1)) _throw(
+        ExtendedTypeError,
+        [`invalid type signature`],
+        tSig,
+        {desc: [`"${r1}" is out of scope`]}
+      );
+    });
+
+    const type = new cons();
+    type[key] = x;
+    return new Proxy(type, handleType(tRep_, tSig_, cons));
+  }
+
+  else {
+    const type = new cons();
+    type[key] = x;
+    return type;
+  }
+};
+
+
+const handleType = (tRep, tSig, cons) => {
+  return {
+    get: (o, k, p) => {
+      switch (k) {
+        case "toString": return () => tSig;
+        case Symbol.toStringTag: return cons.name;
+        case TR: return tRep;
+        case TS: return tSig;
+
+        case Symbol.toPrimitive: return hint => {
+          _throw(
+            ExtendedTypeError,
+            ["illegal implicit type conversion"],
+            tSig,
+            {desc: [
+              `must not be converted to ${capitalize(hint)} primitive`
+            ]}
+          );          
+        };
+
+        default: {
+          if (k in o) return o[k];
+
+          else _throw(
+            ExtendedTypeError,
+            ["illegal property access"],
+            tSig,
+            {desc: [`unknown ${prettyPrintK(k)}`]}
+          );
+        }
+      }
+    },
+
+    has: (o, k, p) => {
+      switch (k) {
+        case TS: return true;
+        case TR: return true;
+
+        default: _throw(
+          ExtendedTypeError,
+          ["illegal property introspection"],
+          tSig,
+          {desc: [
+            `of ${prettyPrintK(k)}`,
+            "duck typing is not allowed"
+          ]}
+        );
+      }
+    },
+
+    set: (o, k, v, p) => {
+      switch (k) {
+        case "toString": return o[k] = v, o;
+
+        default: _throw(
+          ExtendedTypeError,
+          ["illegal property mutation"],
+          tSig,
+          {desc: [
+            `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(v))}`,
+            "ADTs are immutable"
+          ]}
+        );
+      }
+    },
+
+    defineProperty: (o, k, d) => {
+      switch (k) {
+        case "name": return Reflect.defineProperty(o, k, d), o;
+      }
+
+      _throw(
+        ExtendedTypeError,
+        ["illegal property mutation"],
+        tSig,
+        {desc: [
+          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(d.value))}`,
+          "ADTs are immutable"
+        ]}
+
+      );
+    },
+
+    deleteProperty: (o, k) => {
+      _throw(
+        ExtendedTypeError,
+        ["illegal property mutation"],
+        tSig,
+        {desc: [
+          `removal of ${prettyPrintK(k)}`,
+          "ADTs are immutable"
+        ]}
+      );
+    },
+
+    ownKeys: o => {
+      _throw(
+        ExtendedTypeError,
+        ["illegal property introspection"],
+        tSig,
+        {desc: [
+          `of ${prettyPrintK(k)}`,
+          "meta programming is not allowed"
+        ]}
+      );
+    }
+  };
+};
+
+
+/******************************************************************************
+*****[ 7.4. Arrays ]***********************************************************
 ******************************************************************************/
 
 
@@ -3445,7 +3564,7 @@ const handleMap = (tRep, tSig) => ({
 
 
 /******************************************************************************
-*****[ 7.5. Records ]**********************************************************
+*****[ 7.6. Records ]**********************************************************
 ******************************************************************************/
 
 
@@ -3585,7 +3704,7 @@ const setRec = (tRep, tSig, o, k, d, {mode}) => {
 
 
 /******************************************************************************
-*****[ 7.6. Tuples ]***********************************************************
+*****[ 7.7. Tuples ]***********************************************************
 ******************************************************************************/
 
 
@@ -3746,7 +3865,7 @@ const setTup = (tRep, tSig, xs, i, d, {mode}) => {
 
 
 /******************************************************************************
-*****[ 7.7. Subtypes ]*********************************************************
+*****[ 7.8. Subtypes ]*********************************************************
 ******************************************************************************/
 
 
@@ -3758,11 +3877,11 @@ class Int extends Number {
 
 
 /******************************************************************************
-*****[ 7.8. Errors ]***********************************************************
+*****[ 7.9. Errors ]***********************************************************
 ******************************************************************************/
 
 
-//***[ 7.8.1. Subtypes ]*******************************************************
+//***[ 7.9.1. Subtypes ]*******************************************************
 
 
 class ArityError extends Error {
@@ -3797,7 +3916,7 @@ class ReturnTypeError extends Error {
 };
 
 
-//***[ 7.8.2. Throwing ]*******************************************************
+//***[ 7.9.2. Throwing ]*******************************************************
 
 
 const _throw = (Cons, title, sig, {range = [0, -1], desc = [], sigLog = [], constraints = new Map()}) => {
@@ -3829,7 +3948,7 @@ const _throw = (Cons, title, sig, {range = [0, -1], desc = [], sigLog = [], cons
 };
 
 
-//***[ 7.8.3. Formatting ]*****************************************************
+//***[ 7.9.3. Formatting ]*****************************************************
 
 
 const ul = (n, m) => Array(n + 1).join(" ") + Array(m - n + 2).join("^");

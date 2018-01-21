@@ -85,7 +85,7 @@ ftor restricts the ability of mutating data types rather than enforcing strict i
 
 ## Upcoming Milestones
 
-I am currently working on the typed, functional library.
+I am currently working on the ADT implementation for single constrcutor/field and multi constructor/field ADTs.
 
 - [x] incorporate parametric polymorphism
 - [x] add homogeneous Array type
@@ -713,7 +713,7 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
-[PLEASE NOTE: ftor's ADT implementation is still premature and untested.]
+**PLEASE NOTE: The entire ADT implementation is broken and needs to be reimplemented!**
 
 ADTs give ftor's type system the notion of alternatives. They are composite types that can contain several types but only one can exist at a time. For each case you have a constructor to create the corresponding values and with pattern matching you can determine which case exists respectively. ADTs are a refinement of tagged unions, which are a refinement of union types themselves.
 
