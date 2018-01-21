@@ -2788,21 +2788,21 @@ const verifyUnary = (arg, argRep, fRep, fSig, sigLog) => {
 ******************************************************************************/
 
 
-export const Adt = (tCons, tSig) => _case => {
+export const Adt = (cons, tSig) => _case => {
   if (types) {
-    if (getStringTag(tCons) !== "Function") _throw(
+    if (getStringTag(cons) !== "Function") _throw(
       ExtendedTypeError,
       ["Adt expects"],
       "Function",
-      {desc: [`${introspect(tCons)} received`]}
+      {desc: [`${introspect(cons)} received`]}
     );
 
-    else if (tCons.name.toLowerCase() === tCons.name) _throw(
+    else if (cons.name.toLowerCase() === cons.name) _throw(
       ExtendedTypeError,
       ["Adt expects type constructor with capitalized name"],
       "Name",
       {desc: [
-        `name "${tCons.name}" received`,
+        `name "${cons.name}" received`,
         "lowercase names are reserved for functions"
       ]}
     );
@@ -2824,7 +2824,7 @@ export const Adt = (tCons, tSig) => _case => {
     const tvars_ = tSig.split(" -> ").slice(-1)[0].match(/\b[a-z]\b/g),
       tvars = new Set(tvars_),
       tRep = deserialize(tSig),
-      adt = new tCons();
+      adt = new cons();
 
     if (tvars_.length !== tvars.size) _throw(
       ExtendedTypeError,
@@ -2858,48 +2858,51 @@ export const Adt = (tCons, tSig) => _case => {
       tSig_ = serialize(tRep_);
 
     adt.run = cases => _case(cases);
-    return new Proxy(adt, handleAdt(tRep_, tSig_, tCons));
+    return new Proxy(adt, handleAdt(tRep_, tSig_, cons));
   }
 
   else {
-    adt = new tCons();
+    adt = new cons();
     adt.run = cases => _case(cases);
     return adt;
   }
 };
 
 
-export const Type = (tCons, tSig) => dCons => {
+export const Type = (cons, key, tSig) => x => {
   if (types) {
-    if (getStringTag(tCons) !== "Function") _throw(
+    if (getStringTag(cons) !== "Function") _throw(
       ExtendedTypeError,
-      ["Adt expects"],
+      [`Type expects "cons" argument of type`],
       "Function",
-      {desc: [`${introspect(tCons)} received`]}
+      {desc: [`${introspect(cons)} received`]}
     );
 
-    else if (tCons.name.toLowerCase() === tCons.name) _throw(
+    else if (cons.name.toLowerCase() === cons.name) _throw(
       ExtendedTypeError,
-      ["Adt expects type constructor with capitalized name"],
+      [
+        `Type expects "cons" argument to be`,
+        "a constructor with capitalized name"
+      ],
       "Name",
       {desc: [
-        `name "${tCons.name}" received`,
+        `"${cons.name}" received`,
         "lowercase names are reserved for functions"
       ]}
     );
 
-    else if (getStringTag(tSig) !== "String") _throw(
+    else if (getStringTag(key) !== "String") _throw(
       ExtendedTypeError,
-      ["Adt expects"],
+      [`Type expects "key" argument of type`],
       "String",
-      {desc: [`${introspect(tSig)} received`]}
+      {desc: [`${introspect(key)} received`]}
     );
 
-    else if (getStringTag(dCons) !== "Fun") _throw(
+    else if (getStringTag(tSig) !== "String") _throw(
       ExtendedTypeError,
-      ["Adt expects"],
-      "Fun",
-      {desc: [`${introspect(dCons)} received`]}
+      [`Type expects "tSig" argument of type`],
+      "String",
+      {desc: [`${introspect(tSig)} received`]}
     );
 
     const tvars_ = tSig.split(" -> ").slice(-1)[0].match(/\b[a-z]\b/g),
@@ -2935,21 +2938,27 @@ export const Type = (tCons, tSig) => dCons => {
     });
 
     const tRep_ = tRep.children.slice(-1)[0].value,
-      tSig_ = serialize(tRep_);
+      tSig_ = serialize(tRep_),
+      type = new cons();
 
-    return new Proxy(dCons(tCons), handleAdt(tRep_, tSig_, tCons));
+    type.run = x;
+    return new Proxy(type, handleAdt(tRep_, tSig_, cons));
   }
 
-  else return dCons(tCons);
+  else {
+    const type = new cons();
+    type[key] = x;
+    return type;
+  }
 };
 
 
-const handleAdt = (tRep, tSig, tCons) => {
+const handleAdt = (tRep, tSig, cons) => {
   return {
     get: (o, k, p) => {
       switch (k) {
         case "toString": return () => tSig;
-        case Symbol.toStringTag: return tCons.name;
+        case Symbol.toStringTag: return cons.name;
         case TR: return tRep;
         case TS: return tSig;
 
