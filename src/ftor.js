@@ -68,51 +68,13 @@ const NO_MGU = 3;
 ******************************************************************************/
 
 
-const introspect = x => {
-  switch (typeof x) {
-    case "boolean": return "Boolean";
-
-    case "function": {
-      if (TS in x) return x[TS];
-      else return "Function";
-    }
-
-    case "number": {
-      if (Number.isNaN(x)) return "NaN";
-      else return "Number";
-    }
-
-    case "string": return "String";
-    case "symbol": return "Symbol";
-    case "undefined": return "Undefined";
-
-    case "object": {
-      if (x === null) return "Null";
-
-      else {
-        if (TS in x) return x[TS];
-
-        else {
-          let tag = getStringTag(x);
-
-          if (tag === "Object" && "constructor" in x) {
-            tag = x.constructor.name;
-          }
-
-          if (tag === "Number") {
-            if (Number.isNaN(x)) return "NaN";
-            else return tag;
-          }
-
-          else return tag;
-        }
-      }
-    }
-  }
+const getStringTag = x => {
+  const ss = Object.prototype.toString.call(x).split(" ");
+  return last(ss).slice(0, -1);
 };
 
 
-const introspectR = x => {
+const introspect = x => {
   const tag = getStringTag(x);
 
   switch (typeof x) {
@@ -143,7 +105,7 @@ const introspectR = x => {
           switch (tag) {
             case "Array": {
               if (x.length === 0) return "[a]";
-              else if (x.length === 1) return `[${introspectR(x[0])}]`;
+              else if (x.length === 1) return `[${introspect(x[0])}]`;
 
               else {
                 const [s, sigs] = x.reduce(([s, sigs, n], y, m) => {
@@ -154,7 +116,7 @@ const introspectR = x => {
                       {desc: [`index gap at #${n + 1} detected`]}
                     );
 
-                    y = introspectR(y);
+                    y = introspect(y);
                     return [s.add(y), sigs.concat(y), n + 1];
                   }, [new Set(), [], -1]);
 
@@ -176,8 +138,8 @@ const introspectR = x => {
 
             case "Map": {
               const s = Array.from(x).reduce((s, [k, v]) => {
-                  k = introspectR(k);
-                  v = introspectR(v);
+                  k = introspect(k);
+                  v = introspect(v);
                   return s.add(`{${k}::${v}}`);
                 }, new Set());
 
@@ -200,7 +162,7 @@ const introspectR = x => {
 
             case "Object": {
               const sigs = Object.entries(x).reduce((sigs, [k, v]) => {
-                  v = introspectR(v);
+                  v = introspect(v);
                   return sigs.concat(`${k}: ${v}`);
                 }, []);
 
@@ -223,12 +185,6 @@ const introspectR = x => {
       }
     }
   }
-};
-
-
-const getStringTag = x => {
-  const ss = Object.prototype.toString.call(x).split(" ");
-  return last(ss).slice(0, -1);
 };
 
 
@@ -2536,18 +2492,18 @@ const escapeRegExp = s => s.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&
 
 export const Fun = (fSig, f) => {
   if (types) {
-    if (introspect(fSig) !== "String") _throw(
+    if (getStringTag(fSig) !== "String") _throw(
       ExtendedTypeError,
       ["Fun expects"],
       "(String, Function -> Function)",
-      {range: [1, 6], desc: [`${introspectR(fSig)} received`]}
+      {range: [1, 6], desc: [`${introspect(fSig)} received`]}
     );
 
-    else if (introspect(f) !== "Function") _throw(
+    else if (getStringTag(f) !== "Function") _throw(
       ExtendedTypeError,
       ["Fun expects"],
       "(String, Function -> Function)",
-      {range: [9, 8], desc: [`${introspectR(f)} received`]}
+      {range: [9, 8], desc: [`${introspect(f)} received`]}
     );
 
     const fRep = deserialize(fSig);
@@ -2598,7 +2554,7 @@ const handleFun = (fRep, fSig, state) => {
       switch (argRep.constructor.name) {
         case "ArgT": {
           verifyUnary(arg, argRep, fRep, fSig, state.sigLog);
-          const tSig = introspectR(arg[0]);
+          const tSig = introspect(arg[0]);
           
           state = unify(
             argRep.value,
@@ -2625,7 +2581,7 @@ const handleFun = (fRep, fSig, state) => {
           const argSig = serialize(argRep.value);
 
           arg.forEach((arg_, n) => {
-            const tSig = introspectR(arg_);
+            const tSig = introspect(arg_);
 
             state = unify(
               argRep.value,
@@ -2647,7 +2603,7 @@ const handleFun = (fRep, fSig, state) => {
 
       if (fRep.children[1].constructor.name === "ReturnT") {
         const r = g(...arg),
-          rSig = introspectR(r);
+          rSig = introspect(r);
 
         state = unify(
           fRep.children[1].value,
@@ -2748,7 +2704,7 @@ const handleFun = (fRep, fSig, state) => {
           ["illegal property mutation"],
           fSig,
           {desc: [
-            `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(v))}`,
+            `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(v))}`,
             "function objects are immutable"
           ]}
         );
@@ -2765,7 +2721,7 @@ const handleFun = (fRep, fSig, state) => {
         ["illegal property mutation"],
         fSig,
         {desc: [
-          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(d.value))}`,
+          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(d.value))}`,
           "function objects are immutable"
         ]}
 
@@ -2834,11 +2790,11 @@ const verifyUnary = (arg, argRep, fRep, fSig, sigLog) => {
 
 export const Adt = (tCons, tSig) => _case => {
   if (types) {
-    if (introspect(tCons) !== "Function") _throw(
+    if (getStringTag(tCons) !== "Function") _throw(
       ExtendedTypeError,
       ["Adt expects"],
       "Function",
-      {desc: [`${introspectR(tCons)} received`]}
+      {desc: [`${introspect(tCons)} received`]}
     );
 
     else if (tCons.name.toLowerCase() === tCons.name) _throw(
@@ -2851,18 +2807,18 @@ export const Adt = (tCons, tSig) => _case => {
       ]}
     );
 
-    else if (introspect(tSig) !== "String") _throw(
+    else if (getStringTag(tSig) !== "String") _throw(
       ExtendedTypeError,
       ["Adt expects"],
       "String",
-      {desc: [`${introspectR(tSig)} received`]}
+      {desc: [`${introspect(tSig)} received`]}
     );
 
-    else if (introspect(_case) !== "Function") _throw(
+    else if (getStringTag(_case) !== "Function") _throw(
       ExtendedTypeError,
       ["Adt expects"],
       "Function",
-      {desc: [`${introspectR(_case)} received`]}
+      {desc: [`${introspect(_case)} received`]}
     );
 
     const tvars_ = tSig.split(" -> ").slice(-1)[0].match(/\b[a-z]\b/g),
@@ -2915,11 +2871,11 @@ export const Adt = (tCons, tSig) => _case => {
 
 export const Type = (tCons, tSig) => dCons => {
   if (types) {
-    if (introspect(tCons) !== "Function") _throw(
+    if (getStringTag(tCons) !== "Function") _throw(
       ExtendedTypeError,
       ["Adt expects"],
       "Function",
-      {desc: [`${introspectR(tCons)} received`]}
+      {desc: [`${introspect(tCons)} received`]}
     );
 
     else if (tCons.name.toLowerCase() === tCons.name) _throw(
@@ -2932,18 +2888,18 @@ export const Type = (tCons, tSig) => dCons => {
       ]}
     );
 
-    else if (introspect(tSig) !== "String") _throw(
+    else if (getStringTag(tSig) !== "String") _throw(
       ExtendedTypeError,
       ["Adt expects"],
       "String",
-      {desc: [`${introspectR(tSig)} received`]}
+      {desc: [`${introspect(tSig)} received`]}
     );
 
-    else if (introspect(dCons) !== "Function") _throw(
+    else if (getStringTag(dCons) !== "Fun") _throw(
       ExtendedTypeError,
       ["Adt expects"],
-      "Function",
-      {desc: [`${introspectR(dCons)} received`]}
+      "Fun",
+      {desc: [`${introspect(dCons)} received`]}
     );
 
     const tvars_ = tSig.split(" -> ").slice(-1)[0].match(/\b[a-z]\b/g),
@@ -3047,7 +3003,7 @@ const handleAdt = (tRep, tSig, tCons) => {
           ["illegal property mutation"],
           tSig,
           {desc: [
-            `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(v))}`,
+            `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(v))}`,
             "ADTs are immutable"
           ]}
         );
@@ -3064,7 +3020,7 @@ const handleAdt = (tRep, tSig, tCons) => {
         ["illegal property mutation"],
         tSig,
         {desc: [
-          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(d.value))}`,
+          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(d.value))}`,
           "ADTs are immutable"
         ]}
 
@@ -3105,16 +3061,16 @@ const handleAdt = (tRep, tSig, tCons) => {
 
 export const Arr = xs => {
   if (types) {
-    if (introspect(xs) !== "Array") _throw(
+    if (getStringTag(xs) !== "Array") _throw(
       ExtendedTypeError,
       ["Arr expects an Array"],
-      introspectR(xs),
+      introspect(xs),
       {desc: ["received"]}
     );
 
     else if (TR in xs) return xs;
 
-    const tSig = introspectR(xs),
+    const tSig = introspect(xs),
       tRep = deserialize(tSig);
 
     if (tRep.tag === "Tup") _throw(
@@ -3240,7 +3196,7 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
         ["illegal non-numeric property mutation"],
         tSig,
         {desc: [
-          `of ${prettyPrintK(i)} with type ${prettyPrintV(introspectR(d.value))}`,
+          `of ${prettyPrintK(i)} with type ${prettyPrintV(introspect(d.value))}`,
           "Arrays are immutable for non-numeric properties"
         ]}
       );
@@ -3253,18 +3209,18 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
       ["illegal property setting"],
       tSig,
       {desc: [
-        `of ${prettyPrintK(i)} with type ${prettyPrintV(introspectR(d.value))}`,
+        `of ${prettyPrintK(i)} with type ${prettyPrintV(introspect(d.value))}`,
         "setting would cause an index gap"
       ]}
     );
 
-    else if (tSig !== `[${introspectR(d.value)}]`) {
+    else if (tSig !== `[${introspect(d.value)}]`) {
       _throw(
         ExtendedTypeError,
         ["illegal property mutation"],
         tSig,
         {desc: [
-          `of ${prettyPrintK(i)} with type ${prettyPrintV(introspectR(d.value))}`,
+          `of ${prettyPrintK(i)} with type ${prettyPrintV(introspect(d.value))}`,
           "Arrays must preserve their type"
         ]}
       );
@@ -3286,16 +3242,16 @@ const setArr = (tRep, tSig, xs, i, d, {mode}) => {
 
 export const _Map = map => {
   if (types) {
-    if (introspect(map) !== "Map") _throw(
+    if (getStringTag(map) !== "Map") _throw(
       ExtendedTypeError,
       ["_Map expects an ES2015 Map"],
-      introspectR(map),
+      introspect(map),
       {desc: ["received"]}
     );
 
     else if (TR in map) return map;
 
-    const tSig = introspectR(map),
+    const tSig = introspect(map),
       tRep = deserialize(tSig);
 
     if (tRep.children.length > 1) _throw(
@@ -3350,7 +3306,7 @@ const handleMap = (tRep, tSig) => ({
       case "has": return k => map.has(k);
 
       case "set": return (k, v) => {
-        if (introspectR(k) !== serialize(tRep.children[0].k)) {
+        if (introspect(k) !== serialize(tRep.children[0].k)) {
           _throw(
             ExtendedTypeError,
             ["illegal property mutation"],
@@ -3362,7 +3318,7 @@ const handleMap = (tRep, tSig) => ({
           );
         }
 
-        else if (introspectR(v) !== serialize(tRep.children[0].v)) {
+        else if (introspect(v) !== serialize(tRep.children[0].v)) {
           const [from, to] = tRep.children[0].v.range;
 
           _throw(
@@ -3370,7 +3326,7 @@ const handleMap = (tRep, tSig) => ({
             ["illegal property mutation"],
             tSig,
             {range: [from, to], desc: [
-              `from type ${prettyPrintV(introspectR(v))} to ${prettyPrintV(serialize(tRep.children[0].v))}`,
+              `from type ${prettyPrintV(introspect(v))} to ${prettyPrintV(serialize(tRep.children[0].v))}`,
               "Maps must preserve their type"
             ]}
           );
@@ -3435,7 +3391,7 @@ const handleMap = (tRep, tSig) => ({
         ["illegal property mutation"],
         tSig,
         {desc: [
-          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(v))}`,
+          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(v))}`,
           "_Map objects are immutable"
         ]}
       );
@@ -3448,7 +3404,7 @@ const handleMap = (tRep, tSig) => ({
       ["illegal property mutation"],
       tSig,
       {desc: [
-        `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(d.value))}`,
+        `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(d.value))}`,
         "_Map objects are immutable"
       ]}
 
@@ -3486,16 +3442,16 @@ const handleMap = (tRep, tSig) => ({
 
 export const Rec = o => {
   if (types) {
-    if (introspect(o) !== "Object") _throw(
+    if (getStringTag(o) !== "Object") _throw(
       ExtendedTypeError,
       ["Rec expects an Object"],
-      introspectR(o),
+      introspect(o),
       {desc: ["received"]}
     );
 
     else if (TR in o) return o;
 
-    const tSig = introspectR(o),
+    const tSig = introspect(o),
       tRep = deserialize(tSig);
 
     return new Proxy(o, handleRec(tRep, tSig));
@@ -3595,7 +3551,7 @@ const setRec = (tRep, tSig, o, k, d, {mode}) => {
     ]}
   );
 
-  else if (introspectR(o[k]) !== introspectR(d.value)) {
+  else if (introspect(o[k]) !== introspect(d.value)) {
     const [from, to] = tRep.children.filter(tRep_ => {
       return tRep_.k === k ? tRep_.v : false}
     )[0].v.range;
@@ -3605,7 +3561,7 @@ const setRec = (tRep, tSig, o, k, d, {mode}) => {
       ["illegal property mutation"],
       tSig,
       {range: [from, to], desc: [
-        `of ${prettyPrintK(k)} with type ${prettyPrintV(introspectR(d.value))}`,
+        `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(d.value))}`,
         "Record fields must preserve their type"
       ]}
     );
@@ -3626,16 +3582,16 @@ const setRec = (tRep, tSig, o, k, d, {mode}) => {
 
 export const Tup = xs => {
   if (types) {
-    if (introspect(xs) !== "Array") _throw(
+    if (getStringTag(xs) !== "Array") _throw(
       ExtendedTypeError,
       ["Tup expects an Array"],
-      introspectR(xs),
+      introspect(xs),
       {desc: ["received"]}
     );
 
     else if (TR in xs) return xs;
 
-    const tSig = introspectR(xs),
+    const tSig = introspect(xs),
       tRep = deserialize(tSig);
 
     if (tRep.tag === "Arr") _throw(
@@ -3740,7 +3696,7 @@ const setTup = (tRep, tSig, xs, i, d, {mode}) => {
     ["illegal property mutation"],
     tSig,
     {desc: [
-      `of ${prettyPrintK(i)} with type ${prettyPrintV(introspectR(d.value))}`,
+      `of ${prettyPrintK(i)} with type ${prettyPrintV(introspect(d.value))}`,
       "Tuples are immutable for non-numeric properties"
     ]}
   );
@@ -3751,13 +3707,13 @@ const setTup = (tRep, tSig, xs, i, d, {mode}) => {
       ["illegal property setting"],
       tSig,
       {desc: [
-        `of ${prettyPrintK(i)} with type ${prettyPrintV(introspectR(d.value))}`,
+        `of ${prettyPrintK(i)} with type ${prettyPrintV(introspect(d.value))}`,
         `where Tuple includes only ${xs.length} fields`,
         "Tuples are sealed"
       ]}
     );
 
-    else if (introspectR(xs[i]) !== `${introspectR(d.value)}`) {
+    else if (introspect(xs[i]) !== `${introspect(d.value)}`) {
       const [from, to] = tRep.children[i].range;
 
       _throw(
@@ -3765,7 +3721,7 @@ const setTup = (tRep, tSig, xs, i, d, {mode}) => {
         ["illegal property mutation"],
         tSig,
         {range: [from, to], desc: [
-          `of ${prettyPrintK(i)} with type ${prettyPrintV(introspectR(d.value))}`,
+          `of ${prettyPrintK(i)} with type ${prettyPrintV(introspect(d.value))}`,
           "Tuple fields must preserve their type"
         ]}
       );
@@ -3941,10 +3897,6 @@ const U = f => f(f);
 ******************************************************************************/
 
 
-// flipped prefix operator
-const _ = flip;
-
-
 // infix operator
 const $ = Fun(
   "($ :: a -> (a -> b -> c) -> b -> c)",
@@ -3953,8 +3905,8 @@ const $ = Fun(
 
 
 // applicator
-const ap = Fun(
-  "(ap :: (a -> b) -> a -> b)",
+const app = Fun(
+  "(app :: (a -> b) -> a -> b)",
   f => x => f(x)
 );
 
@@ -3968,14 +3920,14 @@ const ap2 = Fun(
 
 // constant function
 const co = Fun(
-  "co :: a -> b -> a",
+  "(co :: a -> b -> a)",
   x => y => x
 );
 
 
 // constant function in the 2nd argument
 const co2 = Fun(
-  "co2 :: a -> b -> b",
+  "(co2 :: a -> b -> b)",
   x => y => y
 );
 
@@ -4032,7 +3984,7 @@ const compSnd = Fun(
 // first class conditional operator
 const cond = Fun(
   "(cond :: a -> a -> Boolean -> a)",
-  x => y => b => b ? x : y;
+  x => y => b => b ? x : y
 );
 
 
@@ -4050,9 +4002,23 @@ const flip = Fun(
 );
 
 
+// function guard
+const guard = Fun(
+  "(guard :: (a -> a) -> (a -> Boolean) -> a -> a)",
+  f => p => x => p(x) ? f(x) : x
+);
+
+
+// function guard with default value
+const guardOr = Fun(
+  "(guardOr :: (a -> b) -> (a -> Boolean) -> b -> a -> b)",
+  f => p => x => y => p(y) ? f(y) : x
+);
+
+
 // identity function
 const id = Fun(
-  "id :: a -> a",
+  "(id :: a -> a)",
   x => x
 );
 
@@ -4078,39 +4044,62 @@ const rotateR = Fun(
 );
 
 
+// tap function (untyped)
+const tap = f => x => (f(x), x);
+
+
 // u combinator (untyped)
 const u = f => f(f);
 
 
+//***[ 9.1.1. Derived Combinators ]********************************************
+
+
+// flipped prefix operator
+const _ = flip;
+
+
 /******************************************************************************
-*****[ 9.1. Fun ]**************************************************************
+*****[ 9.1. Fun Type Class ]***************************************************
 ******************************************************************************/
 
 
-Fun.map = comp;
+// functor
+Fun.map = Fun(
+  "(map :: (b -> c) -> (a -> b) -> a -> c)",
+  f => g => x => f(g(x))
+);
 
 
+// applicative
 Fun.ap = Fun(
   "(ap :: (r -> a -> b) -> (r -> a) -> r -> b)",
   f => g => x => f(x) (g(x))
 );
 
 
+// monadic chain
 Fun.chain = Fun(
   "(chain :: (a -> r -> b) -> (r -> a) -> r -> b)",
   f => g => x => f(g(x)) (x)
 );
 
 
-Fun.of = id;
+// monadic of
+Fun.of = Fun(
+  "(of :: a -> a)",
+  x => x
+);
 
 
+// monadic join
 Fun.join = Fun(
   "(join :: (r -> r -> a) -> r -> a)",
   f => x => f(x) (x)
 );
 
 
+// lift a function into the context of a function applicative
 Fun.liftA2 = Fun(
   "(liftA2 :: (b -> c -> d) -> (a -> b) -> (a -> c) -> a -> d)",
   f => g => h => x => f(g(x)) (h(x))
