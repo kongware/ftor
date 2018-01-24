@@ -716,7 +716,7 @@ snd(t); // "foo"
 
 ADTs are merely a refinement of tagged unions, which are a refinement of union types themselves. They are also known as sums of products. ftor uses Scott encoding to express ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are supplied.
 
-There are three ways to construct an ADT. Here is a contrived example:
+There are three ways to construct an ADT with ftor. Here is a contrived example:
 
 ```Javascript
 const cont = Fun(
