@@ -777,6 +777,44 @@ z.run(Fun(
   ({foo, bar, baz}) => foo.toUpperCase() + "!"
 )); // "FOO!"
 ```
+
+Now the recursive `List` type is possible in Javascript:
+
+```Javascript
+const List = Adt(
+  function List() {},
+  "(List :: ({Cons: (a -> List<a> -> r), Nil: r} -> r) -> List<a>)"
+);
+
+const Nil = List(cases => cases.Nil);
+const Cons = x => tx => List(cases => cases.Cons(x) (tx));
+
+const uncons = Fun(
+  "(uncons :: {Cons: (a -> List<a> -> r), Nil: r} -> List<a> -> r)",
+  cases => tx => tx.run(cases)
+);
+
+const empty = uncons(
+  Rec({
+    Nil: true, Cons: F.Fun("(a -> List<a> -> Boolean)",
+    x => tx => false)
+  })
+);
+
+const brokenEmpty = uncons(
+  Rec({
+    Foo: true, Cons: F.Fun("(a -> List<a> -> Boolean)",
+    x => tx => false)
+  })
+);
+
+const xs = Cons("foo") (Nil),
+  ys = Nil;
+
+empty(xs); // false
+empty(ys); // true
+brokenEmpty(xs); // type error (Nil case missing)
+```
 Scary type signatures...
 
 Cases & Functional Pattern Matching...
