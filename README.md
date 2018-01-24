@@ -98,7 +98,7 @@ I am currently working on the ADT implementation for single constrcutor/field an
 - [x] add unit tests
 - [ ] revise error messages and pretty printing
 - [ ] revise documentation
-- [ ] replace monolithic parser with function parser combinators
+- [ ] replace monolithic parser with functional parser combinators
 - [ ] add homogeneous Set type
 - [ ] incorporate a special effect type / corresponding runtime
 - [ ] add persistant data structures
@@ -714,9 +714,7 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
-ADTs give ftor's type system the notion of alternatives. They are composite types that can contain several types but only one can exist at a time. For each case you have a constructor to create the corresponding values and with pattern matching you can determine which case exists respectively. ADTs are a refinement of tagged unions, which are a refinement of union types themselves.
-
-ftor uses Scott encoding to enable ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are provided. Scott encoding defines data types by their deconstruction operator.
+ADTs are merely a refinement of tagged unions, which are a refinement of union types themselves. They are also known as sums of products. ftor uses Scott encoding to express ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are supplied.
 
 There are three ways to construct an ADT. Here is a contrived example:
 
@@ -779,6 +777,8 @@ z.run(Fun(
   ({foo, bar, baz}) => foo.toUpperCase() + "!"
 )); // "FOO!"
 ```
+Scary type signatures...
+
 Cases & Functional Pattern Matching...
 
 Sums of Products...
