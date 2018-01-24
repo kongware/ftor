@@ -2788,21 +2788,21 @@ const verifyUnary = (arg, argRep, fRep, fSig, sigLog) => {
 ******************************************************************************/
 
 
-export const Adt = (cons, tSig) => _case => {
+export const Adt = (Tcons, tSig) => Dcons => {
   if (types) {
-    if (getStringTag(cons) !== "Function") _throw(
+    if (getStringTag(Tcons) !== "Function") _throw(
       ExtendedTypeError,
       ["Adt expects"],
       "Function",
-      {desc: [`${introspect(cons)} received`]}
+      {desc: [`${introspect(Tcons)} received`]}
     );
 
-    else if (cons.name.toLowerCase() === cons.name) _throw(
+    else if (Tcons.name.toLowerCase() === Tcons.name) _throw(
       ExtendedTypeError,
       ["Adt expects type constructor with capitalized name"],
       "Name",
       {desc: [
-        `name "${cons.name}" received`,
+        `name "${Tcons.name}" received`,
         "lowercase names are reserved for functions"
       ]}
     );
@@ -2814,220 +2814,14 @@ export const Adt = (cons, tSig) => _case => {
       {desc: [`${introspect(tSig)} received`]}
     );
 
-    else if (getStringTag(_case) !== "Function") _throw(
+    else if (getStringTag(Dcons) !== "Function") _throw(
       ExtendedTypeError,
       ["Adt expects"],
       "Function",
-      {desc: [`${introspect(_case)} received`]}
+      {desc: [`${introspect(Dcons)} received`]}
     );
 
-    const tvars_ = tSig.slice(tSig.lastIndexOf(" -> ") + 4).match(/\b[a-z]\b/g),
-      tvars = new Set(tvars_),
-      tRep = deserialize(tSig),
-      adt = new cons();
-
-    if (tvars_.length !== tvars.size) _throw(
-      ExtendedTypeError,
-      [`conflicting type variables`],
-      tSig,
-      {
-        range: tRep.children.slice(-1)[0].value.range,
-        desc: ["type variables must be unique"]
-      }
-    );
-
-    const rank1 = new Set(U(f => r => {
-      const s = r.replace(/\([^()]+\)/g, "");
-      return s === r ? s : f(f) (s);
-    }) (tSig.slice(1, -1))
-      .split(" -> ")
-      .slice(0, -1)
-      .join(" -> ")
-      .match(/\b[a-z]\b/g));
-
-    rank1.forEach(r1 => {
-      if (!tvars.has(r1)) _throw(
-        ExtendedTypeError,
-        [`invalid type signature`],
-        tSig,
-        {desc: [`"${r1}" is out of scope`]}
-      );
-    });
-
-    const tRep_ = tRep.children.slice(-1)[0].value,
-      tSig_ = serialize(tRep_);
-
-    adt.run = cases => _case(cases);
-    return new Proxy(adt, handleAdt(tRep_, tSig_, cons));
-  }
-
-  else {
-    adt = new cons();
-    adt.run = cases => _case(cases);
-    return adt;
-  }
-};
-
-
-const handleAdt = (tRep, tSig, cons) => {
-  return {
-    get: (o, k, p) => {
-      switch (k) {
-        case "toString": return () => tSig;
-        case Symbol.toStringTag: return cons.name;
-        case TR: return tRep;
-        case TS: return tSig;
-
-        case Symbol.toPrimitive: return hint => {
-          _throw(
-            ExtendedTypeError,
-            ["illegal implicit type conversion"],
-            tSig,
-            {desc: [
-              `must not be converted to ${capitalize(hint)} primitive`
-            ]}
-          );          
-        };
-
-        default: {
-          if (k in o) return o[k];
-
-          else _throw(
-            ExtendedTypeError,
-            ["illegal property access"],
-            tSig,
-            {desc: [`unknown ${prettyPrintK(k)}`]}
-          );
-        }
-      }
-    },
-
-    has: (o, k, p) => {
-      switch (k) {
-        case TS: return true;
-        case TR: return true;
-
-        default: _throw(
-          ExtendedTypeError,
-          ["illegal property introspection"],
-          tSig,
-          {desc: [
-            `of ${prettyPrintK(k)}`,
-            "duck typing is not allowed"
-          ]}
-        );
-      }
-    },
-
-    set: (o, k, v, p) => {
-      switch (k) {
-        case "toString": return o[k] = v, o;
-
-        default: _throw(
-          ExtendedTypeError,
-          ["illegal property mutation"],
-          tSig,
-          {desc: [
-            `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(v))}`,
-            "ADTs are immutable"
-          ]}
-        );
-      }
-    },
-
-    defineProperty: (o, k, d) => {
-      switch (k) {
-        case "name": return Reflect.defineProperty(o, k, d), o;
-      }
-
-      _throw(
-        ExtendedTypeError,
-        ["illegal property mutation"],
-        tSig,
-        {desc: [
-          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(d.value))}`,
-          "ADTs are immutable"
-        ]}
-
-      );
-    },
-
-    deleteProperty: (o, k) => {
-      _throw(
-        ExtendedTypeError,
-        ["illegal property mutation"],
-        tSig,
-        {desc: [
-          `removal of ${prettyPrintK(k)}`,
-          "ADTs are immutable"
-        ]}
-      );
-    },
-
-    ownKeys: o => {
-      _throw(
-        ExtendedTypeError,
-        ["illegal property introspection"],
-        tSig,
-        {desc: [
-          `of ${prettyPrintK(k)}`,
-          "meta programming is not allowed"
-        ]}
-      );
-    }
-  };
-};
-
-
-/******************************************************************************
-*****[ 7.3. ADTs (1 Constructor/1 Field) ]*************************************
-******************************************************************************/
-
-
-export const Type = (cons, key, tSig, f) => {
-  if (types) {
-    if (getStringTag(cons) !== "Function") _throw(
-      ExtendedTypeError,
-      [`Type expects "cons" argument of type`],
-      "Function",
-      {desc: [`${introspect(cons)} received`]}
-    );
-
-    else if (cons.name.toLowerCase() === cons.name) _throw(
-      ExtendedTypeError,
-      [
-        `Type expects "cons" argument to be`,
-        "a constructor with capitalized name"
-      ],
-      "Name",
-      {desc: [
-        `"${cons.name}" received`,
-        "lowercase names are reserved for functions"
-      ]}
-    );
-
-    else if (getStringTag(key) !== "String") _throw(
-      ExtendedTypeError,
-      [`Type expects "key" argument of type`],
-      "String",
-      {desc: [`${introspect(key)} received`]}
-    );
-
-    else if (getStringTag(tSig) !== "String") _throw(
-      ExtendedTypeError,
-      [`Type expects "tSig" argument of type`],
-      "String",
-      {desc: [`${introspect(tSig)} received`]}
-    );
-
-    else if (getStringTag(f) !== "Function") _throw(
-      ExtendedTypeError,
-      [`Type expects "f" argument of type`],
-      "Function",
-      {desc: [`${introspect(f)} received`]}
-    );
-
-    const tvars_ = tSig.slice(tSig.lastIndexOf(" -> ") + 4).match(/\b[a-z]\b/g),
+    const tvars_ = tSig.slice(tSig.lastIndexOf(" -> ") + 4).match(/\b[a-z]\b/g) || [],
       tvars = new Set(tvars_),
       tRep = deserialize(tSig);
 
@@ -3059,25 +2853,30 @@ export const Type = (cons, key, tSig, f) => {
       );
     });
 
-    const type = new cons();
-    type[key] = x;
-    return new Proxy(type, handleType(tRep_, tSig_, cons));
+    const tRep_ = tRep.children.slice(-1)[0].value,
+      tSig_ = serialize(tRep_),
+      runRep = cloneT(tRep.children[0].value),
+      adt = new Tcons();
+
+    runRep.name = "run";
+    adt.run = Fun(serialize(runRep), k => Dcons(k));
+    return new Proxy(adt, handleAdt(tRep_, tSig_, Tcons));
   }
 
   else {
-    const type = new cons();
-    type[key] = x;
-    return type;
+    adt = new Tcons();
+    adt.run = k => Dcons(k);
+    return adt;
   }
 };
 
 
-const handleType = (tRep, tSig, cons) => {
+const handleAdt = (tRep, tSig, Tcons) => {
   return {
     get: (o, k, p) => {
       switch (k) {
         case "toString": return () => tSig;
-        case Symbol.toStringTag: return cons.name;
+        case Symbol.toStringTag: return Tcons.name;
         case TR: return tRep;
         case TS: return tSig;
 
@@ -4123,6 +3922,10 @@ const cont = Fun(
 );
 
 
+// fix combinator (untyped)
+const fix = f => f(f);
+
+
 // flip combinator
 const flip = Fun(
   "(flip :: (a -> b -> c) -> b -> a -> c)",
@@ -4174,10 +3977,6 @@ const rotateR = Fun(
 
 // tap function (untyped)
 const tap = f => x => (f(x), x);
-
-
-// u combinator (untyped)
-const u = f => f(f);
 
 
 //***[ 9.1.1. Derived Combinators ]********************************************

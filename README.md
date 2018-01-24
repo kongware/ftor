@@ -98,6 +98,7 @@ I am currently working on the ADT implementation for single constrcutor/field an
 - [x] add unit tests
 - [ ] revise error messages and pretty printing
 - [ ] revise documentation
+- [ ] replace monolithic parser with function parser combinators
 - [ ] add homogeneous Set type
 - [ ] incorporate a special effect type / corresponding runtime
 - [ ] add persistant data structures
@@ -713,49 +714,76 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
-**PLEASE NOTE: The entire ADT implementation is broken and needs to be reimplemented!**
-
 ADTs give ftor's type system the notion of alternatives. They are composite types that can contain several types but only one can exist at a time. For each case you have a constructor to create the corresponding values and with pattern matching you can determine which case exists respectively. ADTs are a refinement of tagged unions, which are a refinement of union types themselves.
 
-ftor uses Scott encoding to enable ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are provided. Scott encoding defines data types by their deconstruction operator. As opposed to Chruch it has explicit recursion both at the type and the value level. Interestingly, it seems sufficient to type the type constructor and the deconstruction operator, whereas the value constructors remain untyped. Here is a little sketch, which, however, may still change:
+ftor uses Scott encoding to enable ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are provided. Scott encoding defines data types by their deconstruction operator.
+
+There are three ways to construct an ADT. Here is a contrived example:
 
 ```Javascript
-const List = Adt(
-  function List() {},
-  "(List :: ({Cons: (a -> List<a> -> r), Nil: r} -> r) -> List<a>)"
+const cont = Fun(
+  "(cont :: a -> (a -> b) -> a -> b)",
+  x => k => k(x)
 );
 
-const Cons = x => tx => List(cases => cases.Cons(x) (tx));
-const Nil = List(cases => cases.Nil);
+// Curried Style
 
-const uncons = Fun(
-  "(uncons :: {Cons: (a -> List<a> -> r), Nil: r} -> List<a> -> r)",
-  cases => tx => tx.run(cases)
-);
-
-const empty = uncons(Rec({
-  Cons: Fun(
-    "(empty :: a -> List<a> -> Boolean)",
-    x => tx => false
-  ),
-  Nil: true
-}));
-
-const empty_ = uncons(Rec({
-  Cons: Fun(
-    "(empty :: a -> List<a> -> Boolean)",
-    x => tx => false
+const Foo = cont(
+  Adt(
+    function Foo() {},
+    "(Foo :: ((String -> Number -> Boolean -> r) -> r) -> Foo<>)"
   )
-}));
+  (f => s => n => b => f(k => k(s) (n) (b)))
+);
 
-const xs = Cons("foo") (Nil),
-  ys = Nil;
+const x = Foo("foo") (123) (true);
 
-empty(xs); // false
-empty(ys); // true
-empty_(xs); // type error
+x.run(Fun(
+  "(run :: String -> Number -> Boolean -> r)",
+  x => y => z => x.toUpperCase() + "!"
+)); // "FOO!"
+
+
+// Tuple Style
+
+const Bar = cont(
+  Adt(
+    function Bar() {},
+    "(Bar :: (([String, Number, Boolean] -> r) -> r) -> Bar<>)"
+  )
+  (f => t => f(k => k(t)))
+);
+
+const y = Bar(["foo", 123, true]);
+
+y.run(Fun(
+  "(run :: [String, Number, Boolean] -> r)",
+  ([x, y, z]) => x.toUpperCase() + "!"
+)); // "FOO!"
+
+
+// Record Style
+
+const Baz = cont(
+  Adt(
+    function Baz() {},
+    "(Baz :: (({foo: String, bar: Number, baz: Boolean} -> r) -> r) -> Baz<>)"
+  )
+  (f => r => f(k => k(r)))
+);
+
+const z = Baz({foo: "foo", bar: 5, baz: true});
+
+z.run(Fun(
+  "(run :: {foo: String, bar: Number, baz: Boolean} -> r)",
+  ({foo, bar, baz}) => foo.toUpperCase() + "!"
+)); // "FOO!"
 ```
-Besides `Adt` there is the `Type` constructor to create ADTs with exactly one value constructor, that is to say without different cases and the need for functional pattern matching.
+Cases & Functional Pattern Matching...
+
+Sums of Products...
+
+Polymorphic ADTs...
 
 # Missing Topics
 
