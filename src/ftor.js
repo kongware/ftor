@@ -26,7 +26,7 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 ******************************************************************************/
 
 
-let types = false;
+let types = true;
 
 
 export const type = b => types = b;
@@ -2079,27 +2079,23 @@ const constrain = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xS
 
 
 const occurs = (state, nthParam, fRep, fSig, xSig, cons) => {
-  state.constraints.forEach((v1, k1) => {
-    if (k1.search(/\b[a-z][0-9]?\b/) !== -1) {
-      state.constraints.forEach((v2, k2) => {
-        if (k1 !== v2) {
-          if (v2.search(new RegExp(`\\b${k1}\\b`)) !== -1) {
-            const range = retrieveRange(fRep, nthParam);
+  state.constraints.forEach((v, k) => {
+    if (k.search(/\b[a-z][0-9]?\b/) !== -1) {
+      if (v.search(new RegExp(`\\b${k}\\b`)) !== -1) {
+        const range = retrieveRange(fRep, nthParam);
 
-            _throw(
-              cons,
-              [`${fRep.name || "lambda"} applied to ${xSig} creates an infinite type`],
-              fSig,
-              {
-                range,
-                desc: [`"${k1}" occurs in substitution ${v2}`],
-                sigLog: state.sigLog,
-                constraints: state.constraints
-              }
-            );
+        _throw(
+          cons,
+          [`${fRep.name || "lambda"} applied to ${xSig} creates an infinite type`],
+          fSig,
+          {
+            range,
+            desc: [`"${k}" occurs in substitution ${v}`],
+            sigLog: state.sigLog,
+            constraints: state.constraints
           }
-        }
-      });
+        );
+      }
     }
   });
 };
@@ -3824,24 +3820,24 @@ const U = f => f(f);
 ******************************************************************************/
 
 
-// infix operator
-const $ = Fun(
-  "($ :: a -> (a -> b -> c) -> b -> c)",
-  x => f => y => f(x) (y)
+// flip arguments
+const _ = Fun(
+  "(_ :: (a -> b -> c) -> b -> a -> c)",
+  f => y => x => f(x) (y)
 );
 
 
 // applicator
-const app = Fun(
-  "(app :: (a -> b) -> a -> b)",
+const $ = Fun(
+  "($ :: (a -> b) -> a -> b)",
   f => x => f(x)
 );
 
 
-// binary applicator
-const ap2 = Fun(
-  "(ap :: (a -> b -> c) -> a -> b -> c)",
-  f => x => y => f(x) (y)
+// infix applicator
+const $$ = Fun(
+  "($$ :: a -> (a -> b -> c) -> b -> c)",
+  x => f => y => f(x) (y)
 );
 
 
@@ -3926,13 +3922,6 @@ const cont = Fun(
 const fix = f => f(f);
 
 
-// flip combinator
-const flip = Fun(
-  "(flip :: (a -> b -> c) -> b -> a -> c)",
-  f => y => x => f(x) (y)
-);
-
-
 // function guard
 const guard = Fun(
   "(guard :: (a -> a) -> (a -> Boolean) -> a -> a)",
@@ -3975,15 +3964,11 @@ const rotateR = Fun(
 );
 
 
-// tap function (untyped)
-const tap = f => x => (f(x), x);
-
-
-//***[ 9.1.1. Derived Combinators ]********************************************
-
-
-// flipped prefix operator
-const _ = flip;
+// tap function
+const tap = Fun(
+  "(tap :: (a -> b) -> a -> b)",
+  f => x => (f(x), x)
+);
 
 
 /******************************************************************************
@@ -4014,8 +3999,8 @@ Fun.chain = Fun(
 
 // monadic of
 Fun.of = Fun(
-  "(of :: a -> a)",
-  x => x
+  "(of :: a -> b -> a)",
+  x => y => x
 );
 
 
@@ -4031,3 +4016,8 @@ Fun.liftA2 = Fun(
   "(liftA2 :: (b -> c -> d) -> (a -> b) -> (a -> c) -> a -> d)",
   f => g => h => x => f(g(x)) (h(x))
 );
+
+
+/******************************************************************************
+*****[ 9.2. Reader Type Class ]************************************************
+******************************************************************************/
