@@ -398,12 +398,15 @@ const fix = Fun(
   f => x => f(fix(f)) (x)
 );
 
-fix(Fun(
+const fact = fix(Fun(
   "(fact :: (Number -> Number -> Number) -> Number -> Number -> Number)",
   rec => acc => n => n === 0 ? acc : rec(n * acc) (n - 1)
-)) (1) (5); // 120
+)) (1); // acc's initial value
+
+fact(5); // 120
+
 ```
-It took me a while to comprehend the type machinery in this case, so don't be discouraged. Please note that the second argument `(1)` passed to `fix` is the initial value of the accumulator `acc`.
+It took me a while to comprehend the type machinery in this case, so don't be discouraged.
 
 ## Typed Arrays
 
