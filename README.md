@@ -777,13 +777,41 @@ For the time being value constructors (e.g. `Foo`) are untyped in order to avoid
 
 ### Sum Types
 
-...
+`Option` is perfect for learning sums:
+
+```Javascript
+const Option = F.Adt(
+  function Option() {},
+  "(List :: ({Some: (a -> r), None: r} -> r) -> Option<a>)"
+);
+
+const Some = x => Option(cases => cases.Some(x));
+const None = Option(cases => cases.None);
+
+const x = Some(5),
+  y = None;
+
+x.run(
+  F.Rec(
+    {
+      Some: F.Fun("(Number -> Number)", n => n + 1),
+      None: 0
+    }
+  )
+); // 6
+
+y.run(
+  F.Rec(
+    {
+      Some: F.Fun("(Number -> Number)", n => n + 1),
+      None: 0
+    }
+  )
+); // 0
+```
+Polymorphic...
 
 ### Sums of Products
-
-...
-
-### Recursive ADTs
 
 `List` is one of the most common recursive ADTs:
 
@@ -822,8 +850,7 @@ empty(xs); // false
 empty(ys); // true
 brokenEmpty(xs); // type error (Nil case missing)
 ```
-### Polymorphic ADTs
-...
+Recursive...
 
 # Missing Topics
 
