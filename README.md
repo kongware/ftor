@@ -716,7 +716,7 @@ snd(t); // "foo"
 
 ADTs allow you to declare sums of products, that is you can declare sum types (aka tagged unions), product types and any combination of them. Javascript ships only with products. ftor uses Scott encoding to express ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are supplied.
 
-In ftor all ADTs are created with the `Adt` constructor. Each ADT consists of a type and one or several value constructors. Please note that the Scott encoding entails somewhat scary type signatures, but they are rather similar to each other across various ADTs. As every proper functional data type ADTs are immutable at the value level.
+In ftor all ADTs are created with the `Adt` constructor. Each ADT consists of a type and one or several value constructors. Please note that Scott encoding entails somewhat scary type signatures, but they are rather similar to each other across various ADTs. As every proper functional data type ADTs are immutable at the value level.
 
 ### Product Types
 
@@ -773,7 +773,7 @@ x.run(Fun(
 ```
 You might consider intermediate constructors like `Foo_` awkward and verbose. With product types there is indeed no need for type and value constructors to have distinct names. But you'll see the beauty of this approach soon, when you create your first sum type.
 
-For the time being value constructors (e.g. `Foo`) are untyped in order to avoid type repetition. It is likely though that ftor will assign the right type signature derived from the ADT's original signature.
+For the time being value constructors (e.g. `Foo`) are untyped in order to avoid type repetition. It is likely though that ftor will assign the right type signature derived from the ADT's original signature in a later version.
 
 ### Sum Types
 
