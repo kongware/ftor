@@ -3821,151 +3821,154 @@ const U = f => f(f);
 
 
 // flip arguments
-const _ = Fun(
+export const _ = Fun(
   "(_ :: (a -> b -> c) -> b -> a -> c)",
   f => y => x => f(x) (y)
 );
 
 
 // applicator
-const $ = Fun(
+export const $ = Fun(
   "($ :: (a -> b) -> a -> b)",
   f => x => f(x)
 );
 
 
 // infix applicator
-const $$ = Fun(
+export const $$ = Fun(
   "($$ :: a -> (a -> b -> c) -> b -> c)",
   x => f => y => f(x) (y)
 );
 
 
 // constant function
-const co = Fun(
+export const co = Fun(
   "(co :: a -> b -> a)",
   x => y => x
 );
 
 
 // constant function in the 2nd argument
-const co2 = Fun(
+export const co2 = Fun(
   "(co2 :: a -> b -> b)",
   x => y => y
 );
 
 
 // function composition
-const comp = Fun(
+export const comp = Fun(
   "(comp :: (b -> c) -> (a -> b) -> a -> c)",
   f => g => x => f(g(x))
 );
 
 
 // composition with three functions
-const comp3 = Fun(
+export const comp3 = Fun(
   "(comp3 :: (c -> d) -> (b -> c) -> (a -> b) -> a -> d)",
   f => g => h => x => f(g(h(x)))
 );
 
 
 // composition with four functions
-const comp4 = Fun(
+export const comp4 = Fun(
   "(comp4 :: (d -> e) -> (c -> d) -> (b -> c) -> (a -> b) -> a -> e)",
   f => g => h => i => x => f(g(h(i(x))))
 );
 
 
 // composition with five functions
-const comp5 = Fun(
+export const comp5 = Fun(
   "(comp5 :: (e -> f) -> (d -> e) -> (c -> d) -> (b -> c) -> (a -> b) -> a -> f)",
   f => g => h => i => x => f(g(h(i(j(x)))))
 );
 
 
 // composition with six functions
-const comp6 = Fun(
+export const comp6 = Fun(
   "(comp6 :: (f -> g) -> (e -> f) -> (d -> e) -> (c -> d) -> (b -> c) -> (a -> b) -> a -> f)",
   f => g => h => i => x => f(g(h(i(j(k(x))))))
 );
 
 
 // composition with inner binary function
-const compBin = Fun(
+export const compBin = Fun(
   "(compgBin :: (c -> d) -> (a -> b -> c) -> a -> b -> d)",
   f => g => x => y => f(g(x) (y))
 );
 
 
 // composition in the 2nd argument of a binary function
-const compSnd = Fun(
+export const compSnd = Fun(
   "(compSnd :: (a -> c -> d) -> (b -> c) -> a -> b -> d)",
   f => g => x => y => f(x) (g(y))
 );
 
 
 // first class conditional operator
-const cond = Fun(
+export const cond = Fun(
   "(cond :: a -> a -> Boolean -> a)",
   x => y => b => b ? x : y
 );
 
 
 // continuation
-const cont = Fun(
-  "(cont :: a -> (a -> b) -> a -> b)",
+export const cont = Fun(
+  "(cont :: a -> (a -> b) -> b)",
   x => k => k(x)
 );
 
 
-// fix combinator (untyped)
-const fix = f => f(f);
+// fix combinator
+export const fix = Fun(
+  "(((a -> a) -> a -> a) -> a -> a)",
+  f => x => f(fix(f)) (x)
+);
 
 
 // function guard
-const guard = Fun(
+export const guard = Fun(
   "(guard :: (a -> a) -> (a -> Boolean) -> a -> a)",
   f => p => x => p(x) ? f(x) : x
 );
 
 
 // function guard with default value
-const guardOr = Fun(
+export const guardOr = Fun(
   "(guardOr :: (a -> b) -> (a -> Boolean) -> b -> a -> b)",
   f => p => x => y => p(y) ? f(y) : x
 );
 
 
 // identity function
-const id = Fun(
+export const id = Fun(
   "(id :: a -> a)",
   x => x
 );
 
 
 // on combinator
-const on = Fun(
+export const on = Fun(
   "(on :: (b -> b -> c) -> (a -> b) -> a -> a -> c)",
   f => g => x => y => f(g(x)) (g(y))
 );
 
 
 // rotate arguments left
-const rotateL = Fun(
+export const rotateL = Fun(
   "(rotateL :: (a -> b -> c -> d) -> b -> c -> a -> d)",
   f => y => z => x => f(x) (y) (z)
 );
 
 
 // rotate arguments right
-const rotateR = Fun(
+export const rotateR = Fun(
   "(rotateR :: (a -> b -> c -> d) -> c -> a -> b -> d)",
   f => z => x => y => f(x) (y) (z)
 );
 
 
 // tap function
-const tap = Fun(
+export const tap = Fun(
   "(tap :: (a -> b) -> a -> b)",
   f => x => (f(x), x)
 );
@@ -4021,3 +4024,11 @@ Fun.liftA2 = Fun(
 /******************************************************************************
 *****[ 9.2. Reader Type Class ]************************************************
 ******************************************************************************/
+
+
+const Reader_ = Adt(
+  function Reader() {},
+  "(Reader :: ((e -> a -> r) -> r) -> Reader<e, a>)"
+);
+
+const Reader = f => Reader_(x => f(x));

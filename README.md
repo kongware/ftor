@@ -714,25 +714,21 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
-ADTs are merely a refinement of tagged unions, which are a refinement of union types themselves. They are also known as sums of products. ftor uses Scott encoding to express ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are supplied.
+ADTs allow you to declare sums of products, that is you can declare both sum types (aka tagged unions) and product types and any combination of them. Javascript ships only with products. ftor uses Scott encoding to express ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are supplied.
 
-There are three ways to construct an ADT with ftor. Here is a contrived example:
+In ftor all ADTs are created with the `Adt` constructor. Each ADT consists of a type and one or many value constructors. Please note that the Scott encoding entails somewhat scary type signatures, but they are rather similar to each other across various ADTs. As every proper functional data type ADTs are immutable at the value level.
+
+### Product Types
+
+You can construct products with curried functions:
 
 ```Javascript
-const cont = Fun(
-  "(cont :: a -> (a -> b) -> a -> b)",
-  x => k => k(x)
+const Foo_ = Adt(
+  function Foo() {},
+  "(Foo :: ((String -> Number -> Boolean -> r) -> r) -> Foo<>)"
 );
 
-// Curried Style
-
-const Foo = cont(
-  Adt(
-    function Foo() {},
-    "(Foo :: ((String -> Number -> Boolean -> r) -> r) -> Foo<>)"
-  )
-  (f => s => n => b => f(k => k(s) (n) (b)))
-);
+const Foo = s => n => b => Foo_(k => k(s) (n) (b));
 
 const x = Foo("foo") (123) (true);
 
@@ -740,45 +736,56 @@ x.run(Fun(
   "(run :: String -> Number -> Boolean -> r)",
   x => y => z => x.toUpperCase() + "!"
 )); // "FOO!"
+```
+With tuples:
 
-
-// Tuple Style
-
-const Bar = cont(
-  Adt(
-    function Bar() {},
-    "(Bar :: (([String, Number, Boolean] -> r) -> r) -> Bar<>)"
-  )
-  (f => t => f(k => k(t)))
+```Javascript
+const Bar_ = Adt(
+  function Bar() {},
+  "(Bar :: (([String, Number, Boolean] -> r) -> r) -> Bar<>)"
 );
+  
+const Bar = t => Bar_(k => k(t));
 
-const y = Bar(["foo", 123, true]);
+const x = Bar(["foo", 123, true]);
 
-y.run(Fun(
+x.run(Fun(
   "(run :: [String, Number, Boolean] -> r)",
   ([x, y, z]) => x.toUpperCase() + "!"
 )); // "FOO!"
+```
+Or with records:
 
-
-// Record Style
-
-const Baz = cont(
-  Adt(
-    function Baz() {},
-    "(Baz :: (({foo: String, bar: Number, baz: Boolean} -> r) -> r) -> Baz<>)"
-  )
-  (f => r => f(k => k(r)))
+```Javascript
+const Baz_ = Adt(
+  function Baz() {},
+  "(Baz :: (({foo: String, bar: Number, baz: Boolean} -> r) -> r) -> Baz<>)"
 );
 
-const z = Baz({foo: "foo", bar: 5, baz: true});
+const Baz = r => f(k => k(r));
 
-z.run(Fun(
+const x = Baz({foo: "foo", bar: 5, baz: true});
+
+x.run(Fun(
   "(run :: {foo: String, bar: Number, baz: Boolean} -> r)",
   ({foo, bar, baz}) => foo.toUpperCase() + "!"
 )); // "FOO!"
 ```
+You might consider intermediate constructors like `Foo_` awkward and verbose. With product types there is indeed no need for type and value constructors to have distinct names. But you'll see the beauty of this approach soon, when you create your first sum type.
 
-Now the recursive `List` type is possible in Javascript:
+For the time being value constructors (e.g. `Foo`) are untyped in order to avoid type repetition. It is likely though that ftor will assign the right type signature derived from the ADT's original signature.
+
+### Sum Types
+
+...
+
+### Sums of Products
+
+...
+
+### Recursive ADTs
+
+`List` is one of the most common recursive ADTs:
 
 ```Javascript
 const List = Adt(
@@ -815,15 +822,8 @@ empty(xs); // false
 empty(ys); // true
 brokenEmpty(xs); // type error (Nil case missing)
 ```
-Scary type signatures...
-
-Cases & Functional Pattern Matching...
-
-Sums of Products...
-
-Immutable...
-
-Polymorphic ADTs...
+### Polymorphic ADTs
+...
 
 # Missing Topics
 
