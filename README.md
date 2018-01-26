@@ -390,7 +390,7 @@ As with purity it is ultimately your responsibility to maintain this property.
 
 ### Expressiveness
 
-I think that fixed-point combinators and anonymous recursive functions are good candidates for testing the expressiveness of a type system. I chose the simplified version of the `Y` combinator for this practice and since Javascript is a strictly evaluated language, I have to implement the eta-expanded version:
+I think that fixed-point combinators and anonymous recursion are good candidates for testing the expressiveness of a type system. I chose the simplified version of the `Y` combinator for this practice and since Javascript is a strictly evaluated language, I have to implement the eta-expanded version:
 
 ```Javascript
 const fix = Fun(
