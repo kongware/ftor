@@ -1766,6 +1766,8 @@ const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 
 
 const unifyPoly = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+  [t2Sig, state.nthTvar] = fresh(t2Sig, state.nthTvar);
+  t2Rep = deserialize(t2Sig);
   return constrain(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
 };
 
