@@ -388,6 +388,23 @@ append({}) ({}); // type error (returns null instead of {})
 ```
 As with purity it is ultimately your responsibility to maintain this property.
 
+### Expressiveness
+
+I think that fixed-point combinators and anonymous recursive functions are good candidates for testing the expressiveness of a type system. I chose the simplified version of the `Y` combinator for this practice and since Javascript is a strictly evaluated language, I have to implement the eta-expanded version:
+
+```Javascript
+const fix = Fun(
+  "(fix :: ((a -> b) -> a -> b) -> a -> b)",
+  f => x => f(fix(f)) (x)
+);
+
+fix(Fun(
+  "(fact :: (Number -> Number -> Number) -> Number -> Number -> Number)",
+  rec => acc => n => n === 0 ? acc : rec(n * acc) (n - 1)
+)) (1) (5); // 120
+```
+It took me a while to comprehend the type machinery in this case, so don't be discouraged. Please note that the second argument `(1)` passed to `fix` is the initial value of the accumulator `acc`.
+
 ## Typed Arrays
 
 ### Construction

@@ -3922,7 +3922,7 @@ export const cont = Fun(
 
 // fix combinator
 export const fix = Fun(
-  "(((a -> a) -> a -> a) -> a -> a)",
+  "(fix :: ((a -> b) -> a -> b) -> a -> b)",
   f => x => f(fix(f)) (x)
 );
 
