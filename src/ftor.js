@@ -2011,6 +2011,19 @@ const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
     }
 
     case "TupT": {
+      if (t1Rep.children.length !== t2Rep.children.length) {
+        _throw(
+          cons,
+          [`${fRep.name || "lambda"} expects`],
+          fSig,
+          {
+            desc: [`${t2Sig} received`],
+            sigLog: state.sigLog,
+            constraints: state.constraints
+          }
+        );
+      }
+
       t1Rep.children.forEach((tRep, n) => {
         state = unify(
           tRep,
@@ -2576,24 +2589,20 @@ const handleFun = (fRep, fSig, state) => {
         }
 
         case "RestT": {
-          const argSig = serialize(argRep.value);
+          const tSig = introspect(arg);
 
-          arg.forEach((arg_, n) => {
-            const tSig = introspect(arg_);
-
-            state = unify(
-              argRep.value,
-              argSig,
-              deserialize(tSig),
-              tSig,
-              state,
-              {nthParam: null},
-              fRep,
-              fSig,
-              tSig,
-              ExtendedTypeError
-            );
-          });
+          state = unify(
+            argRep.value,
+            serialize(argRep.value),
+            deserialize(tSig),
+            tSig,
+            state,
+            {nthParam: null},
+            fRep,
+            fSig,
+            tSig,
+            ExtendedTypeError
+          );
 
           break;
         }
