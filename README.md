@@ -816,7 +816,7 @@ runBaz(Fun(
 ```
 ### Sum Types
 
-`Option` is perfect for learning sums:
+The `Option` type is well-suited for learning polymorphic sums:
 
 ```Javascript
 const Option = F.Adt(
@@ -848,11 +848,9 @@ y.run(
   )
 ); // 0
 ```
-Polymorphic...
-
 ### Sums of Products
 
-`List` is one of the most common recursive ADTs:
+`List` is both a sum (`Cons`/`Nil`) and a product `(Cons :: a -> List<a> -> r)` and a good example for a recursive ADT:
 
 ```Javascript
 const List = Adt(
@@ -889,8 +887,6 @@ empty(xs); // false
 empty(ys); // true
 brokenEmpty(xs); // type error (Nil case missing)
 ```
-Recursive...
-
 # Missing Topics
 
 - [ ] Explore issues caused by ftor's use of proxies with regard to object identity
