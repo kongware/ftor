@@ -792,7 +792,7 @@ const bar = Bar(Tup(["bar", 123, true]));
 runBar(Fun(
   "(run :: [String, Number, Boolean] -> r)",
   ([s, n, b]) => s.toUpperCase() + "!"
-)) (bar);
+)) (bar); // "BAR!"
 ```
 Or with records:
 
@@ -812,7 +812,7 @@ const baz = Baz(F.Rec({foo: "baz", bar: 123, baz: true}));
 runBaz(Fun(
   "(run :: {foo: String, bar: Number, baz: Boolean} -> r)",
   ({foo: s, bar: n, baz: b}) => s.toUpperCase() + "!")
-) (baz);
+) (baz); // "BAZ!"
 ```
 ### Sum Types
 
