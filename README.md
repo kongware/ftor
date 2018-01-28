@@ -748,67 +748,72 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
-ADTs allow you to declare sums of products, that is you can declare sum types (aka tagged unions), product types and any combination of them. Javascript ships only with products. ftor uses Scott encoding to express ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are supplied.
+ADTs allow you to declare sums of products, that is you can declare sum types (aka tagged unions), product types and any combination of them. ftor uses Scott encoding to express ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are supplied.
 
-In ftor all ADTs are created with the `Adt` constructor. Each ADT consists of a type and one or several value constructors. Please note that Scott encoding entails somewhat scary type signatures, but they are rather similar to each other across various ADTs. As every proper functional data type ADTs are immutable at the value level.
+With ftor all multi-constructor ADTs are created with the `Adt` and single-constructor ADTs with `Type` constructor. Please note that Scott encoding entails somewhat scary type signatures. You can construct them in a rather mechanical way though, because their types are similar across different ADTs. As every proper functional data type ADTs are immutable at the value level.
 
 ### Product Types
 
-You can construct products with curried functions:
+There are three distinct ways to construct product types. With a normal curried function:
 
 ```Javascript
-const Foo_ = Adt(
+const Foo = Type(
   function Foo() {},
   "(Foo :: ((String -> Number -> Boolean -> r) -> r) -> Foo<>)"
+) (Foo => s => n => b => Foo(k => k(s) (n) (b)));
+
+const runFoo = Fun(
+  "(runFoo :: (String -> Number -> Boolean -> r) -> Foo<> -> r)",
+  f => tx => tx.run(f)
 );
 
-const Foo = s => n => b => Foo_(k => k(s) (n) (b));
+const foo = Foo("foo") (123) (true);
 
-const x = Foo("foo") (123) (true);
-
-x.run(Fun(
+runFoo(Fun(
   "(run :: String -> Number -> Boolean -> r)",
-  x => y => z => x.toUpperCase() + "!"
-)); // "FOO!"
+  s => n => b => s.toUpperCase() + "!"
+)) (foo); // "FOO!"
 ```
 With tuples:
 
 ```Javascript
-const Bar_ = Adt(
+const Bar = Type(
   function Bar() {},
   "(Bar :: (([String, Number, Boolean] -> r) -> r) -> Bar<>)"
+) (Bar => xs => Bar(k => k(xs)));
+
+const runBar = Fun(
+  "(runBar :: ([String, Number, Boolean] -> r) -> Bar<> -> r)",
+  f => tx => tx.run(f)
 );
-  
-const Bar = t => Bar_(k => k(t));
 
-const x = Bar(["foo", 123, true]);
+const bar = Bar(Tup(["bar", 123, true]));
 
-x.run(Fun(
+runBar(Fun(
   "(run :: [String, Number, Boolean] -> r)",
-  ([x, y, z]) => x.toUpperCase() + "!"
-)); // "FOO!"
+  ([s, n, b]) => s.toUpperCase() + "!"
+)) (bar);
 ```
 Or with records:
 
 ```Javascript
-const Baz_ = Adt(
+const Baz = Type(
   function Baz() {},
   "(Baz :: (({foo: String, bar: Number, baz: Boolean} -> r) -> r) -> Baz<>)"
+) (Baz => o => Baz(k => k(o)));
+
+const runBaz = Fun(
+  "(runBaz :: ({foo: String, bar: Number, baz: Boolean} -> r) -> Baz<> -> r)",
+  f => tx => tx.run(f)
 );
 
-const Baz = r => f(k => k(r));
+const baz = Baz(F.Rec({foo: "baz", bar: 123, baz: true}));
 
-const x = Baz({foo: "foo", bar: 5, baz: true});
-
-x.run(Fun(
+runBaz(Fun(
   "(run :: {foo: String, bar: Number, baz: Boolean} -> r)",
-  ({foo, bar, baz}) => foo.toUpperCase() + "!"
-)); // "FOO!"
+  ({foo: s, bar: n, baz: b}) => s.toUpperCase() + "!")
+) (baz);
 ```
-You might consider intermediate constructors like `Foo_` awkward and verbose. With product types there is indeed no need for type and value constructors to have distinct names. But you'll see the beauty of this approach soon, when you create your first sum type.
-
-For the time being value constructors (e.g. `Foo`) are untyped in order to avoid type repetition. It is likely though that ftor will assign the right type signature derived from the ADT's original signature in a later version.
-
 ### Sum Types
 
 `Option` is perfect for learning sums:
