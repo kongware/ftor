@@ -1366,6 +1366,17 @@ const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
     }
 
     case "AdtT": {
+      if (t1Rep.tag !== t2Rep.tag) _throw(
+        cons,
+        [`${fRep.name || "lambda"} expects`],
+        fSig,
+        {
+          desc: [`${t2Sig} received`],
+          sigLog: state.sigLog,
+          constraints: state.constraints
+        }
+      );
+
       t1Rep.children.forEach((tRep, n) => {
         state = unify(
           tRep,
