@@ -827,26 +827,23 @@ const Option = F.Adt(
 const Some = x => Option(cases => cases.Some(x));
 const None = Option(cases => cases.None);
 
+const runOption = Fun(
+  "(runOption :: {Some: (a -> r), None: r} -> Option<a> -> r)",
+  cases => tx => tx.run(cases)
+);
+
 const x = Some(5),
   y = None;
 
-x.run(
-  F.Rec(
-    {
-      Some: F.Fun("(Number -> Number)", n => n + 1),
-      None: 0
-    }
-  )
-); // 6
+runOption(Rec({
+  Some: F.Fun("(Number -> Number)", n => n + 1),
+  None: 0
+})); // 6
 
-y.run(
-  F.Rec(
-    {
-      Some: F.Fun("(Number -> Number)", n => n + 1),
-      None: 0
-    }
-  )
-); // 0
+runOption(Rec({
+  Some: F.Fun("(Number -> Number)", n => n + 1),
+  None: 0
+})); // 0
 ```
 ### Sums of Products
 
