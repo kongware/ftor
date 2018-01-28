@@ -430,7 +430,11 @@ const serializeAdt = (tag, tReps) => {
   return `${tag}<`
     .concat(tReps
       .map(tRep => {
-        if (tRep.children.length === 0) return tRep.tag;
+        if (tRep.children.length === 0) {
+          if (tRep.constructor.name === "AdtT") return `${tRep.tag}<>`;
+          else return tRep.tag;
+        }
+
         else return serialize(tRep);
       })
       .join(", ")
@@ -443,7 +447,11 @@ const serializeArr = (tag, tReps) => {
   return "["
     .concat(tReps
       .map(tRep => {
-        if (tRep.children.length === 0) return tRep.tag;
+        if (tRep.children.length === 0) {
+          if (tRep.constructor.name === "AdtT") return `${tRep.tag}<>`;
+          else return tRep.tag;
+        }
+
         else return serialize(tRep);
       })
       .join("")
@@ -462,8 +470,13 @@ const serializeFun = (name, tag, tReps) => {
 
           case "ArgT":
           case "ReturnT": {
-            const {tag: tag_, children} = arg.value;
-            if (children.length === 0) return tag_;
+            const {tag: tag_, children, constructor: cons} = arg.value;
+            
+            if (children.length === 0) {
+              if (cons && cons.name === "AdtT") return `${tag_}<>`;
+              else return tag_;
+            }
+            
             else return serialize(arg.value);
           }
 
@@ -485,7 +498,11 @@ const serializeMap = (tag, tReps) => {
     .concat(tReps
       .map(({k, v}) => [k, v]
         .map(tRep => {
-          if (tRep.children.length === 0) return tRep.tag;
+          if (tRep.children.length === 0) {
+            if (tRep.constructor.name === "AdtT") return `${tRep.tag}<>`;
+            else return tRep.tag;
+          }
+
           else return serialize(tRep);
         })
         .join("::")
@@ -499,7 +516,11 @@ const serializeRec = (tag, rvar, tReps) => {
   return "{"
     .concat(tReps
       .map(({k, v}) => {
-        if (v.children.length === 0) return `${k}: ${v.tag}`;
+        if (v.children.length === 0) {
+          if (v.constructor.name === "AdtT") return `${k}: ${v.tag}<>`;
+          else return `${k}: ${v.tag}`;
+        }
+
         else return `${k}: ${serialize(v)}`;
       })
       .join(", ")
@@ -513,7 +534,11 @@ const serializeTup = (tag, tReps) => {
   return "["
     .concat(tReps
       .map(tRep => {
-        if (tRep.children.length === 0) return tRep.tag;
+        if (tRep.children.length === 0) {
+          if (tRep.constructor.name === "AdtT") return `${tRep.tag}<>`;
+          else return tRep.tag;
+        }
+
         else return serialize(tRep);
       })
       .join(", ")
@@ -2871,10 +2896,100 @@ export const Adt = (Tcons, tSig) => Dcons => {
   }
 
   else {
-    adt = new Tcons();
+    const adt = new Tcons();
     adt.run = k => Dcons(k);
     return adt;
   }
+};
+
+
+export const Type = (Tcons, tSig) => {
+  const Type = k => {
+    if (types) {
+      if (getStringTag(k) !== "Function") _throw(
+        ExtendedTypeError,
+        ["Type expects"],
+        "Function",
+        {desc: [`${introspect(k)} received`]}
+      );
+
+      const tRep = deserialize(tSig),
+        tRep_ = tRep.children.slice(-1)[0].value,
+        tSig_ = serialize(tRep_),
+        runRep = cloneT(tRep.children[0].value),
+        type = new Tcons();
+
+      runRep.name = "run";
+      type.run = Fun(serialize(runRep), k);
+      return new Proxy(type, handleAdt(tRep_, tSig_, Tcons));
+    }
+
+    else {
+      const type = new Tcons();
+      type.run = k;
+      return type;
+    }
+  };
+
+  if (types) {
+    if (getStringTag(Tcons) !== "Function") _throw(
+      ExtendedTypeError,
+      ["Type expects"],
+      "Function",
+      {desc: [`${introspect(Tcons)} received`]}
+    );
+
+    else if (Tcons.name.toLowerCase() === Tcons.name) _throw(
+      ExtendedTypeError,
+      ["Type expects type constructor with capitalized name"],
+      "Name",
+      {desc: [
+        `name "${Tcons.name}" received`,
+        "lowercase names are reserved for functions"
+      ]}
+    );
+
+    else if (getStringTag(tSig) !== "String") _throw(
+      ExtendedTypeError,
+      ["Type expects"],
+      "String",
+      {desc: [`${introspect(tSig)} received`]}
+    );
+
+    const tvars_ = tSig.slice(tSig.lastIndexOf(" -> ") + 4).match(/\b[a-z]\b/g) || [],
+      tvars = new Set(tvars_),
+      tRep = deserialize(tSig);
+
+    if (tvars_.length !== tvars.size) _throw(
+      ExtendedTypeError,
+      [`conflicting type variables`],
+      tSig,
+      {
+        range: tRep.children.slice(-1)[0].value.range,
+        desc: ["type variables must be unique"]
+      }
+    );
+
+    const rank1 = new Set(U(f => r => {
+      const s = r.replace(/\([^()]+\)/g, "");
+      return s === r ? s : f(f) (s);
+    }) (tSig.slice(1, -1))
+      .split(" -> ")
+      .slice(0, -1)
+      .join(" -> ")
+      .match(/\b[a-z]\b/g));
+
+    rank1.forEach(r1 => {
+      if (!tvars.has(r1)) _throw(
+        ExtendedTypeError,
+        [`invalid type signature`],
+        tSig,
+        {desc: [`"${r1}" is out of scope`]}
+      );
+    });
+  }
+
+  return Dcons => Dcons(Type);
 };
 
 

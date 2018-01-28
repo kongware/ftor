@@ -221,7 +221,7 @@ sum(); // 0
 sum(1, 2, 3); // 6
 sum(1, "2"); // type error
 ```
-Usually the rest parameter constructs an homogeneous array. As mentioned in the curried function section you can also let it construct a tuple, if you want to mimic multi-argument functions.
+Usually the rest parameter constructs an homogeneous array. As mentioned in the curried function section you can also let it construct a tuple if you want to mimic multi-argument functions.
 
 ### Nullary Functions / Thunks
 
@@ -233,7 +233,7 @@ const thunk = Fun("(() -> String)", () => "foo" + "bar");
 thunk(); // "foobar"
 thunk("baz"); // arity error
 ```
-### Parametric Polymorphic functions
+### Parametric Polymorphic Functions
 
 ftor supports parametric polymorphism:
 
@@ -565,7 +565,7 @@ You can create a typed maps by passing an ES2015 map to the `_Map` constructor:
 ```Javascript
 const m = _Map(new Map([["Kalib", 42], ["Liz", 38], ["Dev", 35]]));
 
-m.get("liz"); // 42
+m.get("Liz"); // 42
 m.get("Byron"); // type error
 m.has("Byron"); // false
 m.set("Byron", 30); // passes
@@ -890,6 +890,3 @@ Recursive...
 
 - [ ] Explore issues caused by ftor's use of proxies with regard to object identity
 - [ ] Note that creating dependencies to ftor's pluggable type system is bad
-- [ ] Why don't ftor need its own unit type?
-- [ ] ftor doesn't support typed multi argument functions and hence doesn't support `curry`/`uncurry`
-- [ ] ftor doesn't support variadic functions with heterogeneous arguments
