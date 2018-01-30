@@ -96,8 +96,8 @@ I am currently working on the ADT implementation for single constrcutor/field an
 - [x] incorporate row polymorphism
 - [x] add rank-2 types
 - [x] add unit tests
+- [ ] add separate documentation for the functional lib
 - [ ] revise error messages and pretty printing
-- [ ] revise documentation
 - [ ] replace monolithic parser with functional parser combinators
 - [ ] add homogeneous Set type
 - [ ] incorporate a special effect type / corresponding runtime
