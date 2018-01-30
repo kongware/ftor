@@ -3978,6 +3978,20 @@ export const $$ = Fun(
 );
 
 
+// applicative
+export const ap = Fun(
+  "(ap :: (r -> a -> b) -> (r -> a) -> r -> b)",
+  f => g => x => f(x) (g(x))
+);
+
+
+// monadic chain
+export const chain = Fun(
+  "(chain :: (a -> r -> b) -> (r -> a) -> r -> b)",
+  f => g => x => f(g(x)) (x)
+);
+
+
 // constant function
 export const co = Fun(
   "(co :: a -> b -> a)",
@@ -4083,6 +4097,20 @@ export const id = Fun(
 );
 
 
+// monadic join
+export const join = Fun(
+  "(join :: (r -> r -> a) -> r -> a)",
+  f => x => f(x) (x)
+);
+
+
+// applicative lift
+export const liftA2 = Fun(
+  "(liftA2 :: (b -> c -> d) -> (a -> b) -> (a -> c) -> a -> d)",
+  f => g => h => x => f(g(x)) (h(x))
+);
+
+
 // on combinator
 export const on = Fun(
   "(on :: (b -> b -> c) -> (a -> b) -> a -> a -> c)",
@@ -4112,60 +4140,73 @@ export const tap = Fun(
 
 
 /******************************************************************************
-*****[ 9.1. Fun Type Class ]***************************************************
+*****[ 9.1. Reader Type ]******************************************************
 ******************************************************************************/
 
 
-// functor
-Fun.map = Fun(
-  "(map :: (b -> c) -> (a -> b) -> a -> c)",
-  f => g => x => f(g(x))
+const Reader = Type(
+  function Reader() {},
+  "(Reader :: ((e -> a -> r) -> r) -> Reader<e, a>)"
+) (Reader => f => Reader(x => f(x)));
+
+
+const runReader = Fun(
+  "(runReader :: e -> Reader<e, a> -> r)",
+  x => tf => tf.run(x)
 );
 
 
-// applicative
-Fun.ap = Fun(
-  "(ap :: (r -> a -> b) -> (r -> a) -> r -> b)",
-  f => g => x => f(x) (g(x))
+// functorial map
+Reader.map = Fun(
+  "(map :: (e -> a) -> Reader<e, a> -> Reader<e, b>)",
+  f => tf => Reader(x => f(tf.run(x)))
 );
 
 
-// monadic chain
-Fun.chain = Fun(
-  "(chain :: (a -> r -> b) -> (r -> a) -> r -> b)",
-  f => g => x => f(g(x)) (x)
+// applicative/monadic of
+Reader.of = Fun(
+  "(of :: a -> Reader<e, a>)",
+  x => Reader(y => x)
 );
 
 
-// monadic of
-Fun.of = Fun(
-  "(of :: a -> b -> a)",
-  x => y => x
+// applicative apply
+Reader.ap = Fun(
+  "(ap :: Reader<e, (a -> b)> -> Reader<e, a> -> Reader<e, b>)",
+  af => ag => Reader(x => af.run(x) (ag.run(x)))
 );
 
 
 // monadic join
-Fun.join = Fun(
-  "(join :: (r -> r -> a) -> r -> a)",
-  f => x => f(x) (x)
+Reader.join = Fun(
+  "(join :: Reader<e, Reader<e, a>> -> Reader<e, a>)",
+  tf => Reader(x => tf.run(x).run(x))
 );
 
 
-// lift a function into the context of a function applicative
-Fun.liftA2 = Fun(
-  "(liftA2 :: (b -> c -> d) -> (a -> b) -> (a -> c) -> a -> d)",
-  f => g => h => x => f(g(x)) (h(x))
+// monadic chain
+Reader.chain = Fun(
+  "(chain :: (a -> Reader<e, b>) -> Reader<e, a> -> Reader<e, b>)",
+  mf => fm => Reader(x => fm(mf.run(x)).run(x))
 );
 
 
-/******************************************************************************
-*****[ 9.2. Reader Type Class ]************************************************
-******************************************************************************/
-
-
-const Reader_ = Adt(
-  function Reader() {},
-  "(Reader :: ((e -> a -> r) -> r) -> Reader<e, a>)"
+// reader identity
+Reader.ask = Fun(
+  "(ask :: () -> Reader<e, e>)",
+  () => Reader(id)
 );
 
-const Reader = f => Reader_(x => f(x));
+
+// ? - example: runReader(Reader.asks(length)) ("Banana")
+Reader.asks = Fun(
+  "(asks :: (e -> a) -> Reader<e, a>)",
+  f => Reader.of(f)
+);
+
+
+// contramap
+Reader.local = Fun(
+  "(local :: (e -> e) -> Reader<e, a> -> Reader<e, a>)",
+  f => tf => Reader(x => tf.run(f(x)))
+);
