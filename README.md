@@ -24,6 +24,8 @@ Version 0.9.20 (unstable)
 
 ftor enables ML-like type-directed, functional programming with Javascript including reasonable debugging. In essence, it consists of a runtime type system and a functional programming library building upon it.
 
+Due to it size there is a separated API [documentation](https://github.com/kongware/ftor/LIBRARY.md) for the typed functional library.
+
 ## Unstable
 
 ftor's type checker has great impact on the way you encode Javascript. It is in continuous flux in order to eventually achieve an optimal setting. Unfortunatelly, there are no benchmarks that I can follow, because this is somehow unexplored territory in Javascript.
@@ -104,8 +106,8 @@ For the time being there will be no type system extensions like higher kinded ty
 - [x] incorporate row polymorphism
 - [x] add rank-2 types
 - [x] add unit tests
+- [x] add separate documentation for the functional lib
 - [ ] provide common functional combinators/patterns
-- [ ] add separate documentation for the functional lib
 - [ ] revise error messages and pretty printing
 - [ ] incorporate kind system/higher kinded types
 - [ ] extend type annotation by partially applied type constructors
