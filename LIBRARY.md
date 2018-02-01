@@ -132,12 +132,14 @@ tap function
 
 # Predefined Types
 
+## Reader
+
 ```
 Reader
 (Reader :: ((e -> a -> r) -> r) -> Reader<e, a>)
 
 
-run Reader
+perform effect and extract value
 (runReader :: e -> Reader<e, a> -> r)
 
 
