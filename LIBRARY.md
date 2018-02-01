@@ -26,7 +26,7 @@ This is the additional documentation for the typed functional library that build
 
 # Generic Combinators
 
-
+```
 // flip arguments
 // (_ :: (a -> b -> c) -> b -> a -> c)
 
@@ -128,11 +128,11 @@ This is the additional documentation for the typed functional library that build
 
 // tap function
 // (tap :: (a -> b) -> a -> b)
-
+```
 
 # Predefined Types
 
-
+```
 // Reader
 // (Reader :: ((e -> a -> r) -> r) -> Reader<e, a>)
 
@@ -171,7 +171,7 @@ This is the additional documentation for the typed functional library that build
 
 // contramap
 // (local :: (e -> e) -> Reader<e, a> -> Reader<e, a>)
-
+```
 
 # TODO
 
