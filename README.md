@@ -77,7 +77,7 @@ F.type(false);
 ```
 ## Ad-hoc Polymorphism and Type Classes
 
-Why ftor doesn't ship with type classes? Well, type classes are essentially a mechanism to allow type-safe function overloading. They make ad-how polymorphism less ad-hoc so to speak. Type classes are an extension of a type system and consequently depend on this very system to work properly. Of course, this doesn't go well with a pluggable runtime type checker. I don't claim that it is impossible to build an sufficient mechanism, but it would be too much of a trade-off.
+Why isn't ftor shiped with type classes? Well, type classes are essentially a mechanism to allow type-safe function overloading. They make ad-how polymorphism less ad-hoc so to speak. Type classes are an extension of a type system and consequently depend on this very system to work properly. Of course, this doesn't go well with a pluggable runtime type checker. I don't claim that it is impossible to build an sufficient mechanism, but it would be too much of a trade-off.
 
 ## Interoperability
 
