@@ -192,7 +192,7 @@ contramap
 * pattern matching
 * guards
 * recursion helper
-* case expressions
+* let expressions
 * indexed subranges
 
 * Reader/ReaderT
