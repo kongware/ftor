@@ -27,150 +27,150 @@ This is the additional documentation for the typed functional library that build
 # Generic Combinators
 
 ```
-// flip arguments
-// (_ :: (a -> b -> c) -> b -> a -> c)
+flip arguments
+(_ :: (a -> b -> c) -> b -> a -> c)
 
-// applicator
-// ($ :: (a -> b) -> a -> b)
-
-
-// infix applicator
-// ($$ :: a -> (a -> b -> c) -> b -> c)
+applicator
+($ :: (a -> b) -> a -> b)
 
 
-// applicative
-// (ap :: (r -> a -> b) -> (r -> a) -> r -> b)
+infix applicator
+($$ :: a -> (a -> b -> c) -> b -> c)
 
 
-// monadic chain
-// (chain :: (a -> r -> b) -> (r -> a) -> r -> b)
+applicative
+(ap :: (r -> a -> b) -> (r -> a) -> r -> b)
 
 
-// constant function
-// (co :: a -> b -> a)
+monadic chain
+(chain :: (a -> r -> b) -> (r -> a) -> r -> b)
 
 
-// constant function in the 2nd argument
-// (co2 :: a -> b -> b)
+constant function
+(co :: a -> b -> a)
 
 
-// function composition
-// (comp :: (b -> c) -> (a -> b) -> a -> c)
+constant function in the 2nd argument
+(co2 :: a -> b -> b)
 
 
-// composition with three functions
-// (comp3 :: (c -> d) -> (b -> c) -> (a -> b) -> a -> d)
+function composition
+(comp :: (b -> c) -> (a -> b) -> a -> c)
 
 
-// composition with four functions
-// (comp4 :: (d -> e) -> (c -> d) -> (b -> c) -> (a -> b) -> a -> e)
+composition with three functions
+(comp3 :: (c -> d) -> (b -> c) -> (a -> b) -> a -> d)
 
 
-// composition with five functions
-// (comp5 :: (e -> f) -> (d -> e) -> (c -> d) -> (b -> c) -> (a -> b) -> a -> f)
+composition with four functions
+(comp4 :: (d -> e) -> (c -> d) -> (b -> c) -> (a -> b) -> a -> e)
 
 
-// composition with six functions
+composition with five functions
+(comp5 :: (e -> f) -> (d -> e) -> (c -> d) -> (b -> c) -> (a -> b) -> a -> f)
+
+
+composition with six functions
 (comp6 :: (f -> g) -> (e -> f) -> (d -> e) -> (c -> d) -> (b -> c) -> (a -> b) -> a -> f)
 
 
-// composition with inner binary function
-// (compgBin :: (c -> d) -> (a -> b -> c) -> a -> b -> d)
+composition with inner binary function
+(compgBin :: (c -> d) -> (a -> b -> c) -> a -> b -> d)
 
 
-// composition in the 2nd argument of a binary function
-// (compSnd :: (a -> c -> d) -> (b -> c) -> a -> b -> d)
+composition in the 2nd argument of a binary function
+(compSnd :: (a -> c -> d) -> (b -> c) -> a -> b -> d)
 
 
-// first class conditional operator
-// (cond :: a -> a -> Boolean -> a)
+first class conditional operator
+(cond :: a -> a -> Boolean -> a)
 
 
-// continuation
-// (cont :: a -> (a -> b) -> b)
+continuation
+(cont :: a -> (a -> b) -> b)
 
 
-// fix combinator
-// (fix :: ((a -> b) -> a -> b) -> a -> b)
+fix combinator
+(fix :: ((a -> b) -> a -> b) -> a -> b)
 
 
-// function guard
-// (guard :: (a -> a) -> (a -> Boolean) -> a -> a)
+function guard
+(guard :: (a -> a) -> (a -> Boolean) -> a -> a)
 
 
-// function guard with default value
-// (guardOr :: (a -> b) -> (a -> Boolean) -> b -> a -> b)
+function guard with default value
+(guardOr :: (a -> b) -> (a -> Boolean) -> b -> a -> b)
 
 
-// identity function
-// (id :: a -> a)
+identity function
+(id :: a -> a)
 
 
-// monadic join
-// (join :: (r -> r -> a) -> r -> a)
+monadic join
+(join :: (r -> r -> a) -> r -> a)
 
 
-// applicative lift
-// (liftA2 :: (b -> c -> d) -> (a -> b) -> (a -> c) -> a -> d)
+applicative lift
+(liftA2 :: (b -> c -> d) -> (a -> b) -> (a -> c) -> a -> d)
 
 
-// on combinator
-// (on :: (b -> b -> c) -> (a -> b) -> a -> a -> c)
+on combinator
+(on :: (b -> b -> c) -> (a -> b) -> a -> a -> c)
 
 
-// rotate arguments left
-// (rotateL :: (a -> b -> c -> d) -> b -> c -> a -> d)
+rotate arguments left
+(rotateL :: (a -> b -> c -> d) -> b -> c -> a -> d)
 
 
-// rotate arguments right
-// (rotateR :: (a -> b -> c -> d) -> c -> a -> b -> d)
+rotate arguments right
+(rotateR :: (a -> b -> c -> d) -> c -> a -> b -> d)
 
 
-// tap function
-// (tap :: (a -> b) -> a -> b)
+tap function
+(tap :: (a -> b) -> a -> b)
 ```
 
 # Predefined Types
 
 ```
-// Reader
-// (Reader :: ((e -> a -> r) -> r) -> Reader<e, a>)
+Reader
+(Reader :: ((e -> a -> r) -> r) -> Reader<e, a>)
 
 
-// run Reader
-// (runReader :: e -> Reader<e, a> -> r)
+run Reader
+(runReader :: e -> Reader<e, a> -> r)
 
 
-// functorial map
-// (map :: (e -> a) -> Reader<e, a> -> Reader<e, b>)
+functorial map
+(map :: (e -> a) -> Reader<e, a> -> Reader<e, b>)
 
 
-// applicative/monadic of
-// (of :: a -> Reader<e, a>)
+applicative/monadic of
+(of :: a -> Reader<e, a>)
 
 
-// applicative apply
-// (ap :: Reader<e, (a -> b)> -> Reader<e, a> -> Reader<e, b>)
+applicative apply
+(ap :: Reader<e, (a -> b)> -> Reader<e, a> -> Reader<e, b>)
 
 
-// monadic join
-// (join :: Reader<e, Reader<e, a>> -> Reader<e, a>)
+monadic join
+(join :: Reader<e, Reader<e, a>> -> Reader<e, a>)
 
 
-// monadic chain
-// (chain :: (a -> Reader<e, b>) -> Reader<e, a> -> Reader<e, b>)
+monadic chain
+(chain :: (a -> Reader<e, b>) -> Reader<e, a> -> Reader<e, b>)
 
 
-// reader identity
-// (ask :: () -> Reader<e, e>)
+reader identity
+(ask :: () -> Reader<e, e>)
 
 
-// asks?
-// (asks :: (e -> a) -> Reader<e, a>)
+asks?
+(asks :: (e -> a) -> Reader<e, a>)
 
 
-// contramap
-// (local :: (e -> e) -> Reader<e, a> -> Reader<e, a>)
+contramap
+(local :: (e -> e) -> Reader<e, a> -> Reader<e, a>)
 ```
 
 # TODO
