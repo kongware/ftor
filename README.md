@@ -58,10 +58,6 @@ With the proposed approach we have to make sure that type signatures match their
 <sub><sup>1</sup>also known as static duck typing</sub><br>
 <sub><sup>2</sup>Nominal typing means that types are distinguished by name rather than by structure</sub>
 
-## Differences to sanctuary-def
-
-
-
 ## Pluggable
 
 ftor doesn't have a compiler that erases type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint as soon as it is not enabled.
