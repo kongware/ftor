@@ -24,7 +24,9 @@ Version 0.9.20 (unstable)
 
 This is the additional documentation for the typed functional library that builds upon ftor's pluggable runtime type checker. This library includes common functional combinators, constructs and patterns, all declared with explicit type annotations.
 
-# Generic Combinators
+# API
+
+## Generic Combinators
 
 ```
 flip arguments
@@ -130,9 +132,9 @@ tap function
 (tap :: (a -> b) -> a -> b)
 ```
 
-# Predefined Types
+## Predefined Types
 
-## Reader
+### Reader
 
 ```
 Reader
@@ -163,7 +165,7 @@ monadic chain
 (chain :: (a -> Reader<e, b>) -> Reader<e, a> -> Reader<e, b>)
 
 
-reader identity
+identity
 (ask :: () -> Reader<e, e>)
 
 
