@@ -58,6 +58,10 @@ With the proposed approach we have to make sure that type signatures match their
 <sub><sup>1</sup>also known as static duck typing</sub><br>
 <sub><sup>2</sup>Nominal typing means that types are distinguished by name rather than by structure</sub>
 
+## Differences to sanctuary-def
+
+
+
 ## Pluggable
 
 ftor doesn't have a compiler that erases type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint as soon as it is not enabled.
@@ -69,12 +73,20 @@ Enabling the type checker is as easy as setting a flag:
 ```Javascript
 import * as F from ".../ftor.js";
 
-// untyped area
-
-F.type(true);
-
 // typed area;
+
+F.type(false);
+
+// untyped area
 ```
+## Ad-hoc Polymorphism and Type Classes
+
+Why ftor doesn't ship with type classes? Well, type classes are essentially a mechanism to allow type-safe function overloading. They make ad-how polymorphism less ad-hoc so to speak. Type classes are an extension of a type system and consequently depend on this very system to work properly. Of course, this doesn't go well with a pluggable runtime type checker. I don't claim that it is impossible to build an sufficient mechanism, but it would be too much of a trade-off.
+
+## Interoperability
+
+Fantasy Land is based on type classes implemented through the prototype system. ftor neither supports methods that depend on `this` nor has it a type class mechanism. For that reason it cannot be compliant to the Fantasy Land spec.
+
 ## Native Type Support
 
 Currently ftor neither supports iterators, generators nor promises. The former two are inherently stateful and hence not that functional, so I'll try to avoid them for the time being. If necessary, it should not be too difficult to type them, though. Promises on the other hand are very hard to type, because they are optimized for an untyped environment and contain a lof of magic to allow a convinient usage. Moreover, they conflate different tasks like asynchronous control flow and error handling. It is very likely that ftor won't support them ever, but will provide a wrapper to adapt promises to a purely functional Future type.
@@ -85,7 +97,7 @@ ftor restricts the ability of mutating data types rather than enforcing strict i
 
 ## Upcoming Milestones
 
-I am currently working on the ADT implementation for single constrcutor/field and multi constructor/field ADTs.
+For the time being there will be no type system extensions like higher kinded types or annotations for partially applied type constructors. First of all, the existing system has to mature. The current focus is on the construction of a type-safe set of pure functions and combinators, which rely on the existing type system.
 
 - [x] incorporate parametric polymorphism
 - [x] add homogeneous Array type
@@ -96,16 +108,15 @@ I am currently working on the ADT implementation for single constrcutor/field an
 - [x] incorporate row polymorphism
 - [x] add rank-2 types
 - [x] add unit tests
+- [ ] provide common functional combinators/patterns
 - [ ] add separate documentation for the functional lib
 - [ ] revise error messages and pretty printing
+- [ ] incorporate kind system/higher kinded types
+- [ ] extend type annotation by partially applied type constructors
 - [ ] replace monolithic parser with functional parser combinators
 - [ ] add homogeneous Set type
 - [ ] incorporate a special effect type / corresponding runtime
 - [ ] add persistant data structures
-- [ ] provide common functional combinators/patterns
-- [ ] incorporate kind system/higher kinded types (questionable)
-- [ ] add Promise type (questionable)
-- [ ] add Iterator/Generator types (questionable)
 
 # Types
 
@@ -888,3 +899,4 @@ brokenEmpty(xs); // type error (Nil case missing)
 
 - [ ] Explore issues caused by ftor's use of proxies with regard to object identity
 - [ ] Note that creating dependencies to ftor's pluggable type system is bad
+- [ ] Explain the lack of bounded polymorphism (type classes)
