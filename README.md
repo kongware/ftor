@@ -24,7 +24,7 @@ Version 0.9.20 (unstable)
 
 ftor enables ML-like type-directed, functional programming with Javascript including reasonable debugging. In essence, it consists of a runtime type system and a functional programming library building upon it.
 
-Due to it size there is a separated API [documentation](https://github.com/kongware/ftor/LIBRARY.md) for the typed functional library.
+Due to it size there is a separated API [documentation](https://github.com/kongware/ftor/blob/master/LIBRARY.md) for the typed functional library.
 
 ## Unstable
 
