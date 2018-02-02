@@ -2827,11 +2827,300 @@ const verifyUnary = (arg, argRep, fRep, fSig, sigLog) => {
 
 
 /******************************************************************************
+*****[ 7.2. Constructors ]*****************************************************
+******************************************************************************/
+
+
+export const Data = (fSig, f) => {
+  if (types) {
+    if (getStringTag(fSig) !== "String") _throw(
+      ExtendedTypeError,
+      ["Data expects"],
+      "(String, Function -> Function)",
+      {range: [1, 6], desc: [`${introspect(fSig)} received`]}
+    );
+
+    else if (getStringTag(f) !== "Function") _throw(
+      ExtendedTypeError,
+      ["Data expects"],
+      "(String, Function -> Function)",
+      {range: [9, 8], desc: [`${introspect(f)} received`]}
+    );
+
+    const fRep = deserialize(fSig);
+
+    if (fRep.name !== "") {
+      if (fRep.name[0].toLowerCase() === fRep.name[0]) _throw(
+        ExtendedTypeError,
+        ["Data expects a uppercase constructor name"],
+        fSig,
+        {range: [1, fRep.name.length], desc: ["lowercase names are reserved for functions"]}
+      );
+
+      Reflect.defineProperty(f, "name", {value: fRep.name || "lambda"});
+    }
+
+    return new Proxy(f, handleData(
+      fRep,
+      fSig,
+      {
+        nthCall: 0,
+        nthTvar: 0,
+        constraints: null,
+        sigLog: null
+      }
+    ));
+  }
+
+  else return f;
+};
+
+
+const handleData = (fRep, fSig, state) => {
+  return {
+    apply: (g, _, arg) => {
+      if (state.nthCall === 0) {
+        state = {
+          nthCall: 0,
+          nthTvar: 0,
+          constraints: new Map(),
+          sigLog: []
+        };
+      }
+
+      else state.constraints = new Map();
+
+      const argRep = fRep.children[0];
+
+      switch (argRep.constructor.name) {
+        case "ArgT": {
+          verifyUnary(arg, argRep, fRep, fSig, state.sigLog);
+          const tSig = introspect(arg[0]);
+          
+          state = unify(
+            argRep.value,
+            serialize(argRep.value),
+            deserialize(tSig),
+            tSig,
+            state,
+            {nthParam: null},
+            fRep,
+            fSig,
+            tSig,
+            ExtendedTypeError
+          );
+
+          break;
+        }
+
+        case "NoArgT": {
+          verifyNullary(arg, argRep, fRep, fSig, state.sigLog);
+          break;
+        }
+
+        case "RestT": {
+          const tSig = introspect(arg);
+
+          state = unify(
+            argRep.value,
+            serialize(argRep.value),
+            deserialize(tSig),
+            tSig,
+            state,
+            {nthParam: null},
+            fRep,
+            fSig,
+            tSig,
+            ExtendedTypeError
+          );
+
+          break;
+        }
+      }
+
+      if (fRep.children[1].constructor.name === "ReturnT") {
+        const h = g(...arg),
+          rSig = serialize(fRep.children[1].value),
+          rSig_ = introspect(h);
+
+        // check that rSig matches serialize(fRep.children[1].value)
+
+        //if (rSig !== rSig_) throw new Error("invalid data constructor");
+
+        state = unify(
+          fRep.children[1].value,
+          rSig,
+          deserialize(rSig_),
+          rSig_,
+          state,
+          {nthParam: null},
+          fRep,
+          fSig,
+          rSig,
+          ReturnTypeError
+        );
+
+        // substitute fRep and store new tRep/tSig
+        
+        state.sigLog.unshift(fSig);
+        const [fRep_, fSig_] = substitute(serialize(fRep.children[1].value), state.constraints);
+        
+        // create new Proxy with them and return it
+
+        return new Proxy(h, handleData(
+          fRep_,
+          fSig_,
+          {
+            nthCall: state.nthCall + 1,
+            nthTvar: state.nthTvar,
+            constraints: state.constraints,
+            sigLog: state.sigLog
+          }
+        ));
+
+        return h;
+      }
+
+      else {
+        const h = g(...arg);
+
+        if (fRep.name !== "") {
+          Reflect.defineProperty(h, "name", {value: fRep.name});
+        }
+
+        let fRep_ = sliceFunT(fRep, 1),
+          fSig_ = "";
+
+        state.sigLog.unshift(fSig);
+        [fRep_, fSig_] = substitute(serialize(fRep_), state.constraints);
+        
+        return new Proxy(h, handleData(
+          fRep_,
+          fSig_,
+          {
+            nthCall: state.nthCall + 1,
+            nthTvar: state.nthTvar,
+            constraints: state.constraints,
+            sigLog: state.sigLog
+          }
+        ));
+      }
+    },
+
+    get: (f, k, p) => {
+      switch (k) {
+        case "toString": return () => fSig;
+        case Symbol.toStringTag: return "Fun";
+        case TR: return fRep;
+        case TS: return fSig;
+
+        case Symbol.toPrimitive: return hint => {
+          _throw(
+            ExtendedTypeError,
+            ["illegal implicit type conversion"],
+            fSig,
+            {desc: [
+              `must not be converted to ${capitalize(hint)} primitive`
+            ]}
+          );          
+        };
+
+        default: {
+          if (k in f) return f[k];
+
+          else _throw(
+            ExtendedTypeError,
+            ["illegal property access"],
+            fSig,
+            {desc: [`unknown ${prettyPrintK(k)}`]}
+          );
+        }
+      }
+    },
+
+    has: (f, k, p) => {
+      switch (k) {
+        case TS: return true;
+        case TR: return true;
+
+        default: _throw(
+          ExtendedTypeError,
+          ["illegal property introspection"],
+          fSig,
+          {desc: [
+            `of ${prettyPrintK(k)}`,
+            "duck typing is not allowed"
+          ]}
+        );
+      }
+    },
+
+    set: (f, k, v, p) => {
+      switch (k) {
+        case "toString": return f[k] = v, f;
+
+        default: _throw(
+          ExtendedTypeError,
+          ["illegal property mutation"],
+          fSig,
+          {desc: [
+            `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(v))}`,
+            "function objects are immutable"
+          ]}
+        );
+      }
+    },
+
+    defineProperty: (f, k, d) => {
+      switch (k) {
+        case "name": return Reflect.defineProperty(f, k, d), f;
+      }
+
+      _throw(
+        ExtendedTypeError,
+        ["illegal property mutation"],
+        fSig,
+        {desc: [
+          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(d.value))}`,
+          "function objects are immutable"
+        ]}
+
+      );
+    },
+
+    deleteProperty: (f, k) => {
+      _throw(
+        ExtendedTypeError,
+        ["illegal property mutation"],
+        fSig,
+        {desc: [
+          `removal of ${prettyPrintK(k)}`,
+          "function objects are immutable"
+        ]}
+      );
+    },
+
+    ownKeys: f => {
+      _throw(
+        ExtendedTypeError,
+        ["illegal property introspection"],
+        fSig,
+        {desc: [
+          `of ${prettyPrintK(k)}`,
+          "meta programming is not allowed"
+        ]}
+      );
+    }
+  };
+};
+
+
+/******************************************************************************
 *****[ 7.2. Algebraic Data Types ]*********************************************
 ******************************************************************************/
 
 
-export const Adt = (Tcons, tSig) => Dcons => {
+export const Adt = (Tcons, tSig) => Data => {
   if (types) {
     if (getStringTag(Tcons) !== "Function") _throw(
       ExtendedTypeError,
@@ -2857,11 +3146,11 @@ export const Adt = (Tcons, tSig) => Dcons => {
       {desc: [`${introspect(tSig)} received`]}
     );
 
-    else if (getStringTag(Dcons) !== "Function") _throw(
+    else if (getStringTag(Data) !== "Function") _throw(
       ExtendedTypeError,
       ["Adt expects"],
       "Function",
-      {desc: [`${introspect(Dcons)} received`]}
+      {desc: [`${introspect(Data)} received`]}
     );
 
     const tvars_ = tSig.slice(tSig.lastIndexOf(" -> ") + 4).match(/\b[a-z]\b/g) || [],
@@ -2902,13 +3191,13 @@ export const Adt = (Tcons, tSig) => Dcons => {
       adt = new Tcons();
 
     runRep.name = "run";
-    adt.run = Fun(serialize(runRep), k => Dcons(k));
+    adt.run = Fun(serialize(runRep), k => Data(k));
     return new Proxy(adt, handleAdt(tRep_, tSig_, Tcons));
   }
 
   else {
     const adt = new Tcons();
-    adt.run = k => Dcons(k);
+    adt.run = k => Data(k);
     return adt;
   }
 };
@@ -3000,7 +3289,7 @@ export const Type = (Tcons, tSig) => {
     });
   }
 
-  return Dcons => Dcons(Type);
+  return Data => Data(Type);
 };
 
 
@@ -3041,6 +3330,7 @@ const handleAdt = (tRep, tSig, Tcons) => {
       switch (k) {
         case TS: return true;
         case TR: return true;
+        case "run": return true;
 
         default: _throw(
           ExtendedTypeError,

@@ -833,7 +833,7 @@ const Option = F.Adt(
   "(List :: ({Some: (a -> r), None: r} -> r) -> Option<a>)"
 );
 
-const Some = x => Option(cases => cases.Some(x));
+const Some = Data("(Some :: a -> Option<a>)", x => Option(cases => cases.Some(x)));
 const None = Option(cases => cases.None);
 
 const runOption = Fun(
@@ -864,8 +864,8 @@ const List = Adt(
   "(List :: ({Cons: (a -> List<a> -> r), Nil: r} -> r) -> List<a>)"
 );
 
+const Cons = Data("(Cons :: a -> List<a> -> List<a>)", x => tx => List(cases => cases.Cons(x) (tx)));
 const Nil = List(cases => cases.Nil);
-const Cons = x => tx => List(cases => cases.Cons(x) (tx));
 
 const uncons = Fun(
   "(uncons :: {Cons: (a -> List<a> -> r), Nil: r} -> List<a> -> r)",
