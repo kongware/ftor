@@ -4434,13 +4434,13 @@ export const tap = Fun(
 ******************************************************************************/
 
 
-const Reader = Type(
+export const Reader = Type(
   function Reader() {},
   "(Reader :: ((e -> a -> r) -> r) -> Reader<e, a>)"
 ) (Reader => f => Reader(x => f(x)));
 
 
-const runReader = Fun(
+export const runReader = Fun(
   "(runReader :: e -> Reader<e, a> -> r)",
   x => tf => tf.run(x)
 );

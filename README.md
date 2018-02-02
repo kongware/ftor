@@ -757,6 +757,8 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
+[Please note that the ADT implementation is still **QUITE BUGY**!]
+
 ADTs allow you to declare sums of products, that is you can declare sum types (aka tagged unions), product types and any combination of them. ftor uses Scott encoding to express ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are supplied.
 
 With ftor all multi-constructor ADTs are created with the `Adt` and single-constructor ADTs with `Type` constructor. Please note that Scott encoding entails somewhat scary type signatures. You can construct them in a rather mechanical way though, because their types are similar across different ADTs. As every proper functional data type ADTs are immutable at the value level.
