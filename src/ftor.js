@@ -3120,7 +3120,7 @@ const handleData = (fRep, fSig, state) => {
 ******************************************************************************/
 
 
-export const Adt = (Tcons, tSig) => Data => {
+export const Adt = (Tcons, tSig) => Dcons => {
   if (types) {
     if (getStringTag(Tcons) !== "Function") _throw(
       ExtendedTypeError,
@@ -3146,11 +3146,11 @@ export const Adt = (Tcons, tSig) => Data => {
       {desc: [`${introspect(tSig)} received`]}
     );
 
-    else if (getStringTag(Data) !== "Function") _throw(
+    else if (getStringTag(Dcons) !== "Function") _throw(
       ExtendedTypeError,
       ["Adt expects"],
       "Function",
-      {desc: [`${introspect(Data)} received`]}
+      {desc: [`${introspect(Dcons)} received`]}
     );
 
     const tvars_ = tSig.slice(tSig.lastIndexOf(" -> ") + 4).match(/\b[a-z]\b/g) || [],
@@ -3191,13 +3191,13 @@ export const Adt = (Tcons, tSig) => Data => {
       adt = new Tcons();
 
     runRep.name = "run";
-    adt.run = Fun(serialize(runRep), k => Data(k));
+    adt.run = Fun(serialize(runRep), k => Dcons(k));
     return new Proxy(adt, handleAdt(tRep_, tSig_, Tcons));
   }
 
   else {
     const adt = new Tcons();
-    adt.run = k => Data(k);
+    adt.run = k => Dcons(k);
     return adt;
   }
 };
@@ -3289,7 +3289,7 @@ export const Type = (Tcons, tSig) => {
     });
   }
 
-  return Data => Data(Type);
+  return Dcons => Dcons(Type);
 };
 
 

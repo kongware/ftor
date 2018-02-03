@@ -95,14 +95,14 @@ ftor restricts the ability of mutating data types rather than enforcing strict i
 
 ## Upcoming Milestones
 
-For the time being there will be no type system extensions like higher kinded types or annotations for partially applied type constructors. First of all, the existing system has to mature. The current focus is on the construction of a type-safe set of pure functions and combinators, which rely on the existing type system.
+I currently work on a completely new ADT implementation to be able to define sums, products and sums of products in a type-safe manner. Designing type-safe ADTs based on Scott encoding has proven to be challenging.
 
 - [x] incorporate parametric polymorphism
 - [x] add homogeneous Array type
 - [x] add homogeneous Map type
 - [x] add Tuple type
 - [x] add Record type
-- [x] add Algebraic data types
+- [ ] add Algebraic data types
 - [x] incorporate row polymorphism
 - [x] add rank-2 types
 - [x] add separate documentation for the functional lib
@@ -757,7 +757,7 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
-[Please note that the ADT implementation is still **QUITE BUGY**!]
+[**Please note that the current ADT implementation is flawed in multiple ways!!!**]
 
 ADTs allow you to declare sums of products, that is you can declare sum types (aka tagged unions), product types and any combination of them. ftor uses Scott encoding to express ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are supplied.
 
