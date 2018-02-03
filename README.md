@@ -105,12 +105,12 @@ For the time being there will be no type system extensions like higher kinded ty
 - [x] add Algebraic data types
 - [x] incorporate row polymorphism
 - [x] add rank-2 types
-- [x] add unit tests
 - [x] add separate documentation for the functional lib
 - [ ] provide common functional combinators/patterns
 - [ ] revise error messages and pretty printing
+- [ ] add unit tests
 - [ ] incorporate kind system/higher kinded types
-- [ ] extend type annotation by partially applied type constructors
+- [ ] incorporate a variadic type to allow `... (c -> d) -> (b -> c) -> (a -> b)`
 - [ ] replace monolithic parser with functional parser combinators
 - [ ] add homogeneous Set type
 - [ ] incorporate a special effect type / corresponding runtime
