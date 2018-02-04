@@ -4247,6 +4247,8 @@ export const tap = Fun(
 ******************************************************************************/
 
 
+// Reader is ill-typed!
+
 export const Reader = Type1(
   function Reader() {},
   "Reader<e, a>",
@@ -4255,8 +4257,8 @@ export const Reader = Type1(
 
 
 export const runReader = Fun(
-  "(runReader :: ((e -> a) -> r) -> Reader<e, a> -> r)",
-  _case => tf => tf.run(_case)
+  "(runReader :: Reader<e, a> -> ((e -> a) -> r) -> r)",
+  tf => x => tf.run(x)
 );
 
 

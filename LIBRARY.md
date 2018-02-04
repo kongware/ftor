@@ -142,7 +142,7 @@ Reader
 
 
 perform effect and extract value
-(runReader :: ((e -> a) -> r) -> Reader<e, a> -> r)
+(runReader :: Reader<e, a> -> ((e -> a) -> r) -> r)
 
 
 functorial map

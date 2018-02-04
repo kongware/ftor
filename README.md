@@ -772,6 +772,8 @@ Scott encoding entails somewhat scary type signatures. However, you can deduce t
 
 ### Single Constructor
 
+[Please note that `Reader` is ill-typed for Scott encoding.]
+
 The `Reader` type is a common algebraic data type with a single data constructor:
 
 ```Javascript
@@ -783,8 +785,8 @@ const Reader = Type1(
 
 
 export const runReader = Fun(
-  "(runReader :: ((e -> a) -> r) -> Reader<e, a> -> r)",
-  x => tf => tf.run(x)
+  "(runReader :: Reader<e, a> -> ((e -> a) -> r) -> r)",
+  tf => x => tf.run(x)
 );
 
 const tf = Reader(inc);
