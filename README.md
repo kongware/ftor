@@ -20,40 +20,43 @@ Version 0.9.20 (unstable)
 **Please note:** This repo is experimental and still work in progress.
 <br><br>
 
+ftor will need at least another six month to reach a more stable status (as of Feb., 2018). It has a great impact on the way Javascript is encoded, but there are no best practices yet, so many conceptual details may still change.
+
 ## What
 
 ftor enables ML-like type-directed, functional programming with Javascript including reasonable debugging. In essence, it consists of a runtime type system and a functional programming library building upon it.
 
-Due to it size there is a separated API [documentation](https://github.com/kongware/ftor/blob/master/LIBRARY.md) for the typed functional library.
-
-## Unstable
-
-ftor's type checker has great impact on the way you encode Javascript. It is in continuous flux in order to eventually achieve an optimal setting. Unfortunatelly, there are no benchmarks that I can follow, because this is somehow unexplored territory in Javascript.
+There is a separated API [documentation](https://github.com/kongware/ftor/blob/master/LIBRARY.md) (under construction) for the typed functional library building upon the type system.
 
 ## Why
 
-Functional programming in Javascript is frustrating as soon as you face real world problems, because...
+Programming in an untyped environment sucks.
 
-* there is no type system preventing you from writing poor programs
-* there is no type evaluation, which can tell you your data types at any point of your program
-* there is no mechanism to impose purity but side effects can be performed everywhere
-* there is no effect type to represent effects as first class values
-* there is no runtime that executes effects and does the plumbing with the real world
-* there are no decent debugging tools for programs written in the sense of the functional paradigm
-* there are no union types to model the world with alternatives instead of hierarchies
+## Goal
 
-## Limitations of a Runtime Type Checker
+This is the not yet completed proof that a Haskell-like runtime type checker for Javascript is actually useful, not just for learning purposes but for production.
 
-As a runtime type checker ftor isn't able to analyze your code and infere the type of every single expression and statement automatically. Doing this for each and every request would certainly cause serious performance problems. Besides it is really hard if not impossible to reliably perform type inference for Javascript code.
+## Features
 
-A reasonable compromise is to focus on functions and their arguments and use Javascript's introspection capabilities. Apart from functions themselves, promises and iterators, argument values passed to functions usually can be easily introspected. For the rest we need explicit type annotations, though.
+* pluggable through proxy virtualization
+* parametric polymorphism
+* row polymorphism
+* rank-2 polymorphism
+* Scott encoded algebraic data types
+* homogeneous Arrays and Maps
+* Tuples and Records
+* type hints
+* strict type evaluation
 
-With the proposed approach we have to make sure that type signatures match their corresponding functions. For this reason ftor will provide a comprehensive library of typed functional combinators and patterns, which are guaranteed to match their signatures. Consumers of this library can focus on composing and combining these basic building blocks and ftor ensures that they keep track of their partially applied funcions' intermediate types. I think this is a sensible and practical approach.
+## Limitations
+
+ftor doesn't infere the types for every single expression and statement in your code. It simply uses explicit type annotations for functions and Javascript's introspection capabilities to unify types of arbitrary complex function expressions.
+
+Writing explicit type annotations is laborious and requires a mature sense for types and their corresponding implementations. Therefore the real power of ftor's type system will arise from the combination with a typed functional library, which builds upon it. This library with dozens of functional combinators and type classes is yet to be developed...
 
 ## Differences to _Flow_ and _TypeScript_
 
-* ftor is a runtime type checker that cannot provide the same soundness as static type checkers can do
-* it focuses on parametric and row polymorphism<sup>1</sup> and doesn't support subtyping
+* ftor focuses on parametric and row polymorphism<sup>1</sup> and doesn't support subtyping
 * it mainly relies on nominal instead of structural typing<sup>2</sup>
 * it is designed to facilitate purely functional programming
 
@@ -79,11 +82,15 @@ F.type(false);
 ```
 ## Ad-hoc Polymorphism and Type Classes
 
-Why isn't ftor shiped with type classes? Well, they are essentially a mechanism to allow type-safe function overloading. They make ad-hoc polymorphism less ad-hoc so to speak. Type classes are an extension of a type system and consequently depend on this system to work properly. Of course, this doesn't go well with a pluggable runtime type checker. I don't claim that it is impossible to build a sufficient mechanism, but it would probably be too much of a trade-off.
+They are just not a good fit for a pluggable runtime type checker. ftor uses explicit type dictionary passing instead.
+
+## Higher-Rank Polymorphism
+
+ftor must support at least rank-2 polymorphism, because it is required by Scott encoded algebraic data types. The implementation is a bit sloppy, though, because the type checker implicitly assumes higher-rank types when respective unbound type variables occur on the left side of an arrow. I posted a [question](https://stackoverflow.com/q/48225570) on stackoverflow, whether explicit qunatifiers are necessary or not.
 
 ## Interoperability
 
-Fantasy Land is based on type classes implemented through the prototype system. ftor neither supports methods that depend on `this` nor has it a type class mechanism. For that reason it cannot be compliant to the Fantasy Land spec.
+Fantasy Land has done a great deal for the functional Javascript community. However, its focus on type classes based on the prototype system makes it quite difficult for me to be compliant. I am open for suggestions though!
 
 ## Native Type Support
 
@@ -91,18 +98,18 @@ Currently ftor neither supports iterators, generators nor promises. The former t
 
 ## Immutability
 
-ftor restricts the ability of mutating data types rather than enforcing strict immutability. There will be proper immutable data types in ftor as soon as I am able to incorporate reliable and fast persistant data structures into Javascript and the type checker, though.
+For common types like `Array` and `Record` ftor restricts the ability of mutating them rather than enforcing strict immutability. Algebraic data types on the other hand are immutable and other functional data types like tries will follow.
 
 ## Upcoming Milestones
 
-I currently work on a completely new ADT implementation to be able to define sums, products and sums of products in a type-safe manner. Designing type-safe ADTs based on Scott encoding has proven to be challenging.
+I currently work on the typed functional library.
 
 - [x] incorporate parametric polymorphism
 - [x] add homogeneous Array type
 - [x] add homogeneous Map type
 - [x] add Tuple type
 - [x] add Record type
-- [ ] add Algebraic data types
+- [x] add Algebraic data types
 - [x] incorporate row polymorphism
 - [x] add rank-2 types
 - [x] add separate documentation for the functional lib
@@ -202,6 +209,8 @@ Boolean received
     at Object.apply (<anonymous>:1680:22)
     at <anonymous>:1:1
 ```
+Please not that both clarity and pretty printing of error messages is quite bugy right now and will be revised any time soon.
+
 ### Strict Function Call Arity
 
 ftor handles function call arities strictly:
@@ -757,85 +766,78 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
-[**Please note that the current ADT implementation is flawed in multiple ways!!!**]
-
 ADTs allow you to declare sums of products, that is you can declare sum types (aka tagged unions), product types and any combination of them. ftor uses Scott encoding to express ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are supplied.
 
-With ftor all multi-constructor ADTs are created with the `Adt` and single-constructor ADTs with `Type` constructor. Please note that Scott encoding entails somewhat scary type signatures. You can construct them in a rather mechanical way though, because their types are similar across different ADTs. As every proper functional data type ADTs are immutable at the value level.
+Scott encoding entails somewhat scary type signatures. However, you can deduce them in a rather mechanical way, because their types have a recurring structure across different ADTs.
+
+### Single Constructor
+
+The `Reader` type is a common algebraic data type with a single data constructor:
+
+```Javascript
+const Reader = Type1(
+  function Reader() {},
+  "Reader<e, a>",
+  "(((e -> a) -> r) -> r)"
+) (Reader => f => Reader(x => f(x)));
+
+
+export const runReader = Fun(
+  "(runReader :: ((e -> a) -> r) -> Reader<e, a> -> r)",
+  x => tf => tf.run(x)
+);
+
+const tf = Reader(inc);
+
+runReader(5) (tf); // 6
+runReader("foo") (tf); // type error
+```
+The applicative and monad instance of `Reader` is much more useful, but for the sake of simplicity I'll leave it at that.
 
 ### Product Types
 
-There are three distinct ways to construct product types. With a normal curried function:
+Products are also created with the `Type1` constructor:
 
 ```Javascript
-const Foo = Type(
+const Foo = Type1(
   function Foo() {},
-  "(Foo :: ((String -> Number -> Boolean -> r) -> r) -> Foo<>)"
-) (Foo => s => n => b => Foo(k => k(s) (n) (b)));
+  "Foo<>",
+  "((Number -> String -> Boolean -> r) -> r)"
+) (Foo => x => y => z => Foo(_case => _case(x) (y) (z)));
 
 const runFoo = Fun(
-  "(runFoo :: (String -> Number -> Boolean -> r) -> Foo<> -> r)",
-  f => tx => tx.run(f)
+  "(runFoo :: (Number -> String -> Boolean -> r) -> Foo<> -> r)",
+  x => tx => tx.run(x)
 );
 
-const foo = Foo("foo") (123) (true);
+const foo = Foo(123) ("foo") (true),
+ bar = Foo(123) ("foo") (null); // type error
 
-runFoo(Fun(
-  "(run :: String -> Number -> Boolean -> r)",
-  s => n => b => s.toUpperCase() + "!"
-)) (foo); // "FOO!"
-```
-With tuples:
-
-```Javascript
-const Bar = Type(
-  function Bar() {},
-  "(Bar :: (([String, Number, Boolean] -> r) -> r) -> Bar<>)"
-) (Bar => xs => Bar(k => k(xs)));
-
-const runBar = Fun(
-  "(runBar :: ([String, Number, Boolean] -> r) -> Bar<> -> r)",
-  f => tx => tx.run(f)
+const uc = Fun(
+  "(uc :: Number -> String -> Boolean -> String)",
+  x => y => z => y.toUpperCase()
 );
 
-const bar = Bar(Tup(["bar", 123, true]));
-
-runBar(Fun(
-  "(run :: [String, Number, Boolean] -> r)",
-  ([s, n, b]) => s.toUpperCase() + "!"
-)) (bar); // "BAR!"
+runFoo(uc) (foo); // "FOO"
 ```
-Or with records:
+In addition to a curried constructor there will be alternative versions that accept a tuple or a record as argument.
 
-```Javascript
-const Baz = Type(
-  function Baz() {},
-  "(Baz :: (({foo: String, bar: Number, baz: Boolean} -> r) -> r) -> Baz<>)"
-) (Baz => o => Baz(k => k(o)));
-
-const runBaz = Fun(
-  "(runBaz :: ({foo: String, bar: Number, baz: Boolean} -> r) -> Baz<> -> r)",
-  f => tx => tx.run(f)
-);
-
-const baz = Baz(F.Rec({foo: "baz", bar: 123, baz: true}));
-
-runBaz(Fun(
-  "(run :: {foo: String, bar: Number, baz: Boolean} -> r)",
-  ({foo: s, bar: n, baz: b}) => s.toUpperCase() + "!")
-) (baz); // "BAZ!"
-```
 ### Sum Types
 
-The `Option` type is well-suited for learning polymorphic sums:
+The `Option` type is well-suited for learning polymorphic sums. Sum types are constructed with the `Type` constructor and the corresponding data constructors with `Data`:
 
 ```Javascript
-const Option = F.Adt(
+const Option = Type(
   function Option() {},
-  "(List :: ({Some: (a -> r), None: r} -> r) -> Option<a>)"
+  "Option<a>",
+  "({Some: (a -> r), None: r} -> r)"
 );
 
-const Some = Data("(Some :: a -> Option<a>)", x => Option(cases => cases.Some(x)));
+const Some = Data(
+  "(Some :: a -> Option<a>)",
+  x => Option(cases => cases.Some(x))
+);
+
 const None = Option(cases => cases.None);
 
 const runOption = Fun(
@@ -843,58 +845,70 @@ const runOption = Fun(
   cases => tx => tx.run(cases)
 );
 
-const x = Some(5),
-  y = None;
+const inc = Fun(
+  "(Number -> Number)",
+  n => n + 1
+);
 
-runOption(Rec({
-  Some: F.Fun("(Number -> Number)", n => n + 1),
-  None: 0
-})); // 6
+const safeInc = runOption(
+  Rec({
+    Some: inc,
+    None: 0
+  })
+);
 
-runOption(Rec({
-  Some: F.Fun("(Number -> Number)", n => n + 1),
-  None: 0
-})); // 0
+const brokenSafeInc = runOption(
+  Rec({
+    Some: inc,
+    Foo: 0
+  })
+);
+
+const tx = Some(5);
+const ty = None;
+
+safeInc(tx); // 6
+safeInc(ty); // 0
+brokenSafeInc(tx); // type error
 ```
 ### Sums of Products
 
-`List` is both a sum (`Cons`/`Nil`) and a product `(Cons :: a -> List<a> -> r)` and a good example for a recursive ADT:
+`List` is both a sum (`Cons`/`Nil`) and a product, because it accepts more than one argument (`(a -> List<a> -> List<a>)`):
 
 ```Javascript
-const List = Adt(
+const List = Type(
   function List() {},
-  "(List :: ({Cons: (a -> List<a> -> r), Nil: r} -> r) -> List<a>)"
+  "List<a>",
+  "({Cons: (a -> List<a> -> r), Nil: r} -> r)"
 );
 
-const Cons = Data("(Cons :: a -> List<a> -> List<a>)", x => tx => List(cases => cases.Cons(x) (tx)));
+const Cons = Data(
+  "(Cons :: a -> List<a> -> List<a>)",
+  x => tx => List(cases => cases.Cons(x) (tx))
+);
+
 const Nil = List(cases => cases.Nil);
 
-const uncons = Fun(
-  "(uncons :: {Cons: (a -> List<a> -> r), Nil: r} -> List<a> -> r)",
+const runList = Fun(
+  "(runList :: {Cons: (a -> List<a> -> r), Nil: r} -> List<a> -> r)",
   cases => tx => tx.run(cases)
 );
 
-const empty = uncons(
+const empty = runList(
   Rec({
-    Nil: true, Cons: F.Fun("(a -> List<a> -> Boolean)",
-    x => tx => false)
+    Cons: F.Fun("(a -> List<a> -> Boolean)", x => tx => false),
+    Nil: true
   })
 );
 
-const brokenEmpty = uncons(
-  Rec({
-    Foo: true, Cons: F.Fun("(a -> List<a> -> Boolean)",
-    x => tx => false)
-  })
-);
-
-const xs = Cons("foo") (Nil),
-  ys = Nil;
+const xs = Cons("foo") (Nil);
+const ys = Nil;
 
 empty(xs); // false
 empty(ys); // true
-brokenEmpty(xs); // type error (Nil case missing)
 ```
+Moreover, `List` is a recursive data type. You can easily define recursive and even mutual recursive types with Scott encoded ADTs.
+
 # Missing Topics
 
 - [ ] Explore issues caused by ftor's use of proxies with regard to object identity

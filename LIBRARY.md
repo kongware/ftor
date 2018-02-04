@@ -138,11 +138,11 @@ tap function
 
 ```
 Reader
-(Reader :: ((e -> a -> r) -> r) -> Reader<e, a>)
+(Reader :: (((e -> a) -> r) -> r) -> Reader<e, a>)
 
 
 perform effect and extract value
-(runReader :: e -> Reader<e, a> -> r)
+(runReader :: ((e -> a) -> r) -> Reader<e, a> -> r)
 
 
 functorial map

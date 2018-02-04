@@ -2973,7 +2973,7 @@ export const Type = (Tcons, tSig, caseSig) => Dcons => {
       );
     });
 
-    const runSig = `(run${Tcons.name} :: ${serialize(caseRep.children[0].value)} -> ${tSig} -> ${serialize(caseRep.children.slice(-1) [0].value)})`,
+    const runSig = `(run${Tcons.name} :: ${caseSig.slice(1, -1)})`,
       runRep = deserialize(runSig),
       adt = new Tcons();
 
@@ -2986,6 +2986,118 @@ export const Type = (Tcons, tSig, caseSig) => Dcons => {
     adt.run = cases => Dcons(cases);
     return adt;
   }
+};
+
+
+export const Type1 = (Tcons, tSig, caseSig) => Dcons => {
+  const Type1 = Dcons => {
+    if (types) {
+      if (getStringTag(Tcons) !== "Function") _throw(
+        ExtendedTypeError,
+        ["Type expects"],
+        "Function",
+        {desc: [`${introspect(Tcons)} received`]}
+      );
+
+      else if (Tcons.name.toLowerCase() === Tcons.name) _throw(
+        ExtendedTypeError,
+        ["Type expects type constructor with capitalized name"],
+        "Name",
+        {desc: [
+          `name "${Tcons.name}" received`,
+          "lowercase names are reserved for functions"
+        ]}
+      );
+
+      else if (getStringTag(tSig) !== "String") _throw(
+        ExtendedTypeError,
+        ["Type expects"],
+        "String",
+        {desc: [`${introspect(tSig)} received`]}
+      );
+
+      else if (tSig.indexOf(Tcons.name) !== 0) _throw(
+        ExtendedTypeError,
+        ["Type expects"],
+        tSig.split("<") [0],
+        {desc: [`${Tcons.name} received`]}
+      );
+
+      else if (getStringTag(caseSig) !== "String") _throw(
+        ExtendedTypeError,
+        ["Type expects"],
+        "String",
+        {desc: [`${introspect(caseSig)} received`]}
+      );
+
+      else if (getStringTag(Dcons) !== "Function") _throw(
+        ExtendedTypeError,
+        ["Type expects"],
+        "unary Function",
+        {desc: [`${introspect(Dcons)} received`]}
+      );
+
+      else if (Dcons.length !== 1) _throw(
+        ExtendedTypeError,
+        ["Type expects"],
+        "unary Function",
+        {desc: [`${Dcons.length}-ary received`]}
+      );
+
+      const TconsSig = `(${Tcons.name} :: ${caseSig} -> ${tSig})`,
+        TconsRep = deserialize(TconsSig),
+        tvars_ = tSig.match(/\b[a-z]\b/g) || [],
+        tvars = new Set(tvars_);
+
+      if (tvars_.length !== tvars.size) _throw(
+        ExtendedTypeError,
+        [`conflicting type variables`],
+        TconsSig,
+        {desc: ["type variables must be unique"]}
+      );
+
+      const rank1 = new Set(U(f => r => {
+        const s = r.replace(/\([^()]+\)/g, "");
+        return s === r ? s : f(f) (s);
+      }) (caseSig).match(/\b[a-z]\b/g));
+
+      rank1.forEach(r1 => {
+        if (!tvars.has(r1)) _throw(
+          ExtendedTypeError,
+          [`invalid type signature`],
+          TconsSig,
+          {desc: [`"${r1}" is out of scope`]}
+        );
+      });
+
+      const runSig = `(run${Tcons.name} :: ${caseSig.slice(1, -1)})`,
+        runRep = deserialize(runSig),
+        adt = new Tcons();
+
+      adt.run = Fun(runSig, cases => Dcons(cases));
+      return new Proxy(adt, handleAdt(deserialize(tSig), tSig, Tcons.name));
+    }
+
+    else {
+      const adt = new Tcons();
+      adt.run = cases => Dcons(cases);
+      return adt;
+    }
+  }
+
+  if (type) {
+    const f = Dcons(Type1),
+      dataRep = deserialize(caseSig).children[0].value;
+
+    dataRep.name = Tcons.name;
+
+    dataRep.children[dataRep.children.length - 1].value =
+      deserialize(tSig);
+
+    return Data(serialize(dataRep), f);
+  }
+
+  else return Dcons(Type1);
 };
 
 
@@ -4135,20 +4247,25 @@ export const tap = Fun(
 ******************************************************************************/
 
 
-/*export const Reader = Type(
+export const Reader = Type1(
   function Reader() {},
-  "(Reader :: ((e -> a -> r) -> r) -> Reader<e, a>)"
+  "Reader<e, a>",
+  "(((e -> a) -> r) -> r)"
 ) (Reader => f => Reader(x => f(x)));
 
 
 export const runReader = Fun(
-  "(runReader :: e -> Reader<e, a> -> r)",
-  x => tf => tf.run(x)
+  "(runReader :: ((e -> a) -> r) -> Reader<e, a> -> r)",
+  _case => tf => tf.run(_case)
 );
 
 
+// the following type dictionary causes an invalid mutation type error, which is actually the
+// expected behavior but I have no clue how to structure my type classes now...
+
+
 // functorial map
-Reader.map = Fun(
+/*Reader.map = Fun(
   "(map :: (e -> a) -> Reader<e, a> -> Reader<e, b>)",
   f => tf => Reader(x => f(tf.run(x)))
 );
