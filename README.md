@@ -50,7 +50,7 @@ This is the not yet completed proof that a Haskell-like runtime type checker for
 
 ## Limitations
 
-ftor doesn't infere the types for every single expression and statement in your code. It simply uses explicit type annotations for functions and Javascript's introspection capabilities to unify types of arbitrary complex function expressions.
+ftor doesn't infere the types for every single expression and statement in your code. It simply combines explicit type annotations for functions and Javascript's introspection capabilities to unify types of arbitrary complex function expressions.
 
 Writing explicit type annotations is laborious and requires a mature sense for types and their corresponding implementations. Therefore the real power of ftor's type system will arise from the combination with a typed functional library, which builds upon it. This library with dozens of functional combinators and type classes is yet to be developed...
 
@@ -80,9 +80,9 @@ F.type(false);
 
 // untyped area
 ```
-## Ad-hoc Polymorphism and Type Classes
+## Type Classes
 
-They are just not a good fit for a pluggable runtime type checker. ftor uses explicit type dictionary passing instead.
+Why doesn't ftor ship with type classes? They are just not a good fit for a pluggable runtime type checker. ftor uses explicit type dictionary passing instead.
 
 ## Higher-Rank Polymorphism
 
@@ -98,7 +98,7 @@ Currently ftor neither supports iterators, generators nor promises. The former t
 
 ## Immutability
 
-For common types like `Array` and `Record` ftor restricts the ability of mutating them rather than enforcing strict immutability. Algebraic data types on the other hand are immutable and other functional data types like tries will follow.
+For common types like `Array` and `Record` ftor restricts the possibilty of mutation rather than imposing strict immutability. Algebraic data types on the other hand are immutable and other functional data types like `Tries` will follow.
 
 ## Upcoming Milestones
 
@@ -873,7 +873,7 @@ brokenSafeInc(tx); // type error
 ```
 ### Sums of Products
 
-`List` is both a sum (`Cons`/`Nil`) and a product, because it accepts more than one argument (`(a -> List<a> -> List<a>)`):
+`List` is both a sum (`Cons`/`Nil`) and a product, because `Cons` accepts more than one argument:
 
 ```Javascript
 const List = Type(
