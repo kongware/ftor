@@ -52,7 +52,7 @@ This is the not yet completed proof that a Haskell-like runtime type checker for
 
 ftor doesn't infere the types for every single expression and statement in your code. It simply combines explicit type annotations for functions and Javascript's introspection capabilities to unify types of arbitrary complex function expressions.
 
-Writing explicit type annotations is laborious and requires a mature sense for types and their corresponding implementations. Therefore the real power of ftor's type system will arise from the combination with a typed functional library, which builds upon it. Consumers of this lib can focus on composing functions instead of worrying about type definitions all the time.
+Writing explicit type annotations is laborious and requires a mature sense for types and their corresponding implementations. Therefore the real power of ftor's type system will arise from the combination with a typed functional library, which builds upon it. Consumers of this lib can focus on composing typed functions instead of worrying about type definitions all the time.
 
 This library with dozens of functional combinators and type classes is yet to be developed...
 
