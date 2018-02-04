@@ -40,10 +40,13 @@ export const type = b => types = b;
 const SYM_PREFIX = "github.com/kongware/ftor/";
 
 
-export const TR = Symbol.for(`${SYM_PREFIX}tr`);
+export const TR = Symbol.for(`${SYM_PREFIX}TR`);
 
 
-export const TS = Symbol.for(`${SYM_PREFIX}ts`);
+export const TS = Symbol.for(`${SYM_PREFIX}TS`);
+
+
+const RETRIEVE = Symbol.for(`${SYM_PREFIX}RETRIEVE`);
 
 
 const TUP_MAX_FIELDS = 16;
@@ -2582,6 +2585,51 @@ export const Fun = (fSig, f) => {
 };
 
 
+export const Data = (fSig, f) => {
+  if (types) {
+    if (getStringTag(fSig) !== "String") _throw(
+      ExtendedTypeError,
+      ["Data expects"],
+      "(String, Function -> Function)",
+      {range: [1, 6], desc: [`${introspect(fSig)} received`]}
+    );
+
+    else if (getStringTag(f) !== "Function") _throw(
+      ExtendedTypeError,
+      ["Data expects"],
+      "(String, Function -> Function)",
+      {range: [9, 8], desc: [`${introspect(f)} received`]}
+    );
+
+    const fRep = deserialize(fSig);
+
+    if (fRep.name !== "") {
+      if (fRep.name[0].toUpperCase() !== fRep.name[0]) _throw(
+        ExtendedTypeError,
+        ["Data expects an uppercase function name"],
+        fSig,
+        {range: [1, fRep.name.length], desc: ["lowercase names are reserved for functions"]}
+      );
+
+      Reflect.defineProperty(f, "name", {value: fRep.name || "lambda"});
+    }
+
+    return new Proxy(f, handleFun(
+      fRep,
+      fSig,
+      {
+        nthCall: 0,
+        nthTvar: 0,
+        constraints: null,
+        sigLog: null
+      }
+    ));
+  }
+
+  else return f;
+};
+
+
 const handleFun = (fRep, fSig, state) => {
   return {
     apply: (g, _, arg) => {
@@ -2661,6 +2709,11 @@ const handleFun = (fRep, fSig, state) => {
           ReturnTypeError
         );
 
+        if (r && typeof r == "object" && RETRIEVE in r) {
+          const [fRep_, fSig_] = substitute(r[TS], state.constraints);
+          return new Proxy(r[RETRIEVE], handleAdt(fRep_, fSig_, getStringTag(r)));
+        }
+
         return r;
       }
 
@@ -2725,6 +2778,7 @@ const handleFun = (fRep, fSig, state) => {
       switch (k) {
         case TS: return true;
         case TR: return true;
+        case RETRIEVE: return false;
 
         default: _throw(
           ExtendedTypeError,
@@ -2827,410 +2881,11 @@ const verifyUnary = (arg, argRep, fRep, fSig, sigLog) => {
 
 
 /******************************************************************************
-*****[ 7.2. Constructors ]*****************************************************
-******************************************************************************/
-
-
-export const Data = (fSig, f) => {
-  if (types) {
-    if (getStringTag(fSig) !== "String") _throw(
-      ExtendedTypeError,
-      ["Data expects"],
-      "(String, Function -> Function)",
-      {range: [1, 6], desc: [`${introspect(fSig)} received`]}
-    );
-
-    else if (getStringTag(f) !== "Function") _throw(
-      ExtendedTypeError,
-      ["Data expects"],
-      "(String, Function -> Function)",
-      {range: [9, 8], desc: [`${introspect(f)} received`]}
-    );
-
-    const fRep = deserialize(fSig);
-
-    if (fRep.name !== "") {
-      if (fRep.name[0].toLowerCase() === fRep.name[0]) _throw(
-        ExtendedTypeError,
-        ["Data expects a uppercase constructor name"],
-        fSig,
-        {range: [1, fRep.name.length], desc: ["lowercase names are reserved for functions"]}
-      );
-
-      Reflect.defineProperty(f, "name", {value: fRep.name || "lambda"});
-    }
-
-    return new Proxy(f, handleData(
-      fRep,
-      fSig,
-      {
-        nthCall: 0,
-        nthTvar: 0,
-        constraints: null,
-        sigLog: null
-      }
-    ));
-  }
-
-  else return f;
-};
-
-
-const handleData = (fRep, fSig, state) => {
-  return {
-    apply: (g, _, arg) => {
-      if (state.nthCall === 0) {
-        state = {
-          nthCall: 0,
-          nthTvar: 0,
-          constraints: new Map(),
-          sigLog: []
-        };
-      }
-
-      else state.constraints = new Map();
-
-      const argRep = fRep.children[0];
-
-      switch (argRep.constructor.name) {
-        case "ArgT": {
-          verifyUnary(arg, argRep, fRep, fSig, state.sigLog);
-          const tSig = introspect(arg[0]);
-          
-          state = unify(
-            argRep.value,
-            serialize(argRep.value),
-            deserialize(tSig),
-            tSig,
-            state,
-            {nthParam: null},
-            fRep,
-            fSig,
-            tSig,
-            ExtendedTypeError
-          );
-
-          break;
-        }
-
-        case "NoArgT": {
-          verifyNullary(arg, argRep, fRep, fSig, state.sigLog);
-          break;
-        }
-
-        case "RestT": {
-          const tSig = introspect(arg);
-
-          state = unify(
-            argRep.value,
-            serialize(argRep.value),
-            deserialize(tSig),
-            tSig,
-            state,
-            {nthParam: null},
-            fRep,
-            fSig,
-            tSig,
-            ExtendedTypeError
-          );
-
-          break;
-        }
-      }
-
-      if (fRep.children[1].constructor.name === "ReturnT") {
-        const h = g(...arg),
-          rSig = serialize(fRep.children[1].value),
-          rSig_ = introspect(h);
-
-        // check that rSig matches serialize(fRep.children[1].value)
-
-        //if (rSig !== rSig_) throw new Error("invalid data constructor");
-
-        state = unify(
-          fRep.children[1].value,
-          rSig,
-          deserialize(rSig_),
-          rSig_,
-          state,
-          {nthParam: null},
-          fRep,
-          fSig,
-          rSig,
-          ReturnTypeError
-        );
-
-        // substitute fRep and store new tRep/tSig
-        
-        state.sigLog.unshift(fSig);
-        const [fRep_, fSig_] = substitute(serialize(fRep.children[1].value), state.constraints);
-        
-        // create new Proxy with them and return it
-
-        return new Proxy(h, handleData(
-          fRep_,
-          fSig_,
-          {
-            nthCall: state.nthCall + 1,
-            nthTvar: state.nthTvar,
-            constraints: state.constraints,
-            sigLog: state.sigLog
-          }
-        ));
-
-        return h;
-      }
-
-      else {
-        const h = g(...arg);
-
-        if (fRep.name !== "") {
-          Reflect.defineProperty(h, "name", {value: fRep.name});
-        }
-
-        let fRep_ = sliceFunT(fRep, 1),
-          fSig_ = "";
-
-        state.sigLog.unshift(fSig);
-        [fRep_, fSig_] = substitute(serialize(fRep_), state.constraints);
-        
-        return new Proxy(h, handleData(
-          fRep_,
-          fSig_,
-          {
-            nthCall: state.nthCall + 1,
-            nthTvar: state.nthTvar,
-            constraints: state.constraints,
-            sigLog: state.sigLog
-          }
-        ));
-      }
-    },
-
-    get: (f, k, p) => {
-      switch (k) {
-        case "toString": return () => fSig;
-        case Symbol.toStringTag: return "Fun";
-        case TR: return fRep;
-        case TS: return fSig;
-
-        case Symbol.toPrimitive: return hint => {
-          _throw(
-            ExtendedTypeError,
-            ["illegal implicit type conversion"],
-            fSig,
-            {desc: [
-              `must not be converted to ${capitalize(hint)} primitive`
-            ]}
-          );          
-        };
-
-        default: {
-          if (k in f) return f[k];
-
-          else _throw(
-            ExtendedTypeError,
-            ["illegal property access"],
-            fSig,
-            {desc: [`unknown ${prettyPrintK(k)}`]}
-          );
-        }
-      }
-    },
-
-    has: (f, k, p) => {
-      switch (k) {
-        case TS: return true;
-        case TR: return true;
-
-        default: _throw(
-          ExtendedTypeError,
-          ["illegal property introspection"],
-          fSig,
-          {desc: [
-            `of ${prettyPrintK(k)}`,
-            "duck typing is not allowed"
-          ]}
-        );
-      }
-    },
-
-    set: (f, k, v, p) => {
-      switch (k) {
-        case "toString": return f[k] = v, f;
-
-        default: _throw(
-          ExtendedTypeError,
-          ["illegal property mutation"],
-          fSig,
-          {desc: [
-            `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(v))}`,
-            "function objects are immutable"
-          ]}
-        );
-      }
-    },
-
-    defineProperty: (f, k, d) => {
-      switch (k) {
-        case "name": return Reflect.defineProperty(f, k, d), f;
-      }
-
-      _throw(
-        ExtendedTypeError,
-        ["illegal property mutation"],
-        fSig,
-        {desc: [
-          `of ${prettyPrintK(k)} with type ${prettyPrintV(introspect(d.value))}`,
-          "function objects are immutable"
-        ]}
-
-      );
-    },
-
-    deleteProperty: (f, k) => {
-      _throw(
-        ExtendedTypeError,
-        ["illegal property mutation"],
-        fSig,
-        {desc: [
-          `removal of ${prettyPrintK(k)}`,
-          "function objects are immutable"
-        ]}
-      );
-    },
-
-    ownKeys: f => {
-      _throw(
-        ExtendedTypeError,
-        ["illegal property introspection"],
-        fSig,
-        {desc: [
-          `of ${prettyPrintK(k)}`,
-          "meta programming is not allowed"
-        ]}
-      );
-    }
-  };
-};
-
-
-/******************************************************************************
 *****[ 7.2. Algebraic Data Types ]*********************************************
 ******************************************************************************/
 
 
-export const Adt = (Tcons, tSig) => Dcons => {
-  if (types) {
-    if (getStringTag(Tcons) !== "Function") _throw(
-      ExtendedTypeError,
-      ["Adt expects"],
-      "Function",
-      {desc: [`${introspect(Tcons)} received`]}
-    );
-
-    else if (Tcons.name.toLowerCase() === Tcons.name) _throw(
-      ExtendedTypeError,
-      ["Adt expects type constructor with capitalized name"],
-      "Name",
-      {desc: [
-        `name "${Tcons.name}" received`,
-        "lowercase names are reserved for functions"
-      ]}
-    );
-
-    else if (getStringTag(tSig) !== "String") _throw(
-      ExtendedTypeError,
-      ["Adt expects"],
-      "String",
-      {desc: [`${introspect(tSig)} received`]}
-    );
-
-    else if (getStringTag(Dcons) !== "Function") _throw(
-      ExtendedTypeError,
-      ["Adt expects"],
-      "Function",
-      {desc: [`${introspect(Dcons)} received`]}
-    );
-
-    const tvars_ = tSig.slice(tSig.lastIndexOf(" -> ") + 4).match(/\b[a-z]\b/g) || [],
-      tvars = new Set(tvars_),
-      tRep = deserialize(tSig);
-
-    if (tvars_.length !== tvars.size) _throw(
-      ExtendedTypeError,
-      [`conflicting type variables`],
-      tSig,
-      {
-        range: tRep.children.slice(-1)[0].value.range,
-        desc: ["type variables must be unique"]
-      }
-    );
-
-    const rank1 = new Set(U(f => r => {
-      const s = r.replace(/\([^()]+\)/g, "");
-      return s === r ? s : f(f) (s);
-    }) (tSig.slice(1, -1))
-      .split(" -> ")
-      .slice(0, -1)
-      .join(" -> ")
-      .match(/\b[a-z]\b/g));
-
-    rank1.forEach(r1 => {
-      if (!tvars.has(r1)) _throw(
-        ExtendedTypeError,
-        [`invalid type signature`],
-        tSig,
-        {desc: [`"${r1}" is out of scope`]}
-      );
-    });
-
-    const tRep_ = tRep.children.slice(-1)[0].value,
-      tSig_ = serialize(tRep_),
-      runRep = cloneT(tRep.children[0].value),
-      adt = new Tcons();
-
-    runRep.name = "run";
-    adt.run = Fun(serialize(runRep), k => Dcons(k));
-    return new Proxy(adt, handleAdt(tRep_, tSig_, Tcons));
-  }
-
-  else {
-    const adt = new Tcons();
-    adt.run = k => Dcons(k);
-    return adt;
-  }
-};
-
-
-export const Type = (Tcons, tSig) => {
-  const Type = k => {
-    if (types) {
-      if (getStringTag(k) !== "Function") _throw(
-        ExtendedTypeError,
-        ["Type expects"],
-        "Function",
-        {desc: [`${introspect(k)} received`]}
-      );
-
-      const tRep = deserialize(tSig),
-        tRep_ = tRep.children.slice(-1)[0].value,
-        tSig_ = serialize(tRep_),
-        runRep = cloneT(tRep.children[0].value),
-        type = new Tcons();
-
-      runRep.name = "run";
-      type.run = Fun(serialize(runRep), k);
-      return new Proxy(type, handleAdt(tRep_, tSig_, Tcons));
-    }
-
-    else {
-      const type = new Tcons();
-      type.run = k;
-      return type;
-    }
-  };
-
+export const Type = (Tcons, tSig, caseSig) => Dcons => {
   if (types) {
     if (getStringTag(Tcons) !== "Function") _throw(
       ExtendedTypeError,
@@ -3256,51 +2911,93 @@ export const Type = (Tcons, tSig) => {
       {desc: [`${introspect(tSig)} received`]}
     );
 
-    const tvars_ = tSig.slice(tSig.lastIndexOf(" -> ") + 4).match(/\b[a-z]\b/g) || [],
-      tvars = new Set(tvars_),
-      tRep = deserialize(tSig);
+    else if (tSig.indexOf(Tcons.name) !== 0) _throw(
+      ExtendedTypeError,
+      ["Type expects"],
+      tSig.split("<") [0],
+      {desc: [`${Tcons.name} received`]}
+    );
+
+    else if (getStringTag(caseSig) !== "String") _throw(
+      ExtendedTypeError,
+      ["Type expects"],
+      "String",
+      {desc: [`${introspect(caseSig)} received`]}
+    );
+
+    else if (getStringTag(Dcons) !== "Function") _throw(
+      ExtendedTypeError,
+      ["Type expects"],
+      "unary Function",
+      {desc: [`${introspect(Dcons)} received`]}
+    );
+
+    else if (Dcons.length !== 1) _throw(
+      ExtendedTypeError,
+      ["Type expects"],
+      "unary Function",
+      {desc: [`${Dcons.length}-ary received`]}
+    );
+
+    const caseRep = deserialize(caseSig);
+
+    caseRep.children[0].value.children.forEach(({k, v}) => {
+      if (v.tag === "Fun" && v.name === "") v.name = k;
+    });
+
+    caseSig = serialize(caseRep);
+
+    const TconsSig = `(${Tcons.name} :: ${caseSig} -> ${tSig})`,
+      TconsRep = deserialize(TconsSig),
+      tvars_ = tSig.match(/\b[a-z]\b/g) || [],
+      tvars = new Set(tvars_);
 
     if (tvars_.length !== tvars.size) _throw(
       ExtendedTypeError,
       [`conflicting type variables`],
-      tSig,
-      {
-        range: tRep.children.slice(-1)[0].value.range,
-        desc: ["type variables must be unique"]
-      }
+      TconsSig,
+      {desc: ["type variables must be unique"]}
     );
 
     const rank1 = new Set(U(f => r => {
       const s = r.replace(/\([^()]+\)/g, "");
       return s === r ? s : f(f) (s);
-    }) (tSig.slice(1, -1))
-      .split(" -> ")
-      .slice(0, -1)
-      .join(" -> ")
-      .match(/\b[a-z]\b/g));
+    }) (caseSig).match(/\b[a-z]\b/g));
 
     rank1.forEach(r1 => {
       if (!tvars.has(r1)) _throw(
         ExtendedTypeError,
         [`invalid type signature`],
-        tSig,
+        TconsSig,
         {desc: [`"${r1}" is out of scope`]}
       );
     });
+
+    const runSig = `(run${Tcons.name} :: ${serialize(caseRep.children[0].value)} -> ${tSig} -> ${serialize(caseRep.children.slice(-1) [0].value)})`,
+      runRep = deserialize(runSig),
+      adt = new Tcons();
+
+    adt.run = Fun(runSig, cases => Dcons(cases));
+    return new Proxy(adt, handleAdt(deserialize(tSig), tSig, Tcons.name));
   }
 
-  return Dcons => Dcons(Type);
+  else {
+    const adt = new Tcons();
+    adt.run = cases => Dcons(cases);
+    return adt;
+  }
 };
 
 
-const handleAdt = (tRep, tSig, Tcons) => {
+const handleAdt = (tRep, tSig, name) => {
   return {
     get: (o, k, p) => {
       switch (k) {
         case "toString": return () => tSig;
-        case Symbol.toStringTag: return Tcons.name;
+        case Symbol.toStringTag: return name;
         case TR: return tRep;
         case TS: return tSig;
+        case RETRIEVE: return o;
 
         case Symbol.toPrimitive: return hint => {
           _throw(
@@ -3330,7 +3027,7 @@ const handleAdt = (tRep, tSig, Tcons) => {
       switch (k) {
         case TS: return true;
         case TR: return true;
-        case "run": return true;
+        case RETRIEVE: return true;
 
         default: _throw(
           ExtendedTypeError,
@@ -3479,6 +3176,7 @@ const handleArr = (tRep, tSig) => ({
       switch (i) {
         case TS: return true;
         case TR: return true;
+        case RETRIEVE: return false;
 
         default: _throw(
           ExtendedTypeError,
@@ -3719,6 +3417,7 @@ const handleMap = (tRep, tSig) => ({
     switch (k) {
       case TS: return true;
       case TR: return true;
+      case RETRIEVE: return false;
 
       default: _throw(
         ExtendedTypeError,
@@ -3852,6 +3551,7 @@ const handleRec = (tRep, tSig) => ({
     switch (k) {
       case TS: return true;
       case TR: return true;
+      case RETRIEVE: return false;
 
       default: _throw(
         ExtendedTypeError,
@@ -4002,6 +3702,7 @@ const handleTup = (tRep, tSig) => ({
     switch (i) {
       case TS: return true;
       case TR: return true;
+      case RETRIEVE: return false;
 
       default: _throw(
         ExtendedTypeError,
@@ -4434,7 +4135,7 @@ export const tap = Fun(
 ******************************************************************************/
 
 
-export const Reader = Type(
+/*export const Reader = Type(
   function Reader() {},
   "(Reader :: ((e -> a -> r) -> r) -> Reader<e, a>)"
 ) (Reader => f => Reader(x => f(x)));
@@ -4499,4 +4200,4 @@ Reader.asks = Fun(
 Reader.local = Fun(
   "(local :: (e -> e) -> Reader<e, a> -> Reader<e, a>)",
   f => tf => Reader(x => tf.run(f(x)))
-);
+);*/
