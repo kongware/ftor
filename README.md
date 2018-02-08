@@ -788,10 +788,12 @@ const tf = Reader(inc);
 
 runReader(tf) (id) (5); // 6
 runReader(tf) (id) ("foo"); // type error
+
+// TODO: add runReader helper to get rid of id
 ```
 The applicative and monad instance of `Reader` is much more useful, but for the sake of simplicity I'll leave it at that.
 
-### Product Types (TODO: replace with CPS and single data constructor ADTs)
+### Product Types
 
 Products are also created with the `Type1` constructor:
 
