@@ -2989,7 +2989,7 @@ export const Type = (Tcons, tSig, caseSig) => Dcons => {
 };
 
 
-export const Type1 = (Tcons, tSig, caseSig) => Dcons => {
+export const Type1 = (Tcons, tSig, fSig) => Dcons => {
   const Type1 = Dcons => {
     if (types) {
       if (getStringTag(Tcons) !== "Function") _throw(
@@ -3023,11 +3023,11 @@ export const Type1 = (Tcons, tSig, caseSig) => Dcons => {
         {desc: [`${Tcons.name} received`]}
       );
 
-      else if (getStringTag(caseSig) !== "String") _throw(
+      else if (getStringTag(fSig) !== "String") _throw(
         ExtendedTypeError,
         ["Type expects"],
         "String",
-        {desc: [`${introspect(caseSig)} received`]}
+        {desc: [`${introspect(fSig)} received`]}
       );
 
       else if (getStringTag(Dcons) !== "Function") _throw(
@@ -3044,7 +3044,7 @@ export const Type1 = (Tcons, tSig, caseSig) => Dcons => {
         {desc: [`${Dcons.length}-ary received`]}
       );
 
-      const TconsSig = `(${Tcons.name} :: ${caseSig} -> ${tSig})`,
+      const TconsSig = `(${Tcons.name} :: ${fSig} -> ${tSig})`,
         TconsRep = deserialize(TconsSig),
         tvars_ = tSig.match(/\b[a-z]\b/g) || [],
         tvars = new Set(tvars_);
@@ -3059,7 +3059,7 @@ export const Type1 = (Tcons, tSig, caseSig) => Dcons => {
       const rank1 = new Set(U(f => r => {
         const s = r.replace(/\([^()]+\)/g, "");
         return s === r ? s : f(f) (s);
-      }) (caseSig).match(/\b[a-z]\b/g));
+      }) (fSig).match(/\b[a-z]\b/g));
 
       rank1.forEach(r1 => {
         if (!tvars.has(r1)) _throw(
@@ -3070,24 +3070,24 @@ export const Type1 = (Tcons, tSig, caseSig) => Dcons => {
         );
       });
 
-      const runSig = `(run${Tcons.name} :: ${caseSig.slice(1, -1)})`,
+      const runSig = `(run${Tcons.name} :: ${fSig.slice(1, -1)})`,
         runRep = deserialize(runSig),
         adt = new Tcons();
 
-      adt.run = Fun(runSig, cases => Dcons(cases));
+      adt.run = Fun(runSig, Dcons);
       return new Proxy(adt, handleAdt(deserialize(tSig), tSig, Tcons.name));
     }
 
     else {
       const adt = new Tcons();
-      adt.run = cases => Dcons(cases);
+      adt.run = Dcons;
       return adt;
     }
   }
 
   if (type) {
     const f = Dcons(Type1),
-      dataRep = deserialize(caseSig).children[0].value;
+      dataRep = deserialize(fSig).children[0].value;
 
     dataRep.name = Tcons.name;
 
@@ -4247,20 +4247,28 @@ export const tap = Fun(
 ******************************************************************************/
 
 
-// Reader is ill-typed!
-
 export const Reader = Type1(
   function Reader() {},
   "Reader<e, a>",
   "(((e -> a) -> r) -> r)"
-) (Reader => f => Reader(x => f(x)));
+) (Reader => f => Reader(k => k(f)));
 
 
 export const runReader = Fun(
   "(runReader :: Reader<e, a> -> ((e -> a) -> r) -> r)",
-  tf => x => tf.run(x)
+  tf => k => tf.run(k)
 );
 
+
+/*
+:set -XRankNTypes
+newtype Reader e a = Reader {runReader :: forall r. ((e -> a) -> r) -> r }
+reader f = Reader (\k -> k (f))
+r = reader (\n -> n + 1)
+runReader r id
+runReader' r = runReader r id
+runReader' = flip runReader id
+*/
 
 // the following type dictionary causes an invalid mutation type error, which is actually the
 // expected behavior but I have no clue how to structure my type classes now...

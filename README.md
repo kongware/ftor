@@ -26,7 +26,7 @@ ftor will need at least another six month to reach a more stable status (as of F
 
 ftor enables ML-like type-directed, functional programming with Javascript including reasonable debugging. In essence, it consists of a runtime type system and a functional programming library building upon it.
 
-There is a separated API [documentation](https://github.com/kongware/ftor/blob/master/LIBRARY.md) (under construction) for the typed functional library building upon the type system.
+There is a separated API [documentation](https://github.com/kongware/ftor/blob/master/LIBRARY.md) (under construction) for the typed functional library.
 
 ## Why
 
@@ -52,7 +52,7 @@ This is the not yet completed proof that a Haskell-like runtime type checker for
 
 ftor doesn't infere the types for every single expression and statement in your code. It simply combines explicit type annotations for functions and Javascript's introspection capabilities to unify types of arbitrary complex function expressions.
 
-Writing explicit type annotations is laborious and requires a mature sense for types and their corresponding implementations. Therefore the real power of ftor's type system will arise from the combination with a typed functional library, which builds upon it. Consumers of this lib can focus on composing typed functions instead of worrying about type definitions all the time.
+Writing explicit type annotations is laborious and requires a mature sense for types and their corresponding implementations. Therefore the real power of ftor's type system will arise from the combination with a typed functional library. Consumers of this lib can focus on composing typed functions instead of worrying about type definitions all the time.
 
 This library with dozens of functional combinators and type classes is yet to be developed...
 
@@ -106,15 +106,11 @@ For common types like `Array` and `Record` ftor restricts the possibilty of muta
 
 I currently work on the typed functional library.
 
-- [x] incorporate parametric polymorphism
-- [x] add homogeneous Array type
-- [x] add homogeneous Map type
-- [x] add Tuple type
-- [x] add Record type
-- [x] add Algebraic data types
-- [x] incorporate row polymorphism
-- [x] add rank-2 types
-- [x] add separate documentation for the functional lib
+- [ ] fix automatically derived but incorrect ADT type annotation
+- [ ] reject impredicative types (instantiation of rank-2 type at a polytype)
+- [ ] incorporate subsumption rule (considering co-/contra-variance phenomenon)
+- [ ] add section from CPS to Scott encoding to readme
+- [ ] add section types as first class citizens
 - [ ] provide common functional combinators/patterns
 - [ ] revise error messages and pretty printing
 - [ ] add unit tests
@@ -774,8 +770,6 @@ Scott encoding entails somewhat scary type signatures. However, you can deduce t
 
 ### Single Constructor
 
-[Please note that `Reader` is ill-typed for Scott encoding.]
-
 The `Reader` type is a common algebraic data type with a single data constructor:
 
 ```Javascript
@@ -788,17 +782,17 @@ const Reader = Type1(
 
 export const runReader = Fun(
   "(runReader :: Reader<e, a> -> ((e -> a) -> r) -> r)",
-  tf => x => tf.run(x)
+  tf => k => tf.run(k)
 );
 
 const tf = Reader(inc);
 
-runReader(5) (tf); // 6
-runReader("foo") (tf); // type error
+runReader(tf) (id) (5); // 6
+runReader(tf) (id) ("foo"); // type error
 ```
 The applicative and monad instance of `Reader` is much more useful, but for the sake of simplicity I'll leave it at that.
 
-### Product Types
+### Product Types (TODO: replace with CPS and single data constructor ADTs)
 
 Products are also created with the `Type1` constructor:
 
