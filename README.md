@@ -110,12 +110,11 @@ I currently work on the typed functional library.
 - [ ] reject impredicative types (instantiation of rank-2 type at a polytype)
 - [ ] incorporate subsumption rule (considering co-/contra-variance phenomenon)
 - [ ] add section from CPS to Scott encoding to readme
-- [ ] add section types as first class citizens
+- [ ] add section dynamic types, which may allow type system extensions like this variadic compostion type: `... (c -> d) -> (b -> c) -> (a -> b)`
 - [ ] provide common functional combinators/patterns
 - [ ] revise error messages and pretty printing
 - [ ] add unit tests
 - [ ] incorporate kind system/higher kinded types
-- [ ] incorporate a variadic type to allow `... (c -> d) -> (b -> c) -> (a -> b)`
 - [ ] replace monolithic parser with functional parser combinators
 - [ ] add homogeneous Set type
 - [ ] incorporate a special effect type / corresponding runtime
