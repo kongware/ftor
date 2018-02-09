@@ -1324,17 +1324,17 @@ const lookAheadFun = tSig => {
 ******************************************************************************/
 
 
-const unify = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+const unify = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons) => {
   switch (t1Rep.constructor.name) {
-    case "AdtT": return unifyAdt(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
-    case "ArrT": return unifyArr(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
-    case "EmptyT": return unifyEmpty(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
-    case "FunT": return unifyFun(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
-    case "_MapT": return unifyMap(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
-    case "PolyT": return unifyPoly(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
-    case "PrimT": return unifyPrim(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
-    case "RecT": return unifyRec(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
-    case "TupT": return unifyTup(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
+    case "AdtT": return unifyAdt(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons);
+    case "ArrT": return unifyArr(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons);
+    case "EmptyT": return unifyEmpty(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons);
+    case "FunT": return unifyFun(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons);
+    case "_MapT": return unifyMap(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons);
+    case "PolyT": return unifyPoly(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons);
+    case "PrimT": return unifyPrim(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons);
+    case "RecT": return unifyRec(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons);
+    case "TupT": return unifyTup(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons);
   }
 };
 
@@ -1344,7 +1344,7 @@ const unify = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, 
 ******************************************************************************/
 
 
-const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "ArrT":
     case "EmptyT":
@@ -1387,7 +1387,7 @@ const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
           t2Rep.children[n],
           serialize(t2Rep.children[n]),
           state,
-          {nthParam},
+          {nthParam, getFresh},
           fRep,
           fSig,
           xSig,
@@ -1405,7 +1405,7 @@ const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
         t1Rep,
         serialize(t1Rep),
         state,
-        {nthParam},
+        {nthParam, getFresh},
         fRep,
         fSig,
         xSig,
@@ -1421,7 +1421,7 @@ const unifyAdt = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 ******************************************************************************/
 
 
-const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "EmptyT":
@@ -1452,7 +1452,7 @@ const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
         t2Rep.children[0],
         serialize(t2Rep.children[0]),
         state,
-        {nthParam},
+        {nthParam, getFresh},
         fRep,
         fSig,
         xSig,
@@ -1467,7 +1467,7 @@ const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
         t1Rep,
         serialize(t1Rep),
         state,
-        {nthParam},
+        {nthParam, getFresh},
         fRep,
         fSig,
         xSig,
@@ -1483,7 +1483,7 @@ const unifyArr = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 ******************************************************************************/
 
 
-const unifyEmpty = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+const unifyEmpty = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
@@ -1516,7 +1516,7 @@ const unifyEmpty = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, x
         t1Rep,
         serialize(t1Rep),
         state,
-        {nthParam},
+        {nthParam, getFresh},
         fRep,
         fSig,
         xSig,
@@ -1532,7 +1532,7 @@ const unifyEmpty = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, x
 ******************************************************************************/
 
 
-const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
@@ -1571,7 +1571,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
               t2Rep,
               serialize(t2Rep),
               state,
-              {nthParam: n},
+              {nthParam: n, getFresh: true},
               fRep,
               fSig,
               xSig,
@@ -1584,7 +1584,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
               t2Rep,
               serialize(t2Rep),
               state,
-              {nthParam: n},
+              {nthParam: n, getFresh: true},
               fRep,
               fSig,
               xSig,
@@ -1599,7 +1599,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
               t2Rep.children[n].value,
               serialize(t2Rep.children[n].value),
               state,
-              {nthParam: n},
+              {nthParam: n, getFresh: true},
               fRep,
               fSig,
               xSig,
@@ -1612,7 +1612,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
               t2Rep.children[n].value,
               serialize(t2Rep.children[n].value),
               state,
-              {nthParam: n},
+              {nthParam: n, getFresh: true},
               fRep,
               fSig,
               xSig,
@@ -1633,7 +1633,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
               argRep.value,
               serialize(argRep.value),
               state,
-              {nthParam: n},
+              {nthParam: n, getFresh: true},
               fRep,
               fSig,
               xSig,
@@ -1646,7 +1646,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
               argRep.value,
               serialize(argRep.value),
               state,
-              {nthParam: n},
+              {nthParam: n, getFresh: true},
               fRep,
               fSig,
               xSig,
@@ -1661,7 +1661,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
               argRep.value,
               serialize(argRep.value),
               state,
-              {nthParam: n},
+              {nthParam: n, getFresh: true},
               fRep,
               fSig,
               xSig,
@@ -1674,7 +1674,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
               argRep.value,
               serialize(argRep.value),
               state,
-              {nthParam: n},
+              {nthParam: n, getFresh: true},
               fRep,
               fSig,
               xSig,
@@ -1692,7 +1692,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
             t2Rep.children[n].value,
             serialize(t2Rep.children[n].value),
             state,
-            {nthParam: n},
+            {nthParam: n, getFresh: true},
             fRep,
             fSig,
             xSig,
@@ -1705,7 +1705,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
             t2Rep.children[n].value,
             serialize(t2Rep.children[n].value),
             state,
-            {nthParam: n},
+            {nthParam: n, getFresh: true},
             fRep,
             fSig,
             xSig,
@@ -1718,7 +1718,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
     }
 
     case "PolyT": {
-      return constrain(t2Rep, t2Sig, t1Rep, t1Sig, state, {nthParam}, fRep, fSig, xSig, cons);
+      return constrain(t2Rep, t2Sig, t1Rep, t1Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons);
     }
   }
 };
@@ -1729,7 +1729,7 @@ const unifyFun = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 ******************************************************************************/
 
 
-const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
@@ -1760,7 +1760,7 @@ const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
         t2Rep.children[0].k,
         serialize(t2Rep.children[0].k),
         state,
-        {nthParam},
+        {nthParam, getFresh},
         fRep,
         fSig,
         xSig,
@@ -1773,7 +1773,7 @@ const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
         t2Rep.children[0].v,
         serialize(t2Rep.children[0].v),
         state,
-        {nthParam},
+        {nthParam, getFresh},
         fRep,
         fSig,
         xSig,
@@ -1788,7 +1788,7 @@ const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
         t1Rep,
         serialize(t1Rep),
         state,
-        {nthParam},
+        {nthParam, getFresh},
         fRep,
         fSig,
         xSig,
@@ -1804,10 +1804,13 @@ const unifyMap = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 ******************************************************************************/
 
 
-const unifyPoly = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
-  [t2Sig, state.nthTvar] = fresh(t2Sig, state.nthTvar);
-  t2Rep = deserialize(t2Sig);
-  return constrain(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons);
+const unifyPoly = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons) => {
+  if (getFresh) {
+    [t2Sig, state.nthTvar] = fresh(t2Sig, state.nthTvar);
+    t2Rep = deserialize(t2Sig);
+  }
+
+  return constrain(t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons);
 };
 
 
@@ -1816,7 +1819,7 @@ const unifyPoly = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xS
 ******************************************************************************/
 
 
-const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
@@ -1841,7 +1844,7 @@ const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xS
     }
 
     case "PolyT": {
-      return constrain(t2Rep, t2Sig, t1Rep, t1Sig, state, {nthParam}, fRep, fSig, xSig, cons);
+      return constrain(t2Rep, t2Sig, t1Rep, t1Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons);
     }
 
     case "PrimT": {
@@ -1872,7 +1875,7 @@ const unifyPrim = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xS
 ******************************************************************************/
 
 
-const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
@@ -1926,7 +1929,7 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
           t2Rep.children[keys2.get(k)].v,
           serialize(t2Rep.children[keys2.get(k)].v),
           state,
-          {nthParam},
+          {nthParam, getFresh},
           fRep,
           fSig,
           xSig,
@@ -1970,7 +1973,7 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
             EmptyT,
             "",
             state,
-            {nthParam},
+            {nthParam, getFresh},
             fRep,
             fSig,
             xSig,
@@ -1985,7 +1988,7 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
             rowRep,
             serialize(rowRep),
             state,
-            {nthParam},
+            {nthParam, getFresh},
             fRep,
             fSig,
             xSig,
@@ -1998,7 +2001,7 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
     }
 
     case "PolyT": {
-      return constrain(t2Rep, t2Sig, t1Rep, t1Sig, state, {nthParam}, fRep, fSig, xSig, cons);
+      return constrain(t2Rep, t2Sig, t1Rep, t1Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons);
     }
   }
 };
@@ -2009,7 +2012,7 @@ const unifyRec = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 ******************************************************************************/
 
 
-const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons) => {
   switch (t2Rep.constructor.name) {
     case "AdtT":
     case "ArrT":
@@ -2041,7 +2044,7 @@ const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
         t1Rep,
         serialize(t1Rep),
         state,
-        {nthParam},
+        {nthParam, getFresh},
         fRep,
         fSig,
         xSig,
@@ -2070,7 +2073,7 @@ const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
           t2Rep.children[n],
           serialize(t2Rep.children[n]),
           state,
-          {nthParam},
+          {nthParam, getFresh},
           fRep,
           fSig,
           xSig,
@@ -2085,11 +2088,11 @@ const unifyTup = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSi
 
 
 /******************************************************************************
-*****[ 6.10. Map Constraints ]*************************************************
+*****[ 6.10. Define Constraints ]**********************************************
 ******************************************************************************/
 
 
-const constrain = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xSig, cons) => {
+const constrain = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep, fSig, xSig, cons) => {
   let kRep, kSig, vRep, vSig;
 
   if (mgu(t1Rep, t2Rep) === LESS_GEN) {
@@ -2109,17 +2112,36 @@ const constrain = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam}, fRep, fSig, xS
   kSig = kSig.replace(/\([a-z0-9_]+ :: /, "(");
   vSig = vSig.replace(/\([a-z0-9_]+ :: /, "(");
 
+  // variant a ~ b, a ~ c
+  // but not a ~ b, a ~ b
   if (state.constraints.has(kSig)) {
-    const vSig_ = state.constraints.get(kSig),
-      vRep_ = deserialize(vSig_);
+    const vSig_ = state.constraints.get(kSig);
 
-    if (vSig !== vSig_) {
-      return unify(vRep_, vSig_, vRep, vSig, state, {nthParam}, fRep, fSig, xSig, cons);
+    if (vSig_ !== vSig) {
+      return unify(deserialize(vSig_), vSig_, vRep, vSig, state, {nthParam, getFresh: false}, fRep, fSig, xSig, cons);
     }
   }
 
   else {
     state.constraints.set(kSig, vSig);
+    
+    // variant a ~ c, b ~ c
+    // but not a ~ c, a ~ c
+    state.constraints.forEach((vSig_, kSig_) => {
+      if (vSig_ === vSig && kSig_ !== kSig) {
+        return unify(deserialize(kSig_), kSig_, kRep, kSig, state, {nthParam, getFresh: false}, fRep, fSig, xSig, cons);
+      }
+    });
+
+    // variant a ~ b, c ~ a
+    // but not a ~ b, b ~ a
+    if (state.constraints.has(vSig)) {
+      const vSig_ = state.constraints.get(vSig);
+
+      if (vSig_ !== kSig) {
+        return unify(deserialize(vSig_), vSig_, kRep, kSig, state, {nthParam, getFresh: false}, fRep, fSig, xSig, cons);
+      }
+    }
   }
 
   occurs(state, nthParam, fRep, fSig, xSig, cons);
@@ -2657,7 +2679,7 @@ const handleFun = (fRep, fSig, state) => {
             deserialize(tSig),
             tSig,
             state,
-            {nthParam: null},
+            {nthParam: null, getFresh: true},
             fRep,
             fSig,
             tSig,
@@ -2681,7 +2703,7 @@ const handleFun = (fRep, fSig, state) => {
             deserialize(tSig),
             tSig,
             state,
-            {nthParam: null},
+            {nthParam: null, getFresh: true},
             fRep,
             fSig,
             tSig,
@@ -2702,7 +2724,7 @@ const handleFun = (fRep, fSig, state) => {
           deserialize(rSig),
           rSig,
           state,
-          {nthParam: null},
+          {nthParam: null, getFresh: true},
           fRep,
           fSig,
           rSig,
