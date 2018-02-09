@@ -107,7 +107,7 @@ For common types like `Array` and `Record` ftor restricts the possibilty of muta
 - [ ] reject impredicative types (instantiation of rank-2 type at a polytype)
 - [ ] incorporate subsumption rule (considering co-/contra-variance phenomenon)
 - [ ] add section from CPS to Scott encoding to readme
-- [ ] add section dynamic types, which may allow type system extensions like this variadic compostion type: `... (c -> d) -> (b -> c) -> (a -> b)`
+- [ ] allow type system extensions through CONSTRAINED dynamic types (e.g. variadic compostion: `... (c -> d) -> (b -> c) -> (a -> b)`)
 - [ ] provide common functional combinators/patterns
 - [ ] revise error messages and underlyning
 - [ ] pretty print unified types
