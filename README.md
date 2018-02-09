@@ -42,7 +42,7 @@ This is the not yet completed proof that a Haskell-like runtime type checker for
 * parametric polymorphism
 * row polymorphism
 * rank-2 polymorphism
-* Scott encoded algebraic data types
+* CPS and Scott encoded ADTs
 * homogeneous Arrays and Maps
 * Tuples and Records
 * type hints

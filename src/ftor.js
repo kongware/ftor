@@ -4266,7 +4266,6 @@ newtype Reader e a = Reader {runReader :: forall r. ((e -> a) -> r) -> r }
 reader f = Reader (\k -> k (f))
 r = reader (\n -> n + 1)
 runReader r id
-runReader' r = runReader r id
 runReader' = flip runReader id
 */
 
