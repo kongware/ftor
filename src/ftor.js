@@ -2989,8 +2989,8 @@ export const Type = (Tcons, tSig, caseSig) => Dcons => {
 };
 
 
-export const Type1 = (Tcons, tSig, fSig) => Dcons => {
-  const Type1 = Dcons => {
+export const Data1 = (Tcons, tSig, fSig) => Dcons => {
+  const Data1 = Dcons => {
     if (types) {
       if (getStringTag(Tcons) !== "Function") _throw(
         ExtendedTypeError,
@@ -3086,7 +3086,7 @@ export const Type1 = (Tcons, tSig, fSig) => Dcons => {
   }
 
   if (type) {
-    const f = Dcons(Type1),
+    const f = Dcons(Data1),
       dataRep = deserialize(fSig).children[0].value;
 
     dataRep.name = Tcons.name;
@@ -3097,7 +3097,7 @@ export const Type1 = (Tcons, tSig, fSig) => Dcons => {
     return Data(serialize(dataRep), f);
   }
 
-  else return Dcons(Type1);
+  else return Dcons(Data1);
 };
 
 
@@ -4247,7 +4247,7 @@ export const tap = Fun(
 ******************************************************************************/
 
 
-export const Reader = Type1(
+export const Reader = Data1(
   function Reader() {},
   "Reader<e, a>",
   "(((e -> a) -> r) -> r)"

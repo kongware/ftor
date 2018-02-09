@@ -102,17 +102,15 @@ Currently ftor neither supports iterators, generators nor promises. The former t
 
 For common types like `Array` and `Record` ftor restricts the possibilty of mutation rather than imposing strict immutability. Algebraic data types on the other hand are immutable and other functional data types like `Tries` will follow.
 
-## Upcoming Milestones
+## Feature Requests
 
-I currently work on the typed functional library.
-
-- [ ] fix automatically derived but incorrect ADT type annotation
 - [ ] reject impredicative types (instantiation of rank-2 type at a polytype)
 - [ ] incorporate subsumption rule (considering co-/contra-variance phenomenon)
 - [ ] add section from CPS to Scott encoding to readme
 - [ ] add section dynamic types, which may allow type system extensions like this variadic compostion type: `... (c -> d) -> (b -> c) -> (a -> b)`
 - [ ] provide common functional combinators/patterns
-- [ ] revise error messages and pretty printing
+- [ ] revise error messages and underlyning
+- [ ] pretty print unified types
 - [ ] add unit tests
 - [ ] incorporate kind system/higher kinded types
 - [ ] replace monolithic parser with functional parser combinators
