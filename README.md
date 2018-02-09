@@ -770,7 +770,7 @@ Scott encoding entails somewhat scary type signatures. However, you can deduce t
 The `Reader` type is a common algebraic data type with a single data constructor:
 
 ```Javascript
-const Reader = Type1(
+const Reader = Data1(
   function Reader() {},
   "Reader<e, a>",
   "(((e -> a) -> r) -> r)"
@@ -793,10 +793,10 @@ The applicative and monad instance of `Reader` is much more useful, but for the 
 
 ### Product Types
 
-Products are also created with the `Type1` constructor:
+Products are also created with the `Data1` constructor:
 
 ```Javascript
-const Foo = Type1(
+const Foo = Data1(
   function Foo() {},
   "Foo<>",
   "((Number -> String -> Boolean -> r) -> r)"
