@@ -2117,6 +2117,10 @@ const constrain = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep
   if (state.constraints.has(kSig)) {
     const vSig_ = state.constraints.get(kSig);
 
+    if (mgu(vRep, deserialize(vSig_)) === LESS_GEN) {
+      state.constraints.set(kSig, vSig);
+    }
+
     if (vSig_ !== vSig) {
       return unify(deserialize(vSig_), vSig_, vRep, vSig, state, {nthParam, getFresh: false}, fRep, fSig, xSig, cons);
     }
