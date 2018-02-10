@@ -20,7 +20,7 @@ Version 0.9.20 (unstable)
 **Please note:** This repo is experimental and still work in progress.
 <br><br>
 
-ftor will need at least another six month to reach a more stable status (as of Feb., 2018). It has a great impact on the way Javascript is encoded, but there are no best practices yet, so many conceptual details may still change.
+ftor will need at least another six month to reach a more stable status (as of Feb., 2018). It has a great impact on the way Javascript is encoded, but there are no best practices yet, so conceptual details may still change.
 
 ## What
 
@@ -34,7 +34,7 @@ Programming in an untyped environment sucks.
 
 ## Goal
 
-This is the not yet completed proof that a Haskell-like runtime type checker for Javascript is actually useful, not just for learning purposes but for production.
+This is the still unfinished proof that a Haskell-like runtime type checker for Javascript is actually useful, not just for learning purposes but also for production.
 
 ## Features
 
@@ -42,19 +42,19 @@ This is the not yet completed proof that a Haskell-like runtime type checker for
 * parametric polymorphism
 * row polymorphism
 * rank-2 polymorphism
-* CPS and Scott encoded ADTs
+* type-safe ADTs
+* Scott encoded sum types including functional pattern matching
+* newtype for single constructor, single field types
 * homogeneous Arrays and Maps
-* Tuples and Records
-* type hints
+* real Tuples and Records
+* type hints for partially applied combinators
 * strict type evaluation
 
 ## Limitations
 
-ftor doesn't infere the types for every single expression and statement in your code. It simply combines explicit type annotations for functions and Javascript's introspection capabilities to unify types of arbitrary complex function expressions.
+ftor doesn't infere the types of each and every expression and statement in your code. It simply combines explicit type annotations of functions and Javascript's introspection capabilities to unify types of arbitrary complex function expressions.
 
-Writing explicit type annotations is laborious and requires a mature sense for types and their corresponding implementations. Therefore the real power of ftor's type system will arise from the combination with a typed functional library. Consumers of this lib can focus on composing typed functions instead of worrying about type definitions all the time.
-
-This library with dozens of functional combinators and type classes is yet to be developed...
+Writing explicit type annotations is laborious and requires a mature sense for types and their corresponding implementations. Therefore the real power of ftor's type system will arise from the combination with a typed functional library. Consumers of this library can focus on composing typed functions and combinators instead of worrying about type definitions all the time.
 
 ## Differences to _Flow_ and _TypeScript_
 
@@ -67,7 +67,7 @@ This library with dozens of functional combinators and type classes is yet to be
 
 ## Pluggable
 
-ftor doesn't have a compiler that erases type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint as soon as it is not enabled.
+ftor doesn't have a compiler that erases type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint as soon as it is disabled.
 
 You may be worried now that your packages become bloated with useless additional information. However, most of this extra bytes consists of type annotations whose self-documenting character you will probably appriciate quickly.
 
@@ -76,15 +76,12 @@ Enabling the type checker is as easy as setting a flag:
 ```Javascript
 import * as F from ".../ftor.js";
 
-// typed area;
-
+// type checker is enabled by default
 F.type(false);
-
-// untyped area
 ```
 ## Type Classes
 
-Why doesn't ftor ship with type classes? They are just not a good fit for a pluggable runtime type checker. ftor uses explicit type dictionary passing instead.
+Why doesn't ftor ship with type classes? Type classes require either a compilation step or must have access to the extended type information during runtime. ftor is a pluggable type checker and doesn't meet these requirements. For the time being it uses explicit type dictionary passing instead. In the medium term, however, I will try to define type classes as [explicit rank-2 types](https://stackoverflow.com/q/48720939). This first requires a proper kind system, though.
 
 ## Higher-Rank Polymorphism
 
@@ -92,11 +89,11 @@ ftor must support at least rank-2 polymorphism, because it is required by Scott 
 
 ## Interoperability
 
-Fantasy Land has done a great deal for the functional Javascript community. However, its focus on type classes based on the prototype system makes it quite difficult for me to be compliant. I am open for suggestions though!
+Fantasy Land has done a great deal for the functional Javascript community. However, its focus on type classes based on the prototype system makes it quite difficult for ftor to be compliant. Anyway, I am open for suggestions!
 
 ## Native Type Support
 
-Currently ftor neither supports iterators, generators nor promises. The former two are inherently stateful and hence not that functional, so I'll try to avoid them for the time being. If necessary, it should not be too difficult to type them, though. Promises on the other hand are very hard to type, because they are optimized for an untyped environment and contain a lof of magic to allow a convinient usage. Moreover, they conflate different tasks like asynchronous control flow and error handling. It is very likely that ftor won't support them ever, but will provide a wrapper to adapt promises to a purely functional Future type.
+Currently ftor neither supports `Iterator`s, `Generator`s nor `Promise`s. The former two are inherently stateful and hence not particularly functional, so you'd try to avoid them anyway. `Promise`s on the other hand are very hard to type, because they are optimized for an untyped environment and to be convenient for programmers that are unfamiliar with monadic computations. It is very likely that ftor won't support them ever, but will provide a corresponding wrapper.
 
 ## Immutability
 
@@ -117,6 +114,7 @@ For common types like `Array` and `Record` ftor restricts the possibilty of muta
 - [ ] add homogeneous Set type
 - [ ] incorporate a special effect type / corresponding runtime
 - [ ] add persistant data structures
+- [ ] mimick type classes with explicit rank-2 types
 
 # Types
 
@@ -204,7 +202,7 @@ Boolean received
     at Object.apply (<anonymous>:1680:22)
     at <anonymous>:1:1
 ```
-Please not that both clarity and pretty printing of error messages is quite bugy right now and will be revised any time soon.
+Please not that both error messages themselves and their pretty printing is quite bad at the moment and will be revised any time soon.
 
 ### Strict Function Call Arity
 
@@ -393,7 +391,7 @@ Even though `ap` merely accepts unary functions it can handle function arguments
 
 ### Parametricity
 
-<a href="https://en.wikipedia.org/wiki/Parametricity">Parametricity</a> is a property of parametric polymorphism that prevents polymorphic functions from knowing anything about the types of their arguments or return values. In return you get the ability to deduce or at least narrow down a function's behavior just from its type signature. To enforce parametricity a type checker must analyze your entire code at compile time. Since ftor isn't a static type checker it can't preclude polymorphic functions that violate this property:
+<a href="https://en.wikipedia.org/wiki/Parametricity">Parametricity</a> is a property of parametric polymorphism that prevents polymorphic functions from knowing anything about the types of their arguments or return values. In return you get the ability to deduce or at least narrow down a function's behavior just from its type signature. To enforce parametricity a type checker must analyze the  entire function body at compile time. Since ftor isn't a static type checker it can't preclude pseudo-polymorphic functions violating this property:
 
 ```Javascript
 const append = Fun(
@@ -761,67 +759,37 @@ snd(t); // "foo"
 ```
 ## Algebraic Data Types
 
-ADTs allow you to declare sums of products, that is you can declare sum types (aka tagged unions), product types and any combination of them. ftor uses Scott encoding to express ADTs in Javascript. Along with record types we can take advantage of functional pattern matching and have the guarantee that always all cases are supplied.
+ADTs allow you to declare sums of products, that is you can declare sum types (aka tagged unions), product types and any combination of them. ftor uses Scott encoding to express sum types in Javascript and plain old Javascript objects for single constructor/field types.
 
-Scott encoding entails somewhat scary type signatures. However, you can deduce them in a rather mechanical way, because their types have a recurring structure across different ADTs.
+Scott encoding entails somewhat scary type signatures. However, you can deduce them in a rather mechanical way, because their types have a recurring structure across different ADTs. Scott encoding is definitly worth the price, because it enables functional pattern matching.
 
-### Single Constructor
+### Single Constructor/Field Types
 
-The `Reader` type is a common algebraic data type with a single data constructor:
+The `Reader` type is a common algebraic data type with a single data constructor and field. It uses the simple `Data1` constructor:
 
 ```Javascript
 const Reader = Data1(
-  function Reader() {},
-  "Reader<e, a>",
-  "(((e -> a) -> r) -> r)"
-) (Reader => f => Reader(x => f(x)));
+  function Reader() {}, "run",
+  "(Reader :: (e -> a) -> Reader<e, a>)"
+) (Reader => f => Reader(f));
 
-
-export const runReader = Fun(
-  "(runReader :: Reader<e, a> -> ((e -> a) -> r) -> r)",
-  tf => k => tf.run(k)
+const runReader = Fun(
+  "(runReader :: Reader<e, a> -> e -> a)",
+  tf => x => tf.run(x)
 );
 
 const tf = Reader(inc);
 
-runReader(tf) (id) (5); // 6
-runReader(tf) (id) ("foo"); // type error
+tf[TS]; // "Reader<Number, Number>"
 
-// TODO: add runReader helper to get rid of id
+runReader(tf) (5); // 6
+runReader(tf) ("foo"); // type error
 ```
-The applicative and monad instance of `Reader` is much more useful, but for the sake of simplicity I'll leave it at that.
-
-### Product Types
-
-Products are also created with the `Data1` constructor:
-
-```Javascript
-const Foo = Data1(
-  function Foo() {},
-  "Foo<>",
-  "((Number -> String -> Boolean -> r) -> r)"
-) (Foo => x => y => z => Foo(_case => _case(x) (y) (z)));
-
-const runFoo = Fun(
-  "(runFoo :: (Number -> String -> Boolean -> r) -> Foo<> -> r)",
-  x => tx => tx.run(x)
-);
-
-const foo = Foo(123) ("foo") (true),
- bar = Foo(123) ("foo") (null); // type error
-
-const uc = Fun(
-  "(uc :: Number -> String -> Boolean -> String)",
-  x => y => z => y.toUpperCase()
-);
-
-runFoo(uc) (foo); // "FOO"
-```
-In addition to a curried constructor there will be alternative versions that accept a tuple or a record as argument.
+In case you're wondering, the applicative and monad instance of the `Reader` type is much more useful.
 
 ### Sum Types
 
-The `Option` type is well-suited for learning polymorphic sums. Sum types are constructed with the `Type` constructor and the corresponding data constructors with `Data`:
+The `Option` type is a simple sum type. It is constructed with `Type` and `Data`, which are the type and data constructor respectively. As opposed to `Reader` sum types are based on Scott encoding:
 
 ```Javascript
 const Option = Type(
@@ -910,4 +878,3 @@ Moreover, `List` is a recursive data type. You can easily define recursive and e
 
 - [ ] Explore issues caused by ftor's use of proxies with regard to object identity
 - [ ] Note that creating dependencies to ftor's pluggable type system is bad
-- [ ] Explain the lack of bounded polymorphism (type classes)
