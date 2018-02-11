@@ -50,9 +50,11 @@ This is the still unfinished proof that a Haskell-like runtime type checker for 
 * type hints for partially applied combinators
 * strict type evaluation
 
-## Limitations
+## Impact and Limitations
 
-ftor doesn't infere the types of each and every expression and statement in your code. It simply combines explicit type annotations of functions and Javascript's introspection capabilities to unify types of arbitrary complex function expressions.
+As most dynamically typed languages Javascript has the capability to introspect types at runtime. With functions, however, this only works to a very limited extent, because there is only a single `Function` type. To infer the type of a function we would have to parse and evaluate its entire body. Since Javascript allows side effects not only at `;` but literally everywhere, this would be a pretty hopeless endeavor.
+
+As an unfortunate consequence we have to type functions manually so that the type checker can combine them with automatically introspected types. This way ftor is able to unify arbitrary complex function expressions.
 
 Writing explicit type annotations is laborious and requires a mature sense for types and their corresponding implementations. Therefore the real power of ftor's type system will arise from the combination with a typed functional library. Consumers of this library can focus on composing typed functions and combinators instead of worrying about type definitions all the time.
 
