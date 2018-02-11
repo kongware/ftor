@@ -2122,20 +2122,18 @@ const constrain = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep
     }
 
     if (vSig_ !== vSig) {
-      return unify(deserialize(vSig_), vSig_, vRep, vSig, state, {nthParam, getFresh: false}, fRep, fSig, xSig, cons);
+      if (!state.constraints.has(vSig_)
+      || state.constraints.get(vSig_) !== vSig) {
+        if (!state.constraints.has(vSig)
+        || state.constraints.get(vSig) !== vSig_) {
+          return unify(deserialize(vSig_), vSig_, vRep, vSig, state, {nthParam, getFresh: false}, fRep, fSig, xSig, cons);
+        }
+      }
     }
   }
 
   else {
     state.constraints.set(kSig, vSig);
-    
-    // variant a ~ c, b ~ c
-    // but not a ~ c, a ~ c
-    state.constraints.forEach((vSig_, kSig_) => {
-      if (vSig_ === vSig && kSig_ !== kSig) {
-        return unify(deserialize(kSig_), kSig_, kRep, kSig, state, {nthParam, getFresh: false}, fRep, fSig, xSig, cons);
-      }
-    });
 
     // variant a ~ b, c ~ a
     // but not a ~ b, b ~ a
@@ -2143,9 +2141,23 @@ const constrain = (t1Rep, t1Sig, t2Rep, t2Sig, state, {nthParam, getFresh}, fRep
       const vSig_ = state.constraints.get(vSig);
 
       if (vSig_ !== kSig) {
-        return unify(deserialize(vSig_), vSig_, kRep, kSig, state, {nthParam, getFresh: false}, fRep, fSig, xSig, cons);
+        if (!state.constraints.has(vSig_)
+        || state.constraints.get(vSig_) !== kSig) {
+          if (!state.constraints.has(kSig)
+          || state.constraints.get(kSig) !== vSig_) {
+            return unify(deserialize(vSig_), vSig_, kRep, kSig, state, {nthParam, getFresh: false}, fRep, fSig, xSig, cons);
+          }
+        }
       }
     }
+    
+    // variant a ~ c, b ~ c
+    // but not a ~ c, a ~ c
+    state.constraints.forEach((v, k) => {
+      if (v === vSig && k !== kSig) {
+        return unify(deserialize(k), k, kRep, kSig, state, {nthParam, getFresh: false}, fRep, fSig, xSig, cons);
+      }
+    });
   }
 
   occurs(state, nthParam, fRep, fSig, xSig, cons);
