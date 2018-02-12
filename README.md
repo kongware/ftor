@@ -87,6 +87,10 @@ F.type(false);
 
 Why doesn't ftor ship with type classes? Type classes require either a compilation step or must have access to the extended type information during runtime. ftor is a pluggable type checker and doesn't meet these requirements. For the time being it uses explicit type dictionary passing instead. In the medium term, however, I will try to define type classes as [explicit rank-2 types](https://stackoverflow.com/q/48720939). This first requires a proper kind system, though.
 
+## Higher Order Types
+
+ftor won't support higher order types for two reasons. It would make the type checker far more complex because it requires a kind system and several adaptions to the parser and the typing rules. More importantly, it would greatly increase the mental burden of users. In my opinion higher-order types are an abstraction that makes type systems hard to comprehend and confusing for beginners. As a consequence of renouncing higher order types, you cannot express the general functor or monad type with ftor, but only the specialized forms. I think, however, that this is a reasonable trade-off.
+
 ## Higher-Rank Polymorphism
 
 ftor must support at least rank-2 polymorphism, because it is required by Scott encoded algebraic data types. The implementation is a bit sloppy, though, because the type checker implicitly assumes higher-rank types when respective unbound type variables occur on the left side of an arrow. I posted a [question](https://stackoverflow.com/q/48225570) on stackoverflow, whether explicit qunatifiers are necessary or not.
@@ -113,7 +117,6 @@ For common types like `Array` and `Record` ftor restricts the possibilty of muta
 - [ ] revise error messages and underlyning
 - [ ] pretty print unified types
 - [ ] add unit tests
-- [ ] incorporate kind system/higher kinded types
 - [ ] replace monolithic parser with functional parser combinators
 - [ ] add homogeneous Set type
 - [ ] incorporate a special effect type / corresponding runtime
