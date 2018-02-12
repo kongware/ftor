@@ -85,11 +85,11 @@ F.type(false);
 ```
 ## Type Classes
 
-Why doesn't ftor ship with type classes? Type classes require either a compilation step or must have access to the extended type information during runtime. ftor is a pluggable type checker and doesn't meet these requirements. For the time being it uses explicit type dictionary passing instead. In the medium term, however, I will try to define type classes as [explicit rank-2 types](https://stackoverflow.com/q/48720939). This first requires a proper kind system, though.
+Why is ftor not shipped with type classes? Because they require either a compilation step or the runtime must have access to all type information to dynamically dispatch the right type class. ftor is a pluggable type checker and doesn't meet these requirements. It uses explicit type dictionary passing instead, which allow multiple type classes per type. Abandoning the singleton property may be burden or a relief - this depends on the problem you're trying to solve.
 
 ## Higher Order Types
 
-ftor won't support higher order types for two reasons. It would make the type checker far more complex because it requires a kind system and several adaptions to the parser and the typing rules. More importantly, it would greatly increase the mental burden of users. In my opinion higher-order types are an abstraction that makes type systems hard to comprehend and confusing for beginners. As a consequence of renouncing higher order types, you cannot express the general functor or monad type with ftor, but only the specialized forms. I think, however, that this is a reasonable trade-off.
+ftor won't support higher order types for two reasons. It would make the type checker far more complex because it requires a kind system and several adaptions to the parser and the typing rules. More importantly, it would greatly increase the mental burden of users. In my opinion higher-order types are exactly the abstraction that makes type systems hard to comprehend and confusing for beginners. As a consequence of renouncing higher order types, you cannot express the general functor or monad type with ftor, but only the specialized forms. I think, however, that this is a reasonable trade-off.
 
 ## Higher-Rank Polymorphism
 
