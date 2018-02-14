@@ -82,7 +82,20 @@ Functional languages based on the the Hindley-Milner type system like Haskell in
 id :: a -> b
 id x = x -- type error, infers a -> a
 ```
-Since ftor doesn't conduct type inference, it needs an additional proof that a type annotation is at least valid, that is the type is inhabited, because corresponding implementations exists. This proof doesn't include a guarantee that an explicit type annotation matches the associated implementation, though. Only the developer is responsible for this.
+Since ftor doesn't conduct type inference, it needs an additional proof that a type annotation is at least valid, that is the type is inhabited, because corresponding implementations exist. This proof doesn't include a guarantee that an explicit type annotation matches the associated implementation, though. Only the developer is responsible for this:
+
+```Javascript
+const id = Fun(
+  "(id :: a -> b)",
+  x => x
+); // type error
+
+const id_ = Fun(
+  "(id :: a -> a)",
+  x => y => x
+); // type checks
+```
+`id_` type checks even though its implementation is of different type, namely `a -> b -> a`.
 
 ## Differences to _Flow_ and _TypeScript_
 
