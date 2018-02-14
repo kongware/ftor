@@ -76,7 +76,7 @@ Another extensive consequence is that everything must be expressed with a functi
 
 ## Invalid Type Signatures
 
-Functional languages based on the the Hindley-Milner type system like Haskell infer the type of a function and if an explict type annotation is given, unify both. In doing so the inferred type must be at least as polymorphic than the explicit one, otherwise the function declaration is rejected:
+Functional languages based on the the Hindley-Milner type system like Haskell infer the type of a function and if an explict type annotation is given, unify both. In doing so the inferred type must be at least as polymorphic as the explicit one, otherwise the function declaration is rejected:
 
 ```Haskell
 id :: a -> b
