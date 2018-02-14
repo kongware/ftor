@@ -50,6 +50,20 @@ This is the still unfinished proof that a Haskell-like runtime type checker for 
 * type hints for partially applied combinators
 * strict type evaluation
 
+## Pluggable
+
+ftor doesn't have a compiler that erases type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint as soon as it is disabled.
+
+You may be worried now that your packages become bloated with useless additional information. However, most of this extra bytes consists of type annotations whose self-documenting character you will probably appriciate quickly.
+
+Enabling the type checker is as easy as setting a flag:
+
+```Javascript
+import * as F from ".../ftor.js";
+
+// type checker is enabled by default
+F.type(false);
+```
 ## Impact and Limitations
 
 As most dynamically typed languages Javascript has the capability to introspect types at runtime. With functions, however, this only works to a very limited extent, because there is only a single `Function` type. To infer the type of a function we would have to parse and evaluate its entire body. Since Javascript allows side effects not only at `;` but literally everywhere, this would be a pretty hopeless endeavor.
@@ -69,20 +83,16 @@ Another extensive consequence is that everything must be expressed with a functi
 <sub><sup>1</sup>also known as static duck typing</sub><br>
 <sub><sup>2</sup>Nominal typing means that types are distinguished by name rather than by structure</sub>
 
-## Pluggable
+## Invalid Type Signatures
 
-ftor doesn't have a compiler that erases type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint as soon as it is disabled.
+Functional languages based on the the Hindley-Milner type system like Haskell infer the type of a function and if an explict type annotation is given, unify both. In doing so the inferred type must be at least as polymorphic than the explicit one, otherwise the function declaration is rejected:
 
-You may be worried now that your packages become bloated with useless additional information. However, most of this extra bytes consists of type annotations whose self-documenting character you will probably appriciate quickly.
-
-Enabling the type checker is as easy as setting a flag:
-
-```Javascript
-import * as F from ".../ftor.js";
-
-// type checker is enabled by default
-F.type(false);
+```Haskell
+id :: a -> b
+id x = x -- type error, infers a -> a
 ```
+Since ftor doesn't conduct type inference, it needs an additional proof that a type annotation is at least valid, that is the type is inhabited, because corresponding implementations exists. This proof doesn't include a guarantee that an explicit type annotation matches its implementation, though. Only the developer is responsible for this.
+
 ## Type Classes
 
 Why is ftor not shipped with type classes? Because they require either a compilation step or the runtime must have access to all type information to dynamically dispatch the right type class. ftor is a pluggable type checker and doesn't meet these requirements. It uses explicit type dictionary passing instead, which allow multiple type classes per type. Abandoning the singleton property may be burden or a relief - this depends on the problem you're trying to solve.
@@ -90,10 +100,6 @@ Why is ftor not shipped with type classes? Because they require either a compila
 ## Higher Order Types
 
 ftor won't support higher order types for two reasons. It would make the type checker far more complex because it requires a kind system and several adaptions to the parser and the typing rules. More importantly, it would greatly increase the mental burden of users. In my opinion higher-order types are exactly the abstraction that makes type systems hard to comprehend and confusing for beginners. As a consequence of renouncing higher order types, you cannot express the general functor or monad type with ftor, but only the specialized forms. I think, however, that this is a reasonable trade-off.
-
-## Higher-Rank Polymorphism
-
-ftor must support at least rank-2 polymorphism, because it is required by Scott encoded algebraic data types. The implementation is a bit sloppy, though, because the type checker implicitly assumes higher-rank types when respective unbound type variables occur on the left side of an arrow. I posted a [question](https://stackoverflow.com/q/48225570) on stackoverflow, whether explicit qunatifiers are necessary or not.
 
 ## Interoperability
 
@@ -107,12 +113,13 @@ Currently ftor neither supports `Iterator`s, `Generator`s nor `Promise`s. The fo
 
 For common types like `Array` and `Record` ftor restricts the possibilty of mutation rather than imposing strict immutability. Algebraic data types on the other hand are immutable and other functional data types like `Tries` will follow.
 
-## Feature Requests
+## Upcoming Features
 
+- [ ] incorporate a tautoligy check for explicit type signatures
+- [ ] allow type system extensions through CONSTRAINED dynamic types (e.g. variadic compostion: `... (c -> d) -> (b -> c) -> (a -> b)`)
 - [ ] reject impredicative types (instantiation of rank-2 type at a polytype)
 - [ ] incorporate subsumption rule (considering co-/contra-variance phenomenon)
 - [ ] add section from CPS to Scott encoding to readme
-- [ ] allow type system extensions through CONSTRAINED dynamic types (e.g. variadic compostion: `... (c -> d) -> (b -> c) -> (a -> b)`)
 - [ ] provide common functional combinators/patterns
 - [ ] revise error messages and underlyning
 - [ ] pretty print unified types
