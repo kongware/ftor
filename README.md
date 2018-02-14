@@ -95,7 +95,7 @@ const id_ = Fun(
   x => y => x
 ); // type checks
 ```
-`id_` type checks even though its implementation is of different type, namely `a -> b -> a`.
+`id_` type checks even though its implementation is of different type, namely `a -> b -> a`. Yes, this is the major drawback - we still get a lot of type safety, so it is totally worth it.
 
 ## Differences to _Flow_ and _TypeScript_
 
