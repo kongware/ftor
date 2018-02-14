@@ -74,15 +74,6 @@ Writing explicit type annotations is laborious and requires a mature sense for t
 
 Another extensive consequence is that everything must be expressed with a function. Javascript's native operators, for instance, are replaced with the corresponding functional counterparts or loops by recursion. Before you know it, you're knee-deep in the functional paradigm.
 
-## Differences to _Flow_ and _TypeScript_
-
-* ftor focuses on parametric and row polymorphism<sup>1</sup> and doesn't support subtyping
-* it mainly relies on nominal instead of structural typing<sup>2</sup>
-* it is designed to facilitate purely functional programming
-
-<sub><sup>1</sup>also known as static duck typing</sub><br>
-<sub><sup>2</sup>Nominal typing means that types are distinguished by name rather than by structure</sub>
-
 ## Invalid Type Signatures
 
 Functional languages based on the the Hindley-Milner type system like Haskell infer the type of a function and if an explict type annotation is given, unify both. In doing so the inferred type must be at least as polymorphic than the explicit one, otherwise the function declaration is rejected:
@@ -92,6 +83,15 @@ id :: a -> b
 id x = x -- type error, infers a -> a
 ```
 Since ftor doesn't conduct type inference, it needs an additional proof that a type annotation is at least valid, that is the type is inhabited, because corresponding implementations exists. This proof doesn't include a guarantee that an explicit type annotation matches its implementation, though. Only the developer is responsible for this.
+
+## Differences to _Flow_ and _TypeScript_
+
+* ftor focuses on parametric and row polymorphism<sup>1</sup> and doesn't support subtyping
+* it mainly relies on nominal instead of structural typing<sup>2</sup>
+* it is designed to facilitate purely functional programming
+
+<sub><sup>1</sup>also known as static duck typing</sub><br>
+<sub><sup>2</sup>Nominal typing means that types are distinguished by name rather than by structure</sub>
 
 ## Type Classes
 
