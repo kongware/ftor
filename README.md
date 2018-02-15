@@ -52,7 +52,7 @@ This is the still unfinished proof that a Haskell-like runtime type validator fo
 * type hints for partially applied combinators
 * strict type evaluation
 
-<sub><sup>1<sup>rank-n polymorphism for data constructors (ADTs) and function types may be implemented in a future version.</sub>
+<sub><sup>1</sup>rank-n polymorphism for data constructors (ADTs) and function types may be implemented in a future version.</sub>
 ## Pluggable
 
 A runtime type validator is useful during development but unwanted in production use. It is therefore crucial to be able to deactivate the validator on demand:
