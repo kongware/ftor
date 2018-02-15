@@ -76,6 +76,8 @@ If you want to benefit from types you must avoid imperative constructs and nativ
 
 As already mentioned you are responsible to define correct function types that match their corresponding implementations. ftor supports you in this process by verifying the plausibility of type annotations. The following types are rejected, because their is no implementation satisfying it:
 
+[Please note: This feature isn't implemented yet, because it depends on a rather complex logical tautology check. Please bear with me!]
+
 ```Javascript
 const id = Fun(
   "(id :: a -> b)",
