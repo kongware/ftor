@@ -52,7 +52,7 @@ This is the still unfinished proof that a Haskell-like runtime type validator fo
 * type hints for partially applied combinators
 * strict type evaluation
 
-<sub><sup>1</sup>implicit means that there are no explicit universal quantifiers</sub>
+<sub><sup>1</sup>implicit means that there are no explicit universal quantifiers</sub><br>
 <sub><sup>2</sup>rank-n polymorphism for data constructors (ADTs) and function types may be implemented in a future version.</sub>
 ## Pluggable
 
