@@ -43,7 +43,7 @@ This is the still unfinished proof that a Haskell-like runtime type validator fo
 * pluggable through proxy virtualization
 * parametric polymorphism
 * row polymorphism
-* rank-2 polymorphism
+* rank-2 polymorphic ADTs<sup>1</sup>
 * type-safe ADTs
 * Scott encoded sum types including functional pattern matching
 * newtype for single constructor, single field types
@@ -52,6 +52,7 @@ This is the still unfinished proof that a Haskell-like runtime type validator fo
 * type hints for partially applied combinators
 * strict type evaluation
 
+<sub><sup>1<sup>rank-n polymorphism for data constructors (ADTs) and function types may be implemented in a future version.</sub>
 ## Pluggable
 
 A runtime type validator is useful during development but unwanted in production use. It is therefore crucial to be able to deactivate the validator on demand:
