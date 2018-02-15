@@ -24,9 +24,11 @@ ftor will need at least another six month to reach a more stable status (as of F
 
 ## What
 
-ftor enables ML-like type-directed, functional programming with Javascript including reasonable debugging. In essence, it consists of a runtime type system and a functional programming library building upon it.
+ftor enables ML-like type-directed, functional programming with Javascript including reasonable debugging. In essence it consists of an extended runtime type system, a type validator and a typed functional programming library.
 
-There is a separated API [documentation](https://github.com/kongware/ftor/blob/master/LIBRARY.md) (under construction) for the typed functional library.
+As opposed to a type checker, a type validator requires explicit type signatures and assumes that they are correct. As soon as typed functions are called, it validates and unifies them to new types.
+
+Regarding the library a separated API [documentation](https://github.com/kongware/ftor/blob/master/LIBRARY.md) is available, but still under construction.
 
 ## Why
 
@@ -34,7 +36,7 @@ Programming in an untyped environment sucks.
 
 ## Goal
 
-This is the still unfinished proof that a Haskell-like runtime type checker for Javascript is actually useful, not just for learning purposes but also for production.
+This is the still unfinished proof that a Haskell-like runtime type validator for Javascript is actually useful, not just for learning purposes but also for production.
 
 ## Features
 
@@ -52,37 +54,27 @@ This is the still unfinished proof that a Haskell-like runtime type checker for 
 
 ## Pluggable
 
-ftor doesn't have a compiler that erases type information from your code base during compilation. Instead your code remains as-is and you can simply disable the type system when you don't need it anymore. To ensure good performance, the type checker is designed to have a small footprint as soon as it is disabled.
-
-You may be worried now that your packages become bloated with useless additional information. However, most of this extra bytes consists of type annotations whose self-documenting character you will probably appriciate quickly.
-
-Enabling the type checker is as easy as setting a flag:
+A runtime type validator is useful during development but unwanted in production use. It is therefore crucial to be able to deactivate the validator on demand:
 
 ```Javascript
 import * as F from ".../ftor.js";
 
-// type checker is enabled by default
+// type validator is enabled by default
 F.type(false);
 ```
+As a result you must not create dependencies to the extended type system.
+
 ## Impact and Limitations
 
-As most dynamically typed languages Javascript has the capability to introspect types at runtime. With functions, however, this only works to a very limited extent, because there is only a single `Function` type. To infer the type of a function we would have to parse and evaluate its entire body. Since Javascript allows side effects not only at `;` but literally everywhere, this would be a pretty hopeless endeavor.
+Javascript is not able to introspect function types and since ftor doesn't conduct type inference, we need to type functions manually, so that the type validator can combine them with automatically introspected types. This way ftor is able to unify types of arbitrarily complex function expressions. However, as mentioned before the validator assumes correct initial function types. It is solely the responsibility of the developer that type signatures match their implementations.
 
-As an unfortunate consequence we have to type functions manually so that the type checker can combine them with automatically introspected types. This way ftor is able to unify types of arbitrarily complex function expressions.
+Writing explicit type annotations is laborious and requires a mature sense for types and their corresponding implementations. Hence the real power of ftor's type system will arise from the interaction with a typed functional library. Users of this library can focus on composing typed functions and combinators and the type validator deduces intermediate types automatically.
 
-Writing explicit type annotations is laborious and requires a mature sense for types and their corresponding implementations. Therefore the real power of ftor's type system will arise from the combination with a typed functional library. Consumers of this library can focus on composing typed functions and combinators instead of worrying about type definitions all the time.
-
-Another extensive consequence is that everything must be expressed with a function. Javascript's native operators, for instance, are replaced with the corresponding functional counterparts or loops by recursion. Before you know it, you're knee-deep in the functional paradigm.
+If you want to benefit from types you must avoid imperative constructs and native operators, because they remain untyped. Please note that the functional paradigm as a corresponding functional idiom for each imparative one, that is you don't lose anything but gain type-safety, referential transparency and thus equational reasoning.
 
 ## Invalid Type Signatures
 
-Functional languages based on the the Hindley-Milner type system like Haskell infer the type of a function and if an explict type annotation is given, unify both. In doing so the inferred type must be at least as polymorphic as the explicit one, otherwise the function declaration is rejected:
-
-```Haskell
-id :: a -> b
-id x = x -- type error, infers a -> a
-```
-Since ftor doesn't conduct type inference, it needs an additional proof that a type annotation is at least valid, that is the type is inhabited, because corresponding implementations exist. This proof doesn't include a guarantee that an explicit type annotation matches the associated implementation, though. Only the developer is responsible for this:
+As already mentioned you are responsible to define correct function types that match their corresponding implementations. ftor supports you in this process by verifying the plausibility of type annotations. The following types are rejected, because their is no implementation satisfying it:
 
 ```Javascript
 const id = Fun(
@@ -91,15 +83,16 @@ const id = Fun(
 ); // type error
 
 const id_ = Fun(
-  "(id :: a -> a)",
-  x => y => x
-); // type checks
+  "(id :: (a -> b) -> a -> c)",
+  x => f => f(x)
+); // type error
 ```
-`id_` type checks even though its implementation is of different type, namely `a -> b -> a`. Yes, this is the major drawback - we still get a lot of type safety, so it is totally worth it.
+These types are uninhabited and hence rejected.
 
 ## Differences to _Flow_ and _TypeScript_
 
-* ftor focuses on parametric and row polymorphism<sup>1</sup> and doesn't support subtyping
+* ftor is a type validator not a type checker
+* it focuses on parametric and row polymorphism<sup>1</sup> and doesn't support subtyping
 * it mainly relies on nominal instead of structural typing<sup>2</sup>
 * it is designed to facilitate purely functional programming
 
@@ -108,19 +101,27 @@ const id_ = Fun(
 
 ## Type Classes
 
-Why is ftor not shipped with type classes? Because they require either a compilation step or the runtime must have access to all type information to dynamically dispatch the right type class. ftor is a pluggable type checker and doesn't meet these requirements. It uses explicit type dictionary passing instead, which allow multiple type classes per type. Abandoning the singleton property may be burden or a relief - this depends on the problem you're trying to solve.
+Type classes either require a compilation step or the runtime must have continuous access to the extended type information to conduct dynamic type class dispatching. As a pluggable type validator ftor doesn't meet these requirements and consequently cannot support type classes. It uses explicit type dictionary passing instead, which allow multiple type classes per type. Abandoning the singleton property may be burden or a relief - this depends on the problem you're trying to solve.
 
 ## Higher Order Types
 
-ftor won't support higher order types for two reasons. It would make the type checker far more complex because it requires a kind system and several adaptions to the parser and the typing rules. More importantly, it would greatly increase the mental burden of users. In my opinion higher-order types are exactly the abstraction that makes type systems hard to comprehend and confusing for beginners. As a consequence of renouncing higher order types, you cannot express the general functor or monad type with ftor, but only the specialized forms. I think, however, that this is a reasonable trade-off.
+ftor doesn't support higher order types yet.
 
 ## Interoperability
 
-Fantasy Land has done a great deal for the functional Javascript community. However, its focus on type classes based on the prototype system makes it quite difficult for ftor to be compliant. Anyway, I am open for suggestions!
+Fantasy Land has done a great deal to spread the functional paradigm in the Javascript community. However, its focus on type classes based on the prototype system isn't compliant with ftor's approach.
 
 ## Native Type Support
 
-Currently ftor neither supports `Iterator`s, `Generator`s nor `Promise`s. The former two are inherently stateful and hence not particularly functional, so you'd try to avoid them anyway. `Promise`s on the other hand are very hard to type, because they are optimized for an untyped environment and to be convenient for programmers that are unfamiliar with monadic computations. It is very likely that ftor won't support them ever, but will provide a corresponding wrapper.
+ftor doesn't support the following native Javascript types, because they are inherently imperative:
+
+* `Promise`
+* `Iterartor`
+* `Generator`
+
+## Purity and Referential Transparency
+
+Javascript is inherently imperative and can perform side effects everywhere, not only at `;`. It is ultimately the responsibility of the developer to confinve themselves to pure functions. Pure functions can be replaced with their return values without altering the behavior of the program. This property is called referential transparency, which comes along with equational reasoning, another very desirable property.
 
 ## Immutability
 
@@ -186,7 +187,7 @@ add(2).name; // "add"
 
 A lot of people are concerned about the readability of the typical curry function call pattern (`fun(x) (y) (z)`). It is considered as less readable than calling multi-argument functions (`fun(x, y, z)`) and non-idiomatic in general.
 
-I find the criticism exaggerated and above all emotionally motivated. It is much more important that currying entails great benefits like partial application and abstraction over arity. Moreover it greatly simplyfies the design of the type checker.
+I find the criticism exaggerated and above all emotionally motivated. It is much more important that currying entails great benefits like partial application and abstraction over arity. Moreover it greatly simplyfies the design of the type validator.
 
 #### Performance
 
@@ -324,7 +325,7 @@ ap(toStr) (true); // type error
 ```
 ### Strict Evaluation
 
-The type checker immediately evaluates partially applied functions and is therefore able to throw type errors eagerly:
+The type validator immediately evaluates partially applied functions and is therefore able to throw type errors eagerly:
 
 ```Javascript
 const ap_ = Fun(
@@ -416,30 +417,6 @@ ap(k) ("foo") ("bar"); // "foo"
 ```
 Even though `ap` merely accepts unary functions it can handle function arguments of arbitrary arity.
 
-### Parametricity
-
-<a href="https://en.wikipedia.org/wiki/Parametricity">Parametricity</a> is a property of parametric polymorphism that prevents polymorphic functions from knowing anything about the types of their arguments or return values. In return you get the ability to deduce or at least narrow down a function's behavior just from its type signature. To enforce parametricity a type checker must analyze the  entire function body at compile time. Since ftor isn't a static type checker it can't preclude pseudo-polymorphic functions violating this property:
-
-```Javascript
-const append = Fun(
-  "(append :: a -> a -> a)",
-  x => y => {
-    switch (typeof x) {
-      case "string":
-      case "number": return x + y;
-      case "boolean": return x && y;
-      default: return null;
-    }
-  }
-);
-
-append(2) (3); // 5
-append("2") ("3"); // "23"
-append(true) (false); // false
-append({}) ({}); // type error (returns null instead of {})
-```
-As with purity it is ultimately your responsibility to maintain this property.
-
 ### Expressiveness
 
 I think that fixed-point combinators and anonymous recursion are good candidates for testing the expressiveness of a type system. I chose the simplified version of the `Y` combinator for this practice and since Javascript is a strictly evaluated language, I have to implement the eta-expanded version:
@@ -464,7 +441,7 @@ It took me a while to comprehend the type machinery in this case, so don't be di
 
 ### Construction
 
-You can create typed arrays with the `Arr` constructor. Unlike `Fun` you don't have to provide an explicit type signature but let the type checker introspect the type for you:
+You can create typed arrays with the `Arr` constructor. Unlike `Fun` you don't have to provide an explicit type signature but let the type validator introspect the type for you:
 
 ```Javascript
 const xs = Arr([1, 2, 3]);
