@@ -26,7 +26,7 @@ ftor will need at least another six month to reach a more stable status (as of F
 
 ftor enables ML-like type-directed, functional programming with Javascript including reasonable debugging. In essence it consists of an extended runtime type system, a type validator and a typed functional programming library.
 
-As opposed to a type checker, a type validator requires explicit type signatures and assumes that they are correct. As soon as typed functions are called, it validates and unifies them to new types.
+As opposed to a type checker, a type validator requires explicit function type signatures and assumes that they are correct for a given implementation. As soon as typed functions are called, it validates and unifies them to new types.
 
 Regarding the library a separated API [documentation](https://github.com/kongware/ftor/blob/master/LIBRARY.md) is available, but still under construction.
 
