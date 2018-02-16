@@ -43,7 +43,6 @@ This is the still unfinished proof that a Haskell-like runtime type validator fo
 * pluggable through proxy virtualization
 * parametric polymorphism
 * row polymorphism
-* implicit rank-2 polymorphic ADTs<sup>1/2</sup>
 * type-safe ADTs
 * Scott encoded sum types including functional pattern matching
 * newtype for single constructor, single field types
@@ -52,8 +51,6 @@ This is the still unfinished proof that a Haskell-like runtime type validator fo
 * type hints for partially applied combinators
 * strict type evaluation
 
-<sub><sup>1</sup>implicit means that there are no explicit universal quantifiers</sub><br>
-<sub><sup>2</sup>rank-n polymorphism for data constructors (ADTs) and function types may be implemented in a future version.</sub>
 ## Pluggable
 
 A runtime type validator is useful during development but unwanted in production use. It is therefore crucial to be able to deactivate the validator on demand:
@@ -107,9 +104,9 @@ These types are uninhabited and hence rejected.
 
 Type classes either require a compilation step or the runtime must have continuous access to the extended type information to conduct dynamic type class dispatching. As a pluggable type validator ftor doesn't meet these requirements and consequently cannot support type classes. It uses explicit type dictionary passing instead, which allow multiple type classes per type. Abandoning the singleton property may be burden or a relief - this depends on the problem you're trying to solve.
 
-## Higher Order Types
+## Higher Order and Higher Rank Types
 
-ftor doesn't support higher order types yet.
+ftor neither supports higher order nor higher rank types. I am not sure if such sophisticated type extensions make sense in the context of Javascript and type validation. Maybe sometime.
 
 ## Interoperability
 
@@ -135,8 +132,6 @@ For common types like `Array` and `Record` ftor restricts the possibilty of muta
 
 - [ ] incorporate a tautoligy check for explicit type signatures
 - [ ] allow type system extensions through CONSTRAINED dynamic types (e.g. variadic compostion: `... (c -> d) -> (b -> c) -> (a -> b)`)
-- [ ] reject impredicative types (instantiation of rank-2 type at a polytype)
-- [ ] incorporate subsumption rule (considering co-/contra-variance phenomenon)
 - [ ] add section from CPS to Scott encoding to readme
 - [ ] provide common functional combinators/patterns
 - [ ] revise error messages and underlyning
@@ -146,7 +141,6 @@ For common types like `Array` and `Record` ftor restricts the possibilty of muta
 - [ ] add homogeneous Set type
 - [ ] incorporate a special effect type / corresponding runtime
 - [ ] add persistant data structures
-- [ ] mimick type classes with explicit rank-2 types
 
 # Types
 
@@ -171,7 +165,7 @@ Please note that the name portion (`add :: `) in the signature is optional and u
 
 ftor relies on functions being pure<sup>1</sup> but cannot enfoce this characteristic in Javascript. There will be a special data type in the near future, with which effects can be expressed in such a pure environment.
 
-<sub><sup>1</sup>a function is pure if it is referential transparent</sub>
+<!-- <sub><sup>1</sup>a function is pure if it is referential transparent</sub> -->
 
 ### Curried Functions
 

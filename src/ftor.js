@@ -158,7 +158,7 @@ const introspect = x => {
                   sigs.length > 3
                     ? sigs.slice(0, 3).join(", ").concat("...")
                     : sigs.join(", "),
-                  {desc: [`${s.zize} pairs of different type received`]}
+                  {desc: [`${s.size} pairs of different type received`]}
                 );
               }
             }
@@ -3104,6 +3104,7 @@ export const Data1 = (Tcons, prop, consSig) => Dcons => {
     );
 
     const tvars_ = tSig.match(/\b[a-z]\b/g) || [],
+      consVars = consSig.match(/\b[a-z]\b/g),
       tvars = new Set(tvars_);
 
     if (tvars_.length !== tvars.size) _throw(
@@ -3113,17 +3114,12 @@ export const Data1 = (Tcons, prop, consSig) => Dcons => {
       {desc: ["type variables must be unique"]}
     );
 
-    const rank1 = new Set(U(f => r => {
-      const s = r.replace(/\([^()]+\)/g, "");
-      return s === r ? s : f(f) (s);
-    }) (consSig).match(/\b[a-z]\b/g));
-
-    rank1.forEach(r1 => {
-      if (!tvars.has(r1)) _throw(
+    consVars.forEach(tvar => {
+      if (!tvars.has(tvar)) _throw(
         ExtendedTypeError,
         [`invalid type signature`],
         TconsSig,
-        {desc: [`"${r1}" is out of scope`]}
+        {desc: [`"${tvar}" is out of scope`]}
       );
     });
 
@@ -3265,12 +3261,52 @@ export const Arr = xs => {
     const tSig = introspect(xs),
       tRep = deserialize(tSig);
 
-    if (tRep.tag === "Tup") _throw(
-      ExtendedTypeError,
-      ["Arr expects homogeneous Array"],
-      tSig,
-      {desc: [`${tRep.children.length} elements of different type received`]}
-    );
+    if (tRep.tag === "Tup") {
+      const childRep = tRep.children[0];
+      if ("name" in childRep) childRep.name = "";
+
+      const state = unify(
+        childRep,
+        serialize(childRep),
+        tRep.children[1],
+        serialize(tRep.children[1]),
+        {
+          nthCall: 0,
+          nthTvar: 0,
+          constraints: new Map(),
+          sigLog: []
+        },
+        {nthParam: null, getFresh: true},
+        tRep,
+        tSig,
+        null,
+        ExtendedTypeError
+      );
+
+      const [tRep_, tSig_] = substitute(serialize(tRep.children[0]), state.constraints);
+
+      if (tRep.children.length > 2) {
+        tRep.children.froEach(childRep => unify(
+          tRep_,
+          tSig_,
+          childRep,
+          serialize(childRep),
+          {
+            nthCall: 0,
+            nthTvar: 0,
+            constraints: new Map(),
+            sigLog: []
+          },
+          {nthParam: null, getFresh: true},
+          tRep,
+          tSig,
+          null,
+          ExtendedTypeError
+        ));
+      }
+
+      return new Proxy(xs, handleArr(deserialize(`[${tSig_}]`), `[${tSig_}]`));
+    }
 
     return new Proxy(xs, handleArr(tRep, tSig));
   }
@@ -3444,17 +3480,87 @@ export const _Map = map => {
 
     else if (TR in map) return map;
 
-    const tSig = introspect(map),
-      tRep = deserialize(tSig);
+    let tSig = "";
 
-    if (tRep.children.length > 1) _throw(
-      ExtendedTypeError,
-      ["_Map expects homogeneous Map"],
-      tSig,
-      {desc: [`${tRep.children.length} pairs of different type received`]}
-    );
+    try {
+      tSig = introspect(map);
+    }
 
-    return new Proxy(map, handleMap(tRep, tSig));
+    catch (_) {
+      const ix = entries(map),
+        [kSig1, vSig1] = ix.next().value
+        .map(x => introspect(x)),
+        [kSig2, vSig2] = ix.next().value
+        .map(x => introspect(x));
+
+      if (kSig1 !== kSig2) _throw(
+        ExtendedTypeError,
+        ["_Map expects homogeneous Map"],
+        `{${kSig1}::${vSig1}}`,
+        {desc: ["inhomogeneous in keys"]}
+      );
+
+      const vRep = deserialize(vSig1);
+      if ("name" in vRep) vRep.name = "";
+
+      const kSig = kSig1,
+        vSig = serialize(vRep);
+
+      const state = unify(
+        deserialize(vSig),
+        vSig,
+        deserialize(vSig2),
+        vSig2,
+        {
+          nthCall: 0,
+          nthTvar: 0,
+          constraints: new Map(),
+          sigLog: []
+        },
+        {nthParam: null, getFresh: true},
+        deserialize(`{${kSig}::${vSig}}`),
+        `{${kSig}::${vSig}}`,
+        null,
+        ExtendedTypeError
+      );
+
+      const [tRep, tSig] = substitute(vSig, state.constraints);
+
+      for (let [k, v] of ix) {
+        const kSig_ = introspect(k),
+          vSig_ = introspect(v);
+
+        if (kSig_ !== kSig) _throw(
+          ExtendedTypeError,
+          ["_Map expects homogeneous Map"],
+          `{${kSig}::${vSig}}`,
+          {desc: ["inhomogeneous in keys"]}
+        );
+
+        unify(
+          tRep,
+          tSig,
+          deserialize(vSig_),
+          vSig_,
+          {
+            nthCall: 0,
+            nthTvar: 0,
+            constraints: new Map(),
+            sigLog: []
+          },
+          {nthParam: null, getFresh: true},
+          deserialize(`{${kSig}::${vSig}}`),
+          `{${kSig}::${vSig}}`,
+          null,
+          ExtendedTypeError
+        );
+      }
+
+      const tSig_ = `{${kSig}::${tSig}}`
+      return new Proxy(map, handleMap(deserialize(tSig_), tSig_));
+    }
+
+    return new Proxy(map, handleMap(deserialize(tSig), tSig));
   }
 
   else return map;
@@ -4079,6 +4185,36 @@ const last = xs => xs[xs.length - 1];
 
 
 const U = f => f(f);
+
+
+function* keys(ix) {
+  for (let k of ix) yield k;  
+}
+
+
+function* values(ix) {
+  for (let v of ix) yield v;
+}
+
+
+function* entries(ix) {
+  for (let kv of ix) yield kv;
+}
+
+
+function* okeys(o) {
+  for (let k in o) yield k;  
+}
+
+
+function* ovalues(o) {
+  for (let v in o) yield v;
+}
+
+
+function* oentries(o) {
+  for (let k in o) yield [k, o[k]];
+}
 
 
 /******************************************************************************
