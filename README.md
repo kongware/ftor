@@ -17,7 +17,8 @@ MM88MMM  MM88MMM  ,adPPYba,   8b,dPPYba,
 
 Version 0.9.20 (unstable)
 
-**Please note:** This project is abandoned. The experience gained has been incorporated into [scriptum](https://github.com/kongware/scriptum).
+**Please note:** The experience gained from this project has resulted in a completely new approach: [scriptum](https://github.com/kongware/scriptum).
+
 <br><br>
 
 ftor will need at least another six month to reach a more stable status (as of Feb., 2018). It has a great impact on the way Javascript is encoded, but there are no best practices yet, so conceptual details may still change.
