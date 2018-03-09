@@ -70,7 +70,7 @@ Javascript is not able to introspect function types and since ftor doesn't condu
 
 Writing explicit type annotations is laborious and requires a mature sense for types and their corresponding implementations. Hence the real power of ftor's type system will arise from the interaction with a typed functional library. Users of this library can focus on composing typed functions and combinators and the type validator deduces intermediate types automatically.
 
-If you want to benefit from types you must avoid imperative constructs and native operators, because they remain untyped. Please note that the functional paradigm as a corresponding functional idiom for each imparative one, that is you don't lose anything but gain type-safety, referential transparency and thus equational reasoning.
+If you want to benefit from types you must avoid imperative constructs and native operators, because they remain untyped. Please note that the functional paradigm has a corresponding functional idiom for each imparative one, that is you don't lose anything but gain type-safety, referential transparency and thus equational reasoning.
 
 ## Invalid Type Signatures
 
@@ -103,7 +103,7 @@ These types are uninhabited and hence rejected.
 
 ## Type Classes
 
-Type classes either require a compilation step or the runtime must have continuous access to the extended type information to conduct dynamic type class dispatching. As a pluggable type validator ftor doesn't meet these requirements and consequently cannot support type classes. It uses explicit type dictionary passing instead, which allow multiple type classes per type. Abandoning the singleton property may be burden or a relief - this depends on the problem you're trying to solve.
+Type classes either require a compilation step or the runtime must have continuous access to the extended type information to conduct dynamic type class dispatching. As a pluggable type validator ftor doesn't meet these requirements and consequently cannot support type classes. It uses explicit type dictionary passing instead, which allow multiple type classes per type. Abandoning the singleton property may be a burden or a relief - this depends on the problem you're trying to solve.
 
 ## Higher Order and Higher Rank Types
 
@@ -118,7 +118,7 @@ Fantasy Land has done a great deal to spread the functional paradigm in the Java
 ftor doesn't support the following native Javascript types, because they are inherently imperative:
 
 * `Promise`
-* `Iterartor`
+* `Iterator`
 * `Generator`
 
 ## Purity and Referential Transparency
@@ -135,7 +135,7 @@ For common types like `Array` and `Record` ftor restricts the possibilty of muta
 - [ ] allow type system extensions through CONSTRAINED dynamic types (e.g. variadic compostion: `... (c -> d) -> (b -> c) -> (a -> b)`)
 - [ ] add section from CPS to Scott encoding to readme
 - [ ] provide common functional combinators/patterns
-- [ ] revise error messages and underlyning
+- [ ] revise error messages and underlining
 - [ ] pretty print unified types
 - [ ] add unit tests
 - [ ] replace monolithic parser with functional parser combinators
@@ -612,7 +612,7 @@ Since typed records share a lot of properties with typed arrays, I am going to f
 
 ### Construction
 
-Use the `Rec` constructor and pass it a plain old Javascript object as argument to cronstruct a typed record:
+Use the `Rec` constructor and pass it a plain old Javascript object as argument to construct a typed record:
 
 ```Javascript
 const r = Rec("{foo: "abc", bar: 123}");
@@ -642,7 +642,7 @@ r.foo = true; // type error
 ```
 ### Duck Typing
 
-Since record types are sealed and you should know your types in the typed environemnt provided by ftor, there is no need for duck typing in conjunction with typed records. In fact, ftor raises an type error for any corresponding attempt:
+Since record types are sealed and you should know your types in the typed environment provided by ftor, there is no need for duck typing in conjunction with typed records. In fact, ftor raises an type error for any corresponding attempt:
 
 ```Javascript
 const r = Rec("{foo: "abc", bar: 123}");
@@ -681,7 +681,7 @@ As you can see typed records require exact type matches. That is, of course, int
 
 ### Row Polymorphism
 
-Forunately, with row polymorphism there is a property that offers more flexibility:
+Fortunately, with row polymorphism there is a property that offers more flexibility:
 
 ```Javascript
 const showName = Fun(
